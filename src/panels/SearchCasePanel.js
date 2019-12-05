@@ -3,6 +3,7 @@ import {Pagination, Input, Grid, Checkbox, Button} from 'semantic-ui-react'
 import MainList from '../components/MainList'
 import '../css/dataPanel.css'
 import axios from 'axios';
+import Statistics from '../components/Statistics'
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'
 
@@ -113,6 +114,13 @@ export class SearchPanel extends Component {
             <div>
 
             <Grid>
+                <Grid.Row className="banner">
+                        <Grid.Column width={2}></Grid.Column>
+                        <Grid.Column width={12}>
+                            <Statistics/>
+                        </Grid.Column>
+                        <Grid.Column width={2}></Grid.Column>
+                </Grid.Row>
                 <Grid.Row className="data-content">
                     <Grid.Column width={2}></Grid.Column>
 
