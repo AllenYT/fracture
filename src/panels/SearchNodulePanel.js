@@ -16,6 +16,7 @@ let idx=0//labels内部索引
 let nums={'恶性':0,'良性':0,'钙化':0,'毛刺':0,'分叶':0,'磨玻璃':0,'diameter':0}//限制labels数量
 let diaMeters=-1//保留直径所在labels位置
 
+
 export class SearchNodulePanel extends Component {
     constructor(props){
         super(props)
@@ -316,7 +317,7 @@ export class SearchNodulePanel extends Component {
     render(){
         const lists = this.state.lists
         // console.log(typeof(0.*10))
-        for (const idx in lists){ 
+        for (const idx in lists){
             // console.log('idx:',lists[idx])
             for(const idxx in lists[idx]){
                 if(idxx === 'volume'){
@@ -465,8 +466,9 @@ export class SearchNodulePanel extends Component {
                     <Grid.Row >
                         <Grid.Column width={2}></Grid.Column>
                         <Grid.Column width={12} id="container">
-                            <Table celled inverted textAlign='center' fixed color='grey'>
-                                <Table.Header>
+                            <div style={{minHeight:590}}>
+                            <Table celled inverted textAlign='center' fixed id='table'>
+                                <Table.Header id='table-header'>
                                     <Table.Row>
                                         <Table.HeaderCell>结节体积(cm³)</Table.HeaderCell>
                                         <Table.HeaderCell>毛刺</Table.HeaderCell>
@@ -514,6 +516,7 @@ export class SearchNodulePanel extends Component {
                                     
                                 </Table.Body>
                             </Table>
+                            </div>
                             <div className="pagination-component">
                                 <Pagination
                                     id="pagination"
@@ -521,9 +524,10 @@ export class SearchNodulePanel extends Component {
                                     activePage={this.state.activePage}
                                     totalPages={this.state.totalPage}/>
                             </div>
-                        </Grid.Column>
+                            </Grid.Column>
+                            
                         <Grid.Column width={2}></Grid.Column>
-                    </Grid.Row>
+                    </Grid.Row> 
                 </Grid>
         </div>
             
