@@ -1,0 +1,25 @@
+
+.ui.tab.active, .ui.tab.open {
+    display: block;
+    border: none;
+    background: none;
+}
+
+.ui.attached.segment {
+    border: none;
+}
+
+.ui.attached.tabular.menu {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+    border: none;
+}
+
+.ui.bottom.attached.segment.active.tab {
+    border: none;
+}
+
+a.active.item {
+    border-bottom: 2px solid white;
+}

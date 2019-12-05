@@ -1,0 +1,60 @@
+#main {
+    min-height: 1200px;
+}
+#content {
+    background: url(../images/app-bg.jpg) repeat;
+}
+
+
+#logout-menu {
+    min-width: 100px;
+    margin-top: 10px;
+}
+
+.footer {
+    margin-top: 130px;
+}
+
+#bg-img{
+    background-image: url(../images/logo.jpg);
+}
+
+/* .banner {
+    background-image: url(../images/app-bg.jpg);
+} */
+
+.banner {
+    background-color: #030419;
+}
+
+.inline{
+     display: inline-block;
+    margin-left: 60px;
+    color:#66cfec;
+    font-size: 1.4em;
+    /* float: left;  */
+}
+
+#img-size{
+    width:50px;
+    height:40px;
+}
+
+#header {
+    background-color: #02182f;
+}
+
+#header > a.item {
+    background-color: transparent !important;
+    color: #66cfec !important;
+    font-size: 1.2em;
+}
+
+#header > a.item:hover {
+    border-color: white;
+}
+
+.invisible-login-button {
+    visibility: hidden;
+}
+

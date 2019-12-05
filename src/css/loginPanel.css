@@ -1,0 +1,116 @@
+body {
+    background-color: black;
+}
+
+#total{
+    margin-top: 200px;
+    border: 1px solid #313131;
+}
+#login-container {
+    /* margin-top: 200px; */
+    position: relative;
+    /* display: flex; */
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    background: url(../images/app-bg.jpg) center center/cover no-repeat;
+}
+
+#login-panel {
+    border: 1px solid #080e13;
+    border-radius: 5px;
+    /* border-top: 1px solid #d8dee2; */
+    font-size: 14px;
+    padding: 30px;
+    background-image: url(../images/app-bg.jpg);
+}
+
+#login-btn {
+    text-align: center;
+    margin-top: 50px;
+}
+
+#login-btn1 {
+    color: black;
+    background-color: #2af270;
+}
+
+.login-header {
+    text-align: center;
+    margin-bottom: 30px;
+    color:white;
+}
+
+.input-field {
+    padding: 10px 25px;
+    /* background-color: #091121; */
+}
+
+.left-bg{
+    background: linear-gradient(to right,#59f1d8,#2af270);
+    margin-left: 150px;
+}
+#input-textBox {
+    background-color: #091121;
+    color:white;
+}
+
+.ui.icon.input>i.icon {
+    color: #2af270;
+}
+
+#left-align1{
+    margin-top: 80px;
+    text-align: center;
+    font-size: large;
+}
+#left-align2{
+    margin-top: 80px;
+    text-align: center;
+    font-size: 80px;
+}
+
+#bg-color1{
+    background-image:url(../images/app-bg.jpg);
+}
+
+.ui.checkbox label, .ui.checkbox+label {
+    color: #66cfec !important;
+    transition: color .1s ease;
+}
+
+.ui.checkbox .box, .ui.checkbox label{
+    font-size:1.2em !important;
+}
+
+/* .ui.checkbox input.hidden {
+    border-color: #2af270 !important;
+    background-color: black !important;
+} */
+
+.ui.menu .item{/*head*/
+    background-color: transparent !important;
+    /* border: 1px solid #2af270 !important; */
+     color:#66cfec !important;  
+}
+
+.ui.menu{
+    background-color:rgba(1, 23, 46, 0.997) !important;
+    border-radius: 0.1rem !important;
+    border-color: white; 
+}
+
+.ui.checkbox .box:before, .ui.checkbox label:before {
+    background: black !important;
+    border: 1px solid #2af270 !important;
+}
+
+.ui.checkbox input:checked~.box:after, .ui.checkbox input:checked~label:after {
+    color: #2af270 !important;
+}
+
+.ui.slider.checkbox input:focus:checked~.box:before, .ui.slider.checkbox input:focus:checked~label:before {
+    background-color: black !important;
+}

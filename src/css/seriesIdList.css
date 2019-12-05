@@ -1,0 +1,13 @@
+p {
+    display: inline-block;
+    font-size: 1.05em;
+}
+
+.sid {
+    margin-right: 10px;
+    margin-left: 10px;
+}
+
+.export{
+    display: inline-block;
+}

@@ -1,0 +1,69 @@
+.gridcontainer{
+    border: 0.1px solid #313131;
+    border-radius: 4px;
+    font-size: 1.2rem;
+}
+.gridRow{
+    border: 0.1px solid #313131;
+}
+.gridCategory{
+    color:#2af270;
+}
+
+.gridLabel{
+    color:#66cfec;
+}
+
+.conlabel{
+    margin-left: 10%;
+}
+
+.labelTags{
+    background-color: transparent !important;
+    color:#2af270 !important;
+    border: 0.5px solid #2af270 !important;
+    padding-left: 1.5rem !important;
+    font-size: small !important;
+}
+
+#container {
+    height: 700px;
+    
+   
+    margin-top: 40px; 
+    margin-bottom: 60px;
+    padding: 30px 20px;
+    background-image: url(../images/sidebar.png);
+    border: 1px solid #313131;
+    border-radius: 4px;
+    /* box-shadow: 0 1px 0 rgba(255, 255, 255, 0), 0 0 10px rgba(0, 0, 0, 0.1); */
+}
+
+.inputContainer{
+    display: flex !important;
+}
+
+#searchBox{
+    background: transparent !important;
+    color:whitesmoke !important;
+    border: 0.5px solid aliceblue;
+    border-radius: 4px;
+    width:100px;
+    height:30px;
+}
+
+em {
+    /* width: 60px; */
+    line-height: 30px;
+    color: #66cfec;
+    text-align: center;
+}
+
+.pagination-component {
+    position: absolute;
+    bottom: 0;
+    /* margin-top: 70px; */
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: center;
+}

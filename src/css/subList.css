@@ -1,0 +1,50 @@
+.display-right {
+    float: right;
+}
+
+.hint {
+    margin-bottom: 15px;
+    margin-right: 15px;
+    font-size: 1.15em;
+    color: #66cfec;
+    /* visibility: hidden; */
+}
+
+#subList-accordion {
+    background-color:rgba(1, 23, 46, 0.997) !important;
+    border-radius: 0.1rem !important;
+    border-color: white;
+    color: white;
+    max-height:300px; 
+    overflow-y:auto;
+}
+
+/* .overflow-scrolling {
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+} */
+
+/* #subList-accordion::-webkit-scrollbar-button{
+    color:rgba(1, 23, 46, 0.997) !important;
+} */
+
+#subList-accordion::-webkit-scrollbar-corner{
+    color:rgba(1, 23, 46, 0.997) !important;
+}
+
+#subList-accordion > div > .title {
+    color: #66cfec;
+}
+
+.space{
+    white-space: pre-wrap;
+    /* height:400px; */
+}
+
+.space td{
+    width:22.1%;
+}
+
+#output{
+    float:right;
+}

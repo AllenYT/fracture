@@ -1,0 +1,67 @@
+
+
+
+.card-list {
+    margin-top: 50px;
+    margin-bottom: 50px;
+    /* margin-left: 60px; */
+}
+
+.card-list > .sta-header {
+    margin-bottom: 30px;
+}
+
+.card-list > .grid > .row > .column > .ui.card {
+    background: transparent;
+    /* width: 600px; */
+    height: 250px;
+    background-image: url(../images/sidebar.png);
+}
+
+
+.card-list > .grid > .row > .column > .ui.card > .content {
+    flex-grow: unset;
+}
+
+.card-list > .grid > .row > .column > .ui.card > .content > .header {
+    color: white;
+}
+
+
+.card-list > .grid > .row > .column > .ui.card > .content > .description {
+    font-size: 2em;
+    font-weight: bold;
+    color: #66cfec;
+    padding-top: 0.35em;
+    padding-bottom: 0.35em;
+}
+
+
+/* #percentage > .description {
+    font-size: 2em;
+} */
+
+.sta-header{
+    color: white;
+    display: inline-block;
+    margin-right: 20px;
+}
+
+#percentage{
+    width: 80%;
+    margin-left: 30px;
+    height: 23px;
+    margin-top:60px;
+}
+
+#line{
+    position: relative;
+    margin-left:50px;
+    margin-top: -110px;
+}
+
+#mountNode{
+    position: relative;
+    margin-left:70px;
+    margin-top: -110px;
+}
