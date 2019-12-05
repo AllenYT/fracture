@@ -60,10 +60,20 @@ em {
 }
 
 .pagination-component {
-    position: absolute;
-    bottom: 0;
+    /* position: absolute;
+    bottom: 0; */
+    /* bottom: 5px; */
     /* margin-top: 70px; */
     margin-top: 20px;
     margin-bottom: 10px;
     text-align: center;
+}
+
+#table{
+    color:#66cfec;
+    background: transparent !important;
+}
+
+.ui.inverted.table th{
+    color:#2af270 !important;
 }

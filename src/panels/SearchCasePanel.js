@@ -144,7 +144,7 @@ export class SearchPanel extends Component {
                                     placeholder="检查时间"/>
                             </div>
 
-                            <div className="patientList">
+                            <div className="patientList" style={{minHeight:500}}>
                                 <MainList 
                                     type={type}
                                     currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
