@@ -1178,7 +1178,7 @@ const dv17 = new DataView();
           return item.point.type + ': ' + val;
         }
       })
-      .tooltip('type*percent', (item, value) => {
+      .tooltip('type*value', (item, value) => {
         return {
           name: item,
           value: value
