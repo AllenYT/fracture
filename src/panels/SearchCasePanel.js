@@ -113,6 +113,13 @@ export class SearchPanel extends Component {
             <div>
 
             <Grid>
+                <Grid.Row className="banner">
+                        <Grid.Column width={2}></Grid.Column>
+                        <Grid.Column width={12}>
+                            <Statistics/>
+                        </Grid.Column>
+                        <Grid.Column width={2}></Grid.Column>
+                </Grid.Row>
                 <Grid.Row className="data-content">
                     <Grid.Column width={2}></Grid.Column>
 

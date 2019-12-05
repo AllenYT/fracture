@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import {Pagination, Input, Grid, Checkbox, Button} from 'semantic-ui-react'
 import MainList from '../components/MainList'
 import Statistics from '../components/Statistics'
+import DataCockpit from '../panels/DataCockpit'
 import '../css/dataPanel.css'
 import axios from 'axios';
 import qs from 'qs'
@@ -119,8 +120,8 @@ class DataPanel extends Component {
 
         return (
             <div>
-
-                <Grid>
+                <DataCockpit/>
+                {/* <Grid>
                     <Grid.Row className="banner">
                         <Grid.Column width={2}></Grid.Column>
                         <Grid.Column width={12}>
@@ -128,7 +129,7 @@ class DataPanel extends Component {
                         </Grid.Column>
                         <Grid.Column width={2}></Grid.Column>
                     </Grid.Row>
-                    {/* <Grid.Row className="data-content">
+                    <Grid.Row className="data-content">
                         <Grid.Column width={2}></Grid.Column>
 
                         <Grid.Column width={12}>
@@ -178,8 +179,8 @@ class DataPanel extends Component {
                         </Grid.Column>
 
                         <Grid.Column width={2}></Grid.Column>
-                    </Grid.Row> */}
-                </Grid>
+                    </Grid.Row>
+                </Grid> */}
 
             </div>
         )
