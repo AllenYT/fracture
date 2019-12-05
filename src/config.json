@@ -8,7 +8,7 @@
         "get_session": "http://192.168.7.175:9902/user/getSessionUser/",
         "validUser": "http://192.168.7.175:9902/user/loginAction/",
         "signoutUser": "http://192.168.7.175:9902/user/signoutUser",
-        "get_sexData":"http://192.168.7.175:9902/user/getPatientSexRatio"
+        "get_sexData":" http://192.168.7.175:9902/patient/getPatientSexRatio"
     },
 
     "record": {
@@ -16,9 +16,7 @@
         "getSubList": "http://192.168.7.175:9902/record/getSubListForMainItem",
         "getPatientListForCond": "http://192.168.7.175:9902/record/getPatientListForCond",
         "getTotalPages": "http://192.168.7.175:9902/record/getTotalPages",
-        "getPatientInfo": "http://192.168.7.175:9902/record/getPatientInfo",
-        "filterNodules":"http://192.168.7.175:9902/nodule/filterNodules",
-        "getNodulesAtPage":"http://192.168.7.175:9902/nodule/getNodulesAtPage"
+        "getPatientInfo": "http://192.168.7.175:9902/record/getPatientInfo"
     },
 
     "draft": {
@@ -44,5 +42,20 @@
         "saveCart": "http://192.168.7.175:9902/cart/saveCart",
         "getCart": "http://192.168.7.175:9902/cart/getCart",
         "downloadCart": "http://192.168.7.175:9902/cart/downloadCart"
+    },
+
+    "nodule":{
+        "totalMalDist":"http://192.168.7.175:9902/nodule/totalMalDist",
+        "totalAgeDist":"http://192.168.7.175:9902/patient/totalAgeDist",
+        "totalDiameterDist":"http://192.168.7.175:9902/nodule/totalDiameterDist",
+        "characterDiameterDist":"http://192.168.7.175:9902/nodule/characterDiameterDist",
+        "nonSpiculationDiameterDist":"http://192.168.7.175:9902/nodule/nonSpiculationDiameterDist",
+        "nonCalcificationDiameterDist":"http://192.168.7.175:9902/nodule/nonCalcificationDiameterDist",
+        "nonLobulationDiameterDist":" http://192.168.7.175:9902/nodule/nonLobulationDiameterDist",
+        "nonTextureDiameterDist":"http://192.168.7.175:9902/nodule/nonTextureDiameterDist",
+        "spiculationMalDist":"http://192.168.7.175:9902/nodule/spiculationMalDist",
+        "calcificationMalDist":"http://192.168.7.175:9902/nodule/calcificationMalDist",
+        "lobulationMalDist":"http://192.168.7.175:9902/nodule/lobulationMalDist",
+        "textureMalDist":"http://192.168.7.175:9902/nodule/textureMalDist"
     }
 }
