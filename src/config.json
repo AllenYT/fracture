@@ -16,7 +16,10 @@
         "getSubList": "http://192.168.7.175:9902/record/getSubListForMainItem",
         "getPatientListForCond": "http://192.168.7.175:9902/record/getPatientListForCond",
         "getTotalPages": "http://192.168.7.175:9902/record/getTotalPages",
-        "getPatientInfo": "http://192.168.7.175:9902/record/getPatientInfo"
+        "getPatientInfo": "http://192.168.7.175:9902/record/getPatientInfo",
+        "filterNodules":"http://192.168.7.175:9902/nodule/filterNodules",
+        "getNodulesAtPage":"http://192.168.7.175:9902/nodule/getNodulesAtPage"
+
     },
 
     "draft": {
