@@ -103,8 +103,6 @@ class Statistics extends Component {
           localStorage.setItem('totalPatients', tp)
           localStorage.setItem('totalRecords', tr)
           localStorage.setItem('modelProgress', mp)
-          const fn = res.data.female
-          const mn = res.data.male
           const sd = res.data
           const sdj = JSON.stringify(sd) //JSON格式
           localStorage.setItem('sexData',sdj)
@@ -290,6 +288,7 @@ class Statistics extends Component {
         const totalPatients = this.state.totalPatients
         const totalRecords = this.state.totalRecords
         const progress = this.state.modelProgress
+        console.log("progress",progress)
         const progressValue= (progress||"").split('%')[0]
         const list = this.state.sexlist
         console.log('lists',list)
