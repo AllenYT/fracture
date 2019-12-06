@@ -120,7 +120,7 @@ var diaDistributionData = [{
   diameter: '0-3mm',
   value: 28
 }, {
-  type: 'GGO',
+  type: '磨玻璃',
   diameter: '0-3mm',
   value: 21
 }, {
@@ -136,7 +136,7 @@ var diaDistributionData = [{
   diameter: '3-5mm',
   value: 47
 }, {
-  type: 'GGO',
+  type: '磨玻璃',
   diameter: '3-5mm',
   value: 66
 }, {
@@ -152,7 +152,7 @@ var diaDistributionData = [{
   diameter: '5-8mm',
   value: 20
 }, {
-  type: 'GGO',
+  type: '磨玻璃',
   diameter: '5-8mm',
   value: 10
 }, {
@@ -168,7 +168,7 @@ var diaDistributionData = [{
   diameter: '8-30mm',
   value: 25
 }, {
-  type: 'GGO',
+  type: '磨玻璃',
   diameter: '8-30mm',
   value: 21
 },{
@@ -184,7 +184,7 @@ var diaDistributionData = [{
   diameter: '>=30mm',
   value: 25
 }, {
-  type: 'GGO',
+  type: '磨玻璃',
   diameter: '>=30mm',
   value: 2
 }]
@@ -245,7 +245,7 @@ var diaNonCalcifyData = [{
   }];
 
 var diaNonGGOData = [{
-  //非GGO直径分布
+  //实性直径分布
     type: '0-3 mm',
     value: 10,
   }, {
@@ -364,8 +364,9 @@ class DataCockpit extends Component {
         const ageTotalData1 = JSON.parse(ageD)
         const ageTotalchart = new G2.Chart({
             container: 'ageTotal',
-            forceFit: true,
+            forceFit: false,
             height: 240,
+            width:520,
             // width:100,
             padding: [30,'auto','auto','auto']
           });
@@ -402,7 +403,7 @@ class DataCockpit extends Component {
         var diaTotal2chart = new G2.Chart({
           container: 'ageTotal2',
           forceFit: false,
-          height: 210,
+          height: 220,
           width:520,
           padding: [35,20,35,20],
           animate:true
@@ -439,8 +440,9 @@ class DataCockpit extends Component {
         const diaTotalData1 = JSON.parse(DiaD)
         const diaTotalchart = new G2.Chart({
           container: 'diaTotal',
-          forceFit: true,
+          forceFit: false,
           height: 240,
+          width:520,
           // width:100,
           padding: [30,'auto','auto','auto']
         });
@@ -1191,7 +1193,7 @@ const dv17 = new DataView();
     diaNonCalcifyPie.render();
 
 
-  //形态学非GGO直径分布
+  //形态学实性直径分布
   document.getElementById('diaNonGGO').innerHTML=''
   const nonGGOD = this.state.nonTextureDiameterDist
   const diaNonGGOData1 = JSON.parse(nonGGOD)
@@ -1224,7 +1226,7 @@ const dv17 = new DataView();
   diaNonGGOchart.interval().position('type*value').opacity(1).label('value').color(['#3CB371']);
   diaNonGGOchart.render();
 
-//形态学非GGO直径分布饼图
+//形态学实性直径分布饼图
 document.getElementById('diaNonGGOPie').innerHTML=''
 const dv16 = new DataView();
   dv16.source(diaNonGGOData1).transform({
@@ -1518,10 +1520,10 @@ const dv16 = new DataView();
     componentDidUpdate(prevProps, prevState) {
       if (prevState.totalMalDist !== this.state.totalMalDist) {
           this.visualize()
-          document.getElementById('ageTotal2').style.display='none'
-          document.getElementById('diaTotal2').style.display='none'
-          document.getElementById('diabt2').style.display='none'
-          document.getElementById('agebt2').style.display='none'
+          document.getElementById('ageTotal').style.display='none'
+          document.getElementById('diaTotal').style.display='none'
+          document.getElementById('diabt1').style.display='none'
+          document.getElementById('agebt1').style.display='none'
           document.getElementById('glitchbt2').style.display='none'
           document.getElementById('diaGlitchPie').style.display='none'
           document.getElementById('diaSublobePie').style.display='none'
@@ -1542,10 +1544,10 @@ const dv16 = new DataView();
   }
     componentDidMount() {
         this.visualize()
-        document.getElementById('ageTotal2').style.display='none'
-        document.getElementById('diaTotal2').style.display='none'
-        document.getElementById('diabt2').style.display='none'
-        document.getElementById('agebt2').style.display='none'
+        document.getElementById('ageTotal').style.display='none'
+        document.getElementById('diaTotal').style.display='none'
+        document.getElementById('diabt1').style.display='none'
+        document.getElementById('agebt1').style.display='none'
         document.getElementById('glitchbt2').style.display='none'
         document.getElementById('diaGlitchPie').style.display='none'
         document.getElementById('diaSublobePie').style.display='none'
@@ -1633,7 +1635,7 @@ const dv16 = new DataView();
                         </Grid.Column>
                         <Grid.Column width={4}>
                           <div class='tit'>
-                            <h2 class='tit2'>GGO直径分布</h2>
+                            <h2 class='tit2'>磨玻璃直径分布</h2>
                             <div class='tit3' id='ggobt1'><Button icon onClick={this.typeChange} value='ggobar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                             <div class='tit3' id='ggobt2'><Button icon onClick={this.typeChange} value='ggopie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
                           </div>
@@ -1671,7 +1673,7 @@ const dv16 = new DataView();
                           </Grid.Column>
                           <Grid.Column width={4}>
                             <div class='tit'>
-                              <h2 class='tit2'>非GGO直径分布</h2>
+                              <h2 class='tit2'>实性直径分布</h2>
                               <div class='tit3' id='nonggobt1'><Button icon onClick={this.typeChange} value='nonggobar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                               <div class='tit3' id='nonggobt2'><Button icon onClick={this.typeChange} value='nonggopie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
                             </div>
@@ -1693,7 +1695,7 @@ const dv16 = new DataView();
                           <div id='maliCalcify'></div>
                         </Grid.Column>
                         <Grid.Column width={4}>
-                          <h2 class='tit2'>GGO良恶性分布</h2>
+                          <h2 class='tit2'>磨玻璃良恶性分布</h2>
                           <div id='maliGGO'></div>
                         </Grid.Column>
                       </Grid.Row>

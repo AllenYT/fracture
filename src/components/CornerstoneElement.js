@@ -24,9 +24,10 @@ cornerstoneTools.external.Hammer = Hammer
 const {Column, HeaderCell, Cell, Pagination} = Table;
 
 const divStyle = {
-    width: "512px",
+    width: "512px",//768px
     height: "512px",
     position: "relative",
+    margin:"auto",
     // display: "inline",
     color: "white"
 }
@@ -435,10 +436,10 @@ class CornerstoneElement extends Component {
             createDraftModal = (
                 <div>
                     <Modal
-                        trigger={<Button inverted color = 'blue' onClick = {
+                        trigger={<Button inverted style={{height:60,width:70}} color = 'blue' onClick = {
                         this.toNewModel
                     }
-                    style = {{marginRight:15+'px',marginLeft:155+'px',marginTop:15+'px'}} > 从新开始标注 </Button>}
+                    > 从新标注 </Button>}
                         size='tiny'
                         open={modalOpenNew}>
                         <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
@@ -455,37 +456,38 @@ class CornerstoneElement extends Component {
         else 
             createDraftModal = (
                 <div>
-                    <Modal
-                        trigger={<Button inverted color = 'blue' onClick = {
-                        this.toNewModel
-                    }
-                    style = {{marginRight:15+'px',marginLeft:100+'px',marginTop:15+'px'}} > 从新开始标注 </Button>}
-                        size='tiny'
-                        open={modalOpenNew}>
-                        <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
-                        <Modal.Content>
-                            <Button color='blue' style={modalBtnStyle} onClick={this.toMyAnno}>跳转至已有标注</Button>
-                            <Button color='blue' style={modalBtnStyle} onClick={this.clearthenNew}>清空现有标注并从头开始标注</Button>
-                        </Modal.Content>
-                        <Modal.Actions>
-                            <Button onClick={this.closeModalNew}>返回</Button>
-                        </Modal.Actions>
-                    </Modal>
-                    <Modal
-                        trigger={<Button inverted color = 'blue' onClick = {
-                        this.toCurrentModel
-                    } > 拷贝开始标注 </Button>}
-                        size='tiny'
-                        open={modalOpenCur}>
-                        <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
-                        <Modal.Content>
-                            <Button color='blue' style={modalBtnStyle} onClick={this.toMyAnno}>跳转至已有标注</Button>
-                            <Button color='blue' style={modalBtnStyle} onClick={this.clearthenFork}>清空现有标注并拷贝开始标注</Button>
-                        </Modal.Content>
-                        <Modal.Actions>
-                            <Button onClick={this.closeModalCur}>返回</Button>
-                        </Modal.Actions>
-                    </Modal>
+                        <Modal
+                            trigger={<Button inverted style={{height:60,width:70}} color = 'blue' onClick = {
+                            this.toNewModel 
+                        }
+                        > 从新标注 </Button>}
+                            size='tiny'
+                            open={modalOpenNew}>
+                            <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
+                            <Modal.Content>
+                                <Button color='blue' style={modalBtnStyle} onClick={this.toMyAnno}>跳转至已有标注</Button>
+                                <Button color='blue' style={modalBtnStyle} onClick={this.clearthenNew}>清空现有标注并从头开始标注</Button>
+                            </Modal.Content>
+                            <Modal.Actions>
+                                <Button onClick={this.closeModalNew}>返回</Button>
+                            </Modal.Actions>
+                        </Modal>
+                        <Modal
+                            trigger={<Button inverted style={{height:60,width:70}} color = 'blue' onClick = {
+                            this.toCurrentModel
+                        } > 拷贝标注 </Button>}
+                            size='tiny'
+                            open={modalOpenCur}>
+                            <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
+                            <Modal.Content>
+                                <Button color='blue' style={modalBtnStyle} onClick={this.toMyAnno}>跳转至已有标注</Button>
+                                <Button color='blue' style={modalBtnStyle} onClick={this.clearthenFork}>清空现有标注并拷贝开始标注</Button>
+                            </Modal.Content>
+                            <Modal.Actions>
+                                <Button onClick={this.closeModalCur}>返回</Button>
+                            </Modal.Actions>
+                        </Modal>
+                    
                 </div>
             )
 
@@ -571,12 +573,230 @@ class CornerstoneElement extends Component {
             if (this.state.readonly) {
                 return (
                     <div id="cornerstone">
+                        <div class='corner-header'>
+                            <Grid divided>
+                                <Grid.Row>
+                                    <Grid.Column>
+                                    <Button
+                                        inverted
+                                        icon
+                                        color='blue'
+                                        onClick={this.toPulmonary}
+                                        style={{width:50,height:60}}
+                                    ><Icon name='book'></Icon>肺窗</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                <Button
+                                    inverted
+                                    color='blue'
+                                    icon
+                                    onClick={this.toMedia}
+                                    style={{width:65,height:60}}
+                                    ><Icon name='book'></Icon><br/>纵隔窗</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Button
+                                        inverted
+                                        color='blue'
+                                        icon
+                                        style={{width:50,height:60}}
+                                        ><Icon name='search plus'></Icon>放大</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Button
+                                        inverted
+                                        color='blue'
+                                        icon
+                                        style={{width:50,height:60}}
+                                        ><Icon name='search minus'></Icon>缩小</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
+                                </Grid.Column>
+                                     {createDraftModal} 
+                                </Grid.Row>
+                                {/* <Accordion styled id='accordation'>
+                                        <Accordion.Title
+                                            active={activeIndex === 0}
+                                            index={0}
+                                            onClick={this.handleClick}>
+                                            <Icon name='dropdown'/>
+                                            模型结果
+                                        </Accordion.Title>
+                                        <Accordion.Content active={activeIndex === 0}>
 
-                        <Grid>
-                            <Grid.Row>
-                                <Grid.Column width={8}>
+                                                {ReactHtmlParser(this.state.modelResults)}
 
-                                    <div className='canvas-style'>
+                                        </Accordion.Content>
+                                        <Accordion.Title
+                                            active={activeIndex === 1}
+                                            index={1}
+                                            onClick={this.handleClick}>
+                                            <Icon name='dropdown'/>
+                                            标注结果
+                                        </Accordion.Title>
+                                        <Accordion.Content active={activeIndex === 1}>
+
+                                                {ReactHtmlParser(this.state.annoResults)}
+
+                                        </Accordion.Content>
+                                        <Accordion.Title
+                                            active={activeIndex === 2}
+                                            index={2}
+                                            onClick={this.handleClick}>
+                                            <Icon name='dropdown'/>
+                                            审核结果
+                                        </Accordion.Title>
+                                        <Accordion.Content active={activeIndex === 2}>
+
+                                                {ReactHtmlParser(this.state.reviewResults)}
+
+                                        </Accordion.Content>
+                                    </Accordion> */}
+                            </Grid>
+                        </div>
+                        <div class='corner-contnt'>
+                            <Grid celled>
+                                <Grid.Column width={2}>
+
+                                </Grid.Column>
+                                <Grid.Column width={8} textAlign='center'>
+                                <div className='canvas-style'>
+                                    <div
+                                        id="origin-canvas"
+                                        style={divStyle}
+                                        ref={input => {
+                                        this.element = input
+                                    }}>
+                                        <canvas className="cornerstone-canvas" id="canvas"/>
+                                        <div style={topLeftStyle}>Offset: {this.state.viewport.translation['x']}, {this.state.viewport.translation['y']}
+                                        </div>
+                                        <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
+                                        <div style={bottomRightStyle}>
+                                            WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                            /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className='canvas-style'>
+                                    <input
+                                        id="slice-slider"
+                                        onChange={this.handleRangeChange}
+                                        type="range"
+                                        value={this.state.currentIdx + 1}
+                                        name="volume"
+                                        step="1"
+                                        min="1"
+                                        max={this.state.stack.imageIds.length}></input>
+                                    <div id="button-container">
+                                        <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
+                                        <p id="page-indicator">{this.state.currentIdx + 1}
+                                            / {this.state.imageIds.length}</p>
+                                        <a
+                                            id="immersive-hover"
+                                            onClick={() => {
+                                            this.setState({immersive: true})
+                                        }}>沉浸模式</a>
+                                    </div>
+
+                                </div>
+                                </Grid.Column>
+                                <Grid.Column width={6}> {/*框架*/}
+                                    <h3 id="annotator-header">标注人：{window
+                                                .location
+                                                .pathname
+                                                .split('/')[3]}{StartReviewButton}</h3>
+                                    <div id='elec-table'>
+                                        <div className='table-head'>
+                                            <Table
+                                                inverted
+                                                singleLine
+                                                id="nodule-table"
+                                                fixed>
+                                                <Table.Header>
+                                                    <Table.Row>
+                                                        <Table.HeaderCell>切片号</Table.HeaderCell>
+                                                        <Table.HeaderCell>结节编号</Table.HeaderCell>
+                                                        <Table.HeaderCell>操作</Table.HeaderCell>
+                                                        <Table.HeaderCell>定位</Table.HeaderCell>
+                                                        <Table.HeaderCell>定性</Table.HeaderCell>
+                                                    </Table.Row>
+                                                </Table.Header>
+                                            </Table>
+                                        </div>
+                                        <div className='table-body'>
+                                            <Table id='table-color' fixed>
+                                                <Table.Body id='body-color'> 
+                                                    {tableContent}
+                                                </Table.Body>
+                                            </Table>
+                                        </div>
+                                    </div>
+                                </Grid.Column>
+                            </Grid>
+                        </div>
+                    </div>
+                )
+            } else {
+                return (
+                    <div id="cornerstone">
+                        <div class='corner-header'>
+                            <Grid divided>
+                                <Grid.Row>
+                                    <Grid.Column>
+                                    <Button
+                                        inverted
+                                        icon
+                                        color='blue'
+                                        onClick={this.toPulmonary}
+                                        style={{width:50,height:60}}
+                                    ><Icon name='book'></Icon>肺窗</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                <Button
+                                    inverted
+                                    color='blue'
+                                    icon
+                                    onClick={this.toMedia}
+                                    style={{width:65,height:60}}
+                                    ><Icon name='book'></Icon><br/>纵隔窗</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Button
+                                        inverted
+                                        color='blue'
+                                        icon
+                                        style={{width:50,height:60}}
+                                        ><Icon name='search plus'></Icon>放大</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Button
+                                        inverted
+                                        color='blue'
+                                        icon
+                                        style={{width:50,height:60}}
+                                        ><Icon name='search minus'></Icon>缩小</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
+                                </Grid.Column>
+                                <Grid.Column>
+                                    <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
+                                </Grid.Column>
+                                     {createDraftModal} 
+                                </Grid.Row>
+                            </Grid>
+                        </div>
+                        <div class='corner-contnt'>
+                            <Grid celled>
+                                <Grid.Column width={2}>
+
+                                </Grid.Column>
+                                <Grid.Column width={8} textAlign='center'>
+                                <div className='canvas-style'>
 
                                         <div
                                             id="origin-canvas"
@@ -596,98 +816,35 @@ class CornerstoneElement extends Component {
                                         </div>
 
                                     </div>
-
-                                    <div className='canvas-style'>
-                                        <input
-                                            id="slice-slider"
-                                            onChange={this.handleRangeChange}
-                                            type="range"
-                                            value={this.state.currentIdx + 1}
-                                            name="volume"
-                                            step="1"
-                                            min="1"
-                                            max={this.state.stack.imageIds.length}></input>
-                                        <div id="button-container">
-                                            <p id="page-indicator">{this.state.currentIdx + 1}
-                                                / {this.state.imageIds.length}</p>
-                                            <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
-
-                                            <Button
-                                                inverted
-                                                color='blue'
-                                                onClick={this.toPulmonary}
-                                                style={{
-                                                marginRight: 15 + 'px',
-                                                marginLeft: 127 + 'px'
-                                            }}>肺窗</Button>
-
-                                            <Button
-                                                inverted
-                                                color='blue'
-                                                onClick={this.toMedia}
-                                                style={{
-                                                marginRight: 15 + 'px'
-                                            }}>纵隔窗</Button>
-                                            <Button inverted color='blue' onClick={this.reset}>重置</Button>
-                                            <a
-                                                id="immersive-hover"
-                                                onClick={() => {
-                                                this.setState({immersive: true})
-                                            }}>沉浸模式</a>
-                                            {createDraftModal}
-                                        </div>
-
+                                <div className='canvas-style'>
+                                    <input
+                                        id="slice-slider"
+                                        onChange={this.handleRangeChange}
+                                        type="range"
+                                        value={this.state.currentIdx + 1}
+                                        name="volume"
+                                        step="1"
+                                        min="1"
+                                        max={this.state.stack.imageIds.length}></input>
+                                    <div id="button-container">
+                                        <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
+                                        <p id="page-indicator">{this.state.currentIdx + 1}
+                                            / {this.state.imageIds.length}</p>
+                                        <a
+                                            id="immersive-hover"
+                                            onClick={() => {
+                                            this.setState({immersive: true})
+                                        }}>沉浸模式</a>
                                     </div>
+
+                                </div>
                                 </Grid.Column>
-
-                                <Grid.Column width={8}>
-                                    <h3 id="caseId-header">{this.state.caseId}
-                                        <Icon id="cache-button" name='coffee' onClick={this.cache}></Icon>
-                                    </h3>
+                                <Grid.Column width={6}> {/*框架*/}
                                     <h3 id="annotator-header">标注人：{window
-                                            .location
-                                            .pathname
-                                            .split('/')[3]}{StartReviewButton}</h3>
-
-                                    <Accordion styled id='accordation'>
-                                        <Accordion.Title
-                                            active={activeIndex === 0}
-                                            index={0}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            模型结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 0}>
-                                            {/* <p> */}
-                                                {ReactHtmlParser(this.state.modelResults)}
-                                            {/* </p> */}
-                                        </Accordion.Content>
-                                        <Accordion.Title
-                                            active={activeIndex === 1}
-                                            index={1}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            标注结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 1}>
-                                            {/* <p> */}
-                                                {ReactHtmlParser(this.state.annoResults)}
-                                            {/* </p> */}
-                                        </Accordion.Content>
-                                        <Accordion.Title
-                                            active={activeIndex === 2}
-                                            index={2}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            审核结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 2}>
-                                            {/* <p> */}
-                                                {ReactHtmlParser(this.state.reviewResults)}
-                                            {/* </p> */}
-                                        </Accordion.Content>
-                                    </Accordion>
-                                    <div id='elec-table'>
+                                        .location
+                                        .pathname
+                                        .split('/')[3]}</h3>
+                                   <div id='elec-table'>
                                         <div className='table-head'>
                                             <Table
                                                 inverted
@@ -715,19 +872,20 @@ class CornerstoneElement extends Component {
                                             </Table>
                                         </div>
                                     </div>
-
+                                    <Button
+                                        inverted
+                                        color='blue'
+                                        onClick={this.temporaryStorage}
+                                        style={{
+                                        marginRight: 15 + 'px',
+                                        marginLeft: 350 + 'px',
+                                        marginTop: 60 + 'px'
+                                    }}>暂存</Button>
+                                    {submitButton}
                                 </Grid.Column>
-
-                            </Grid.Row>
-                        </Grid>
-
-                    </div>
-                )
-            } else {
-                return (
-                    <div id="cornerstone">
-
-                        <Grid>
+                            </Grid>
+                        </div>
+                        {/* <Grid>
                             <Grid.Row>
                                 <Grid.Column width={8}>
 
@@ -860,11 +1018,9 @@ class CornerstoneElement extends Component {
                                         </div>
                                         <div className='table-body'>
                                             <Table id='table-color' fixed>
-                                                {/* <div id='body-scroll'> */}
                                                 <Table.Body id='body-color'>
                                                     {tableContent}
                                                 </Table.Body>
-                                                {/* </div> */}
                                             </Table>
                                         </div>
                                     </div>
@@ -881,7 +1037,7 @@ class CornerstoneElement extends Component {
                                 </Grid.Column>
 
                             </Grid.Row>
-                        </Grid>
+                        </Grid> */}
 
                     </div>
                 )

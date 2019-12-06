@@ -4,9 +4,9 @@ input[type='range'] {
   background: transparent;
   transform: rotate(90deg);
   position: absolute;
-  top: 270px;/* 230px */
-  left: 425px;/* 465px */
-  width: 500px;/* 400px */
+  top: 400px;/* 230px */
+  left: 675px;/* 465px */
+  width: 600px;/* 400px */
   height: 30px;
   overflow: hidden;
   cursor: pointer;
@@ -58,18 +58,22 @@ table#nodule-table {
 }
 
 #button-container {
-  width: 512px;
-  /* text-align: center; */
+  width: 816px;
+  text-align: center;
+  height: 20px;
 }
 
 #page-indicator{
   text-align: center;
+  width:100px;
 }
 
 #showNodules{
   text-align: left;
-  position: absolute;
-  margin-top: 7px;
+  display: inline-block;
+  margin-left: 50px;
+  /* position: absolute; */
+  /* margin-top: 7px; */
 }
 
 #immersive-button-container {
@@ -98,7 +102,10 @@ table#nodule-table {
 
 #page-indicator {
   color: white;
-  display: block;
+  display: inline-block;
+  margin-left: 200px;
+  margin-right: 200px;
+  /* margin:auto; */
 }
 
 #caseId-header {
@@ -109,10 +116,10 @@ table#nodule-table {
   color: white;
 }
 
-#cornerstone {
+/* #cornerstone {
   margin-top: 50px;
   margin-left: 70px;
-}
+} */
 
 #cache-button {
   margin-left: 5px;
@@ -120,9 +127,9 @@ table#nodule-table {
 
 #immersive-hover{
   color: #4183c4;
-  width: 100px;
+  /* width: 100px; */
+  text-align: center;
   font-size: 18px;
-  margin-left: 50px;
 }
 
 #immersive-hover:hover{
@@ -139,9 +146,9 @@ table#nodule-table {
   cursor: pointer;
 }
 
-.canvas-style{
-  margin-left: 50px;
-}
+/* .canvas-style{
+  margin-left: 100px;
+} */
 
 #elec-table{
   position: relative;
@@ -218,4 +225,13 @@ table#nodule-table {
 option {
   background: #2B2B2B;
   color: white;
+}
+
+.corner-header{
+  margin-left: 400px;
+}
+
+.corner-contnt{
+  width:96%;
+  margin: auto;
 }
