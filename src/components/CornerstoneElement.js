@@ -71,7 +71,12 @@ const modalBtnStyle = {
     marginRight: "auto"
 }
 
-
+const gridStyle = {
+    width:"15%",
+    display:"inline-block",
+    marginRight:"10px",
+    marginLeft: "10px"
+}
 
 let users = []
 
@@ -168,6 +173,12 @@ class CornerstoneElement extends Component {
             .bind(this)
         this.toMedia = this
             .toMedia
+            .bind(this)
+        this.toBoneWindow = this
+            .toBoneWindow
+            .bind(this)
+        this.toVentralWindow = this
+            .toVentralWindow
             .bind(this)
         this.reset = this
             .reset
@@ -688,54 +699,81 @@ class CornerstoneElement extends Component {
             if (this.state.readonly) {
                 return (
                     <div id="cornerstone">
-                        <div className='corner-header'>
-                            <Grid divided>
+
+                        <div class='corner-header'>
+                        <Grid>
                                 <Grid.Row>
-                                    <Grid.Column>
-                                    <Button
-                                        inverted
-                                        icon
-                                        color='blue'
-                                        onClick={this.toPulmonary}
-                                        style={{width:50,height:60}}
-                                    ><Icon name='book'></Icon>肺窗</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                <Button
-                                    inverted
-                                    color='blue'
-                                    icon
-                                    onClick={this.toMedia}
-                                    style={{width:65,height:60}}
-                                    ><Icon name='book'></Icon><br/>纵隔窗</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Button
-                                        inverted
-                                        color='blue'
-                                        icon
-                                        style={{width:50,height:60}}
-                                        onClick={this.ZoomIn}
-                                        ><Icon name='search plus'></Icon>放大</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Button
-                                        inverted
-                                        color='blue'
-                                        icon
-                                        style={{width:50,height:60}}
-                                        onClick={this.ZoomOut}
-                                        ><Icon name='search minus'></Icon>缩小</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
-                                </Grid.Column>
-                                     {createDraftModal} 
-                                </Grid.Row>
-                                <Accordion styled id='accordation'>
+                                    <Grid.Column width={3}>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                icon
+                                                color='blue'
+                                                onClick={this.toPulmonary}
+                                                style={{width:50,height:60}}
+                                            ><Icon name='book'></Icon>肺窗</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                onClick={this.toBoneWindow} //骨窗窗宽窗位函数
+                                                style={{width:50,height:60}}
+                                                ><Icon name='book'></Icon><br/>骨窗</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                onClick={this.toVentralWindow} //腹窗窗宽窗位函数
+                                                style={{width:50,height:60}}
+                                                ><Icon name='book'></Icon><br/>腹窗</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                onClick={this.toMedia}
+                                                style={{width:65,height:60}}
+                                                ><Icon name='book'></Icon><br/>纵隔窗</Button>
+                                        </Grid.Column>
+                                    </Grid.Column>
+                                    <span id='line-left'></span>
+                                    <Grid.Column width={3}>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                style={{width:50,height:60}}
+                                                onClick={this.ZoomIn}
+                                                ><Icon name='search plus'></Icon>放大</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                style={{width:50,height:60}}
+                                                onClick={this.ZoomOut}
+                                                ><Icon name='search minus'></Icon>缩小</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
+                                        </Grid.Column>
+                                    </Grid.Column>
+                                    <span id='line-right'></span>
+                                    <Grid.Column width={4}>
+                                        {createDraftModal} 
+                                    </Grid.Column>
+                                
+                                    <Accordion styled className='accordation' id='accord-left'>
                                         <Accordion.Title
                                             active={activeIndex === 0}
                                             index={0}
@@ -748,6 +786,8 @@ class CornerstoneElement extends Component {
                                                 {ReactHtmlParser(this.state.modelResults)}
 
                                         </Accordion.Content>
+                                    </Accordion>
+                                    <Accordion styled className='accordation' id='accord-mid'>
                                         <Accordion.Title
                                             active={activeIndex === 1}
                                             index={1}
@@ -760,6 +800,8 @@ class CornerstoneElement extends Component {
                                                 {ReactHtmlParser(this.state.annoResults)}
 
                                         </Accordion.Content>
+                                    </Accordion>
+                                    <Accordion styled className='accordation' id='accord-right'>
                                         <Accordion.Title
                                             active={activeIndex === 2}
                                             index={2}
@@ -773,6 +815,7 @@ class CornerstoneElement extends Component {
 
                                         </Accordion.Content>
                                     </Accordion>
+                                </Grid.Row>
                             </Grid>
                         </div>
                         <div className='corner-contnt'>
@@ -940,51 +983,138 @@ class CornerstoneElement extends Component {
                 return (
                     <div id="cornerstone">
                         <div class='corner-header'>
-                            <Grid divided>
+                            <Grid>
                                 <Grid.Row>
-                                    <Grid.Column>
-                                    <Button
-                                        inverted
-                                        icon
-                                        color='blue'
-                                        onClick={this.toPulmonary}
-                                        style={{width:50,height:60}}
-                                    ><Icon name='book'></Icon>肺窗</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                <Button
-                                    inverted
-                                    color='blue'
-                                    icon
-                                    onClick={this.toMedia}
-                                    style={{width:65,height:60}}
-                                    ><Icon name='book'></Icon><br/>纵隔窗</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Button
-                                        inverted
-                                        color='blue'
-                                        icon
-                                        style={{width:50,height:60}}
-                                        onClick={this.ZoomIn}
-                                        ><Icon name='search plus'></Icon>放大</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Button
-                                        inverted
-                                        color='blue'
-                                        icon
-                                        style={{width:50,height:60}}
-                                        onClick={this.ZoomOut}
-                                        ><Icon name='search minus'></Icon>缩小</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
-                                </Grid.Column>
-                                <Grid.Column>
-                                    <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
-                                </Grid.Column>
-                                     {createDraftModal} 
+                                    <Grid.Column width={3}>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                icon
+                                                color='blue'
+                                                onClick={this.toPulmonary}
+                                                style={{width:50,height:60}}
+                                            ><Icon name='book'></Icon>肺窗</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                onClick={this.toBoneWindow} //骨窗窗宽窗位函数
+                                                style={{width:50,height:60}}
+                                                ><Icon name='book'></Icon><br/>骨窗</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                onClick={this.toVentralWindow} //腹窗窗宽窗位函数
+                                                style={{width:50,height:60}}
+                                                ><Icon name='book'></Icon><br/>腹窗</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                onClick={this.toMedia}
+                                                style={{width:65,height:60}}
+                                                ><Icon name='book'></Icon><br/>纵隔窗</Button>
+                                        </Grid.Column>
+                                    </Grid.Column>
+                                    <span id='line-left'></span>
+                                    <Grid.Column width={3}>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                style={{width:50,height:60}}
+                                                onClick={this.ZoomIn}
+                                                ><Icon name='search plus'></Icon>放大</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button
+                                                inverted
+                                                color='blue'
+                                                icon
+                                                style={{width:50,height:60}}
+                                                onClick={this.ZoomOut}
+                                                ><Icon name='search minus'></Icon>缩小</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
+                                        </Grid.Column>
+                                        <Grid.Column style={gridStyle}>
+                                            <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
+                                        </Grid.Column>
+                                    </Grid.Column>
+                                    <span id='line-right'></span>
+                                    <Grid.Column width={4}>
+                                        {createDraftModal} 
+                                    </Grid.Column>
+                                    {/* <Grid.Column width={1}>
+                                        <Button
+                                            inverted
+                                            icon
+                                            color='blue'
+                                            onClick={this.toPulmonary}
+                                            style={{width:50,height:60}}
+                                        ><Icon name='book'></Icon>肺窗</Button>
+                                    </Grid.Column>
+                                    <Grid.Column width={1}>
+                                        <Button
+                                            inverted
+                                            color='blue'
+                                            icon
+                                            onClick={this.toBoneWindow} //骨窗窗宽窗位函数
+                                            style={{width:50,height:60}}
+                                            ><Icon name='book'></Icon><br/>骨窗</Button>
+                                    </Grid.Column>
+                                    <Grid.Column width={1}>
+                                        <Button
+                                            inverted
+                                            color='blue'
+                                            icon
+                                            onClick={this.toVentralWindow} //腹窗窗宽窗位函数
+                                            style={{width:50,height:60}}
+                                            ><Icon name='book'></Icon><br/>腹窗</Button>
+                                    </Grid.Column>
+                                    <Grid.Column width={1}>
+                                        <Button
+                                            inverted
+                                            color='blue'
+                                            icon
+                                            onClick={this.toMedia}
+                                            style={{width:65,height:60}}
+                                            ><Icon name='book'></Icon><br/>纵隔窗</Button>
+                                    </Grid.Column>
+                                    <Grid.Column width={1}>
+                                        <Button
+                                            inverted
+                                            color='blue'
+                                            icon
+                                            style={{width:50,height:60}}
+                                            onClick={this.ZoomIn}
+                                            ><Icon name='search plus'></Icon>放大</Button>
+                                    </Grid.Column>
+                                    <Grid.Column width={1}>
+                                        <Button
+                                            inverted
+                                            color='blue'
+                                            icon
+                                            style={{width:50,height:60}}
+                                            onClick={this.ZoomOut}
+                                            ><Icon name='search minus'></Icon>缩小</Button>
+                                    </Grid.Column>
+                                    <Grid.Column width={1}>
+                                        <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
+                                    </Grid.Column>
+                                    <Grid.Column width={1}>
+                                        <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
+                                    </Grid.Column>
+                                     {createDraftModal}  */}
                                
                                     {/* <Grid.Column> */}
                                     <Accordion styled className='accordation' id='accord-left'>
@@ -1720,6 +1850,24 @@ class CornerstoneElement extends Component {
         let viewport = cornerstone.getViewport(this.element)
         viewport.voi.windowWidth = 500
         viewport.voi.windowCenter = 50
+        cornerstone.setViewport(this.element, viewport)
+        this.setState({viewport})
+        console.log("to media", viewport)
+    }
+
+    toBoneWindow() {
+        let viewport = cornerstone.getViewport(this.element)
+        viewport.voi.windowWidth = 1000
+        viewport.voi.windowCenter = 300
+        cornerstone.setViewport(this.element, viewport)
+        this.setState({viewport})
+        console.log("to media", viewport)
+    }
+
+    toVentralWindow() {
+        let viewport = cornerstone.getViewport(this.element)
+        viewport.voi.windowWidth = 400
+        viewport.voi.windowCenter = 40
         cornerstone.setViewport(this.element, viewport)
         this.setState({viewport})
         console.log("to media", viewport)
