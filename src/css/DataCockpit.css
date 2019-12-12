@@ -17,12 +17,14 @@
 }
 
 .tit1{
-    display: inline-block;
-    margin-left: 10%;
+    /* display: inline-block; */
+    float: right;
+    margin-right: 100px;
 }
 
 .tit3{
-    display: inline-block;
+    /* display: inline-block; */
+    float: right;
 }
 
 .total{
