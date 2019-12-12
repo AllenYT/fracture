@@ -33,7 +33,8 @@
 }
 
 #subList-accordion > div > .title {
-    color: #66cfec;
+    /* color: #66cfec; */
+    color:#66cfec;
 }
 
 .space{

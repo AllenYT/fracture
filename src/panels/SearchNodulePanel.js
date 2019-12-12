@@ -16,7 +16,6 @@ let idx=0//labels内部索引
 let nums={'恶性':0,'良性':0,'钙化':0,'毛刺':0,'分叶':0,'磨玻璃':0,'diameter':0}//限制labels数量
 let diaMeters=-1//保留直径所在labels位置
 
-
 export class SearchNodulePanel extends Component {
     constructor(props){
         super(props)
@@ -135,13 +134,61 @@ export class SearchNodulePanel extends Component {
             diameterStart:this.state.diameterStart,
             diameterEnd:this.state.diameterEnd
         }
-
+        
         axios.post(recordConfig.getNodulesAtPage, qs.stringify(params)).then((response) => {
+            let lists=[]
             const data = response.data
             console.log('pages:',data)
+            for (const idx in data){
+                let sequence={'volume':0,'diameter':0,'malignancy':'','lobulation':'','spiculation':'','texture':'','calcification':'','caseId':'','noduleNo':'','status':0}
+                // console()
+                sequence['volume']=data[idx]['volume']===undefined? ' ':Math.floor(data[idx]['volume'] * 100) / 100
+                sequence['diameter']=Math.floor(data[idx]['diameter'] * 100) / 100
+                sequence['malignancy']=data[idx]['malignancy']==2?'高危 ':'低危'
+                sequence['lobulation']=data[idx]['lobulation']==2?'是 ':'否'
+                sequence['spiculation']=data[idx]['spiculation']==2?'是 ':'否'
+                sequence['texture']=data[idx]['texture']==2?'是 ':'否'
+                sequence['calcification']=data[idx]['calcification']==2?'是 ':'否'
+                sequence['caseId']=data[idx]['caseId']
+                sequence['noduleNo']=data[idx]['noduleNo']
+                sequence['status']=data[idx]['status']
+                lists.push(sequence)
+                // if(idxx === 'volume'){
+                //     // console.log('lists[idx][idxx]:',lists[idx][idxx])
+                //     // lists[idx][idxx]=Math.floor(lists[idx][idxx] * 100) / 100
+                    
+                // }
+            //     else if(idxx === 'diameter'){
+            //         lists[idx][idxx]=Math.floor(lists[idx][idxx] * 100) / 100
+            //         let value=lists[idx][idxx]
+            //         lists[idx][idxx]=lists[idx]['spiculation']
+            //         lists[idx]['spiculation']=value
 
-            this.setState({lists:data})
+            //     }
+            //     else if(idxx==='status'){
+            //         delete lists[idx][idxx]
+            //     }
+            //     else if(idxx==='malignancy'){
+            //         lists[idx][idxx]=lists[idx][idxx]==2?'高危 ':'低危'
+            //         let value=lists[idx][idxx]
+            //         lists[idx][idxx]=lists[idx]['lobulation']
+            //         lists[idx]['lobulation']=value
+            //     }
+            //     else if(idxx==='noduleNo' || idxx==='caseId'){
+
+            //     }
+            //     else{
+            //         lists[idx][idxx]=lists[idx][idxx]==2?'是 ':'否'
+            //     }
+            // }
+            // if(!('volume' in lists[idx])){
+            //     lists[idx]['volume']=' '
+            // }
+            }
+            console.log('lists1:',lists)
+            this.setState({lists:lists})
         }).catch((error) => console.log(error))
+        // console.log('lists2:',lists)
     }
 
     nextPath(path) {
@@ -317,30 +364,7 @@ export class SearchNodulePanel extends Component {
     render(){
         const lists = this.state.lists
         // console.log(typeof(0.*10))
-        for (const idx in lists){
-            // console.log('idx:',lists[idx])
-            for(const idxx in lists[idx]){
-                if(idxx === 'volume'){
-                    // console.log('lists[idx][idxx]:',lists[idx][idxx])
-                    lists[idx][idxx]=Math.floor(lists[idx][idxx] * 100) / 100
-                }
-                else if(idxx === 'diameter'){
-                    lists[idx][idxx]=Math.floor(lists[idx][idxx] * 100) / 1000
-                }
-                else if(idxx==='status'){
-                    delete lists[idx][idxx]
-                }
-                else if(idxx==='malignancy'){
-                    lists[idx][idxx]=lists[idx][idxx]==2?'恶性 ':'良性'
-                }
-                else if(idxx==='noduleNo' || idxx==='caseId'){
-
-                }
-                else{
-                    lists[idx][idxx]=lists[idx][idxx]==2?'是 ':'否'
-                }
-            }
-        }
+        
         return(
             <div>
                 <Grid >
@@ -467,14 +491,15 @@ export class SearchNodulePanel extends Component {
                         <Grid.Column width={2}></Grid.Column>
                         <Grid.Column width={12} id="container">
                             <div style={{minHeight:590}}>
-                            <Table celled inverted textAlign='center' fixed id='table'>
+                            <Table celled inverted textAlign='center' fixed id="table">
                                 <Table.Header id='table-header'>
                                     <Table.Row>
                                         <Table.HeaderCell>结节体积(cm³)</Table.HeaderCell>
-                                        <Table.HeaderCell>毛刺</Table.HeaderCell>
-                                        <Table.HeaderCell>分叶</Table.HeaderCell>
-                                        <Table.HeaderCell>良恶性</Table.HeaderCell>
                                         <Table.HeaderCell>结节直径(cm)</Table.HeaderCell>
+                                        
+                                        <Table.HeaderCell>危险程度</Table.HeaderCell>
+                                        <Table.HeaderCell>分叶</Table.HeaderCell>
+                                        <Table.HeaderCell>毛刺</Table.HeaderCell>
                                         <Table.HeaderCell>磨玻璃</Table.HeaderCell>
                                         {/* <Table.HeaderCell>caseId</Table.HeaderCell> */}
                                         <Table.HeaderCell>钙化</Table.HeaderCell>
@@ -496,10 +521,14 @@ export class SearchNodulePanel extends Component {
                                                     else if(key[0]==='noduleNo'){
                                                         noduleNo=key[1]
                                                     }
-                                                    if(key[0]!=='noduleNo' && key[0]!=='caseId')
-                                                    return(
-                                                        <Table.Cell key={value}>{key[1]}</Table.Cell>
-                                                    )
+                                                    else if(key[0]==='status'){
+
+                                                    }
+                                                    else{
+                                                        return(
+                                                            <Table.Cell key={value}>{key[1]}</Table.Cell>
+                                                        )
+                                                    }
                                                 })}
                                                 <Table.Cell>
                                                     <Button 
