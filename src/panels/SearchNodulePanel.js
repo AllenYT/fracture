@@ -57,6 +57,10 @@ export class SearchNodulePanel extends Component {
     }
 
     componentDidMount() {
+        panels=[]//labels赋值
+        idx=0//labels内部索引
+        nums={'恶性':0,'良性':0,'钙化':0,'毛刺':0,'分叶':0,'磨玻璃':0,'diameter':0}//限制labels数量
+        diaMeters=-1//保留直径所在labels位置
         this.getTotalPages()
     }
 
@@ -363,7 +367,10 @@ export class SearchNodulePanel extends Component {
 
     render(){
         const lists = this.state.lists
-        // console.log(typeof(0.*10))
+        console.log('panels',panels)
+        console.log('idx',idx)
+        console.log('nums',nums)
+        console.log('diameters',diaMeters)
         
         return(
             <div>
