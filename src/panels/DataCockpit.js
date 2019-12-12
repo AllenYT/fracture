@@ -13,7 +13,7 @@ const _DataSet = DataSet,
 const _G = G2,
     Shape = _G.Shape;
 
-const btstyle='display:inline-block;margin-left:10%;'
+const btstyle='float:right;'
 
 var ageTotalData = [{
   //总体年龄分布
@@ -1582,8 +1582,8 @@ const dv16 = new DataView();
                         <Grid.Column width={6}>
                           <div class='tit'>
                             <h2 class='tit2'>总体结节直径分布</h2>
-                            <div class='tit1' id='diabt1'><Button icon onClick={this.typeChange} value='diabar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            <div class='tit1' id='diabt2'><Button icon onClick={this.typeChange} value='diapie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit1' id='diabt1'><Button icon onClick={this.typeChange} value='diabar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit1' id='diabt2'><Button icon onClick={this.typeChange} value='diapie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaTotal'></div>
                           <div id='diaTotal2'></div>
@@ -1591,8 +1591,8 @@ const dv16 = new DataView();
                         <Grid.Column width={6}>
                           <div class='tit'>
                             <h2 class='tit2'>总体年龄占比</h2>
-                            <div class='tit1' id='agebt1'><Button icon onClick={this.typeChange} value='agebar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            <div class='tit1' id='agebt2'><Button icon onClick={this.typeChange} value='agepie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit1' id='agebt1'><Button icon onClick={this.typeChange} value='agebar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit1' id='agebt2'><Button icon onClick={this.typeChange} value='agepie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='ageTotal'></div>
                           <div id='ageTotal2'></div>
@@ -1609,8 +1609,8 @@ const dv16 = new DataView();
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>毛刺直径分布</h2>  
-                            <div class='tit3' id='glitchbt1'><Button icon onClick={this.typeChange} value='glitchbar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            <div class='tit3' id='glitchbt2'><Button icon onClick={this.typeChange} value='glitchpie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='glitchbt1'><Button icon onClick={this.typeChange} value='glitchbar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='glitchbt2'><Button icon onClick={this.typeChange} value='glitchpie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaGlitch'></div>
                           <div id='diaGlitchPie'></div>
@@ -1618,8 +1618,8 @@ const dv16 = new DataView();
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>分叶直径分布</h2>
-                            <div class='tit3' id='sublobebt1'><Button icon onClick={this.typeChange} value='sublobebar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            <div class='tit3' id='sublobebt2'><Button icon onClick={this.typeChange} value='sublobepie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='sublobebt1'><Button icon onClick={this.typeChange} value='sublobebar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='sublobebt2'><Button icon onClick={this.typeChange} value='sublobepie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaSublobe'></div>
                           <div id='diaSublobePie'></div>
@@ -1627,8 +1627,8 @@ const dv16 = new DataView();
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>钙化直径分布</h2>
-                            <div class='tit3' id='calcifybt1'><Button icon onClick={this.typeChange} value='calcifybar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            <div class='tit3' id='calcifybt2'><Button icon onClick={this.typeChange} value='calcifypie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='calcifybt1'><Button icon onClick={this.typeChange} value='calcifybar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='calcifybt2'><Button icon onClick={this.typeChange} value='calcifypie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaCalcify'></div>
                           <div id='diaCalcifyPie'></div>
@@ -1636,8 +1636,8 @@ const dv16 = new DataView();
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>磨玻璃直径分布</h2>
-                            <div class='tit3' id='ggobt1'><Button icon onClick={this.typeChange} value='ggobar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            <div class='tit3' id='ggobt2'><Button icon onClick={this.typeChange} value='ggopie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='ggobt1'><Button icon onClick={this.typeChange} value='ggobar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='ggobt2'><Button icon onClick={this.typeChange} value='ggopie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaGGO'></div>
                           <div id='diaGGOPie'></div>
@@ -1647,8 +1647,8 @@ const dv16 = new DataView();
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>非毛刺直径分布</h2>  
-                            <div class='tit3' id='nonglitchbt1'><Button icon onClick={this.typeChange} value='nonglitchbar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            <div class='tit3' id='nonglitchbt2'><Button icon onClick={this.typeChange} value='nonglitchpie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='nonglitchbt1'><Button icon onClick={this.typeChange} value='nonglitchbar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='nonglitchbt2'><Button icon onClick={this.typeChange} value='nonglitchpie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                             <div id='diaNonGlitch'></div>
                             <div id='diaNonGlitchPie'></div>
@@ -1656,8 +1656,8 @@ const dv16 = new DataView();
                           <Grid.Column width={4}>
                             <div class='tit'>
                               <h2 class='tit2'>非分叶直径分布</h2>
-                              <div class='tit3' id='nonsublobebt1'><Button icon onClick={this.typeChange} value='nonsublobebar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                              <div class='tit3' id='nonsublobebt2'><Button icon onClick={this.typeChange} value='nonsublobepie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='nonsublobebt1'><Button icon onClick={this.typeChange} value='nonsublobebar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='nonsublobebt2'><Button icon onClick={this.typeChange} value='nonsublobepie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                             </div>
                             <div id='diaNonSublobe'></div>
                             <div id='diaNonSublobePie'></div>
@@ -1665,8 +1665,8 @@ const dv16 = new DataView();
                           <Grid.Column width={4}>
                             <div class='tit'>
                               <h2 class='tit2'>非钙化直径分布</h2>
-                              <div class='tit3' id='noncalcifybt1'><Button icon onClick={this.typeChange} value='noncalcifybar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                              <div class='tit3' id='noncalcifybt2'><Button icon onClick={this.typeChange} value='noncalcifypie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='noncalcifybt1'><Button icon onClick={this.typeChange} value='noncalcifybar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='noncalcifybt2'><Button icon onClick={this.typeChange} value='noncalcifypie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                             </div>
                             <div id='diaNonCalcify'></div>
                             <div id='diaNonCalcifyPie'></div>
@@ -1674,8 +1674,8 @@ const dv16 = new DataView();
                           <Grid.Column width={4}>
                             <div class='tit'>
                               <h2 class='tit2'>实性直径分布</h2>
-                              <div class='tit3' id='nonggobt1'><Button icon onClick={this.typeChange} value='nonggobar' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                              <div class='tit3' id='nonggobt2'><Button icon onClick={this.typeChange} value='nonggopie' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='nonggobt1'><Button icon onClick={this.typeChange} value='nonggobar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='nonggobt2'><Button icon onClick={this.typeChange} value='nonggopie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                             </div>
                             <div id='diaNonGGO'></div>
                             <div id='diaNonGGOPie'></div>
