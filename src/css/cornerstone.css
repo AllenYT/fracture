@@ -212,14 +212,20 @@ table#nodule-table {
 .ui.styled.accordion .accordion .title, .ui.styled.accordion .title{
   color:#2af270 !important;
 } */
-#accordation{
+.accordation{
+  position: absolute;
   background:rgba(1, 23, 46, 0.997) !important;
-  width: 300px !important;
+  width: 200px !important;
+  height: 40px !important;
   
 }
 
-#accordation > .title{
+.accordation > .title{
   color:#2af270 !important;
+}
+
+.accordation > .content{
+  background-color: #1b2e4283;
 }
 
 option {
@@ -234,4 +240,20 @@ option {
 .corner-contnt{
   width:96%;
   margin: auto;
+}
+
+.accord{
+  position: absolute;
+}
+
+#accord-left{
+  margin-left: 50%;
+}
+
+#accord-mid{
+  margin-left: 65%;
+}
+
+#accord-right{
+  margin-left: 80%;
 }

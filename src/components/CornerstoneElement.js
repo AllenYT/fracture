@@ -24,8 +24,8 @@ cornerstoneTools.external.Hammer = Hammer
 const {Column, HeaderCell, Cell, Pagination} = Table;
 
 const divStyle = {
-    width: "512px",//768px
-    height: "512px",
+    width: "768px",//768px
+    height: "768px",
     position: "relative",
     margin:"auto",
     // display: "inline",
@@ -230,6 +230,12 @@ class CornerstoneElement extends Component {
             .bind(this)
         this.checkHash = this
             .checkHash
+            .bind(this)
+        this.ZoomIn = this
+            .ZoomIn
+            .bind(this)
+        this.ZoomOut = this
+            .ZoomOut
             .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
@@ -600,6 +606,7 @@ class CornerstoneElement extends Component {
                                         color='blue'
                                         icon
                                         style={{width:50,height:60}}
+                                        onClick={this.ZoomIn}
                                         ><Icon name='search plus'></Icon>放大</Button>
                                 </Grid.Column>
                                 <Grid.Column>
@@ -608,6 +615,7 @@ class CornerstoneElement extends Component {
                                         color='blue'
                                         icon
                                         style={{width:50,height:60}}
+                                        onClick={this.ZoomOut}
                                         ><Icon name='search minus'></Icon>缩小</Button>
                                 </Grid.Column>
                                 <Grid.Column>
@@ -618,7 +626,7 @@ class CornerstoneElement extends Component {
                                 </Grid.Column>
                                      {createDraftModal} 
                                 </Grid.Row>
-                                {/* <Accordion styled id='accordation'>
+                                <Accordion styled id='accordation'>
                                         <Accordion.Title
                                             active={activeIndex === 0}
                                             index={0}
@@ -655,7 +663,7 @@ class CornerstoneElement extends Component {
                                                 {ReactHtmlParser(this.state.reviewResults)}
 
                                         </Accordion.Content>
-                                    </Accordion> */}
+                                    </Accordion>
                             </Grid>
                         </div>
                         <div class='corner-contnt'>
@@ -770,6 +778,7 @@ class CornerstoneElement extends Component {
                                         color='blue'
                                         icon
                                         style={{width:50,height:60}}
+                                        onClick={this.ZoomIn}
                                         ><Icon name='search plus'></Icon>放大</Button>
                                 </Grid.Column>
                                 <Grid.Column>
@@ -778,6 +787,7 @@ class CornerstoneElement extends Component {
                                         color='blue'
                                         icon
                                         style={{width:50,height:60}}
+                                        onClick={this.ZoomOut}
                                         ><Icon name='search minus'></Icon>缩小</Button>
                                 </Grid.Column>
                                 <Grid.Column>
@@ -787,7 +797,56 @@ class CornerstoneElement extends Component {
                                     <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
                                 </Grid.Column>
                                      {createDraftModal} 
-                                </Grid.Row>
+                               
+                                    {/* <Grid.Column> */}
+                                    <Accordion styled className='accordation' id='accord-left'>
+                                        <Accordion.Title
+                                            active={activeIndex === 0}
+                                            index={0}
+                                            onClick={this.handleClick}>
+                                            <Icon name='dropdown'/>
+                                            模型结果
+                                        </Accordion.Title>
+                                        <Accordion.Content active={activeIndex === 0}>
+                                            <p>
+                                                {ReactHtmlParser(this.state.modelResults)}
+                                            </p>
+                                        </Accordion.Content>
+                                    </Accordion>
+                                    
+                                    {/* </Grid.Column>
+                                    <Grid.Column> */}
+                                    <Accordion styled className='accordation' id='accord-mid'>
+                                        <Accordion.Title
+                                            active={activeIndex === 1}
+                                            index={1}
+                                            onClick={this.handleClick}>
+                                            <Icon name='dropdown'/>
+                                            标注结果
+                                        </Accordion.Title>
+                                        <Accordion.Content active={activeIndex === 1}>
+                                            <p>
+                                                {ReactHtmlParser(this.state.annoResults)}
+                                            </p>
+                                        </Accordion.Content>
+                                    </Accordion>
+                                        
+                                    {/* </Grid.Column> */}
+                                    <Accordion styled className='accordation' id='accord-right'>
+                                    <Accordion.Title
+                                        active={activeIndex === 2}
+                                        index={2}
+                                        onClick={this.handleClick}>
+                                        <Icon name='dropdown'/>
+                                        审核结果
+                                    </Accordion.Title>
+                                    <Accordion.Content active={activeIndex === 2}>
+                                        <p>
+                                            {ReactHtmlParser(this.state.reviewResults)}
+                                        </p>
+                                    </Accordion.Content>
+                                </Accordion>
+                                </Grid.Row>   
                             </Grid>
                         </div>
                         <div class='corner-contnt'>
@@ -1123,11 +1182,9 @@ class CornerstoneElement extends Component {
 
         const canvas = document.getElementById("canvas")
         const context = canvas.getContext('2d')
-
         // console.log("Drawing box", context.canvas)
-
-        const xCenter = box.x1 + (box.x2 - box.x1) / 2
-        const yCenter = box.y1 + (box.y2 - box.y1) / 2
+        const xCenter = (box.x1 + (box.x2 - box.x1) / 2)
+        const yCenter = (box.y1 + (box.y2 - box.y1) / 2)
         const width = box.x2 - box.x1
         const height = box.y2 - box.y1
         if (box.highlight === false || box.highlight === undefined) {
@@ -1226,16 +1283,13 @@ class CornerstoneElement extends Component {
         const clickY = event.offsetY
         let x = 0
         let y = 0
-
         if (!this.state.immersive) {
             const transX = this.state.viewport.translation.x
             const transY = this.state.viewport.translation.y
             const scale = this.state.viewport.scale
-
             const halfValue = 256
-
-            x = (clickX - scale * transX - halfValue) / scale + halfValue
-            y = (clickY - scale * transY - halfValue) / scale + halfValue
+            x = (clickX - scale * transX - 384) / scale + halfValue
+            y = (clickY - scale * transY - 384) / scale + halfValue
 
         } else {
             x = clickX / 2.5
@@ -1337,23 +1391,20 @@ class CornerstoneElement extends Component {
 
     onMouseDown(event) {
         if (event.button == 0) {
-
             const clickX = event.offsetX
             const clickY = event.offsetY
             let x = 0
             let y = 0
-
-            console.log(clickX, clickY)
 
             if (!this.state.immersive) {
                 const transX = this.state.viewport.translation.x
                 const transY = this.state.viewport.translation.y
                 const scale = this.state.viewport.scale
 
-                const halfValue = 256
+                const halfValue = 256 //256
 
-                x = (clickX - scale * transX - halfValue) / scale + halfValue
-                y = (clickY - scale * transY - halfValue) / scale + halfValue
+                x = (clickX - scale * transX - 384) / scale + halfValue
+                y = (clickY - scale * transY - 384) / scale + halfValue
 
             } else {
                 x = clickX / 2.5
@@ -1366,7 +1417,6 @@ class CornerstoneElement extends Component {
                 y1: y,
                 y2: y
             }
-
             let content = this.findCurrentArea(x, y)
             if (content.pos == 'o') {
                 document
@@ -1424,10 +1474,44 @@ class CornerstoneElement extends Component {
             x: 0,
             y: 0
         }
-        viewport.scale = 1
+        viewport.scale = 1.5
         cornerstone.setViewport(this.element, viewport)
         this.setState({viewport})
         console.log("to pulmonary", viewport)
+    }
+
+    ZoomIn(){
+        let viewport = cornerstone.getViewport(this.element)
+        viewport.translation = {
+            x: 0,
+            y: 0
+        }
+        if(viewport.scale <= 5){
+            viewport.scale = 1 + viewport.scale
+        }
+        else{
+            viewport.scale = 6
+        }
+        cornerstone.setViewport(this.element, viewport)
+        this.setState({viewport})
+        console.log("to ZoomIn", viewport)
+    }
+
+    ZoomOut(){
+        let viewport = cornerstone.getViewport(this.element)
+        viewport.translation = {
+            x: 0,
+            y: 0
+        }
+        if(viewport.scale >= 2){
+            viewport.scale = viewport.scale - 1
+        }
+        else{
+            viewport.scale = 1
+        }
+        cornerstone.setViewport(this.element, viewport)
+        this.setState({viewport})
+        console.log("to ZoomOut", viewport)
     }
 
     toPulmonary() {
