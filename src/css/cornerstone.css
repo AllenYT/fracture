@@ -152,7 +152,7 @@ table#nodule-table {
 
 #elec-table{
   /* position: relative; */
-  height: 60%;
+  height: 700px;
   table-layout: fixed;
   margin-top: 0px;
 }
