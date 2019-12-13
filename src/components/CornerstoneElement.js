@@ -663,7 +663,7 @@ class CornerstoneElement extends Component {
 
                         return (
                             <Table.Row key={idx} className={classNamee}>
-                                <Table.Cell>
+                                <Table.Cell width={1}>
                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule}>{inside.nodule_no}</div>
                                 </Table.Cell>
                                 <Table.Cell>
@@ -680,6 +680,9 @@ class CornerstoneElement extends Component {
                                         <option value="4" selected={inside.place === '4'}>右肺中叶</option>
                                         <option value="5" selected={inside.place === '5'}>右肺下叶</option>
                                     </select>
+                                </Table.Cell>
+                                <Table.Cell>
+                                    <Dropdown multiple selection options={options} />
                                 </Table.Cell>
                                 <Table.Cell>
                                     <select id={malId} style={selectStyle} onChange={this.onSelectMal}>
@@ -865,83 +868,6 @@ class CornerstoneElement extends Component {
                                 </div>
                                 </Grid.Column>
                                 <Grid.Column width={6} stretched> 
-                                {
-                                    // <Accordion styled id="cornerstone-accordion" fluid>
-                                    //     {list.map((content,idx)=>{
-                                    //         return(
-                                    //             <div key={idx}>
-                                    //                 <Accordion.Title index={idx} active={listsActiveIndex===idx} onClick={this.handleListClick}>
-                                    //                     <table>
-                                    //                         <tbody>
-                                    //                         <tr>
-                                    //                         <td>
-                                    //                             <Header as='h3' inverted>{idx+1}</Header>
-                                    //                         </td>
-                                    //                         <td>
-                                    //                             <Dropdown text={content['location']} pointing selection options={locationOptions}>
-                                    //                             <Dropdown.Menu>
-                                    //                                 <Dropdown text='左肺上叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='左肺中叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='左肺下叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='右肺上叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='右肺中叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='右肺下叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                             </Dropdown.Menu>
-                                    //                         </Dropdown>
-                                    //                     </td>
-                                    //                     <td>
-                                    //                         <Dropdown multiple selection options={options} />
-                                    //                     </td>
-                                    //                     </tr>
-                                    //                         </tbody>
-                                                        
-                                    //                     </table>
-                                                        
-                                    //                 </Accordion.Title>
-                                    //                 <Accordion.Content active={listsActiveIndex===idx}>
-                                    //                     hhh
-                                    //                 </Accordion.Content>
-                                    //             </div>
-                                    //         )
-                                    //     })}
-                                    // </Accordion>
-                                }
                                     {/* <h3 id="annotator-header">标注人：{window
                                                 .location
                                                 .pathname
@@ -1243,16 +1169,21 @@ class CornerstoneElement extends Component {
                                                     </Table.Row>
                                                 </Table.Header>
                                             </Table>
-                                        </div> */}
+                                        </div>
                                         <div className='table-body'>
                                             <Table id='table-color' fixed>
-                                                {/* <div id='body-scroll'> */}
+                                               
                                                 <Table.Body id='body-color'>
                                                     {tableContent}
                                                 </Table.Body>
-                                                {/* </div> */}
+                                             
                                             </Table>
-                                        </div>
+                                        </div> */}
+                                        
+                                        <Accordion styled id="cornerstone-accordion" fluid>
+                                            {tableContent}
+                                        </Accordion>
+                                
                                     </div>
                                     <Button
                                         inverted
