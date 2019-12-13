@@ -8,12 +8,13 @@ import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal } from 'semantic-ui-react'
+import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Header } from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
 import axios from "axios"
 // import { Dropdown } from "antd"
+
 
 cornerstoneTools.external.cornerstone = cornerstone
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath
@@ -81,6 +82,7 @@ let users = []
 
 const config = require('../config.json')
 const draftConfig = config.draft
+const recordConfig = config.record
 const userConfig = config.user
 const reviewConfig = config.review
 
@@ -108,6 +110,7 @@ class CornerstoneElement extends Component {
             immersive: false,
             readonly: props.stack.readonly,
             activeIndex: -1,
+            listsActiveIndex:-1,
             modelResults: '<p style="color:white;">暂无结果</p>',
             annoResults: '<p style="color:white;">暂无结果</p>',
             reviewResults: '<p style="color:white;">暂无结果</p>',
@@ -115,7 +118,20 @@ class CornerstoneElement extends Component {
             modalOpenCur: false,
             draftStatus: props.stack.draftStatus,
             okayForReview: false,
-            random: Math.random()
+            random: Math.random(),
+
+            // list:[],
+            // malignancy: -1,
+            // calcification: -1,
+            // spiculation: -1,
+            // lobulation:-1,
+            // texture:-1,
+            // totalPage: 1,//全部页面
+            // activePage:'1',
+            // // volumeStart:-1,
+            // // volumeEnd:-1,
+            // diameterStart:0,
+            // diameterEnd:5
         }
 
         this.onImageRendered = this
@@ -176,9 +192,9 @@ class CornerstoneElement extends Component {
             .onKeydown
             .bind(this)
 
-        this.toPage = this
-            .toPage
-            .bind(this)
+        // this.toPage = this
+        //     .toPage
+        //     .bind(this)
         this.highlightNodule = this
             .highlightNodule
             .bind(this)
@@ -251,6 +267,69 @@ class CornerstoneElement extends Component {
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
+    // getNoduleIfos(){
+    //     const params = {
+    //         malignancy: this.state.malignancy,
+    //         calcification: this.state.calcification,
+    //         spiculation: this.state.spiculation,
+    //         lobulation:this.state.lobulation,
+    //         texture:this.state.texture,
+    //         // volumeStart:this.state.volumeStart,
+    //         // volumeEnd:this.state.volumeEnd,
+    //         diameterStart:this.state.diameterStart,
+    //         diameterEnd:this.state.diameterEnd
+    //     }
+    //     axios.post(recordConfig.filterNodules, qs.stringify(params)).then((response) => {
+    //         const data = response.data
+    //         console.log('total:',data)
+
+    //         this.getAtPageIfo(data.pages)
+    //         // this.setState({totalPage:data.pages})
+    //     }).catch((error) => console.log(error))
+    // }
+
+    // getAtPageIfo(totalPages){
+    //     let lists=[]
+    //     for(let activePage=1;activePage<=totalPages;activePage++){
+    //         let params = {
+    //             malignancy: this.state.malignancy,
+    //             calcification: this.state.calcification,
+    //             spiculation: this.state.spiculation,
+    //             lobulation:this.state.lobulation,
+    //             texture:this.state.texture,
+    //             page:activePage+'',
+    //             // volumeStart:this.state.volumeStart,
+    //             // volumeEnd:this.state.volumeEnd,
+    //             diameterStart:this.state.diameterStart,
+    //             diameterEnd:this.state.diameterEnd
+    //         }
+    
+    //         axios.post(recordConfig.getNodulesAtPage, qs.stringify(params)).then((response) => {
+    //             const data = response.data
+    //             for(const idx in data){
+    //                 if(data[idx]['caseId']===this.state.caseId){
+    //                     console.log('caseId:',this.state.caseId)
+    //                     let sequence={'location':'左肺上叶(假数据)','diameter':'0','lobulation':'','spiculation':'','texture':'','calcification':'','malignancy':''}
+    //                     // sequence['volume']=data[idx]['volume']===undefined? ' ':Math.floor(data[idx]['volume'] * 100) / 100
+    //                     sequence['diameter']=Math.floor(data[idx]['diameter'] * 100) / 100+'cm'
+    //                     sequence['malignancy']=data[idx]['malignancy']==2?'高危 ':'低危'
+    //                     sequence['lobulation']=data[idx]['lobulation']==2?'分叶':'否'
+    //                     sequence['spiculation']=data[idx]['spiculation']==2?'毛刺':'否'
+    //                     sequence['texture']=data[idx]['texture']==2?'磨玻璃':'实性'
+    //                     sequence['calcification']=data[idx]['calcification']==2?'钙化 ':'否'
+    //                     // sequence['caseId']=data[idx]['caseId']
+    //                     // sequence['noduleNo']=data[idx]['noduleNo']
+    //                     // sequence['status']=data[idx]['status']
+    //                     lists.push(sequence)
+    //                 }
+    //             }
+                
+                
+    //         }).catch((error) => console.log(error))
+    //     }
+    //     this.setState({list:lists})
+    // }//////////////////////////////////////////////////////////////
+
     handleClick = (e, titleProps) => {
         const {index} = titleProps
         const {activeIndex} = this.state
@@ -259,6 +338,15 @@ class CornerstoneElement extends Component {
             : index
 
         this.setState({activeIndex: newIndex})
+    }
+    handleListClick = (e, titleProps) => {
+        const {index} = titleProps
+        const {listsActiveIndex} = this.state
+        const newIndex = listsActiveIndex === index
+            ? -1
+            : index
+
+        this.setState({listsActiveIndex: newIndex})
     }
 
     cache() {
@@ -274,10 +362,11 @@ class CornerstoneElement extends Component {
             .push(path, {activeItem: 'case'})
     }
 
-    toPage(event) {
+    toPage(text,e) {
         // let doms = document.getElementsByClassName('table-row') for (let i = 0; i <
         // doms.length; i ++) {     doms[i].style.backgroundColor = "white" }
-        const currentIdx = event.target.text
+        // const currentIdx = event.target.text
+        const currentIdx=text
         // const idd = event.currentTarget.dataset.id console.log(idd)
         // document.getElementById(idd).style.backgroundColor = "yellow"
         this.setState({
@@ -382,14 +471,14 @@ class CornerstoneElement extends Component {
         })
     }
 
-    getMal(val) {
-        if (val === 1) {
-            return "良性"
-        } else if (val === 2) {
-            return "恶性"
-        } else 
-            return "不存在的性质"
-    }
+    // getMal(val) {
+    //     if (val === 1) {
+    //         return "良性"
+    //     } else if (val === 2) {
+    //         return "恶性"
+    //     } else 
+    //         return "不存在的性质"
+    // }
 
     toMyAnno() {
         window.location.href = '/case/' + this.state.caseId + '/' + localStorage.getItem('username')
@@ -416,11 +505,25 @@ class CornerstoneElement extends Component {
 
     render() {
         // console.log('boxes', this.state.boxes)
-        const {showNodules, activeIndex, modalOpenNew, modalOpenCur} = this.state
+        const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex} = this.state
         let tableContent = ""
         let createDraftModal;
         let submitButton;
         let StartReviewButton;
+        let calCount=0
+        const options = [
+            { key: '分叶', text: '分叶', value: '分叶' },
+            { key: '毛刺', text: '毛刺', value: '毛刺' },
+            { key: '钙化', text: '钙化', value: '钙化' },
+            { key: '磨玻璃', text: '磨玻璃', value: '磨玻璃' },
+        ]
+
+        const locationOptions=[
+            { key: '分叶', text: '分叶', value: '分叶' },
+            { key: '分叶', text: '分叶', value: '分叶' },
+            { key: '分叶', text: '分叶', value: '分叶' },
+            { key: '分叶', text: '分叶', value: '分叶' },
+        ]
 
         if (this.state.okayForReview) {
             StartReviewButton = (
@@ -522,18 +625,22 @@ class CornerstoneElement extends Component {
                         } else {
                             classNamee = "table-row"
                         }
-
+                        if(inside.calcification===2){
+                            calCount+=1
+                        }
                         return (
                             <Table.Row key={idx} className={classNamee}>
                                 <Table.Cell>
-                                    <a onClick={this.toPage}>{inside.slice_idx + 1}</a>
-                                </Table.Cell>
-                                <Table.Cell>
                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule}>{inside.nodule_no}</div>
                                 </Table.Cell>
-                                <Table.Cell>&#92;</Table.Cell>
+                                <Table.Cell width={4}>
+                                    <a onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.slice_idx + 1}号切片</a>
+                                </Table.Cell>  
                                 <Table.Cell>{inside.place}</Table.Cell>
-                                <Table.Cell>{this.getMal(inside.malignancy)}</Table.Cell>
+                                <Table.Cell>{Math.floor(inside.diameter * 100) / 100+'cm'}</Table.Cell>
+                                <Table.Cell>{inside.texture===2?"磨玻璃":"实性"}</Table.Cell>
+                                <Table.Cell>{inside.malignancy===2?"高危":"低危"}</Table.Cell>
+                                {/* <Table.Cell>&#92;</Table.Cell> */}
                             </Table.Row>
                         )
                     })
@@ -558,14 +665,13 @@ class CornerstoneElement extends Component {
                         return (
                             <Table.Row key={idx} className={classNamee}>
                                 <Table.Cell>
-                                    <a onClick={this.toPage}>{inside.slice_idx + 1}</a>
-                                </Table.Cell>
-                                <Table.Cell>
                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule}>{inside.nodule_no}</div>
                                 </Table.Cell>
                                 <Table.Cell>
-                                    <a onClick={this.delNodule} id={delId}>删除</a>
+                                    <a onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.slice_idx + 1}号切片</a>
                                 </Table.Cell>
+                                
+                                
                                 <Table.Cell>
                                     <select id={placeId} style={selectStyle} onChange={this.onSelectPlace}>
                                         <option value="" disabled="disabled" selected={inside.place === ''}>选择位置</option>
@@ -579,9 +685,12 @@ class CornerstoneElement extends Component {
                                 <Table.Cell>
                                     <select id={malId} style={selectStyle} onChange={this.onSelectMal}>
                                         <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
-                                        <option value="1" selected={inside.malignancy === 1}>良性</option>
-                                        <option value="2" selected={inside.malignancy === 2}>恶性</option>
+                                        <option value="1" selected={inside.malignancy === 1}>低危</option>
+                                        <option value="2" selected={inside.malignancy === 2}>高危</option>
                                     </select>
+                                </Table.Cell>
+                                <Table.Cell>
+                                    <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
                                 </Table.Cell>
                             </Table.Row>
                         )
@@ -591,6 +700,7 @@ class CornerstoneElement extends Component {
             if (this.state.readonly) {
                 return (
                     <div id="cornerstone">
+
                         <div class='corner-header'>
                         <Grid>
                                 <Grid.Row>
@@ -709,7 +819,7 @@ class CornerstoneElement extends Component {
                                 </Grid.Row>
                             </Grid>
                         </div>
-                        <div class='corner-contnt'>
+                        <div className='corner-contnt'>
                             <Grid celled>
                                 <Grid.Column width={2}>
 
@@ -755,31 +865,110 @@ class CornerstoneElement extends Component {
 
                                 </div>
                                 </Grid.Column>
-                                <Grid.Column width={6}> {/*框架*/}
-                                    <h3 id="annotator-header">标注人：{window
+                                <Grid.Column width={6} stretched> 
+                                {
+                                    // <Accordion styled id="cornerstone-accordion" fluid>
+                                    //     {list.map((content,idx)=>{
+                                    //         return(
+                                    //             <div key={idx}>
+                                    //                 <Accordion.Title index={idx} active={listsActiveIndex===idx} onClick={this.handleListClick}>
+                                    //                     <table>
+                                    //                         <tbody>
+                                    //                         <tr>
+                                    //                         <td>
+                                    //                             <Header as='h3' inverted>{idx+1}</Header>
+                                    //                         </td>
+                                    //                         <td>
+                                    //                             <Dropdown text={content['location']} pointing selection options={locationOptions}>
+                                    //                             <Dropdown.Menu>
+                                    //                                 <Dropdown text='左肺上叶'>
+                                    //                                     <Dropdown.Menu>
+                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
+                                    //                                     </Dropdown.Menu>
+                                    //                                 </Dropdown>
+                                    //                                 <Dropdown text='左肺中叶'>
+                                    //                                     <Dropdown.Menu>
+                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
+                                    //                                     </Dropdown.Menu>
+                                    //                                 </Dropdown>
+                                    //                                 <Dropdown text='左肺下叶'>
+                                    //                                     <Dropdown.Menu>
+                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
+                                    //                                     </Dropdown.Menu>
+                                    //                                 </Dropdown>
+                                    //                                 <Dropdown text='右肺上叶'>
+                                    //                                     <Dropdown.Menu>
+                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
+                                    //                                     </Dropdown.Menu>
+                                    //                                 </Dropdown>
+                                    //                                 <Dropdown text='右肺中叶'>
+                                    //                                     <Dropdown.Menu>
+                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
+                                    //                                     </Dropdown.Menu>
+                                    //                                 </Dropdown>
+                                    //                                 <Dropdown text='右肺下叶'>
+                                    //                                     <Dropdown.Menu>
+                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
+                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
+                                    //                                     </Dropdown.Menu>
+                                    //                                 </Dropdown>
+                                    //                             </Dropdown.Menu>
+                                    //                         </Dropdown>
+                                    //                     </td>
+                                    //                     <td>
+                                    //                         <Dropdown multiple selection options={options} />
+                                    //                     </td>
+                                    //                     </tr>
+                                    //                         </tbody>
+                                                        
+                                    //                     </table>
+                                                        
+                                    //                 </Accordion.Title>
+                                    //                 <Accordion.Content active={listsActiveIndex===idx}>
+                                    //                     hhh
+                                    //                 </Accordion.Content>
+                                    //             </div>
+                                    //         )
+                                    //     })}
+                                    // </Accordion>
+                                }
+                                    {/* <h3 id="annotator-header">标注人：{window
                                                 .location
                                                 .pathname
-                                                .split('/')[3]}{StartReviewButton}</h3>
+                                                .split('/')[3]}{StartReviewButton}</h3> */}
+                                    <div id='listTitle'>
+                                            <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
+                                            <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div>
+                                    </div>
                                     <div id='elec-table'>
-                                        <div className='table-head'>
-                                            <Table
-                                                inverted
-                                                singleLine
-                                                id="nodule-table"
-                                                fixed>
+                                        {/* <div className='table-head'>
+                                            <Table inverted singleLine id="nodule-table" fixed celled > 
                                                 <Table.Header>
                                                     <Table.Row>
                                                         <Table.HeaderCell>切片号</Table.HeaderCell>
                                                         <Table.HeaderCell>结节编号</Table.HeaderCell>
-                                                        <Table.HeaderCell>操作</Table.HeaderCell>
                                                         <Table.HeaderCell>定位</Table.HeaderCell>
-                                                        <Table.HeaderCell>定性</Table.HeaderCell>
+                                                        <Table.HeaderCell>直径</Table.HeaderCell>
+                                                        <Table.HeaderCell>性质</Table.HeaderCell>
+                                                        <Table.HeaderCell>危险程度</Table.HeaderCell>
+                                                        <Table.HeaderCell>操作</Table.HeaderCell>
                                                     </Table.Row>
                                                 </Table.Header>
                                             </Table>
-                                        </div>
+                                        </div> */}
                                         <div className='table-body'>
-                                            <Table id='table-color' fixed>
+                                            <Table id='table-color' fixed >
                                                 <Table.Body id='body-color'> 
                                                     {tableContent}
                                                 </Table.Body>
@@ -1028,13 +1217,18 @@ class CornerstoneElement extends Component {
 
                                 </div>
                                 </Grid.Column>
-                                <Grid.Column width={6}> {/*框架*/}
-                                    <h3 id="annotator-header">标注人：{window
+                                <Grid.Column width={6}> 
+                                    <div id='listTitle'>
+                                        <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
+                                        <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div>
+                                    </div>
+                                
+                                    {/* <h3 id="annotator-header">标注人：{window
                                         .location
                                         .pathname
-                                        .split('/')[3]}</h3>
+                                        .split('/')[3]}</h3> */}
                                    <div id='elec-table'>
-                                        <div className='table-head'>
+                                        {/* <div className='table-head'>
                                             <Table
                                                 inverted
                                                 singleLine
@@ -1050,7 +1244,7 @@ class CornerstoneElement extends Component {
                                                     </Table.Row>
                                                 </Table.Header>
                                             </Table>
-                                        </div>
+                                        </div> */}
                                         <div className='table-body'>
                                             <Table id='table-color' fixed>
                                                 {/* <div id='body-scroll'> */}
@@ -1999,6 +2193,7 @@ class CornerstoneElement extends Component {
     }
 
     componentDidMount() {
+        // this.getNoduleIfos()
 
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
 
@@ -2094,7 +2289,7 @@ class CornerstoneElement extends Component {
 
         if (prevState.random !== this.state.random) {
             console.log(this.state.boxes)
-            this.saveToDB()
+            // this.saveToDB()
         }
     }
 }

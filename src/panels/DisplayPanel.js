@@ -89,6 +89,7 @@ class DisplayPanel extends Component {
           draftStatus: draftStatus,
           noduleNo: noduleNo
         }
+        console.log('draftdata',draftResponse.data)
         this.setState({stack: stack, show: true})
       })
     }
