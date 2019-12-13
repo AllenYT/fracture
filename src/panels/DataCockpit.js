@@ -418,8 +418,10 @@ class DataCockpit extends Component {
         });
         diaTotal2chart.coord('theta');
         diaTotal2chart.tooltip({
-          showTitle: false
+          showTitle: false,
+          itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
         });
+        // ['#188B8E','#002687', '#BB7329','#3C1E74', '#061846']
         // diaTotal2chart.legend(false)
         diaTotal2chart.intervalStack().position('value').color('type', ['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8']).opacity(1).label('value', function(val) {
           return {
@@ -430,6 +432,12 @@ class DataCockpit extends Component {
               const showTitle = point.value == 0 ?  null:point.type+'：'+percent 
               return showTitle
             }
+          };
+        }).tooltip('type*value', function(item, value) {
+          // percent = (percent * 100).toFixed(1) + '%';
+          return {
+            name: item,
+            value: value
           };
         });
         diaTotal2chart.render();
@@ -448,7 +456,7 @@ class DataCockpit extends Component {
         });
         diaTotalchart.source(diaTotalData1);
         diaTotalchart.scale('value', {
-          alias: '人数'
+          alias: '结节数'
         });
         diaTotalchart.axis('type', {
           label: {
@@ -540,7 +548,7 @@ class DataCockpit extends Component {
         });
         benmaliChart.tooltip({
           showTitle: false,
-          itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>'
+          itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
         });
         benmaliChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
           offset: -40,
@@ -560,9 +568,6 @@ class DataCockpit extends Component {
             name: item,
             value: value
           };
-        }).style({
-          lineWidth: 1,
-          stroke: '#fff'
         });
         benmaliChart.render();
 
@@ -586,7 +591,7 @@ class DataCockpit extends Component {
     });
     diaSublobechart.source(dv8);
     diaSublobechart.scale('value', {
-      alias: '人数'
+      alias: '结节数'
     });
     diaSublobechart.axis('diameter', {
       label: {
@@ -632,15 +637,15 @@ class DataCockpit extends Component {
     });
     diaSublobePie.coord('theta', {
       radius:1,
-      innerRadius: 0.6
+      innerRadius: 0.7
     });
     diaSublobePie.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
     diaSublobePie.intervalStack()
       .position('value')
-      .color('diameter',['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8'])
+      .color('diameter',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
@@ -652,10 +657,6 @@ class DataCockpit extends Component {
           name: item,
           value: value
         };
-      })
-      .style({
-        lineWidth: 1,
-        stroke: '#fff'
       });
     diaSublobePie.render();
     
@@ -678,7 +679,7 @@ class DataCockpit extends Component {
     });
     diaGlitchchart.source(dv9);
     diaGlitchchart.scale('value', {
-      alias: '人数'
+      alias: '结节数'
     });
     diaGlitchchart.axis('diameter', {
       label: {
@@ -724,15 +725,15 @@ class DataCockpit extends Component {
     });
     diaGlitchPie.coord('theta', {
       radius:1,
-      innerRadius: 0.6
+      innerRadius: 0.7
     });
     diaGlitchPie.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
     diaGlitchPie.intervalStack()
       .position('value')
-      .color('diameter',['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8'])
+      .color('diameter',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
@@ -744,10 +745,6 @@ class DataCockpit extends Component {
           name: item,
           value: value
         };
-      })
-      .style({
-        lineWidth: 1,
-        stroke: '#fff'
       });
     diaGlitchPie.render();
 
@@ -769,7 +766,7 @@ class DataCockpit extends Component {
     });
     diaCalcifychart.source(dv10);
     diaCalcifychart.scale('value', {
-      alias: '人数'
+      alias: '结节数'
     });
     diaCalcifychart.axis('diameter', {
       label: {
@@ -815,15 +812,15 @@ class DataCockpit extends Component {
     });
     diaCalcifyPie.coord('theta', {
       radius:1,
-      innerRadius: 0.6
+      innerRadius: 0.7
     });
     diaCalcifyPie.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
     diaCalcifyPie.intervalStack()
       .position('value')
-      .color('diameter',['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8'])
+      .color('diameter',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
@@ -835,10 +832,6 @@ class DataCockpit extends Component {
           name: item,
           value: value
         };
-      })
-      .style({
-        lineWidth: 1,
-        stroke: '#fff'
       });
     diaCalcifyPie.render();
 
@@ -860,7 +853,7 @@ class DataCockpit extends Component {
     });
     diaGGOchart.source(dv11);
     diaGGOchart.scale('value', {
-      alias: '人数'
+      alias: '结节数'
     });
     diaGGOchart.axis('diameter', {
       label: {
@@ -906,15 +899,15 @@ dv15.source(dv11).transform({
   });
   diaGGOPie.coord('theta', {
     radius:1,
-    innerRadius: 0.6
+    innerRadius: 0.7
   });
   diaGGOPie.tooltip({
     showTitle: false,
-    itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>'
+    itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
   diaGGOPie.intervalStack()
     .position('value')
-    .color('diameter',['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8'])
+    .color('diameter',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
     .label('percent', {
       formatter: (val, item) => {
         const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
@@ -927,10 +920,6 @@ dv15.source(dv11).transform({
         name: item,
         value: percent
       };
-    })
-    .style({
-      lineWidth: 1,
-      stroke: '#fff'
     });
   diaGGOPie.render();
 
@@ -947,7 +936,7 @@ dv15.source(dv11).transform({
     });
     diaNonSublobechart.source(diaNonSublobeData1);
     diaNonSublobechart.scale('value', {
-      alias: '人数'
+      alias: '结节数'
     });
     diaNonSublobechart.axis('type', {
       label: {
@@ -993,15 +982,15 @@ const dv19 = new DataView();
     });
     diaNonSublobePie.coord('theta', {
       radius:1,
-      innerRadius: 0.6
+      innerRadius: 0.7
     });
     diaNonSublobePie.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
     diaNonSublobePie.intervalStack()
       .position('value')
-      .color('type',['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8'])
+      .color('type',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?   null:item.point.type + ': ' + val 
@@ -1013,10 +1002,6 @@ const dv19 = new DataView();
           name: item,
           value: value
         };
-      })
-      .style({
-        lineWidth: 1,
-        stroke: '#fff'
       });
     diaNonSublobePie.render();
 
@@ -1033,7 +1018,7 @@ const dv19 = new DataView();
   });
   diaNonGlitchchart.source(diaNonGlitchData1);
   diaNonGlitchchart.scale('value', {
-    alias: '人数'
+    alias: '结节数'
   });
   diaNonGlitchchart.axis('type', {
     label: {
@@ -1079,15 +1064,15 @@ const dv18 = new DataView();
     });
     diaNonGlitchPie.coord('theta', {
       radius:1,
-      innerRadius: 0.6
+      innerRadius: 0.7
     });
     diaNonGlitchPie.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
     diaNonGlitchPie.intervalStack()
       .position('value')
-      .color('type',['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8'])
+      .color('type',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
       .label('percent',{
           formatter: (val, item) => {
             const showTitle = item.point.value == 0 ?  null:item.point.type + ': ' + val 
@@ -1100,10 +1085,6 @@ const dv18 = new DataView();
           name: item,
           value: value
         };
-      })
-      .style({
-        lineWidth: 1,
-        stroke: '#fff'
       });
     diaNonGlitchPie.render();
 
@@ -1120,7 +1101,7 @@ const dv18 = new DataView();
   });
   diaNonCalcifychart.source(diaNonCalcifyData1);
   diaNonCalcifychart.scale('value', {
-    alias: '人数'
+    alias: '结节数'
   });
   diaNonCalcifychart.axis('type', {
     label: {
@@ -1166,15 +1147,15 @@ const dv17 = new DataView();
     });
     diaNonCalcifyPie.coord('theta', {
       radius:1,
-      innerRadius: 0.6
+      innerRadius: 0.7
     });
     diaNonCalcifyPie.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
     diaNonCalcifyPie.intervalStack()
       .position('value')
-      .color('type',['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8'])
+      .color('type',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
       .label('percent', {
         formatter: (val, item) => {
           return item.point.type + ': ' + val;
@@ -1185,10 +1166,6 @@ const dv17 = new DataView();
           name: item,
           value: value
         };
-      })
-      .style({
-        lineWidth: 1,
-        stroke: '#fff'
       });
     diaNonCalcifyPie.render();
 
@@ -1207,7 +1184,7 @@ const dv17 = new DataView();
   diaNonGGOchart.source(diaNonGGOData1);
   diaNonGGOchart.scale('value', {
     range:[0,1],
-    alias: '人数'
+    alias: '结节数'
   });
   diaNonGGOchart.axis('type', {
     label: {
@@ -1253,15 +1230,15 @@ const dv16 = new DataView();
     });
     diaNonGGOPie.coord('theta', {
       radius:1,
-      innerRadius: 0.6
+      innerRadius: 0.7
     });
     diaNonGGOPie.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
     diaNonGGOPie.intervalStack()
       .position('value')
-      .color('type',['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8'])
+      .color('type',['#188B8E','#002687', '#ee7800','#3C1E74', '#061846'])
       .label('percent', {
         formatter: (val, item) => {
             const showTitle = item.point.value == 0 ?  null:item.point.type + ': ' + val 
@@ -1273,10 +1250,6 @@ const dv16 = new DataView();
           name: item,
           value: value
         };
-      })
-      .style({
-        lineWidth: 1,
-        stroke: '#fff'
       });
     diaNonGGOPie.render();
 
@@ -1313,7 +1286,7 @@ const dv16 = new DataView();
   maliGlitchChart.legend(false);
   maliGlitchChart.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
   maliGlitchChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
       offset: -20,
@@ -1332,9 +1305,6 @@ const dv16 = new DataView();
       name: item,
       value: value
       };
-  }).style({
-      lineWidth: 1,
-      stroke: '#fff'
   });
   maliGlitchChart.render();
 
@@ -1372,7 +1342,7 @@ const dv16 = new DataView();
   maliSublobeChart.legend(false);
   maliSublobeChart.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
   maliSublobeChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
       offset: -20,
@@ -1392,9 +1362,6 @@ const dv16 = new DataView();
       name: item,
       value: value
       };
-  }).style({
-      lineWidth: 1,
-      stroke: '#fff'
   });
   maliSublobeChart.render();
 
@@ -1431,7 +1398,7 @@ const dv16 = new DataView();
   maliCalcifyChart.legend(false);
   maliCalcifyChart.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
   maliCalcifyChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
       offset: -20,
@@ -1451,9 +1418,6 @@ const dv16 = new DataView();
       name: item,
       value: value
       };
-  }).style({
-      lineWidth: 1,
-      stroke: '#fff'
   });
   maliCalcifyChart.render();
 
@@ -1490,7 +1454,7 @@ const dv16 = new DataView();
   maliGGOChart.legend(false);
   maliGGOChart.tooltip({
       showTitle: false,
-      itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>'
+      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
   maliGGOChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
       offset: -20,
@@ -1510,9 +1474,6 @@ const dv16 = new DataView();
       name: item,
       value: value
       };
-  }).style({
-      lineWidth: 1,
-      stroke: '#fff'
   });
   maliGGOChart.render();
     }
