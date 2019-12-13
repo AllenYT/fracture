@@ -379,6 +379,7 @@ class CornerstoneElement extends Component {
         this.setState(({showNodules}) => ({
             showNodules: !showNodules
         }))
+        console.log('boxes',this.props.stack.boxes)
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
@@ -556,7 +557,7 @@ class CornerstoneElement extends Component {
             createDraftModal = (
                 <div>
                     <Modal
-                        trigger={<Button inverted style={{height:60,width:70}} color = 'blue' onClick = {
+                        trigger={<Button inverted style={{height:60,fontSize:14,width:70}} color = 'blue' onClick = {
                         this.toNewModel
                     }
                     > 从新标注 </Button>}
@@ -577,7 +578,7 @@ class CornerstoneElement extends Component {
             createDraftModal = (
                 <div>
                         <Modal
-                            trigger={<Button inverted style={{height:60,width:70}} color = 'blue' onClick = {
+                            trigger={<Button inverted style={{height:60,fontSize:14,width:70}} color = 'blue' onClick = {
                             this.toNewModel 
                         }
                         > 从新标注 </Button>}
@@ -593,7 +594,7 @@ class CornerstoneElement extends Component {
                             </Modal.Actions>
                         </Modal>
                         <Modal
-                            trigger={<Button inverted style={{height:60,width:70}} color = 'blue' onClick = {
+                            trigger={<Button inverted style={{height:60,fontSize:14,width:70}} color = 'blue' onClick = {
                             this.toCurrentModel
                         } > 拷贝标注 </Button>}
                             size='tiny'
@@ -713,8 +714,8 @@ class CornerstoneElement extends Component {
                                                 icon
                                                 color='blue'
                                                 onClick={this.toPulmonary}
-                                                style={{width:50,height:60}}
-                                            ><Icon name='book'></Icon>肺窗</Button>
+                                                style={{width:55,height:60,fontSize:14}}
+                                            ><Icon name='book'><br/></Icon>肺窗</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
                                             <Button
@@ -722,7 +723,7 @@ class CornerstoneElement extends Component {
                                                 color='blue'
                                                 icon
                                                 onClick={this.toBoneWindow} //骨窗窗宽窗位函数
-                                                style={{width:50,height:60}}
+                                                style={{width:55,height:60,fontSize:14}}
                                                 ><Icon name='book'></Icon><br/>骨窗</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
@@ -731,7 +732,7 @@ class CornerstoneElement extends Component {
                                                 color='blue'
                                                 icon
                                                 onClick={this.toVentralWindow} //腹窗窗宽窗位函数
-                                                style={{width:50,height:60}}
+                                                style={{width:55,height:60,fontSize:14}}
                                                 ><Icon name='book'></Icon><br/>腹窗</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
@@ -740,7 +741,7 @@ class CornerstoneElement extends Component {
                                                 color='blue'
                                                 icon
                                                 onClick={this.toMedia}
-                                                style={{width:65,height:60}}
+                                                style={{width:65,height:60,fontSize:14}}
                                                 ><Icon name='book'></Icon><br/>纵隔窗</Button>
                                         </Grid.Column>
                                     </Grid.Column>
@@ -751,24 +752,24 @@ class CornerstoneElement extends Component {
                                                 inverted
                                                 color='blue'
                                                 icon
-                                                style={{width:50,height:60}}
+                                                style={{width:55,height:60,fontSize:14}}
                                                 onClick={this.ZoomIn}
-                                                ><Icon name='search plus'></Icon>放大</Button>
+                                                ><Icon name='search plus'></Icon><br/>放大</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
                                             <Button
                                                 inverted
                                                 color='blue'
                                                 icon
-                                                style={{width:50,height:60}}
+                                                style={{width:55,height:60,fontSize:14}}
                                                 onClick={this.ZoomOut}
-                                                ><Icon name='search minus'></Icon>缩小</Button>
+                                                ><Icon name='search minus'></Icon><br/>缩小</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
-                                            <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
+                                            <Button inverted color='blue' icon onClick={this.reset} style={{width:55,height:60,fontSize:14}}><Icon name='repeat'></Icon><br/>重置</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
-                                            <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
+                                            <Button icon inverted color='blue' onClick={this.cache} style={{width:55,height:60,fontSize:14}}><Icon id="cache-button" name='coffee'></Icon><br/>缓存</Button>
                                         </Grid.Column>
                                     </Grid.Column>
                                     <span id='line-right'></span>
@@ -918,8 +919,8 @@ class CornerstoneElement extends Component {
                                                 icon
                                                 color='blue'
                                                 onClick={this.toPulmonary}
-                                                style={{width:50,height:60}}
-                                            ><Icon name='book'></Icon>肺窗</Button>
+                                                style={{width:55,height:60,fontSize:14}}
+                                            ><Icon name='book'></Icon><br/>肺窗</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
                                             <Button
@@ -927,7 +928,7 @@ class CornerstoneElement extends Component {
                                                 color='blue'
                                                 icon
                                                 onClick={this.toBoneWindow} //骨窗窗宽窗位函数
-                                                style={{width:50,height:60}}
+                                                style={{width:55,height:60,fontSize:14}}
                                                 ><Icon name='book'></Icon><br/>骨窗</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
@@ -936,7 +937,7 @@ class CornerstoneElement extends Component {
                                                 color='blue'
                                                 icon
                                                 onClick={this.toVentralWindow} //腹窗窗宽窗位函数
-                                                style={{width:50,height:60}}
+                                                style={{width:55,height:60,fontSize:14}}
                                                 ><Icon name='book'></Icon><br/>腹窗</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
@@ -945,7 +946,7 @@ class CornerstoneElement extends Component {
                                                 color='blue'
                                                 icon
                                                 onClick={this.toMedia}
-                                                style={{width:65,height:60}}
+                                                style={{width:65,height:60,fontSize:14}}
                                                 ><Icon name='book'></Icon><br/>纵隔窗</Button>
                                         </Grid.Column>
                                     </Grid.Column>
@@ -956,24 +957,24 @@ class CornerstoneElement extends Component {
                                                 inverted
                                                 color='blue'
                                                 icon
-                                                style={{width:50,height:60}}
+                                                style={{width:55,height:60,fontSize:14,fontSize:14}}
                                                 onClick={this.ZoomIn}
-                                                ><Icon name='search plus'></Icon>放大</Button>
+                                                ><Icon name='search plus'></Icon><br/>放大</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
                                             <Button
                                                 inverted
                                                 color='blue'
                                                 icon
-                                                style={{width:50,height:60}}
+                                                style={{width:55,height:60,fontSize:14}}
                                                 onClick={this.ZoomOut}
-                                                ><Icon name='search minus'></Icon>缩小</Button>
+                                                ><Icon name='search minus'></Icon><br/>缩小</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
-                                            <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
+                                            <Button inverted color='blue' icon onClick={this.reset} style={{width:55,height:60,fontSize:14}}><Icon name='repeat'></Icon><br/>重置</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
-                                            <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
+                                            <Button icon inverted color='blue' onClick={this.cache} style={{width:55,height:60,fontSize:14}}><Icon id="cache-button" name='coffee'></Icon><br/>缓存</Button>
                                         </Grid.Column>
                                     </Grid.Column>
                                     <span id='line-right'></span>
@@ -986,7 +987,7 @@ class CornerstoneElement extends Component {
                                             icon
                                             color='blue'
                                             onClick={this.toPulmonary}
-                                            style={{width:50,height:60}}
+                                            style={{width:55,height:60,fontSize:14}}
                                         ><Icon name='book'></Icon>肺窗</Button>
                                     </Grid.Column>
                                     <Grid.Column width={1}>
@@ -995,7 +996,7 @@ class CornerstoneElement extends Component {
                                             color='blue'
                                             icon
                                             onClick={this.toBoneWindow} //骨窗窗宽窗位函数
-                                            style={{width:50,height:60}}
+                                            style={{width:55,height:60,fontSize:14}}
                                             ><Icon name='book'></Icon><br/>骨窗</Button>
                                     </Grid.Column>
                                     <Grid.Column width={1}>
@@ -1004,7 +1005,7 @@ class CornerstoneElement extends Component {
                                             color='blue'
                                             icon
                                             onClick={this.toVentralWindow} //腹窗窗宽窗位函数
-                                            style={{width:50,height:60}}
+                                            style={{width:55,height:60,fontSize:14}}
                                             ><Icon name='book'></Icon><br/>腹窗</Button>
                                     </Grid.Column>
                                     <Grid.Column width={1}>
@@ -1013,7 +1014,7 @@ class CornerstoneElement extends Component {
                                             color='blue'
                                             icon
                                             onClick={this.toMedia}
-                                            style={{width:65,height:60}}
+                                            style={{width:65,height:60,fontSize:14}}
                                             ><Icon name='book'></Icon><br/>纵隔窗</Button>
                                     </Grid.Column>
                                     <Grid.Column width={1}>
@@ -1021,7 +1022,7 @@ class CornerstoneElement extends Component {
                                             inverted
                                             color='blue'
                                             icon
-                                            style={{width:50,height:60}}
+                                            style={{width:55,height:60,fontSize:14}}
                                             onClick={this.ZoomIn}
                                             ><Icon name='search plus'></Icon>放大</Button>
                                     </Grid.Column>
@@ -1030,15 +1031,15 @@ class CornerstoneElement extends Component {
                                             inverted
                                             color='blue'
                                             icon
-                                            style={{width:50,height:60}}
+                                            style={{width:55,height:60,fontSize:14}}
                                             onClick={this.ZoomOut}
                                             ><Icon name='search minus'></Icon>缩小</Button>
                                     </Grid.Column>
                                     <Grid.Column width={1}>
-                                        <Button inverted color='blue' icon onClick={this.reset} style={{width:50,height:60}}><Icon name='repeat'></Icon>重置</Button>
+                                        <Button inverted color='blue' icon onClick={this.reset} style={{width:55,height:60,fontSize:14}}><Icon name='repeat'></Icon>重置</Button>
                                     </Grid.Column>
                                     <Grid.Column width={1}>
-                                        <Button icon inverted color='blue' onClick={this.cache} style={{width:50,height:60}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
+                                        <Button icon inverted color='blue' onClick={this.cache} style={{width:55,height:60,fontSize:14}}><Icon id="cache-button" name='coffee'></Icon>缓存</Button>
                                     </Grid.Column>
                                      {createDraftModal}  */}
                                
@@ -1449,11 +1450,10 @@ class CornerstoneElement extends Component {
             context.strokeStyle = 'blue'
             context.fillStyle = 'blue'
         }
-
         context.beginPath()
         const new_y1 = yCenter - height / 2
-        context.rect(box.x1, box.y1, width, height)
-        context.lineWidth = 2
+        context.rect(box.x1-1, box.y1-1, width+2, height+2)
+        context.lineWidth = 1
         context.stroke()
         if (box.nodule_no != undefined) {
             context.fillText(box.nodule_no, xCenter - 3, new_y1 - 10)
