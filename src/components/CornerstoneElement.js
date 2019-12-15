@@ -472,6 +472,23 @@ class CornerstoneElement extends Component {
             random: Math.random()
         })
     }
+    onSelectTex = (event) => {
+        const value = event.currentTarget.value
+        const noduleId = event
+            .currentTarget
+            .id
+            .split('-')[1]
+        let boxes = this.state.boxes
+        for (let i = 0; i < boxes.length; i++) {
+            if (boxes[i].nodule_no === noduleId) {
+                boxes[i].texture = parseInt(value)
+            }
+        }
+        this.setState({
+            boxes: boxes,
+            random: Math.random()
+        })
+    }
 
     onSelectPlace = (event) => {
         const value = event.currentTarget.value
@@ -532,12 +549,11 @@ class CornerstoneElement extends Component {
         let submitButton;
         let StartReviewButton;
         let calCount=0
+        
         const options = [
             { key: '分叶', text: '分叶', value: '分叶' },
             { key: '毛刺', text: '毛刺', value: '毛刺' },
             { key: '钙化', text: '钙化', value: '钙化' },
-            { key: '磨玻璃', text: '磨玻璃', value: '磨玻璃' },
-            { key: '实性', text: '实性', value: '实性' },
         ]
 
         const locationOptions=[
@@ -577,12 +593,12 @@ class CornerstoneElement extends Component {
             )
         if (window.location.pathname.split('/')[3] === 'origin') 
             createDraftModal = (
-                <div>
+                <div style={{width:'100%',height:'100%'}}>
                     <Modal
-                        trigger={<Button inverted style={{height:60,fontSize:14,width:70}} color = 'blue' onClick = {
+                        trigger={<Button inverted style={{height:'100%',fontSize:'1rem',width:'20%'}} color = 'blue' onClick = {
                         this.toNewModel
                     }
-                    > 从新标注 </Button>}
+                    > <div>从新标注</div>  </Button>}
                         size='tiny'
                         open={modalOpenNew}>
                         <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
@@ -598,12 +614,12 @@ class CornerstoneElement extends Component {
             )
         else 
             createDraftModal = (
-                <div>
+                <div style={{width:'100%',height:'100%'}}>
                         <Modal
-                            trigger={<Button inverted style={{height:60,fontSize:14,width:70}} color = 'blue' onClick = {
+                            trigger={<Button inverted style={{height:'100%',fontSize:'1rem',width:'20%'}} color = 'blue' onClick = {
                             this.toNewModel 
                         }
-                        > 从新标注 </Button>}
+                        > <div>从新标注</div> </Button>}
                             size='tiny'
                             open={modalOpenNew}>
                             <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
@@ -616,9 +632,9 @@ class CornerstoneElement extends Component {
                             </Modal.Actions>
                         </Modal>
                         <Modal
-                            trigger={<Button inverted style={{height:60,fontSize:14,width:70}} color = 'blue' onClick = {
+                            trigger={<Button inverted style={{height:'100%',fontSize:'1rem',width:'20%'}} color = 'blue' onClick = {
                             this.toCurrentModel
-                        } > 拷贝标注 </Button>}
+                        } > <div>拷贝标注</div> </Button>}
                             size='tiny'
                             open={modalOpenCur}>
                             <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
@@ -636,6 +652,7 @@ class CornerstoneElement extends Component {
 
         if (!this.state.immersive) {
             if (this.state.readonly) {
+                
                 tableContent = this
                     .state
                     .boxes
@@ -660,7 +677,7 @@ class CornerstoneElement extends Component {
                                 </Table.Cell>  
                                 <Table.Cell>{inside.place}</Table.Cell>
                                 <Table.Cell>{Math.floor(inside.diameter * 10) / 100+'cm'}</Table.Cell>
-                                <Table.Cell>{inside.texture===2?"磨玻璃":"实性"}</Table.Cell>
+                                <Table.Cell>{inside.texture===2?"实性":"磨玻璃"}</Table.Cell>
                                 <Table.Cell>{inside.malignancy===2?"高危":"低危"}</Table.Cell>
                                 {/* <Table.Cell>&#92;</Table.Cell> */}
                             </Table.Row>
@@ -682,6 +699,7 @@ class CornerstoneElement extends Component {
                         let representArray=[]
                         const delId = 'del-' + inside.nodule_no
                         const malId = 'malSel-' + inside.nodule_no
+                        const texId = 'texSel-' + inside.nodule_no
                         const placeId = 'place-' + inside.nodule_no
                         if(inside.lobulation===2){
                             representArray.push('分叶')
@@ -689,14 +707,11 @@ class CornerstoneElement extends Component {
                         if(inside.spiculation===2){
                             representArray.push('毛刺')
                         }
-                        if(inside.texture===2){
-                            representArray.push('磨玻璃')
-                        }
-                        if(inside.texture===1){
-                            representArray.push('实性')
-                        }
                         if(inside.calcification===2){
                             representArray.push('钙化')
+                        }
+                        if(inside.calcification===2){
+                            calCount+=1
                         }
                         return (
                             // <Table.Row key={idx} className={classNamee}>
@@ -757,7 +772,13 @@ class CornerstoneElement extends Component {
                                 </Table.Cell>
                                 <Table.Cell>{Math.floor(inside.diameter * 10) / 100+'cm'}</Table.Cell>
                                 <Table.Cell>
-                                    <Dropdown multiple selection options={options} id='dropdown' defaultValue={representArray}/>
+                                    {/* <Dropdown multiple selection options={options} id='dropdown' defaultValue={representArray}/> */}
+                                    <select id={texId} style={selectStyle} onChange={this.onSelectTex}>
+                                        <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
+                                        <option value="1" selected={inside.texture === 1}>磨玻璃</option>
+                                        <option value="2" selected={inside.texture === 2}>实性</option>
+                                        <option value="3" selected={inside.texture === 3}>半实性</option>
+                                    </select>
                                 </Table.Cell>
                                 <Table.Cell>
                                     <select id={malId} style={selectStyle} onChange={this.onSelectMal}>
@@ -772,24 +793,32 @@ class CornerstoneElement extends Component {
                                 </Accordion.Title>
                                 <Accordion.Content active={listsActiveIndex===idx}>
                                     <div style={{width:'100%'}}>
-                                        <Table.Cell style={{fontSize:'medium'}}>IM:59.61</Table.Cell>
-                                        <Table.Cell style={{textAlign:'right',fontSize:'medium'}}>-566HU</Table.Cell>
+                                        <div style={{fontSize:'medium',display:'inline-block',width:'30%'}}>IM:59.61</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',width:'10%'}}>-566HU</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',width:'50%',textAlign:'right'}}>0.37cm³</div>
                                     </div>
-                                    <div style={{width:'100%',marginTop:'5px'}}>
-                                        <Table.Cell style={{fontSize:'medium',width:'400px'}}>表征</Table.Cell>
-                                        <Table.Cell style={{textAlign:'right',fontSize:'medium'}}>0.37cm³</Table.Cell>
+                                    <div style={{width:'100%',marginTop:'2%'}}>
+                                        <div style={{fontSize:'medium',display:'inline-block'}}>表征</div>
+                                        <Dropdown multiple selection options={options} id='dropdown' clearable pointing='left'
+                                        defaultValue={representArray} style={{display:'inline-block',height:'15%',marginLeft:'10%'}}/>
+                                        {/* <select multiple='multiple' style={{display:'inline-block',height:'15%',marginLeft:'10%'}}>
+                                            <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
+                                            <option value="1" selected={inside.spiculation === 2}>毛刺</option>
+                                            <option value="2" selected={inside.lobulation === 2}>分叶</option>
+                                            <option value="3" selected={inside.calcification === 2}>钙化</option>
+                                        </select> */}
                                     </div>
-                                    <div style={{width:'100%',marginTop:'20px'}}>
-                                        <Table.Cell style={{width:'320px'}}>
+                                    <div style={{width:'100%',marginTop:'2%'}}>
+                                        <div style={{display:'inline-block',width:'50%'}}>
                                             <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}>
                                                 <div>测量</div>
                                             </Button>
-                                            </Table.Cell>
-                                        <Table.Cell style={{width:'320px'}}>
+                                        </div>
+                                        <div style={{display:'inline-block',width:'50%'}}>
                                             <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}>
                                                 <div>特征分析</div>
                                             </Button>
-                                        </Table.Cell>
+                                        </div>
                                     </div>
                                 </Accordion.Content>
                             </div>
@@ -811,7 +840,7 @@ class CornerstoneElement extends Component {
                                                 icon
                                                 color='blue'
                                                 onClick={this.toPulmonary}
-                                                style={{width:55,height:60,fontSize:14}}
+                                                style={{height:'5%',fontSize:'1rem',width:'20%'}}
                                             >
                                                 <Icon name='book'></Icon>
                                                 <br/>肺窗

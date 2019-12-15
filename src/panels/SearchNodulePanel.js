@@ -13,7 +13,7 @@ const draftConfig = config.draft
 
 let panels=[]//labels赋值
 let idx=0//labels内部索引
-let nums={'恶性':0,'良性':0,'钙化':0,'毛刺':0,'分叶':0,'磨玻璃':0,'diameter':0}//限制labels数量
+let nums={'高危':0,'低危':0,'钙化':0,'毛刺':0,'分叶':0,'实性':0,'diameter':0}//限制labels数量
 let diaMeters=-1//保留直径所在labels位置
 
 export class SearchNodulePanel extends Component {
@@ -59,7 +59,7 @@ export class SearchNodulePanel extends Component {
     componentDidMount() {
         panels=[]//labels赋值
         idx=0//labels内部索引
-        nums={'恶性':0,'良性':0,'钙化':0,'毛刺':0,'分叶':0,'磨玻璃':0,'diameter':0}//限制labels数量
+        nums={'高危':0,'低危':0,'钙化':0,'毛刺':0,'分叶':0,'实性':0,'diameter':0}//限制labels数量
         diaMeters=-1//保留直径所在labels位置
         this.getTotalPages()
     }
@@ -231,18 +231,18 @@ export class SearchNodulePanel extends Component {
         console.log('value',value,indexx)
         delete panels[indexx]
         switch(value){
-            case '良性':
+            case '低危':
                 // console.log('value',value)
-                nums['良性']-=1
-                if(nums['恶性']===1){
+                nums['低危']-=1
+                if(nums['高危']===1){
                     this.setState({malignancy:2,labels:panels,activePage:'1'})
                 }
                 else{
                     this.setState({malignancy:-1,labels:panels,activePage:'1'})
                 };break
-            case '恶性':
-                nums['恶性']-=1
-                if(nums['良性']===1){
+            case '高危':
+                nums['高危']-=1
+                if(nums['低危']===1){
                     this.setState({malignancy:1,labels:panels,activePage:'1'})
                 }
                 else{
@@ -257,8 +257,8 @@ export class SearchNodulePanel extends Component {
             case '钙化':
                 nums['钙化']-=1
                 this.setState({calcification:-1,labels:panels,activePage:'1'}) ;break
-            case '磨玻璃':
-                nums['磨玻璃']-=1
+            case '实性':
+                nums['实性']-=1
                 this.setState({texture:-1,labels:panels,activePage:'1'}) ;break
             default:
                 this.setState({labels:panels,activePage:'1',diameterStart:0,diameterEnd:5});break
@@ -316,17 +316,17 @@ export class SearchNodulePanel extends Component {
             idx+=1
         
             switch(value){
-                case '良性':
-                    nums['良性']+=1
-                    if(nums['恶性']===1){
+                case '低危':
+                    nums['低危']+=1
+                    if(nums['高危']===1){
                         this.setState({malignancy:0,labels:panels,activePage:'1'})
                     }
                     else{
                         this.setState({malignancy:1,labels:panels,activePage:'1'})
                     };break
-                case '恶性':
-                    nums['恶性']+=1
-                    if(nums['良性']===1){
+                case '高危':
+                    nums['高危']+=1
+                    if(nums['低危']===1){
                         this.setState({malignancy:0,labels:panels,activePage:'1'})
                     }
                     else{
@@ -341,8 +341,8 @@ export class SearchNodulePanel extends Component {
                 case '钙化':
                     nums['钙化']+=1
                     this.setState({calcification:2,labels:panels,activePage:'1'}) ;break
-                case '磨玻璃':
-                    nums['磨玻璃']+=1
+                case '实性':
+                    nums['实性']+=1
                     this.setState({texture:2,labels:panels,activePage:'1'}) ;break
             }
         }
@@ -389,13 +389,13 @@ export class SearchNodulePanel extends Component {
                             <Grid inverted divided className="gridcontainer">
                                 <Grid.Row className="gridRow">
                                     <Grid.Column width={3} className="gridCategory">
-                                        <strong>病理学特征</strong>
+                                        <strong>风险程度</strong>
                                     </Grid.Column>
                                     <Grid.Column width={2} className="gridLabel">
-                                        <a style={{color:'#66cfec'}} onClick={this.handleLabels}>良性</a>
+                                        <a style={{color:'#66cfec'}} onClick={this.handleLabels}>低危</a>
                                     </Grid.Column>
                                     <Grid.Column width={2} className="gridLabel">
-                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>恶性</a>
+                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>高危</a>
                                     </Grid.Column>
                                 </Grid.Row>
                                 <Grid.Row className="gridRow">
@@ -475,7 +475,7 @@ export class SearchNodulePanel extends Component {
                                                 
                                             </Grid.Column> */}
                                             <Grid.Column width={2} className="gridLabel">
-                                            <a style={{color:'#66cfec'}} onClick={this.handleLabels}>磨玻璃</a>
+                                            <a style={{color:'#66cfec'}} onClick={this.handleLabels}>实性</a>
                                                 
                                             </Grid.Column>
                                             {/* <Grid.Column width={2} className="gridLabel">
@@ -507,7 +507,7 @@ export class SearchNodulePanel extends Component {
                                         <Table.HeaderCell>危险程度</Table.HeaderCell>
                                         <Table.HeaderCell>分叶</Table.HeaderCell>
                                         <Table.HeaderCell>毛刺</Table.HeaderCell>
-                                        <Table.HeaderCell>磨玻璃</Table.HeaderCell>
+                                        <Table.HeaderCell>实性</Table.HeaderCell>
                                         {/* <Table.HeaderCell>caseId</Table.HeaderCell> */}
                                         <Table.HeaderCell>钙化</Table.HeaderCell>
                                         <Table.HeaderCell>查看详情</Table.HeaderCell>
