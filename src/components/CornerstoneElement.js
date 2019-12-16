@@ -840,7 +840,7 @@ class CornerstoneElement extends Component {
                                                 icon
                                                 color='blue'
                                                 onClick={this.toPulmonary}
-                                                style={{height:'5%',fontSize:'1rem',width:'20%'}}
+                                                style={{width:55,height:60,fontSize:14}}
                                             >
                                                 <Icon name='book'></Icon>
                                                 <br/>肺窗
