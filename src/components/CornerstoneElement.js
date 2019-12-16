@@ -379,7 +379,8 @@ class CornerstoneElement extends Component {
         this.setState(({showNodules}) => ({
             showNodules: !showNodules
         }))
-        console.log('boxes',this.props.stack.boxes)
+        // console.log('boxes:',this.state.boxes)
+        // console.log('caseId',this.state.caseId)
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
@@ -392,7 +393,6 @@ class CornerstoneElement extends Component {
                 boxes.splice(i, 1)
             }
         }
-
         this.setState({
             boxes: boxes,
             random: Math.random()
@@ -557,7 +557,7 @@ class CornerstoneElement extends Component {
             createDraftModal = (
                 <div>
                     <Modal
-                        trigger={<Button inverted style={{height:60,fontSize:14,width:70}} color = 'blue' onClick = {
+                        trigger={<Button inverted style={{height:60,fontSize:14,width:75}} color = 'blue' onClick = {
                         this.toNewModel
                     }
                     > 从新标注 </Button>}
@@ -578,7 +578,7 @@ class CornerstoneElement extends Component {
             createDraftModal = (
                 <div>
                         <Modal
-                            trigger={<Button inverted style={{height:60,fontSize:14,width:70}} color = 'blue' onClick = {
+                            trigger={<Button inverted style={{height:60,fontSize:14,width:75}} color = 'blue' onClick = {
                             this.toNewModel 
                         }
                         > 从新标注 </Button>}
@@ -594,7 +594,7 @@ class CornerstoneElement extends Component {
                             </Modal.Actions>
                         </Modal>
                         <Modal
-                            trigger={<Button inverted style={{height:60,fontSize:14,width:70}} color = 'blue' onClick = {
+                            trigger={<Button inverted style={{height:60,fontSize:14,width:75}} color = 'blue' onClick = {
                             this.toCurrentModel
                         } > 拷贝标注 </Button>}
                             size='tiny'
@@ -712,7 +712,7 @@ class CornerstoneElement extends Component {
                                                 color='blue'
                                                 onClick={this.toPulmonary}
                                                 style={{width:55,height:60,fontSize:14}}
-                                            ><Icon name='book'><br/></Icon>肺窗</Button>
+                                            ><Icon name='book'><br/></Icon><br/>肺窗</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
                                             <Button
@@ -2068,7 +2068,7 @@ class CornerstoneElement extends Component {
     onImageRendered() {
         const element = document.getElementById("origin-canvas")
         const viewport = cornerstone.getViewport(element)
-        if (this.state.showNodules === true) {
+        if (this.state.showNodules === true && this.state.caseId ===window.location.pathname.split('/')[2]) {
             for (let i = 0; i < this.state.boxes.length; i++) {
                 if (this.state.boxes[i].slice_idx == this.state.currentIdx) 
                     this.drawBoxes(this.state.boxes[i])

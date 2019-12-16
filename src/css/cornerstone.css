@@ -4,8 +4,8 @@ input[type='range'] {
   background: transparent;
   transform: rotate(90deg);
   position: absolute;
-  top: 428px;/* 230px */
-  left: 550px;/* 465px */
+  top: 47%;/* 230px */
+  left: 54%;/* 465px */
   width: 850px;/* 400px */
   height: 30px;
   overflow: hidden;
