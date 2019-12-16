@@ -540,7 +540,7 @@ class CornerstoneElement extends Component {
                     color='blue'
                     onClick={this.submit}
                     style={{
-                    marginTop: 60 + 'px'
+                    marginTop: 30 + 'px'
                 }}>提交</Button>
             )
         else 
@@ -1262,7 +1262,7 @@ class CornerstoneElement extends Component {
                                         style={{
                                         marginRight: 15 + 'px',
                                         marginLeft: 350 + 'px',
-                                        marginTop: 60 + 'px'
+                                        marginTop: 30 + 'px'
                                     }}>暂存</Button>
                                     {submitButton}
                                 </Grid.Column>
