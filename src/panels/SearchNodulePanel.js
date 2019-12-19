@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import { Pagination,Label,Grid, Table,Header, Icon,Button,Input } from 'semantic-ui-react'
+import { Pagination,Label,Grid, Table,Header, Icon,Button,Input, Dropdown } from 'semantic-ui-react'
 import MainList from '../components/MainList'
 import axios from 'axios'
 import qs from 'qs'
@@ -13,8 +13,8 @@ const draftConfig = config.draft
 
 let panels=[]//labels赋值
 let idx=0//labels内部索引
-let nums={'高危':0,'低危':0,'钙化':0,'毛刺':0,'分叶':0,'实性':0,'diameter':0}//限制labels数量
-let diaMeters=-1//保留直径所在labels位置
+let nums={'危险':-1,'钙化':-1,'毛刺':-1,'分叶':-1,'实性':-1,'diameter':-1}//限制labels数量
+// let diaMeters=-1//保留直径所在labels位置
 
 export class SearchNodulePanel extends Component {
     constructor(props){
@@ -59,8 +59,8 @@ export class SearchNodulePanel extends Component {
     componentDidMount() {
         panels=[]//labels赋值
         idx=0//labels内部索引
-        nums={'高危':0,'低危':0,'钙化':0,'毛刺':0,'分叶':0,'实性':0,'diameter':0}//限制labels数量
-        diaMeters=-1//保留直径所在labels位置
+        nums={'危险':-1,'钙化':-1,'毛刺':-1,'分叶':-1,'实性':-1,'diameter':-1}//限制labels数量
+        // diaMeters=-1//保留直径所在labels位置
         this.getTotalPages()
     }
 
@@ -146,7 +146,7 @@ export class SearchNodulePanel extends Component {
             for (const idx in data){
                 let sequence={'volume':0,'diameter':0,'malignancy':'','lobulation':'','spiculation':'','texture':'','calcification':'','caseId':'','noduleNo':'','status':0}
                 // console()
-                sequence['volume']=data[idx]['volume']===undefined? ' ':Math.floor(data[idx]['volume'] * 100) / 100
+                sequence['volume']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
                 sequence['diameter']=Math.floor(data[idx]['diameter'] * 100) / 100
                 sequence['malignancy']=data[idx]['malignancy']==2?'高危 ':'低危'
                 sequence['lobulation']=data[idx]['lobulation']==2?'是 ':'否'
@@ -271,12 +271,14 @@ export class SearchNodulePanel extends Component {
 
     handleLabels(e){  
         const value=e.target.text
+        // const hhh=e.target.innerHTML
+        // console.log('value',value,hhh)
         // console.log('value',value,nums[value],typeof(value),value.length)
         if(value.split("",value.length).includes("m")){//直径专属
-            if(diaMeters!==-1){
-                delete panels[diaMeters]
+            if(nums['diameter']!==-1){
+                delete panels[nums['diameter']]
             }
-            diaMeters=idx
+            nums['diameter']=idx
             panels.push(
                 <Label as='a' key={idx}  className='labelTags'>
                     {value}
@@ -305,8 +307,11 @@ export class SearchNodulePanel extends Component {
             return
         }
 
-
-        if(nums[value]===0){
+        else{
+            if(nums['危险']!==-1){
+                delete panels[nums['危险']]
+            }
+            nums['危险']=idx
             panels.push(
                 <Label as='a' key={idx}  className='labelTags'>
                     {value}
@@ -314,36 +319,11 @@ export class SearchNodulePanel extends Component {
                 </Label>
             )
             idx+=1
-        
             switch(value){
                 case '低危':
-                    nums['低危']+=1
-                    if(nums['高危']===1){
-                        this.setState({malignancy:0,labels:panels,activePage:'1'})
-                    }
-                    else{
-                        this.setState({malignancy:1,labels:panels,activePage:'1'})
-                    };break
+                    this.setState({malignancy:1,labels:panels,activePage:'1'});break
                 case '高危':
-                    nums['高危']+=1
-                    if(nums['低危']===1){
-                        this.setState({malignancy:0,labels:panels,activePage:'1'})
-                    }
-                    else{
-                        this.setState({malignancy:2,labels:panels,activePage:'1'})
-                    };break
-                case '毛刺':
-                    nums['毛刺']+=1
-                    this.setState({spiculation:2,labels:panels,activePage:'1'}) ;break
-                case '分叶':
-                    nums['分叶']+=1
-                    this.setState({lobulation:2,labels:panels,activePage:'1'}) ;break
-                case '钙化':
-                    nums['钙化']+=1
-                    this.setState({calcification:2,labels:panels,activePage:'1'}) ;break
-                case '实性':
-                    nums['实性']+=1
-                    this.setState({texture:2,labels:panels,activePage:'1'}) ;break
+                    this.setState({malignancy:2,labels:panels,activePage:'1'});break
             }
         }
     }
@@ -454,29 +434,55 @@ export class SearchNodulePanel extends Component {
                                     <Grid.Column width={13} className="gridLabel">
                                     <Grid inverted divided>
                                         <Grid.Row>
-                                            <Grid.Column width={1} className="gridLabel">
-                                            <a style={{color:'#66cfec'}} onClick={this.handleLabels}>毛刺</a>
+                                            <Grid.Column style={{width:'8%'}} >
+                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>毛刺</a> */}
+                                                <Dropdown text='毛刺' style={{color:'#66cfec'}} id='feaDropdown'>
+                                                    <Dropdown.Menu style={{background:'black'}}>
+                                                        <Dropdown.Item onClick={this.handleLabels} text='毛刺'></Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleLabels}>非毛刺</Dropdown.Item>
+                                                        
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
                                                 
                                             </Grid.Column>
-                                            <Grid.Column width={1} className="gridLabel">
-                                            <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a>
-                                                
+                                            <Grid.Column style={{width:'8%'}} >
+                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
+                                            <Dropdown text='分叶' style={{color:'#66cfec'}} id='feaDropdown'>
+                                                    <Dropdown.Menu style={{background:'black'}}>
+                                                        <Dropdown.Item onClick={this.handleLabels}>分叶</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleLabels}>非分叶</Dropdown.Item>
+                                                        
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
                                             </Grid.Column>
                                             {/* <Grid.Column width={2} className="gridLabel">
                                             <a style={{color:'#66cfec'}} onClick={this.handleLabels}>胸膜内陷</a>
                                                 
                                             </Grid.Column> */}
-                                            <Grid.Column width={1} className="gridLabel">
-                                            <a style={{color:'#66cfec'}} onClick={this.handleLabels}>钙化</a>
+                                            <Grid.Column style={{width:'8%'}} >
+                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>钙化</a> */}
+                                            <Dropdown text='钙化' style={{color:'#66cfec'}} id='feaDropdown'>
+                                                    <Dropdown.Menu style={{background:'black'}}>
+                                                    <Dropdown.Item onClick={this.handleLabels}>钙化</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleLabels}>非钙化</Dropdown.Item>
+                                                        
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
                                                 
                                             </Grid.Column>
                                             {/* <Grid.Column width={2} className="gridLabel">
                                             <a style={{color:'#66cfec'}} onClick={this.handleLabels}>半实性</a>
                                                 
                                             </Grid.Column> */}
-                                            <Grid.Column width={2} className="gridLabel">
-                                            <a style={{color:'#66cfec'}} onClick={this.handleLabels}>实性</a>
-                                                
+                                            <Grid.Column style={{width:'8%'}} >
+                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>实性</a> */}
+                                            <Dropdown text='实性' style={{color:'#66cfec'}} id='feaDropdown'>
+                                                    <Dropdown.Menu style={{background:'black'}}>
+                                                    <Dropdown.Item onClick={this.handleLabels}>实性</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleLabels}>半实性</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleLabels}>磨玻璃</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
                                             </Grid.Column>
                                             {/* <Grid.Column width={2} className="gridLabel">
                                             <a style={{color:'#66cfec'}} onClick={this.handleLabels}>血管集束征</a>

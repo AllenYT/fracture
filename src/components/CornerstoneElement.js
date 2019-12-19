@@ -356,18 +356,22 @@ class CornerstoneElement extends Component {
     //     this.setState({listsActiveIndex: newIndex})
     // }
     handleListClick = (currentIdx,index,e) => {
-        // console.log('title',titleProps)
+        console.log('id',e.target.id)
         // const {index} = titleProps
-        console.log('index',index)
-        const {listsActiveIndex} = this.state
-        const newIndex = listsActiveIndex === index
-            ? -1
-            : index
-
-        this.setState({
-            listsActiveIndex: newIndex,
-            currentIdx: currentIdx-1,
-            autoRefresh: true})
+        // console.log('index',index)
+        const id=e.target.id
+        if(id!=='place-'+index && id!=='texSel-'+index && id!=='malSel-'+index && id!=='del-'+id.split("-")[1]){
+            const {listsActiveIndex} = this.state
+            const newIndex = listsActiveIndex === index
+                ? -1
+                : index
+    
+            this.setState({
+                listsActiveIndex: newIndex,
+                currentIdx: currentIdx-1,
+                autoRefresh: true})
+        }
+        
     }
 
     cache() {
@@ -616,7 +620,7 @@ class CornerstoneElement extends Component {
             createDraftModal = (
                 <div style={{width:'100%',height:'100%'}}>
                         <Modal
-                            trigger={<Button inverted style={{height:'100%',fontSize:'1rem',width:'20%'}} color = 'blue' onClick = {
+                            trigger={<Button inverted style={{height:window.screen.height*0.05,fontSize:'1rem',width:window.screen.width*0.04}} color = 'blue' onClick = {
                             this.toNewModel 
                         }
                         > <div>从新标注</div> </Button>}
@@ -632,7 +636,7 @@ class CornerstoneElement extends Component {
                             </Modal.Actions>
                         </Modal>
                         <Modal
-                            trigger={<Button inverted style={{height:'100%',fontSize:'1rem',width:'20%'}} color = 'blue' onClick = {
+                            trigger={<Button inverted style={{height:window.screen.height*0.05,fontSize:'1rem',width:window.screen.width*0.04}} color = 'blue' onClick = {
                             this.toCurrentModel
                         } > <div>拷贝标注</div> </Button>}
                             size='tiny'
@@ -668,17 +672,19 @@ class CornerstoneElement extends Component {
                             calCount+=1
                         }
                         return (
-                            <Table.Row key={idx} className={classNamee}>
-                                <Table.Cell>
-                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule}>{inside.nodule_no}</div>
+                            <Table.Row key={idx} className={classNamee} onClick={this.toPage.bind(this,inside.slice_idx + 1)}>
+                                <Table.Cell width={2}>
+                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{inside.nodule_no}</div>
+                                    {/* <a onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} 
+                                    onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.nodule_no}</a> */}
                                 </Table.Cell>
-                                <Table.Cell width={4}>
+                                {/* <Table.Cell width={4}>
                                     <a onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.slice_idx + 1}号切片</a>
-                                </Table.Cell>  
-                                <Table.Cell>{inside.place}</Table.Cell>
-                                <Table.Cell>{Math.floor(inside.diameter * 10) / 100+'cm'}</Table.Cell>
-                                <Table.Cell>{inside.texture===2?"实性":"磨玻璃"}</Table.Cell>
-                                <Table.Cell>{inside.malignancy===2?"高危":"低危"}</Table.Cell>
+                                </Table.Cell>   */}
+                                {/* <Table.Cell >{inside.place}</Table.Cell> */}
+                                <Table.Cell width={3} >{Math.floor(inside.diameter * 10) / 100+'cm'}</Table.Cell>
+                                <Table.Cell width={3}>{inside.texture===2?"实性":"磨玻璃"}</Table.Cell>
+                                <Table.Cell width={3}>{inside.malignancy===2?"高危":"低危"}</Table.Cell>
                                 {/* <Table.Cell>&#92;</Table.Cell> */}
                             </Table.Row>
                         )
@@ -689,7 +695,7 @@ class CornerstoneElement extends Component {
                     .state
                     .boxes
                     .map((inside, idx) => {
-                        console.log('inside',inside)
+                        // console.log('inside',inside)
                         let classNamee = ""
                         // if (this.state.currentIdx === inside.slice_idx) {
                         //     classNamee = "table-row highlighted"
@@ -750,17 +756,17 @@ class CornerstoneElement extends Component {
                             <div key={idx}>
                                 <Accordion.Title  className={classNamee} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
                                 active={listsActiveIndex===idx} index={idx}>
-                                    <Table.Cell width={1}>
+                                <div style={{display:'inline-block'}}>
                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{inside.nodule_no}</div>
                                     {/* <div style={{fontSize:'large'}}>{inside.nodule_no}</div> */}
-                                </Table.Cell>
-                                <Table.Cell width={1}>
-                                    {/* <a onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.slice_idx + 1}号切片</a> */}
+                                </div>
+                                {/* <Table.Cell width={1}>
+                                    <a onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.slice_idx + 1}号切片</a>
                                     <a >{inside.slice_idx + 1}号切片</a>
-                                </Table.Cell>
+                                </Table.Cell> */}
                                 
                                 
-                                <Table.Cell >
+                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.05}}>
                                     <select id={placeId} style={selectStyle} onChange={this.onSelectPlace}>
                                         <option value="" disabled="disabled" selected={inside.place === ''}>选择位置</option>
                                         <option value="1" selected={inside.place === '1'}>左肺上叶</option>
@@ -769,9 +775,12 @@ class CornerstoneElement extends Component {
                                         <option value="4" selected={inside.place === '4'}>右肺中叶</option>
                                         <option value="5" selected={inside.place === '5'}>右肺下叶</option>
                                     </select>
-                                </Table.Cell>
-                                <Table.Cell>{Math.floor(inside.diameter * 10) / 100+'cm'}</Table.Cell>
-                                <Table.Cell>
+                                </div>
+                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.02}}>
+                                    {/* {Math.floor(inside.diameter * 10) / 100+'cm'} */}
+                                    {inside.diameter.toFixed(2)+'cm'}
+                                    </div>
+                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.02}}>
                                     {/* <Dropdown multiple selection options={options} id='dropdown' defaultValue={representArray}/> */}
                                     <select id={texId} style={selectStyle} onChange={this.onSelectTex}>
                                         <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
@@ -779,17 +788,17 @@ class CornerstoneElement extends Component {
                                         <option value="2" selected={inside.texture === 2}>实性</option>
                                         <option value="3" selected={inside.texture === 3}>半实性</option>
                                     </select>
-                                </Table.Cell>
-                                <Table.Cell>
+                                </div>
+                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.02}}>
                                     <select id={malId} style={selectStyle} onChange={this.onSelectMal}>
                                         <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
                                         <option value="1" selected={inside.malignancy === 1}>低危</option>
                                         <option value="2" selected={inside.malignancy === 2}>高危</option>
                                     </select>
-                                </Table.Cell>
-                                <Table.Cell>
+                                </div>
+                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.05}}>
                                     <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
-                                </Table.Cell>
+                                </div>
                                 </Accordion.Title>
                                 <Accordion.Content active={listsActiveIndex===idx}>
                                     <div style={{width:'100%'}}>
@@ -810,13 +819,16 @@ class CornerstoneElement extends Component {
                                     </div>
                                     <div style={{width:'100%',marginTop:'2%'}}>
                                         <div style={{display:'inline-block',width:'50%'}}>
-                                            <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}>
-                                                <div>测量</div>
+                                            <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
+                                            content='测量' icon='edit' id="immersive-hover" onClick={() => {this.setState({immersive: true})}}>
+                                                {/* <div>测量</div> */}
                                             </Button>
                                         </div>
                                         <div style={{display:'inline-block',width:'50%'}}>
-                                            <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}>
-                                                <div>特征分析</div>
+                                            <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
+                                            icon='chart bar' content='特征分析'>
+                                                {/* <div>特征分析</div> */}
+                                                {/* <Icon name='chart bar'></Icon> */}
                                             </Button>
                                         </div>
                                     </div>
@@ -1050,6 +1062,7 @@ class CornerstoneElement extends Component {
                                                 color='blue'
                                                 onClick={this.toPulmonary}
                                                 style={{width:55,height:60,fontSize:14}}
+                                                // style={{width:window.screenX*0.1,}}
                                             ><Icon name='book'></Icon><br/>肺窗</Button>
                                         </Grid.Column>
                                         <Grid.Column style={gridStyle}>
@@ -1183,9 +1196,9 @@ class CornerstoneElement extends Component {
                                             模型结果
                                         </Accordion.Title>
                                         <Accordion.Content active={activeIndex === 0}>
-                                            <p>
+                                            
                                                 {ReactHtmlParser(this.state.modelResults)}
-                                            </p>
+                                            
                                         </Accordion.Content>
                                     </Accordion>
                                     
@@ -1200,9 +1213,9 @@ class CornerstoneElement extends Component {
                                             标注结果
                                         </Accordion.Title>
                                         <Accordion.Content active={activeIndex === 1}>
-                                            <p>
+                                            
                                                 {ReactHtmlParser(this.state.annoResults)}
-                                            </p>
+                                            
                                         </Accordion.Content>
                                     </Accordion>
                                         
@@ -1216,9 +1229,9 @@ class CornerstoneElement extends Component {
                                         审核结果
                                     </Accordion.Title>
                                     <Accordion.Content active={activeIndex === 2}>
-                                        <p>
+                                        
                                             {ReactHtmlParser(this.state.reviewResults)}
-                                        </p>
+                                        
                                     </Accordion.Content>
                                 </Accordion>
                                 </Grid.Row>   
