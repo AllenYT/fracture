@@ -10,9 +10,9 @@
     color:#2af270;
 }
 
-.gridLabel{
+/* .gridLabel{
     color:#66cfec;
-}
+} */
 
 .conlabel{
     margin-left: 10%;
@@ -76,4 +76,16 @@ em {
 
 .ui.inverted.table th{
     color:#2af270 !important;
+}
+
+#feaDropdown{
+    background:transparent !important;
+    /* border:1px solid whitesmoke !important; */
+    color:#66cfec !important
+  }
+#feaDropdown> div > .item{
+    /* color: #2af270; */
+    color:#66cfec;
+    background: rgba(1, 23, 46, 0.997);
+    border: 0.1px unset;
 }

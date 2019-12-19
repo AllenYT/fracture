@@ -276,9 +276,9 @@ option {
   /* display: inline-block; */
 }
 
-td{
-  width:22.1%;
-}
+/* td{
+  width:25%;
+} */
 
 #listTitle{
   background: #021c38;
