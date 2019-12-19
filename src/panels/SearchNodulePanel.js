@@ -54,6 +54,9 @@ export class SearchNodulePanel extends Component {
         this.handleInputChange=this
             .handleInputChange
             .bind(this)
+        this.handleImageLabels=this
+            .handleImageLabels
+            .bind(this)
     }
 
     componentDidMount() {
@@ -142,16 +145,22 @@ export class SearchNodulePanel extends Component {
         axios.post(recordConfig.getNodulesAtPage, qs.stringify(params)).then((response) => {
             let lists=[]
             const data = response.data
+
+            console.log('params', params)
+            
             console.log('pages:',data)
             for (const idx in data){
                 let sequence={'volume':0,'diameter':0,'malignancy':'','lobulation':'','spiculation':'','texture':'','calcification':'','caseId':'','noduleNo':'','status':0}
                 // console()
+                if(data[idx]['volume']===undefined){
+                    console.log(data[idx])
+                }
                 sequence['volume']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
                 sequence['diameter']=Math.floor(data[idx]['diameter'] * 100) / 100
                 sequence['malignancy']=data[idx]['malignancy']==2?'高危 ':'低危'
                 sequence['lobulation']=data[idx]['lobulation']==2?'是 ':'否'
                 sequence['spiculation']=data[idx]['spiculation']==2?'是 ':'否'
-                sequence['texture']=data[idx]['texture']==2?'是 ':'否'
+                sequence['texture']=data[idx]['texture']==2?'实性 ':'磨玻璃'
                 sequence['calcification']=data[idx]['calcification']==2?'是 ':'否'
                 sequence['caseId']=data[idx]['caseId']
                 sequence['noduleNo']=data[idx]['noduleNo']
@@ -233,31 +242,37 @@ export class SearchNodulePanel extends Component {
         switch(value){
             case '低危':
                 // console.log('value',value)
-                nums['低危']-=1
-                if(nums['高危']===1){
-                    this.setState({malignancy:2,labels:panels,activePage:'1'})
-                }
-                else{
-                    this.setState({malignancy:-1,labels:panels,activePage:'1'})
-                };break
+                nums['危险']-=1
+                    this.setState({malignancy:-1,labels:panels,activePage:'1'});break
             case '高危':
-                nums['高危']-=1
-                if(nums['低危']===1){
-                    this.setState({malignancy:1,labels:panels,activePage:'1'})
-                }
-                else{
-                    this.setState({malignancy:-1,labels:panels,activePage:'1'})
-                };break
+                        // console.log('value',value)
+                nums['危险']-=1
+                    this.setState({malignancy:-1,labels:panels,activePage:'1'});break
             case '毛刺':
+                nums['毛刺']-=1
+                this.setState({spiculation:-1,labels:panels,activePage:'1'}) ;break
+            case '非毛刺':
                 nums['毛刺']-=1
                 this.setState({spiculation:-1,labels:panels,activePage:'1'}) ;break
             case '分叶':
                 nums['分叶']-=1
                 this.setState({lobulation:-1,labels:panels,activePage:'1'}) ;break
+            case '非分叶':
+                nums['分叶']-=1
+                this.setState({lobulation:-1,labels:panels,activePage:'1'}) ;break
             case '钙化':
                 nums['钙化']-=1
                 this.setState({calcification:-1,labels:panels,activePage:'1'}) ;break
+            case '非钙化':
+                nums['钙化']-=1
+                this.setState({calcification:-1,labels:panels,activePage:'1'}) ;break
             case '实性':
+                nums['实性']-=1
+                this.setState({texture:-1,labels:panels,activePage:'1'}) ;break
+            case '半实性':
+                nums['半实性']-=1
+                this.setState({texture:-1,labels:panels,activePage:'1'}) ;break
+            case '磨玻璃':
                 nums['实性']-=1
                 this.setState({texture:-1,labels:panels,activePage:'1'}) ;break
             default:
@@ -328,12 +343,68 @@ export class SearchNodulePanel extends Component {
         }
     }
 
+    handleImageLabels(e){
+        const text=e.target.innerHTML
+        if(text==='毛刺'||text==='非毛刺'){
+            if(nums['毛刺']!==-1){
+                delete panels[nums['毛刺']]
+            }
+            nums['毛刺']=idx
+        }
+        else if(text==='分叶'||text==='非分叶'){
+            if(nums['分叶']!==-1){
+                delete panels[nums['分叶']]
+            }
+            nums['分叶']=idx
+        }
+        else if(text==='钙化'||text==='非钙化'){
+            if(nums['钙化']!==-1){
+                delete panels[nums['钙化']]
+            }
+            nums['钙化']=idx
+        }
+        else if(text==='实性'||text==='半实性'||text==='磨玻璃'){
+            if(nums['实性']!==-1){
+                delete panels[nums['实性']]
+            }
+            nums['实性']=idx
+        }
+        panels.push(
+            <Label as='a' key={idx}  className='labelTags'>
+                {text}
+                <Icon name='delete' onClick={this.handleLabelsIcon.bind(this,idx,text)} inverted color='green'/>
+            </Label>
+        )
+        idx+=1
+
+        switch(text){
+            case '毛刺':
+                this.setState({spiculation:2,labels:panels,activePage:'1'});break
+            case '非毛刺':
+                this.setState({spiculation:1,labels:panels,activePage:'1'});break
+            case '分叶':
+                this.setState({lobulation:2,labels:panels,activePage:'1'});break
+            case '非分叶':
+                this.setState({lobulation:1,labels:panels,activePage:'1'});break
+            case '钙化':
+                this.setState({calcification:2,labels:panels,activePage:'1'});break
+            case '非钙化':
+                this.setState({calcification:1,labels:panels,activePage:'1'});break
+            case '实性':
+                this.setState({texture:2,labels:panels,activePage:'1'});break
+            case '半实性':
+                this.setState({texture:3,labels:panels,activePage:'1'});break
+            case '磨玻璃':
+                this.setState({texture:1,labels:panels,activePage:'1'});break
+        }
+    }
+
     handleInputChange(e) {
         const value = e.currentTarget.value
         const name = e.currentTarget.name
-        if(diaMeters!==-1){
-            delete panels[diaMeters]
-            diaMeters=-1
+        if(nums['diameter']!==-1){
+            delete panels[nums['diameter']]
+            nums['diameter']=-1
             this.setState({labels:panels,activePage:'1'})
         }
         if (name === 'left') {
@@ -347,10 +418,10 @@ export class SearchNodulePanel extends Component {
 
     render(){
         const lists = this.state.lists
-        console.log('panels',panels)
-        console.log('idx',idx)
-        console.log('nums',nums)
-        console.log('diameters',diaMeters)
+        // console.log('panels',panels)
+        // console.log('idx',idx)
+        // console.log('nums',nums)
+        // console.log('diameters',diaMeters)
         
         return(
             <div>
@@ -438,8 +509,8 @@ export class SearchNodulePanel extends Component {
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>毛刺</a> */}
                                                 <Dropdown text='毛刺' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
-                                                        <Dropdown.Item onClick={this.handleLabels} text='毛刺'></Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.handleLabels}>非毛刺</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>毛刺</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>非毛刺</Dropdown.Item>
                                                         
                                                     </Dropdown.Menu>
                                                 </Dropdown>
@@ -449,8 +520,8 @@ export class SearchNodulePanel extends Component {
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
                                             <Dropdown text='分叶' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
-                                                        <Dropdown.Item onClick={this.handleLabels}>分叶</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.handleLabels}>非分叶</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>分叶</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>非分叶</Dropdown.Item>
                                                         
                                                     </Dropdown.Menu>
                                                 </Dropdown>
@@ -463,8 +534,8 @@ export class SearchNodulePanel extends Component {
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>钙化</a> */}
                                             <Dropdown text='钙化' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
-                                                    <Dropdown.Item onClick={this.handleLabels}>钙化</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.handleLabels}>非钙化</Dropdown.Item>
+                                                    <Dropdown.Item onClick={this.handleImageLabels}>钙化</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>非钙化</Dropdown.Item>
                                                         
                                                     </Dropdown.Menu>
                                                 </Dropdown>
@@ -478,9 +549,9 @@ export class SearchNodulePanel extends Component {
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>实性</a> */}
                                             <Dropdown text='实性' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
-                                                    <Dropdown.Item onClick={this.handleLabels}>实性</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.handleLabels}>半实性</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.handleLabels}>磨玻璃</Dropdown.Item>
+                                                    <Dropdown.Item onClick={this.handleImageLabels}>实性</Dropdown.Item>
+                                                        <Dropdown.Item >半实性</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>磨玻璃</Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                             </Grid.Column>
