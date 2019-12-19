@@ -695,7 +695,7 @@ class CornerstoneElement extends Component {
                     .state
                     .boxes
                     .map((inside, idx) => {
-                        // console.log('inside',inside)
+                        console.log('inside',inside)
                         let classNamee = ""
                         // if (this.state.currentIdx === inside.slice_idx) {
                         //     classNamee = "table-row highlighted"
@@ -756,7 +756,7 @@ class CornerstoneElement extends Component {
                             <div key={idx}>
                                 <Accordion.Title  className={classNamee} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
                                 active={listsActiveIndex===idx} index={idx}>
-                                <div style={{display:'inline-block'}}>
+                                <div style={{display:'inline-block',width:5}}>
                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{inside.nodule_no}</div>
                                     {/* <div style={{fontSize:'large'}}>{inside.nodule_no}</div> */}
                                 </div>
@@ -766,7 +766,7 @@ class CornerstoneElement extends Component {
                                 </Table.Cell> */}
                                 
                                 
-                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.05}}>
+                                <div style={{display:'inline-block',marginLeft:60}}>
                                     <select id={placeId} style={selectStyle} onChange={this.onSelectPlace}>
                                         <option value="" disabled="disabled" selected={inside.place === ''}>选择位置</option>
                                         <option value="1" selected={inside.place === '1'}>左肺上叶</option>
@@ -776,11 +776,11 @@ class CornerstoneElement extends Component {
                                         <option value="5" selected={inside.place === '5'}>右肺下叶</option>
                                     </select>
                                 </div>
-                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.02}}>
-                                    {/* {Math.floor(inside.diameter * 10) / 100+'cm'} */}
+                                <div style={{display:'inline-block',marginLeft:40}}>
+                                    {/* {Math.round(inside.diameter * 10) / 100+'cm'} */}
                                     {inside.diameter.toFixed(2)+'cm'}
                                     </div>
-                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.02}}>
+                                <div style={{display:'inline-block',marginLeft:40}}>
                                     {/* <Dropdown multiple selection options={options} id='dropdown' defaultValue={representArray}/> */}
                                     <select id={texId} style={selectStyle} onChange={this.onSelectTex}>
                                         <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
@@ -789,14 +789,14 @@ class CornerstoneElement extends Component {
                                         <option value="3" selected={inside.texture === 3}>半实性</option>
                                     </select>
                                 </div>
-                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.02}}>
+                                <div style={{display:'inline-block',marginLeft:50}}>
                                     <select id={malId} style={selectStyle} onChange={this.onSelectMal}>
                                         <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
                                         <option value="1" selected={inside.malignancy === 1}>低危</option>
                                         <option value="2" selected={inside.malignancy === 2}>高危</option>
                                     </select>
                                 </div>
-                                <div style={{display:'inline-block',marginLeft:window.screen.width*0.05}}>
+                                <div style={{display:'inline-block',marginLeft:80}}>
                                     <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
                                 </div>
                                 </Accordion.Title>
@@ -1666,7 +1666,8 @@ class CornerstoneElement extends Component {
             "x2": x2,
             "y1": y1,
             "y2": y2,
-            "highlight": false
+            "highlight": false,
+            "diameter":0.00
         }
         let boxes = this.state.boxes
         console.log("newBox", newBox)
