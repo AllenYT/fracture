@@ -262,7 +262,7 @@ option {
     border-radius: 0.1rem !important;
     border-color: white;
     color: white;
-    max-height:800px; 
+    max-height:100%; 
     overflow-y:auto;
 }
 
@@ -272,9 +272,9 @@ option {
   /* display: inline-block; */
 }
 
-td{
-  width:22.1%;
-}
+/* td{
+  width:25%;
+} */
 
 #listTitle{
   background: #021c38;
@@ -328,3 +328,20 @@ td{
 
 /* @media screen and (max-width: 960px) {
 } */
+#dropdown{
+  background:transparent !important;
+  border:1px solid whitesmoke !important;
+  color:whitesmoke !important
+}
+#dropdown>.ui.label{
+  background-color: transparent ;
+  color: whitesmoke;
+  border: 0.5px solid whitesmoke;
+}
+
+#dropdown> div > .item{
+  /* color: #2af270; */
+  color:whitesmoke;
+  background: rgba(1, 23, 46, 0.997);
+  border: 0.5px solid whitesmoke;
+}

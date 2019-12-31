@@ -82,7 +82,12 @@ const reviewConfig = config.review
 const selectStyle = {
     'background': 'none',
     'border': 'none',
-    'fontFamily': 'monospace'
+    // 'fontFamily': 'SimHei',
+    '-webkit-appearance':'none',
+    'font-size':'medium',
+    '-moz-appearance':'none',
+    'apperance': 'none',
+    'margin-left':'15px'
 }
 
 class CornerstoneElement extends Component {
@@ -332,14 +337,34 @@ class CornerstoneElement extends Component {
 
         this.setState({activeIndex: newIndex})
     }
-    handleListClick = (e, titleProps) => {
-        const {index} = titleProps
-        const {listsActiveIndex} = this.state
-        const newIndex = listsActiveIndex === index
-            ? -1
-            : index
+    // handleListClick = (e, titleProps) => {
+    //     console.log('title',titleProps)
+    //     const {index} = titleProps
+    //     console.log('index',index)
+    //     const {listsActiveIndex} = this.state
+    //     const newIndex = listsActiveIndex === index
+    //         ? -1
+    //         : index
 
-        this.setState({listsActiveIndex: newIndex})
+    //     this.setState({listsActiveIndex: newIndex})
+    // }
+    handleListClick = (currentIdx,index,e) => {
+        console.log('id',e.target.id)
+        // const {index} = titleProps
+        // console.log('index',index)
+        const id=e.target.id
+        if(id!=='place-'+index && id!=='texSel-'+index && id!=='malSel-'+index && id!=='del-'+id.split("-")[1]){
+            const {listsActiveIndex} = this.state
+            const newIndex = listsActiveIndex === index
+                ? -1
+                : index
+    
+            this.setState({
+                listsActiveIndex: newIndex,
+                currentIdx: currentIdx-1,
+                autoRefresh: true})
+        }
+        
     }
 
     cache() {
@@ -372,8 +397,6 @@ class CornerstoneElement extends Component {
         this.setState(({showNodules}) => ({
             showNodules: !showNodules
         }))
-        // console.log('boxes:',this.state.boxes)
-        // console.log('caseId',this.state.caseId)
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
@@ -445,6 +468,23 @@ class CornerstoneElement extends Component {
             random: Math.random()
         })
     }
+    onSelectTex = (event) => {
+        const value = event.currentTarget.value
+        const noduleId = event
+            .currentTarget
+            .id
+            .split('-')[1]
+        let boxes = this.state.boxes
+        for (let i = 0; i < boxes.length; i++) {
+            if (boxes[i].nodule_no === noduleId) {
+                boxes[i].texture = parseInt(value)
+            }
+        }
+        this.setState({
+            boxes: boxes,
+            random: Math.random()
+        })
+    }
 
     onSelectPlace = (event) => {
         const value = event.currentTarget.value
@@ -497,6 +537,7 @@ class CornerstoneElement extends Component {
     }
 
     render() {
+        // sessionStorage.clear()
         // console.log('boxes', this.state.boxes)
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex} = this.state
         let tableContent = ""
@@ -504,11 +545,11 @@ class CornerstoneElement extends Component {
         let submitButton;
         let StartReviewButton;
         let calCount=0
+        
         const options = [
             { key: '分叶', text: '分叶', value: '分叶' },
             { key: '毛刺', text: '毛刺', value: '毛刺' },
             { key: '钙化', text: '钙化', value: '钙化' },
-            { key: '磨玻璃', text: '磨玻璃', value: '磨玻璃' },
         ]
 
         const locationOptions=[
@@ -548,7 +589,7 @@ class CornerstoneElement extends Component {
             )
         if (window.location.pathname.split('/')[3] === 'origin') 
             createDraftModal = (
-                <div>
+                <div style={{width:'100%',height:'100%'}}>
                     <Modal
                         trigger={<Button inverted style={{height:60,fontSize:14,width:75}} color = 'blue' onClick = {
                         this.toNewModel
@@ -569,7 +610,7 @@ class CornerstoneElement extends Component {
             )
         else 
             createDraftModal = (
-                <div>
+                <div style={{width:'100%',height:'100%'}}>
                         <Modal
                             trigger={<Button inverted color = 'blue' onClick = {
                             this.toNewModel 
@@ -607,6 +648,7 @@ class CornerstoneElement extends Component {
 
         if (!this.state.immersive) {
             if (this.state.readonly) {
+                
                 tableContent = this
                     .state
                     .boxes
@@ -622,17 +664,19 @@ class CornerstoneElement extends Component {
                             calCount+=1
                         }
                         return (
-                            <Table.Row key={idx} className={classNamee}>
-                                <Table.Cell>
-                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule}>{inside.nodule_no}</div>
+                            <Table.Row key={idx} className={classNamee} onClick={this.toPage.bind(this,inside.slice_idx + 1)}>
+                                <Table.Cell width={2}>
+                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{inside.nodule_no}</div>
+                                    {/* <a onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} 
+                                    onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.nodule_no}</a> */}
                                 </Table.Cell>
-                                <Table.Cell width={4}>
+                                {/* <Table.Cell width={4}>
                                     <a onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.slice_idx + 1}号切片</a>
-                                </Table.Cell>  
-                                <Table.Cell>{inside.place}</Table.Cell>
-                                <Table.Cell>{Math.floor(inside.diameter * 100) / 100+'cm'}</Table.Cell>
-                                <Table.Cell>{inside.texture===2?"磨玻璃":"实性"}</Table.Cell>
-                                <Table.Cell>{inside.malignancy===2?"高危":"低危"}</Table.Cell>
+                                </Table.Cell>   */}
+                                {/* <Table.Cell >{inside.place}</Table.Cell> */}
+                                <Table.Cell width={3} >{Math.floor(inside.diameter * 10) / 100+'cm'}</Table.Cell>
+                                <Table.Cell width={3}>{inside.texture===2?"实性":"磨玻璃"}</Table.Cell>
+                                <Table.Cell width={3}>{inside.malignancy===2?"高危":"低危"}</Table.Cell>
                                 {/* <Table.Cell>&#92;</Table.Cell> */}
                             </Table.Row>
                         )
@@ -643,29 +687,78 @@ class CornerstoneElement extends Component {
                     .state
                     .boxes
                     .map((inside, idx) => {
-                        // console.log(this.state.currentIdx, inside.slice_idx - 1)
+                        console.log('inside',inside)
                         let classNamee = ""
-                        if (this.state.currentIdx === inside.slice_idx) {
-                            classNamee = "table-row highlighted"
-                        } else {
-                            classNamee = "table-row"
-                        }
-
+                        // if (this.state.currentIdx === inside.slice_idx) {
+                        //     classNamee = "table-row highlighted"
+                        // } else {
+                        //     classNamee = "table-row"
+                        // }
+                        let representArray=[]
                         const delId = 'del-' + inside.nodule_no
                         const malId = 'malSel-' + inside.nodule_no
+                        const texId = 'texSel-' + inside.nodule_no
                         const placeId = 'place-' + inside.nodule_no
-
+                        if(inside.lobulation===2){
+                            representArray.push('分叶')
+                        }
+                        if(inside.spiculation===2){
+                            representArray.push('毛刺')
+                        }
+                        if(inside.calcification===2){
+                            representArray.push('钙化')
+                        }
+                        if(inside.calcification===2){
+                            calCount+=1
+                        }
                         return (
-                            <Table.Row key={idx} className={classNamee}>
-                                <Table.Cell>
-                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule}>{inside.nodule_no}</div>
-                                </Table.Cell>
-                                <Table.Cell>
+                            // <Table.Row key={idx} className={classNamee}>
+                            //     <Table.Cell width={1}>
+                            //         <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule}>{inside.nodule_no}</div>
+                            //     </Table.Cell>
+                            //     <Table.Cell>
+                            //         <a onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.slice_idx + 1}号切片</a>
+                            //     </Table.Cell>
+                                
+                                
+                            //     <Table.Cell>
+                            //         <select id={placeId} style={selectStyle} onChange={this.onSelectPlace}>
+                            //             <option value="" disabled="disabled" selected={inside.place === ''}>选择位置</option>
+                            //             <option value="1" selected={inside.place === '1'}>左肺上叶</option>
+                            //             <option value="2" selected={inside.place === '2'}>左肺下叶</option>
+                            //             <option value="3" selected={inside.place === '3'}>右肺上叶</option>
+                            //             <option value="4" selected={inside.place === '4'}>右肺中叶</option>
+                            //             <option value="5" selected={inside.place === '5'}>右肺下叶</option>
+                            //         </select>
+                            //     </Table.Cell>
+                            //     <Table.Cell>
+                            //         <Dropdown multiple selection options={options} />
+                            //     </Table.Cell>
+                            //     <Table.Cell>
+                            //         <select id={malId} style={selectStyle} onChange={this.onSelectMal}>
+                            //             <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
+                            //             <option value="1" selected={inside.malignancy === 1}>低危</option>
+                            //             <option value="2" selected={inside.malignancy === 2}>高危</option>
+                            //         </select>
+                            //     </Table.Cell>
+                            //     <Table.Cell>
+                            //         <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
+                            //     </Table.Cell>
+                            // // </Table.Row>
+                            <div key={idx}>
+                                <Accordion.Title  className={classNamee} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
+                                active={listsActiveIndex===idx} index={idx}>
+                                <div style={{display:'inline-block',width:5}}>
+                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{inside.nodule_no}</div>
+                                    {/* <div style={{fontSize:'large'}}>{inside.nodule_no}</div> */}
+                                </div>
+                                {/* <Table.Cell width={1}>
                                     <a onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.slice_idx + 1}号切片</a>
-                                </Table.Cell>
+                                    <a >{inside.slice_idx + 1}号切片</a>
+                                </Table.Cell> */}
                                 
                                 
-                                <Table.Cell>
+                                <div style={{display:'inline-block',marginLeft:60}}>
                                     <select id={placeId} style={selectStyle} onChange={this.onSelectPlace}>
                                         <option value="" disabled="disabled" selected={inside.place === ''}>选择位置</option>
                                         <option value="1" selected={inside.place === '1'}>左肺上叶</option>
@@ -674,18 +767,65 @@ class CornerstoneElement extends Component {
                                         <option value="4" selected={inside.place === '4'}>右肺中叶</option>
                                         <option value="5" selected={inside.place === '5'}>右肺下叶</option>
                                     </select>
-                                </Table.Cell>
-                                <Table.Cell>
+                                </div>
+                                <div style={{display:'inline-block',marginLeft:40}}>
+                                    {/* {Math.round(inside.diameter * 10) / 100+'cm'} */}
+                                    {inside.diameter.toFixed(2)+'cm'}
+                                    </div>
+                                <div style={{display:'inline-block',marginLeft:40}}>
+                                    {/* <Dropdown multiple selection options={options} id='dropdown' defaultValue={representArray}/> */}
+                                    <select id={texId} style={selectStyle} onChange={this.onSelectTex}>
+                                        <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
+                                        <option value="1" selected={inside.texture === 1}>磨玻璃</option>
+                                        <option value="2" selected={inside.texture === 2}>实性</option>
+                                        <option value="3" selected={inside.texture === 3}>半实性</option>
+                                    </select>
+                                </div>
+                                <div style={{display:'inline-block',marginLeft:50}}>
                                     <select id={malId} style={selectStyle} onChange={this.onSelectMal}>
                                         <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
                                         <option value="1" selected={inside.malignancy === 1}>低危</option>
                                         <option value="2" selected={inside.malignancy === 2}>高危</option>
                                     </select>
-                                </Table.Cell>
-                                <Table.Cell>
+                                </div>
+                                <div style={{display:'inline-block',marginLeft:80}}>
                                     <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
-                                </Table.Cell>
-                            </Table.Row>
+                                </div>
+                                </Accordion.Title>
+                                <Accordion.Content active={listsActiveIndex===idx}>
+                                    <div style={{width:'100%'}}>
+                                        <div style={{fontSize:'medium',display:'inline-block',width:'30%'}}>IM:59.61</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',width:'10%'}}>-566HU</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',width:'50%',textAlign:'right'}}>0.37cm³</div>
+                                    </div>
+                                    <div style={{width:'100%',marginTop:'2%'}}>
+                                        <div style={{fontSize:'medium',display:'inline-block'}}>表征</div>
+                                        <Dropdown multiple selection options={options} id='dropdown' clearable pointing='left'
+                                        defaultValue={representArray} style={{display:'inline-block',height:'15%',marginLeft:'10%'}}/>
+                                        {/* <select multiple='multiple' style={{display:'inline-block',height:'15%',marginLeft:'10%'}}>
+                                            <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
+                                            <option value="1" selected={inside.spiculation === 2}>毛刺</option>
+                                            <option value="2" selected={inside.lobulation === 2}>分叶</option>
+                                            <option value="3" selected={inside.calcification === 2}>钙化</option>
+                                        </select> */}
+                                    </div>
+                                    <div style={{width:'100%',marginTop:'2%'}}>
+                                        <div style={{display:'inline-block',width:'50%'}}>
+                                            <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
+                                            content='测量' icon='edit' id="immersive-hover" onClick={() => {this.setState({immersive: true})}}>
+                                                {/* <div>测量</div> */}
+                                            </Button>
+                                        </div>
+                                        <div style={{display:'inline-block',width:'50%'}}>
+                                            <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
+                                            icon='chart bar' content='特征分析'>
+                                                {/* <div>特征分析</div> */}
+                                                {/* <Icon name='chart bar'></Icon> */}
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </Accordion.Content>
+                            </div>
                         )
                     })
             }
@@ -872,83 +1012,6 @@ class CornerstoneElement extends Component {
                                 </div>
                                 </Grid.Column>
                                 <Grid.Column width={6} stretched> 
-                                {
-                                    // <Accordion styled id="cornerstone-accordion" fluid>
-                                    //     {list.map((content,idx)=>{
-                                    //         return(
-                                    //             <div key={idx}>
-                                    //                 <Accordion.Title index={idx} active={listsActiveIndex===idx} onClick={this.handleListClick}>
-                                    //                     <table>
-                                    //                         <tbody>
-                                    //                         <tr>
-                                    //                         <td>
-                                    //                             <Header as='h3' inverted>{idx+1}</Header>
-                                    //                         </td>
-                                    //                         <td>
-                                    //                             <Dropdown text={content['location']} pointing selection options={locationOptions}>
-                                    //                             <Dropdown.Menu>
-                                    //                                 <Dropdown text='左肺上叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='左肺中叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='左肺下叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='右肺上叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='右肺中叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                                 <Dropdown text='右肺下叶'>
-                                    //                                     <Dropdown.Menu>
-                                    //                                         <Dropdown.Item text='尖端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='前端'></Dropdown.Item>
-                                    //                                         <Dropdown.Item text='后端'></Dropdown.Item>
-                                    //                                     </Dropdown.Menu>
-                                    //                                 </Dropdown>
-                                    //                             </Dropdown.Menu>
-                                    //                         </Dropdown>
-                                    //                     </td>
-                                    //                     <td>
-                                    //                         <Dropdown multiple selection options={options} />
-                                    //                     </td>
-                                    //                     </tr>
-                                    //                         </tbody>
-                                                        
-                                    //                     </table>
-                                                        
-                                    //                 </Accordion.Title>
-                                    //                 <Accordion.Content active={listsActiveIndex===idx}>
-                                    //                     hhh
-                                    //                 </Accordion.Content>
-                                    //             </div>
-                                    //         )
-                                    //     })}
-                                    // </Accordion>
-                                }
                                     {/* <h3 id="annotator-header">标注人：{window
                                                 .location
                                                 .pathname
@@ -1089,9 +1152,9 @@ class CornerstoneElement extends Component {
                                             模型结果
                                         </Accordion.Title>
                                         <Accordion.Content active={activeIndex === 0}>
-                                            <p>
+                                            
                                                 {ReactHtmlParser(this.state.modelResults)}
-                                            </p>
+                                            
                                         </Accordion.Content>
                                     </Accordion>
                                     
@@ -1106,9 +1169,9 @@ class CornerstoneElement extends Component {
                                             标注结果
                                         </Accordion.Title>
                                         <Accordion.Content active={activeIndex === 1}>
-                                            <p>
+                                            
                                                 {ReactHtmlParser(this.state.annoResults)}
-                                            </p>
+                                            
                                         </Accordion.Content>
                                     </Accordion>
                                         
@@ -1122,9 +1185,9 @@ class CornerstoneElement extends Component {
                                         审核结果
                                     </Accordion.Title>
                                     <Accordion.Content active={activeIndex === 2}>
-                                        <p>
+                                        
                                             {ReactHtmlParser(this.state.reviewResults)}
-                                        </p>
+                                        
                                     </Accordion.Content>
                                 </Accordion>
                                 </Grid.Row>   
@@ -1206,16 +1269,21 @@ class CornerstoneElement extends Component {
                                                     </Table.Row>
                                                 </Table.Header>
                                             </Table>
-                                        </div> */}
+                                        </div>
                                         <div className='table-body'>
                                             <Table id='table-color' fixed>
-                                                {/* <div id='body-scroll'> */}
+                                               
                                                 <Table.Body id='body-color'>
                                                     {tableContent}
                                                 </Table.Body>
-                                                {/* </div> */}
+                                             
                                             </Table>
-                                        </div>
+                                        </div> */}
+                                        
+                                        <Accordion styled id="cornerstone-accordion" fluid>
+                                            {tableContent}
+                                        </Accordion>
+                                
                                     </div>
                                     <Button
                                         inverted
@@ -1560,7 +1628,8 @@ class CornerstoneElement extends Component {
             "x2": x2,
             "y1": y1,
             "y2": y2,
-            "highlight": false
+            "highlight": false,
+            "diameter":0.00
         }
         let boxes = this.state.boxes
         console.log("newBox", newBox)
@@ -1880,6 +1949,8 @@ class CornerstoneElement extends Component {
                 }
             } else {
                 alert("请先登录!")
+                sessionStorage.setItem('location',window.location.pathname.split('/')[0]+
+                '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/')
                 window.location.href = '/login'
             }
         }).catch((error) => {
@@ -1930,6 +2001,8 @@ class CornerstoneElement extends Component {
                 }
             } else {
                 alert("请先登录!")
+                sessionStorage.setItem('location',window.location.pathname.split('/')[0]+
+                '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/')
                 window.location.href = '/login'
             }
         }).catch((error) => {
@@ -2033,7 +2106,7 @@ class CornerstoneElement extends Component {
     onImageRendered() {
         const element = document.getElementById("origin-canvas")
         const viewport = cornerstone.getViewport(element)
-        if (this.state.showNodules === true && this.state.caseId ===window.location.pathname.split('/')[2]) {
+        if (this.state.showNodules === true && this.state.caseId === window.location.pathname.split('/')[2]) {
             for (let i = 0; i < this.state.boxes.length; i++) {
                 if (this.state.boxes[i].slice_idx == this.state.currentIdx) 
                     this.drawBoxes(this.state.boxes[i])
