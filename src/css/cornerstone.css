@@ -1,5 +1,3 @@
-
-
 input[type='range'] {
   background: transparent;
   transform: rotate(90deg);
@@ -116,10 +114,9 @@ table#nodule-table {
   color: white;
 }
 
-/* #cornerstone {
-  margin-top: 50px;
-  margin-left: 70px;
-} */
+#cornerstone {
+  width:1920px;
+}
 
 #cache-button {
   margin-left: 5px;
@@ -235,13 +232,12 @@ option {
 }
 
 .corner-header{
-  margin-left: 18.5%;
-  /* width: 80%; */
-
+  margin-left: 320px;
+  width: 1152px;
 }
 
 .corner-contnt{
-  width:96%;
+  width:1843px;
   margin: auto;
 }
 
@@ -250,15 +246,15 @@ option {
 }
 
 #accord-left{
-  margin-left: 54%;
+  left: 910px;
 }
 
 #accord-mid{
-  margin-left: 69%;
+  margin-left: 1130px;
 }
 
 #accord-right{
-  margin-left: 84%;
+  margin-left: 1350px;
 }
 
 #cornerstone-accordion{
@@ -292,14 +288,43 @@ td{
   display: inline-block;
   box-sizing: border-box;
   width: 2px;
+  margin-left: 15px;
   background-color: #fff;
 }
 
 #line-right{
   display: inline-block;
   box-sizing: border-box;
-  margin-left: -15px;
-  margin-right: 10px;
+  margin-left: 15px;
+  /* margin-left: -15px;
+  margin-right: 10px; */
   width: 2px;
   background-color: #fff;
 }
+
+.hucolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button  .hubtn{
+  width: 60px;
+  height: 50px;
+  font-size: 14px;
+  padding: 0;
+  /* display:"inline-block";
+  margin-right:"5px";
+  margin-left: "5px"; */
+}
+
+.funcolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  width: 60px;
+  height: 50px;
+  font-size: large;
+  padding: 0;
+}
+
+.draftColumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  width: 60px;
+  height: 50px;
+  font-size: small;
+  padding: 0;
+}
+
+/* @media screen and (max-width: 960px) {
+} */
