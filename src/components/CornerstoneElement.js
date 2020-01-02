@@ -265,69 +265,6 @@ class CornerstoneElement extends Component {
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
-    // getNoduleIfos(){
-    //     const params = {
-    //         malignancy: this.state.malignancy,
-    //         calcification: this.state.calcification,
-    //         spiculation: this.state.spiculation,
-    //         lobulation:this.state.lobulation,
-    //         texture:this.state.texture,
-    //         // volumeStart:this.state.volumeStart,
-    //         // volumeEnd:this.state.volumeEnd,
-    //         diameterStart:this.state.diameterStart,
-    //         diameterEnd:this.state.diameterEnd
-    //     }
-    //     axios.post(recordConfig.filterNodules, qs.stringify(params)).then((response) => {
-    //         const data = response.data
-    //         console.log('total:',data)
-
-    //         this.getAtPageIfo(data.pages)
-    //         // this.setState({totalPage:data.pages})
-    //     }).catch((error) => console.log(error))
-    // }
-
-    // getAtPageIfo(totalPages){
-    //     let lists=[]
-    //     for(let activePage=1;activePage<=totalPages;activePage++){
-    //         let params = {
-    //             malignancy: this.state.malignancy,
-    //             calcification: this.state.calcification,
-    //             spiculation: this.state.spiculation,
-    //             lobulation:this.state.lobulation,
-    //             texture:this.state.texture,
-    //             page:activePage+'',
-    //             // volumeStart:this.state.volumeStart,
-    //             // volumeEnd:this.state.volumeEnd,
-    //             diameterStart:this.state.diameterStart,
-    //             diameterEnd:this.state.diameterEnd
-    //         }
-    
-    //         axios.post(recordConfig.getNodulesAtPage, qs.stringify(params)).then((response) => {
-    //             const data = response.data
-    //             for(const idx in data){
-    //                 if(data[idx]['caseId']===this.state.caseId){
-    //                     console.log('caseId:',this.state.caseId)
-    //                     let sequence={'location':'左肺上叶(假数据)','diameter':'0','lobulation':'','spiculation':'','texture':'','calcification':'','malignancy':''}
-    //                     // sequence['volume']=data[idx]['volume']===undefined? ' ':Math.floor(data[idx]['volume'] * 100) / 100
-    //                     sequence['diameter']=Math.floor(data[idx]['diameter'] * 100) / 100+'cm'
-    //                     sequence['malignancy']=data[idx]['malignancy']==2?'高危 ':'低危'
-    //                     sequence['lobulation']=data[idx]['lobulation']==2?'分叶':'否'
-    //                     sequence['spiculation']=data[idx]['spiculation']==2?'毛刺':'否'
-    //                     sequence['texture']=data[idx]['texture']==2?'磨玻璃':'实性'
-    //                     sequence['calcification']=data[idx]['calcification']==2?'钙化 ':'否'
-    //                     // sequence['caseId']=data[idx]['caseId']
-    //                     // sequence['noduleNo']=data[idx]['noduleNo']
-    //                     // sequence['status']=data[idx]['status']
-    //                     lists.push(sequence)
-    //                 }
-    //             }
-                
-                
-    //         }).catch((error) => console.log(error))
-    //     }
-    //     this.setState({list:lists})
-    // }//////////////////////////////////////////////////////////////
-
     handleClick = (e, titleProps) => {
         const {index} = titleProps
         const {activeIndex} = this.state
@@ -770,7 +707,7 @@ class CornerstoneElement extends Component {
                                 </div>
                                 <div style={{display:'inline-block',marginLeft:40}}>
                                     {/* {Math.round(inside.diameter * 10) / 100+'cm'} */}
-                                    {inside.diameter.toFixed(2)+'cm'}
+                                    {(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'cm'}
                                     </div>
                                 <div style={{display:'inline-block',marginLeft:40}}>
                                     {/* <Dropdown multiple selection options={options} id='dropdown' defaultValue={representArray}/> */}
@@ -794,7 +731,7 @@ class CornerstoneElement extends Component {
                                 </Accordion.Title>
                                 <Accordion.Content active={listsActiveIndex===idx}>
                                     <div style={{width:'100%'}}>
-                                        <div style={{fontSize:'medium',display:'inline-block',width:'30%'}}>IM:59.61</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',width:'30%'}}>IM:{this.state.currentIdx+1}</div>
                                         <div style={{fontSize:'medium',display:'inline-block',width:'10%'}}>-566HU</div>
                                         <div style={{fontSize:'medium',display:'inline-block',width:'50%',textAlign:'right'}}>0.37cm³</div>
                                     </div>
