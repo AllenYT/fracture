@@ -19,7 +19,7 @@
 .tit1{
     /* display: inline-block; */
     float: right;
-    margin-right: 100px;
+    margin-right: 50px;
 }
 
 .tit3{
@@ -30,7 +30,9 @@
 .total{
     margin: auto;
     width: 90%;
-    background: rgb(189, 214, 224);
+    /* background: rgb(189, 214, 224);
+    box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.74); */
+    background: rgba(255, 255, 255, 0.9);
     box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.74);
     transition: all 0.5s;
     border-radius: 5px;
@@ -44,7 +46,8 @@
 .iconography{
     margin: 30px auto;
     width: 90%;
-    background: rgb(189, 214, 224);
+    /* background: rgb(189, 214, 224); */
+    background: rgba(255, 255, 255, 0.9);
     box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.74);
     transition: all 0.5s;
     border-radius: 5px;
