@@ -39,7 +39,7 @@ input[type='range']::-webkit-slider-thumb::before {
   background: #777;
 }
 
-.ui.form .field .ui.input input, .ui.form .fields .field .ui.input input .wwinput{
+#defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
   transform: rotate(0deg);
   margin-left: -80px;
   margin-top: -20px;
@@ -415,7 +415,7 @@ option {
     background: #777;
   }
   
-  .ui.form .field .ui.input input, .ui.form .fields .field .ui.input input .wwinput{
+  #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
     transform: rotate(0deg);
     margin-left: -390px;
     margin-top: -250px;
@@ -765,7 +765,7 @@ option {
     background: #777;
   }
   
-  .ui.form .field .ui.input input, .ui.form .fields .field .ui.input input .wwinput{
+  #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
     transform: rotate(0deg);
     margin-left: -480px;
     margin-top: -360px;
@@ -1105,7 +1105,7 @@ option {
       background: #777;
     }
     
-    .ui.form .field .ui.input input, .ui.form .fields .field .ui.input input .wwinput{
+    #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
       transform: rotate(0deg);
       margin-left: -300px;
       margin-top: -200px;
