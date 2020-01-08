@@ -339,7 +339,7 @@ option {
 
 #dropdown{
   background:transparent !important;
-  border:1px solid whitesmoke !important;
+  border:1px solid transparent !important;
   color:whitesmoke !important
 }
 #dropdown>.ui.label{
