@@ -366,7 +366,7 @@ class DataCockpit extends Component {
             container: 'ageTotal',
             forceFit: false,
             height: 240,
-            width:520,
+            width:400,
             // width:100,
             padding: [30,'auto','auto','auto']
           });
@@ -388,7 +388,12 @@ class DataCockpit extends Component {
           ageTotalchart.tooltip({
             share: true
           });
-          ageTotalchart.interval().position('type*value').opacity(1).label('value').color(['#3CB371']);
+          ageTotalchart.interval().position('type*value').opacity(1).label('value',{
+            textStyle:{
+              fontSize:14,
+              fill:'#aaa'
+            }
+          }).color(['#00B4D8']).size(30);
           ageTotalchart.render();
 
         //总体年龄占比饼图
@@ -423,7 +428,7 @@ class DataCockpit extends Component {
         });
         // ['#188B8E','#002687', '#BB7329','#3C1E74', '#061846']
         // diaTotal2chart.legend(false)
-        diaTotal2chart.intervalStack().position('value').color('type', ['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8']).opacity(1).label('value', function(val) {
+        diaTotal2chart.intervalStack().position('value').color('type', ['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e']).opacity(1).label('value', function(val) {
           return {
             formatter: (text, item) => {
               const point = item.point; // 每个弧度对应的点
@@ -431,6 +436,9 @@ class DataCockpit extends Component {
               percent = (percent * 100).toFixed(2) + '%';
               const showTitle = point.value == 0 ?  null:point.type+'：'+percent 
               return showTitle
+            },
+            textStyle: {
+              fill: '#fff'
             }
           };
         }).tooltip('type*value', function(item, value) {
@@ -450,7 +458,7 @@ class DataCockpit extends Component {
           container: 'diaTotal',
           forceFit: false,
           height: 240,
-          width:520,
+          width:400,
           // width:100,
           padding: [30,'auto','auto','auto']
         });
@@ -472,7 +480,12 @@ class DataCockpit extends Component {
         diaTotalchart.tooltip({
           share: true
         });
-        diaTotalchart.interval().position('type*value').opacity(1).label('value').color(['#3CB371']);
+        diaTotalchart.interval().position('type*value').opacity(1).label('value',{
+          textStyle:{
+            fontSize:14,
+            fill:'#aaa'
+          }
+        }).color(['#00B4D8']).size(30);
         diaTotalchart.render();
 
         //总体结节直径分布饼图
@@ -505,13 +518,16 @@ class DataCockpit extends Component {
           showTitle: false
         });
         // diaTotal2chart.legend(false)
-        diaTotal2chart.intervalStack().position('value').color('type', ['#2B637B', '#5FA49F', '#ACDA9E', '#8ECB78', '#E08031', '#BBD3D8']).opacity(1).label('value', function(val) {
+        diaTotal2chart.intervalStack().position('value').color('type', ['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e']).opacity(1).label('value', function(val) {
           return {
             formatter: (text, item) => {
               const point = item.point; // 每个弧度对应的点
               let percent = point['percent'];
               percent = (percent * 100).toFixed(2) + '%';
               return point.type+':'+percent;
+            },
+            textStyle: {
+              fill: '#fff'
             }
           };
         });
@@ -531,7 +547,7 @@ class DataCockpit extends Component {
         var benmaliChart = new G2.Chart({
           container: 'benmali',
           forceFit: true,
-            height: 250,
+            height: 240,
             padding: [0, 50, 20, 50],
             animate:true
         });
@@ -550,7 +566,7 @@ class DataCockpit extends Component {
           showTitle: false,
           itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
         });
-        benmaliChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
+        benmaliChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
           offset: -40,
           autoRotate: false,
           textStyle: {
@@ -578,9 +594,9 @@ class DataCockpit extends Component {
     const diaSublobechart = new G2.Chart({
       container: 'diaSublobe',
       forceFit: true,
-      height: 210,
+      height: 250,
       // width:100,
-      padding:[30,'auto','auto','auto']
+      padding:[30,30,'auto',30]
     });
     const dv8 = new DataView();
     dv8.source(diaDistributionData1).transform({
@@ -607,7 +623,13 @@ class DataCockpit extends Component {
     diaSublobechart.tooltip({
       share: true
     });
-    diaSublobechart.interval().position('diameter*value').opacity(1).label('value').color(['#3CB371']);
+    //#3CB371
+    diaSublobechart.interval().position('diameter*value').opacity(1).label('value',{
+      textStyle:{
+        fontSize:14,
+        fill:'#aaa'
+      }
+    }).color(['#00B4D8']).size(30);
     diaSublobechart.render();
 
     //形态学分叶直径分布饼图
@@ -622,9 +644,9 @@ class DataCockpit extends Component {
     const diaSublobePie = new G2.Chart({
       container: 'diaSublobePie',
       forceFit: false,
-      height: 210,
+      height: 250,
       width:400,
-      padding:[35,20,35,20],
+      padding:[45,30,45,30],
       animate: false
     });
     diaSublobePie.source(dv12, {
@@ -645,11 +667,14 @@ class DataCockpit extends Component {
     });
     diaSublobePie.intervalStack()
       .position('value')
-      .color('diameter',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
+      .color('diameter',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
           return showTitle
+        },
+        textStyle: {
+          fill: '#fff'
         }
       })
       .tooltip('diameter*value', (item, value) => {
@@ -666,9 +691,9 @@ class DataCockpit extends Component {
     const diaGlitchchart = new G2.Chart({
       container: 'diaGlitch',
       forceFit: true,
-      height: 210,
+      height: 250,
       // width:100,
-      padding: [30,'auto','auto','auto']
+      padding: [30,30,'auto',30]
     });
     const dv9 = new DataView();
     dv9.source(diaDistributionData1).transform({
@@ -695,7 +720,12 @@ class DataCockpit extends Component {
     diaGlitchchart.tooltip({
       share: true
     });
-    diaGlitchchart.interval().position('diameter*value').opacity(1).label('value').color(['#3CB371']);
+    diaGlitchchart.interval().position('diameter*value').opacity(1).label('value',{
+      textStyle:{
+        fontSize:14,
+        fill:'#aaa'
+      }
+    }).color(['#00B4D8']).size(30);
     diaGlitchchart.render();
 
    //形态学毛刺直径分布饼图
@@ -710,9 +740,9 @@ class DataCockpit extends Component {
     const diaGlitchPie = new G2.Chart({
       container: 'diaGlitchPie',
       forceFit: false,
-      height: 210,
+      height: 250,
       width:400,
-      padding:[35,20,35,20],
+      padding:[45,30,45,30],
       animate: false
     });
     diaGlitchPie.source(dv14, {
@@ -731,13 +761,17 @@ class DataCockpit extends Component {
       showTitle: false,
       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
+    //['#188B8E','#002687', '#E08031','#3C1E74', '#061846']
     diaGlitchPie.intervalStack()
       .position('value')
-      .color('diameter',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
+      .color('diameter',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
           return showTitle
+        },
+        textStyle: {
+          fill: '#fff'
         }
       })
       .tooltip('diameter*value', (item, value) => {
@@ -753,9 +787,9 @@ class DataCockpit extends Component {
     const diaCalcifychart = new G2.Chart({
       container: 'diaCalcify',
       forceFit: true,
-      height: 210,
+      height: 250,
       // width:100,
-      padding: [30,'auto','auto','auto']
+      padding: [30,30,'auto',30]
     });
     const dv10 = new DataView();
     dv10.source(diaDistributionData1).transform({
@@ -782,7 +816,12 @@ class DataCockpit extends Component {
     diaCalcifychart.tooltip({
       share: true
     });
-    diaCalcifychart.interval().position('diameter*value').opacity(1).label('value').color(['#3CB371']);
+    diaCalcifychart.interval().position('diameter*value').opacity(1).label('value',{
+      textStyle:{
+        fontSize:14,
+        fill:'#aaa'
+      }
+    }).color(['#00B4D8']).size(30);
     diaCalcifychart.render();
 
     //形态学钙化直径分布饼图
@@ -797,9 +836,9 @@ class DataCockpit extends Component {
     const diaCalcifyPie = new G2.Chart({
       container: 'diaCalcifyPie',
       forceFit: false,
-      height: 210,
+      height: 250,
       width:400,
-      padding:[35,20,35,20],
+      padding:[45,30,45,30],
       animate: false
     });
     diaCalcifyPie.source(dv13, {
@@ -820,11 +859,14 @@ class DataCockpit extends Component {
     });
     diaCalcifyPie.intervalStack()
       .position('value')
-      .color('diameter',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
+      .color('diameter',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
           return showTitle
+        },
+        textStyle: {
+          fill: '#fff'
         }
       })
       .tooltip('diameter*value', (item, value) => {
@@ -840,9 +882,9 @@ class DataCockpit extends Component {
     const diaGGOchart = new G2.Chart({
       container: 'diaGGO',
       forceFit: true,
-      height: 210,
+      height: 250,
       // width:100,
-      padding: [30,'auto','auto','auto']
+      padding: [30,30,'auto',30]
     });
     const dv11 = new DataView();
     dv11.source(diaDistributionData1).transform({
@@ -869,7 +911,12 @@ class DataCockpit extends Component {
     diaGGOchart.tooltip({
       share: true
     });
-    diaGGOchart.interval().position('diameter*value').opacity(1).label('value').color(['#3CB371']);
+    diaGGOchart.interval().position('diameter*value').opacity(1).label('value',{
+      textStyle:{
+        fontSize:14,
+        fill:'#aaa'
+      }
+    }).color(['#00B4D8']).size(30);
     diaGGOchart.render();
 
 //形态学GGO直径分布饼图
@@ -884,9 +931,9 @@ dv15.source(dv11).transform({
   const diaGGOPie = new G2.Chart({
     container: 'diaGGOPie',
     forceFit: false,
-    height: 210,
+    height: 250,
     width:400,
-    padding:[35,20,35,20],
+    padding:[45,30,45,30],
     animate: false
   });
   diaGGOPie.source(dv15, {
@@ -907,11 +954,14 @@ dv15.source(dv11).transform({
   });
   diaGGOPie.intervalStack()
     .position('value')
-    .color('diameter',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
+    .color('diameter',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
     .label('percent', {
       formatter: (val, item) => {
         const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
         return showTitle
+      },
+      textStyle: {
+        fill: '#fff'
       }
     })
     .tooltip('diameter*percent', (item, percent) => {
@@ -930,9 +980,9 @@ dv15.source(dv11).transform({
     const diaNonSublobechart = new G2.Chart({
       container: 'diaNonSublobe',
       forceFit: true,
-      height: 210,
+      height: 250,
       // width:100,
-      padding: [30,'auto','auto','auto']
+      padding: [30,30,'auto',30]
     });
     diaNonSublobechart.source(diaNonSublobeData1);
     diaNonSublobechart.scale('value', {
@@ -952,7 +1002,12 @@ dv15.source(dv11).transform({
     diaNonSublobechart.tooltip({
       share: true
     });
-    diaNonSublobechart.interval().position('type*value').opacity(1).label('value').color(['#3CB371']);
+    diaNonSublobechart.interval().position('type*value').opacity(1).label('value',{
+      textStyle:{
+        fontSize:14,
+        fill:'#aaa'
+      }
+    }).color(['#00B4D8']).size(30);
     diaNonSublobechart.render();
 
 //形态学非分叶直径分布饼图
@@ -967,9 +1022,9 @@ const dv19 = new DataView();
     const diaNonSublobePie = new G2.Chart({
       container: 'diaNonSublobePie',
       forceFit: false,
-      height: 210,
+      height: 250,
       width: 400,
-      padding:[35,20,35,20],
+      padding:[45,30,45,30],
       animate: false
     });
     diaNonSublobePie.source(dv19, {
@@ -990,11 +1045,14 @@ const dv19 = new DataView();
     });
     diaNonSublobePie.intervalStack()
       .position('value')
-      .color('type',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
+      .color('type',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?   null:item.point.type + ': ' + val 
           return showTitle
+        },
+        textStyle: {
+          fill: '#fff'
         }
       })
       .tooltip('type*value', (item, value) => {
@@ -1012,9 +1070,9 @@ const dv19 = new DataView();
   const diaNonGlitchchart = new G2.Chart({
     container: 'diaNonGlitch',
     forceFit: true,
-    height: 210,
+    height: 250,
     // width:100,
-    padding: [30,'auto','auto','auto']
+    padding: [30,30,'auto',30]
   });
   diaNonGlitchchart.source(diaNonGlitchData1);
   diaNonGlitchchart.scale('value', {
@@ -1034,7 +1092,12 @@ const dv19 = new DataView();
   diaNonGlitchchart.tooltip({
     share: true
   });
-  diaNonGlitchchart.interval().position('type*value').opacity(1).label('value').color(['#3CB371']);
+  diaNonGlitchchart.interval().position('type*value').opacity(1).label('value',{
+    textStyle:{
+      fontSize:14,
+      fill:'#aaa'
+    }
+  }).color(['#00B4D8']).size(30);
   diaNonGlitchchart.render();
 
 //形态学非毛刺直径分布饼图
@@ -1049,9 +1112,9 @@ const dv18 = new DataView();
     const diaNonGlitchPie = new G2.Chart({
       container: 'diaNonGlitchPie',
       forceFit: false,
-      height: 210,
+      height: 250,
       width:400,
-      padding:[35,20,35,20],
+      padding:[45,30,45,30],
       animate: false
     });
     diaNonGlitchPie.source(dv18, {
@@ -1072,11 +1135,14 @@ const dv18 = new DataView();
     });
     diaNonGlitchPie.intervalStack()
       .position('value')
-      .color('type',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
+      .color('type',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
       .label('percent',{
           formatter: (val, item) => {
             const showTitle = item.point.value == 0 ?  null:item.point.type + ': ' + val 
             return showTitle
+        },
+        textStyle: {
+          fill: '#fff'
         }
         
       })
@@ -1095,9 +1161,9 @@ const dv18 = new DataView();
   const diaNonCalcifychart = new G2.Chart({
     container: 'diaNonCalcify',
     forceFit: true,
-    height: 210,
+    height: 250,
     // width:100,
-    padding: [30,'auto','auto','auto']
+    padding: [30,30,'auto',30]
   });
   diaNonCalcifychart.source(diaNonCalcifyData1);
   diaNonCalcifychart.scale('value', {
@@ -1117,7 +1183,12 @@ const dv18 = new DataView();
   diaNonCalcifychart.tooltip({
     share: true
   });
-  diaNonCalcifychart.interval().position('type*value').opacity(1).label('value').color(['#3CB371']);
+  diaNonCalcifychart.interval().position('type*value').opacity(1).label('value',{
+    textStyle:{
+      fontSize:14,
+      fill:'#aaa'
+    }
+  }).color(['#00B4D8']).size(30);
   diaNonCalcifychart.render();
 
 //形态学非钙化直径分布饼图
@@ -1132,9 +1203,9 @@ const dv17 = new DataView();
     const diaNonCalcifyPie = new G2.Chart({
       container: 'diaNonCalcifyPie',
       forceFit: false,
-      height: 210,
+      height: 250,
       width:400,
-      padding:[35,20,35,20],
+      padding:[45,30,45,30],
       animate: false
     });
     diaNonCalcifyPie.source(dv17, {
@@ -1155,10 +1226,13 @@ const dv17 = new DataView();
     });
     diaNonCalcifyPie.intervalStack()
       .position('value')
-      .color('type',['#188B8E','#002687', '#E08031','#3C1E74', '#061846'])
+      .color('type',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
       .label('percent', {
         formatter: (val, item) => {
           return item.point.type + ': ' + val;
+        },
+        textStyle: {
+          fill: '#fff'
         }
       })
       .tooltip('type*value', (item, value) => {
@@ -1177,9 +1251,9 @@ const dv17 = new DataView();
   const diaNonGGOchart = new G2.Chart({
     container: 'diaNonGGO',
     forceFit: true,
-    height: 210,
+    height: 250,
     // width:100,
-    padding: [30,'auto','auto','auto']
+    padding: [30,30,'auto',30]
   });
   diaNonGGOchart.source(diaNonGGOData1);
   diaNonGGOchart.scale('value', {
@@ -1200,7 +1274,12 @@ const dv17 = new DataView();
   diaNonGGOchart.tooltip({
     share: true
   });
-  diaNonGGOchart.interval().position('type*value').opacity(1).label('value').color(['#3CB371']);
+  diaNonGGOchart.interval().position('type*value').opacity(1).label('value',{
+    textStyle:{
+      fontSize:14,
+      fill:'#aaa'
+    }
+  }).color(['#00B4D8']).size(30);
   diaNonGGOchart.render();
 
 //形态学实性直径分布饼图
@@ -1215,9 +1294,9 @@ const dv16 = new DataView();
     const diaNonGGOPie = new G2.Chart({
       container: 'diaNonGGOPie',
       forceFit: false,
-      height: 210,
+      height: 250,
       width:400,
-      padding:[35,20,35,20],
+      padding:[45,30,45,30],
       animate: false
     });
     diaNonGGOPie.source(dv16, {
@@ -1238,11 +1317,14 @@ const dv16 = new DataView();
     });
     diaNonGGOPie.intervalStack()
       .position('value')
-      .color('type',['#188B8E','#002687', '#ee7800','#3C1E74', '#061846'])
+      .color('type',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
       .label('percent', {
         formatter: (val, item) => {
             const showTitle = item.point.value == 0 ?  null:item.point.type + ': ' + val 
             return showTitle
+        },
+        textStyle: {
+          fill: '#fff'
         }
       })
       .tooltip('type*value', (item, value) => {
@@ -1288,7 +1370,7 @@ const dv16 = new DataView();
       showTitle: false,
       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
-  maliGlitchChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
+  maliGlitchChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
       offset: -20,
       autoRotate: false,
       textStyle: {
@@ -1344,7 +1426,7 @@ const dv16 = new DataView();
       showTitle: false,
       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
-  maliSublobeChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
+  maliSublobeChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
       offset: -20,
       autoRotate: false,
       textStyle: {
@@ -1400,7 +1482,8 @@ const dv16 = new DataView();
       showTitle: false,
       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
-  maliCalcifyChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
+  //['#4682B4','#20B2AA']
+  maliCalcifyChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
       offset: -20,
       autoRotate: false,
       textStyle: {
@@ -1456,7 +1539,7 @@ const dv16 = new DataView();
       showTitle: false,
       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
-  maliGGOChart.intervalStack().position('percent').color('type',['#4682B4','#20B2AA']).label('percent', {
+  maliGGOChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
       offset: -20,
       autoRotate: false,
       textStyle: {
@@ -1532,28 +1615,28 @@ const dv16 = new DataView();
             <div class='VisualCanvas'>
                 <div class='total'>
                   <div class='totalcontnt'>
-                    <Grid celled='internally' centered>
+                    <Grid centered>
                       <Grid.Row>
-                        <Grid.Column width={4}>
+                        <Grid.Column width={4} className='totalbg'>
                           <div class='tit'>
                             <h2 class='tit2'>良恶性分布</h2>
                           </div>
                           <div id='benmali'></div>
                         </Grid.Column>
-                        <Grid.Column width={6}>
+                        <Grid.Column width={5} className='totalbg'>
                           <div class='tit'>
                             <h2 class='tit2'>总体结节直径分布</h2>
-                            <div class='tit1' id='diabt1'><Button icon onClick={this.typeChange} value='diabar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit1' id='diabt2'><Button icon onClick={this.typeChange} value='diapie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                            <div class='tit1' id='diabt1'><Button icon onClick={this.typeChange} value='diabar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit1' id='diabt2'><Button icon onClick={this.typeChange} value='diapie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaTotal'></div>
                           <div id='diaTotal2'></div>
                         </Grid.Column>
-                        <Grid.Column width={6}>
+                        <Grid.Column width={5} className='totalbg'>
                           <div class='tit'>
                             <h2 class='tit2'>总体年龄占比</h2>
-                            <div class='tit1' id='agebt1'><Button icon onClick={this.typeChange} value='agebar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit1' id='agebt2'><Button icon onClick={this.typeChange} value='agepie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                            <div class='tit1' id='agebt1'><Button icon onClick={this.typeChange} value='agebar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit1' id='agebt2'><Button icon onClick={this.typeChange} value='agepie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='ageTotal'></div>
                           <div id='ageTotal2'></div>
@@ -1565,13 +1648,13 @@ const dv16 = new DataView();
 
                 <div class='iconography'>
                   <div class='iconContnt'>
-                    <Grid celled='internally' centered>
+                    <Grid centered>
                       <Grid.Row>
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>毛刺直径分布</h2>  
-                            <div class='tit3' id='glitchbt1'><Button icon onClick={this.typeChange} value='glitchbar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit3' id='glitchbt2'><Button icon onClick={this.typeChange} value='glitchpie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                            <div class='tit3' id='glitchbt1'><Button icon onClick={this.typeChange} value='glitchbar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='glitchbt2'><Button icon onClick={this.typeChange} value='glitchpie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaGlitch'></div>
                           <div id='diaGlitchPie'></div>
@@ -1579,8 +1662,8 @@ const dv16 = new DataView();
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>分叶直径分布</h2>
-                            <div class='tit3' id='sublobebt1'><Button icon onClick={this.typeChange} value='sublobebar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit3' id='sublobebt2'><Button icon onClick={this.typeChange} value='sublobepie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                            <div class='tit3' id='sublobebt1'><Button icon onClick={this.typeChange} value='sublobebar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='sublobebt2'><Button icon onClick={this.typeChange} value='sublobepie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaSublobe'></div>
                           <div id='diaSublobePie'></div>
@@ -1588,8 +1671,8 @@ const dv16 = new DataView();
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>钙化直径分布</h2>
-                            <div class='tit3' id='calcifybt1'><Button icon onClick={this.typeChange} value='calcifybar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit3' id='calcifybt2'><Button icon onClick={this.typeChange} value='calcifypie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                            <div class='tit3' id='calcifybt1'><Button icon onClick={this.typeChange} value='calcifybar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='calcifybt2'><Button icon onClick={this.typeChange} value='calcifypie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaCalcify'></div>
                           <div id='diaCalcifyPie'></div>
@@ -1597,8 +1680,8 @@ const dv16 = new DataView();
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>磨玻璃直径分布</h2>
-                            <div class='tit3' id='ggobt1'><Button icon onClick={this.typeChange} value='ggobar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit3' id='ggobt2'><Button icon onClick={this.typeChange} value='ggopie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                            <div class='tit3' id='ggobt1'><Button icon onClick={this.typeChange} value='ggobar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='ggobt2'><Button icon onClick={this.typeChange} value='ggopie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaGGO'></div>
                           <div id='diaGGOPie'></div>
@@ -1608,8 +1691,8 @@ const dv16 = new DataView();
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>非毛刺直径分布</h2>  
-                            <div class='tit3' id='nonglitchbt1'><Button icon onClick={this.typeChange} value='nonglitchbar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit3' id='nonglitchbt2'><Button icon onClick={this.typeChange} value='nonglitchpie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                            <div class='tit3' id='nonglitchbt1'><Button icon onClick={this.typeChange} value='nonglitchbar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='nonglitchbt2'><Button icon onClick={this.typeChange} value='nonglitchpie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                             <div id='diaNonGlitch'></div>
                             <div id='diaNonGlitchPie'></div>
@@ -1617,8 +1700,8 @@ const dv16 = new DataView();
                           <Grid.Column width={4}>
                             <div class='tit'>
                               <h2 class='tit2'>非分叶直径分布</h2>
-                              <div class='tit3' id='nonsublobebt1'><Button icon onClick={this.typeChange} value='nonsublobebar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                              <div class='tit3' id='nonsublobebt2'><Button icon onClick={this.typeChange} value='nonsublobepie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                              <div class='tit3' id='nonsublobebt1'><Button icon onClick={this.typeChange} value='nonsublobebar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='nonsublobebt2'><Button icon onClick={this.typeChange} value='nonsublobepie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                             </div>
                             <div id='diaNonSublobe'></div>
                             <div id='diaNonSublobePie'></div>
@@ -1626,8 +1709,8 @@ const dv16 = new DataView();
                           <Grid.Column width={4}>
                             <div class='tit'>
                               <h2 class='tit2'>非钙化直径分布</h2>
-                              <div class='tit3' id='noncalcifybt1'><Button icon onClick={this.typeChange} value='noncalcifybar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                              <div class='tit3' id='noncalcifybt2'><Button icon onClick={this.typeChange} value='noncalcifypie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                              <div class='tit3' id='noncalcifybt1'><Button icon onClick={this.typeChange} value='noncalcifybar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='noncalcifybt2'><Button icon onClick={this.typeChange} value='noncalcifypie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                             </div>
                             <div id='diaNonCalcify'></div>
                             <div id='diaNonCalcifyPie'></div>
@@ -1635,8 +1718,8 @@ const dv16 = new DataView();
                           <Grid.Column width={4}>
                             <div class='tit'>
                               <h2 class='tit2'>实性直径分布</h2>
-                              <div class='tit3' id='nonggobt1'><Button icon onClick={this.typeChange} value='nonggobar' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                              <div class='tit3' id='nonggobt2'><Button icon onClick={this.typeChange} value='nonggopie' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                              <div class='tit3' id='nonggobt1'><Button icon onClick={this.typeChange} value='nonggobar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='nonggobt2'><Button icon onClick={this.typeChange} value='nonggopie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                             </div>
                             <div id='diaNonGGO'></div>
                             <div id='diaNonGGOPie'></div>
