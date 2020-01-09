@@ -8,7 +8,7 @@ import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Header } from 'semantic-ui-react'
+import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form } from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
@@ -24,14 +24,23 @@ cornerstoneWadoImageLoader.external.dicomParser = dicomParser
 cornerstoneTools.external.Hammer = Hammer
 const {Column, HeaderCell, Cell, Pagination} = Table;
 
-const divStyle = {
-    width: "768px",//768px
-    height: "768px",
-    position: "relative",
-    margin:"auto",
-    // display: "inline",
-    color: "white"
-}
+// const divStyle = {
+//     width: "512px",//768px
+//     height: "512px",
+//     position: "relative",
+//     margin:"auto",
+//     // display: "inline",
+//     color: "white"
+// }
+
+// const divStyle1 = {
+//     width: "768px",//768px
+//     height: "768px",
+//     position: "relative",
+//     margin:"auto",
+//     // display: "inline",
+//     color: "white"
+// }
 
 const immersiveStyle = {
     width: "1280px",
@@ -117,6 +126,8 @@ class CornerstoneElement extends Component {
             draftStatus: props.stack.draftStatus,
             okayForReview: false,
             random: Math.random(),
+            wwDefine: 500,
+            wcDefine:500,
 
             // list:[],
             // malignancy: -1,
@@ -273,6 +284,22 @@ class CornerstoneElement extends Component {
             : index
 
         this.setState({activeIndex: newIndex})
+    }
+
+    handleSliderChange = (e, { name, value }) => {
+        this.setState({ [name]: value })
+        let viewport = cornerstone.getViewport(this.element)
+        viewport.voi.windowWidth = value
+        cornerstone.setViewport(this.element, viewport)
+        this.setState({viewport})
+        // console.log("to media", viewport)
+    }
+    wcSlider =  (e, { name, value }) => {
+        this.setState({ [name]: value })
+        let viewport = cornerstone.getViewport(this.element)
+        viewport.voi.windowCenter = value
+        cornerstone.setViewport(this.element, viewport)
+        this.setState({viewport})
     }
     // handleListClick = (e, titleProps) => {
     //     console.log('title',titleProps)
@@ -476,12 +503,13 @@ class CornerstoneElement extends Component {
     render() {
         // sessionStorage.clear()
         // console.log('boxes', this.state.boxes)
-        const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex} = this.state
+        const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, wcDefine} = this.state
         let tableContent = ""
         let createDraftModal;
         let submitButton;
         let StartReviewButton;
         let calCount=0
+        let canvas;
         
         const options = [
             { key: '分叶', text: '分叶', value: '分叶' },
@@ -504,15 +532,53 @@ class CornerstoneElement extends Component {
             )
         }
 
+        // if(window.screen.width <=1280){
+        //     canvas=(
+        //         <div
+        //             id="origin-canvas"
+        //             style={divStyle}
+        //             ref={input => {
+        //             this.element = input
+        //         }}>
+        //             <canvas className="cornerstone-canvas" id="canvas"/>
+        //             <div style={topLeftStyle}>Offset: {this.state.viewport.translation['x']}, {this.state.viewport.translation['y']}
+        //             </div>
+        //             <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
+        //             <div style={bottomRightStyle}>
+        //                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+        //                 /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+        //             </div>
+        //         </div>
+        //     )
+        // }
+        // else{
+        //     canvas=(
+        //         <div
+        //             id="origin-canvas"
+        //             style={divStyle1}
+        //             ref={input => {
+        //             this.element = input
+        //         }}>
+        //             <canvas className="cornerstone-canvas" id="canvas"/>
+        //             <div style={topLeftStyle}>Offset: {this.state.viewport.translation['x']}, {this.state.viewport.translation['y']}
+        //             </div>
+        //             <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
+        //             <div style={bottomRightStyle}>
+        //                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+        //                 /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+        //             </div>
+        //         </div>
+        //     )
+        // }
+
         if (this.state.draftStatus === '0') 
             submitButton = (
                 <Button
                     inverted
                     color='blue'
                     onClick={this.submit}
-                    style={{
-                    marginTop: 30 + 'px'
-                }}>提交</Button>
+                    id='submitbtn'
+                    >提交</Button>
             )
         else 
             submitButton = (
@@ -755,10 +821,10 @@ class CornerstoneElement extends Component {
 
             if (this.state.readonly) {
                 return (
-                    <div id="cornerstone">
+                    <div>
 
-                        <div class='corner-header'>
-                            <Grid>
+                        {/* <div class='corner-header'> */}
+                            <Grid className='corner-header'>
                                 <Grid.Row>
                                     <Grid.Column className='hucolumn' width={5}>
                                         <Grid>
@@ -796,12 +862,50 @@ class CornerstoneElement extends Component {
                                                         >纵隔窗</Button>
                                                 </Grid.Column>
                                                 <Grid.Column>
-                                                    <Button
+                                                    {/* <Button
                                                         inverted
                                                         color='blue'
                                                         onClick={this.toMedia}
                                                         className='hubtn'
+                                                        >自定义</Button> */}
+                                                        <Popup
+                                                    trigger={
+                                                        <Button
+                                                        inverted
+                                                        color='blue'
+                                                        // onClick={this.toMedia}
+                                                        className='hubtn'
                                                         >自定义</Button>
+                                                    }
+                                                    content={
+                                                        <Form>
+                                                            <Form.Input
+                                                            label={`窗宽WW: ${wwDefine}`}
+                                                            min={100}
+                                                            max={2000}
+                                                            name='wwDefine'
+                                                            onChange={this.handleSliderChange}
+                                                            step={100}
+                                                            type='range'
+                                                            value={wwDefine}
+                                                            className='wwinput'
+                                                            />
+                                                            <Form.Input
+                                                            label={`窗位WC: ${wcDefine}`}
+                                                            min={-1000}
+                                                            max={2000}
+                                                            name='wcDefine'
+                                                            onChange={this.wcSlider}
+                                                            step={100}
+                                                            type='range'
+                                                            value={wcDefine}
+                                                            />
+                                                        </Form>
+                                                    }
+                                                    on='click'
+                                                    position='bottem center'
+                                                    id='defWindow'
+                                                />
                                                 </Grid.Column>
                                             </Grid.Row>
                                         </Grid>
@@ -887,9 +991,10 @@ class CornerstoneElement extends Component {
                                     </Accordion>
                                 </Grid.Row>
                             </Grid>
-                        </div>
-                        <div className='corner-contnt'>
-                            <Grid celled>
+                        {/* </div> */}
+                        
+                        {/* <div className='corner-contnt'> */}
+                            <Grid celled className='corner-contnt'>
                                 <Grid.Column width={2}>
 
                                 </Grid.Column>
@@ -897,7 +1002,7 @@ class CornerstoneElement extends Component {
                                 <div className='canvas-style'>
                                     <div
                                         id="origin-canvas"
-                                        style={divStyle}
+                                        // style={divStyle}
                                         ref={input => {
                                         this.element = input
                                     }}>
@@ -910,6 +1015,7 @@ class CornerstoneElement extends Component {
                                             /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
                                         </div>
                                     </div>
+                                    {/* {canvas} */}
                                 </div>
                                 <div className='canvas-style'>
                                     <input
@@ -972,14 +1078,14 @@ class CornerstoneElement extends Component {
                                     </div>
                                 </Grid.Column>
                             </Grid>
-                        </div>
+                        {/* </div> */}
                     </div>
                 )
             } else {
                 return (
                     <div id="cornerstone">
-                        <div class='corner-header'>
-                            <Grid>
+                        {/* <div class='corner-header'> */}
+                            <Grid className='corner-header'>
                                 <Grid.Row>
                                     <Grid.Column  className='hucolumn' width={5}>
                                         <Grid>
@@ -1119,137 +1225,35 @@ class CornerstoneElement extends Component {
                                 </Accordion>
                                 </Grid.Row>   
                             </Grid>
-                        </div>
-                        <div class='corner-contnt'>
-                            <Grid celled>
-                                <Grid.Column width={2}>
+                        {/* </div> */}
+                        {/* <div class='corner-contnt'> */}
+                            <Grid celled className='corner-contnt'>
+                                <Grid.Row>
+                                    <Grid.Column width={2}>
 
-                                </Grid.Column>
-                                <Grid.Column width={8} textAlign='center'>
-                                <div className='canvas-style'>
-
-                                        <div
-                                            id="origin-canvas"
-                                            style={divStyle}
-                                            ref={input => {
-                                            this.element = input
-                                        }}>
-                                            <canvas className="cornerstone-canvas" id="canvas"/>
-                                            <div style={topLeftStyle}>Offset: {this.state.viewport.translation['x']}, {this.state.viewport.translation['y']}
-                                            </div>
-                                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
-                                            <div style={bottomRightStyle}>
-                                                WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                                                /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-                                <div className='canvas-style'>
-                                    <input
-                                        id="slice-slider"
-                                        onChange={this.handleRangeChange}
-                                        type="range"
-                                        value={this.state.currentIdx + 1}
-                                        name="volume"
-                                        step="1"
-                                        min="1"
-                                        max={this.state.stack.imageIds.length}></input>
-                                    <div id="button-container">
-                                        <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
-                                        <p id="page-indicator">{this.state.currentIdx + 1}
-                                            / {this.state.imageIds.length}</p>
-                                        <a
-                                            id="immersive-hover"
-                                            onClick={() => {
-                                            this.setState({immersive: true})
-                                        }}>沉浸模式</a>
-                                    </div>
-
-                                </div>
-                                </Grid.Column>
-                                <Grid.Column width={6}> 
-                                    <div id='listTitle'>
-                                        <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
-                                        <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div>
-                                    </div>
-                                
-                                    {/* <h3 id="annotator-header">标注人：{window
-                                        .location
-                                        .pathname
-                                        .split('/')[3]}</h3> */}
-                                   <div id='elec-table'>
-                                        {/* <div className='table-head'>
-                                            <Table
-                                                inverted
-                                                singleLine
-                                                id="nodule-table"
-                                                fixed>
-                                                <Table.Header>
-                                                    <Table.Row>
-                                                        <Table.HeaderCell>切片号</Table.HeaderCell>
-                                                        <Table.HeaderCell>结节编号</Table.HeaderCell>
-                                                        <Table.HeaderCell>操作</Table.HeaderCell>
-                                                        <Table.HeaderCell>定位</Table.HeaderCell>
-                                                        <Table.HeaderCell>定性</Table.HeaderCell>
-                                                    </Table.Row>
-                                                </Table.Header>
-                                            </Table>
-                                        </div>
-                                        <div className='table-body'>
-                                            <Table id='table-color' fixed>
-                                               
-                                                <Table.Body id='body-color'>
-                                                    {tableContent}
-                                                </Table.Body>
-                                             
-                                            </Table>
-                                        </div> */}
-                                        
-                                        <Accordion styled id="cornerstone-accordion" fluid>
-                                            {tableContent}
-                                        </Accordion>
-                                
-                                    </div>
-                                    <Button
-                                        inverted
-                                        color='blue'
-                                        onClick={this.temporaryStorage}
-                                        style={{
-                                        marginRight: 15 + 'px',
-                                        marginLeft: 350 + 'px',
-                                        marginTop: 30 + 'px'
-                                    }}>暂存</Button>
-                                    {submitButton}
-                                </Grid.Column>
-                            </Grid>
-                        </div>
-                        {/* <Grid>
-                            <Grid.Row>
-                                <Grid.Column width={8}>
-
+                                    </Grid.Column>
+                                    <Grid.Column width={8} textAlign='center'>
                                     <div className='canvas-style'>
 
-                                        <div
-                                            id="origin-canvas"
-                                            style={divStyle}
-                                            ref={input => {
-                                            this.element = input
-                                        }}>
-                                            <canvas className="cornerstone-canvas" id="canvas"/>
-                                            <div style={topLeftStyle}>Offset: {this.state.viewport.translation['x']}, {this.state.viewport.translation['y']}
+                                            <div
+                                                id="origin-canvas"
+                                                // style={divStyle}
+                                                ref={input => {
+                                                this.element = input
+                                            }}>
+                                                <canvas className="cornerstone-canvas" id="canvas"/>
+                                                <div style={topLeftStyle}>Offset: {this.state.viewport.translation['x']}, {this.state.viewport.translation['y']}
+                                                </div>
+                                                <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
+                                                <div style={bottomRightStyle}>
+                                                    WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                                    /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                                </div>
+
                                             </div>
-                                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
-                                            <div style={bottomRightStyle}>
-                                                WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                                                /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                                            </div>
+                                            {/* {canvas} */}
 
                                         </div>
-
-                                    </div>
-
                                     <div className='canvas-style'>
                                         <input
                                             id="slice-slider"
@@ -1261,27 +1265,9 @@ class CornerstoneElement extends Component {
                                             min="1"
                                             max={this.state.stack.imageIds.length}></input>
                                         <div id="button-container">
+                                            <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
                                             <p id="page-indicator">{this.state.currentIdx + 1}
                                                 / {this.state.imageIds.length}</p>
-                                            <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
-
-                                            <Button
-                                                inverted
-                                                color='blue'
-                                                onClick={this.toPulmonary}
-                                                style={{
-                                                marginRight: 15 + 'px',
-                                                marginLeft: 127 + 'px'
-                                            }}>肺窗</Button>
-
-                                            <Button
-                                                inverted
-                                                color='blue'
-                                                onClick={this.toMedia}
-                                                style={{
-                                                marginRight: 15 + 'px'
-                                            }}>纵隔窗</Button>
-                                            <Button inverted color='blue' onClick={this.reset}>重置</Button>
                                             <a
                                                 id="immersive-hover"
                                                 onClick={() => {
@@ -1290,94 +1276,62 @@ class CornerstoneElement extends Component {
                                         </div>
 
                                     </div>
-                                </Grid.Column>
-
-                                <Grid.Column width={8}>
-                                    <h3 id="caseId-header">{this.state.caseId}
-                                        <Icon id="cache-button" name='coffee' onClick={this.cache}></Icon>
-                                    </h3>
-                                    <h3 id="annotator-header">标注人：{window
+                                    </Grid.Column>
+                                    <Grid.Column width={6}> 
+                                        <div id='listTitle'>
+                                            <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
+                                            <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div>
+                                        </div>
+                                    
+                                        {/* <h3 id="annotator-header">标注人：{window
                                             .location
                                             .pathname
-                                            .split('/')[3]}</h3>
-                                    <Accordion styled id='accordation'>
-                                        <Accordion.Title
-                                            active={activeIndex === 0}
-                                            index={0}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            模型结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 0}>
-                                            <p>
-                                                {ReactHtmlParser(this.state.modelResults)}
-                                            </p>
-                                        </Accordion.Content>
-                                        <Accordion.Title
-                                            active={activeIndex === 1}
-                                            index={1}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            标注结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 1}>
-                                            <p>
-                                                {ReactHtmlParser(this.state.annoResults)}
-                                            </p>
-                                        </Accordion.Content>
-                                        <Accordion.Title
-                                            active={activeIndex === 2}
-                                            index={2}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            审核结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 2}>
-                                            <p>
-                                                {ReactHtmlParser(this.state.reviewResults)}
-                                            </p>
-                                        </Accordion.Content>
-                                    </Accordion>
+                                            .split('/')[3]}</h3> */}
                                     <div id='elec-table'>
-                                        <div className='table-head'>
-                                            <Table
-                                                inverted
-                                                singleLine
-                                                id="nodule-table"
-                                                fixed>
-                                                <Table.Header>
-                                                    <Table.Row>
-                                                        <Table.HeaderCell>切片号</Table.HeaderCell>
-                                                        <Table.HeaderCell>结节编号</Table.HeaderCell>
-                                                        <Table.HeaderCell>操作</Table.HeaderCell>
-                                                        <Table.HeaderCell>定位</Table.HeaderCell>
-                                                        <Table.HeaderCell>定性</Table.HeaderCell>
-                                                    </Table.Row>
-                                                </Table.Header>
-                                            </Table>
+                                            {/* <div className='table-head'>
+                                                <Table
+                                                    inverted
+                                                    singleLine
+                                                    id="nodule-table"
+                                                    fixed>
+                                                    <Table.Header>
+                                                        <Table.Row>
+                                                            <Table.HeaderCell>切片号</Table.HeaderCell>
+                                                            <Table.HeaderCell>结节编号</Table.HeaderCell>
+                                                            <Table.HeaderCell>操作</Table.HeaderCell>
+                                                            <Table.HeaderCell>定位</Table.HeaderCell>
+                                                            <Table.HeaderCell>定性</Table.HeaderCell>
+                                                        </Table.Row>
+                                                    </Table.Header>
+                                                </Table>
+                                            </div>
+                                            <div className='table-body'>
+                                                <Table id='table-color' fixed>
+                                                
+                                                    <Table.Body id='body-color'>
+                                                        {tableContent}
+                                                    </Table.Body>
+                                                
+                                                </Table>
+                                            </div> */}
+                                            
+                                            <Accordion styled id="cornerstone-accordion" fluid>
+                                                {tableContent}
+                                            </Accordion>
+                                    
                                         </div>
-                                        <div className='table-body'>
-                                            <Table id='table-color' fixed>
-                                                <Table.Body id='body-color'>
-                                                    {tableContent}
-                                                </Table.Body>
-                                            </Table>
-                                        </div>
-                                    </div>
-                                    <Button
-                                        inverted
-                                        color='blue'
-                                        onClick={this.temporaryStorage}
-                                        style={{
-                                        marginRight: 15 + 'px',
-                                        marginLeft: 350 + 'px',
-                                        marginTop: 60 + 'px'
-                                    }}>暂存</Button>
-                                    {submitButton}
-                                </Grid.Column>
-
-                            </Grid.Row>
-                        </Grid> */}
+                                        <Button
+                                            inverted
+                                            color='blue'
+                                            onClick={this.temporaryStorage}
+                                            id='tempStore'
+                                           >暂存</Button>
+                                        {submitButton}
+                                    </Grid.Column>
+                                </Grid.Row>
+                                
+                            </Grid>
+                        {/* </div> */}
 
                     </div>
                 )
@@ -1470,8 +1424,8 @@ class CornerstoneElement extends Component {
         const height = box.y2 - box.y1
         if (box.highlight === false || box.highlight === undefined) {
             context.setLineDash([])
-            context.strokeStyle = 'red'
-            context.fillStyle = 'red'
+            context.strokeStyle = 'yellow'
+            context.fillStyle = 'yellow'
         } else {
             context.strokeStyle = 'blue'
             context.fillStyle = 'blue'
@@ -1575,8 +1529,9 @@ class CornerstoneElement extends Component {
             const transY = this.state.viewport.translation.y
             const scale = this.state.viewport.scale
             const halfValue = 256
-            x = (clickX - scale * transX - 384) / scale + halfValue
-            y = (clickY - scale * transY - 384) / scale + halfValue
+            let offsetminus = document.getElementById('canvas').width/2
+            x = (clickX - scale * transX - offsetminus) / scale + halfValue
+            y = (clickY - scale * transY - offsetminus) / scale + halfValue
 
         } else {
             x = clickX / 2.5
@@ -1689,9 +1644,10 @@ class CornerstoneElement extends Component {
                 const scale = this.state.viewport.scale
 
                 const halfValue = 256 //256
-
-                x = (clickX - scale * transX - 384) / scale + halfValue
-                y = (clickY - scale * transY - 384) / scale + halfValue
+                let offsetminus = document.getElementById('canvas').width/2
+                // console.log('off',offsetminus)
+                x = (clickX - scale * transX - offsetminus) / scale + halfValue
+                y = (clickY - scale * transY - offsetminus) / scale + halfValue
 
             } else {
                 x = clickX / 2.5
@@ -1761,7 +1717,7 @@ class CornerstoneElement extends Component {
             x: 0,
             y: 0
         }
-        viewport.scale = 1.5
+        viewport.scale = document.getElementById('canvas').width/512
         cornerstone.setViewport(this.element, viewport)
         this.setState({viewport})
         console.log("to pulmonary", viewport)

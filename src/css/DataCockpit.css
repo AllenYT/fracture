@@ -1,7 +1,7 @@
 .VisualCanvas{
-    /* height: 920px; */
-    background-image: url(../images/sidebar.png);
-    background-size: 50%;
+    height: 1200px;
+    background-image: url(../images/bg.png);
+    /* background-size: 100% 100%; */
 }
 .tit2{
     display: inline;
@@ -12,7 +12,7 @@
     font-weight: bold;
     letter-spacing: 2px;
     overflow: hidden;
-    color: black;
+    color:#e2e2e2;
     font-family: '微软雅黑';
 }
 
@@ -32,28 +32,34 @@
     width: 90%;
     /* background: rgb(189, 214, 224);
     box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.74); */
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.74);
+    background: rgba(255, 255, 255, 0.01);
+    
+    /* box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.1); */
     transition: all 0.5s;
     border-radius: 5px;
 }
 
-.totalcontnt{
+.totalbg{
+    /* background-image: url(../images/box2.png);
+    background-size: 100% 100%; */
+}
+
+/* .totalcontnt{
     margin: auto;
     width: 100%;
-}
+} */
 
 .iconography{
     margin: 30px auto;
     width: 90%;
     /* background: rgb(189, 214, 224); */
-    background: rgba(255, 255, 255, 0.9);
-    box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.74);
+    background: rgba(255, 255, 255, 0.01);
+    /* box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.1); */
     transition: all 0.5s;
     border-radius: 5px;
 }
 
-.iconContnt{
+/* .iconContnt{
     margin: auto;
     width: 100%;
-}
+} */
