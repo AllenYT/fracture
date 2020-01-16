@@ -1886,6 +1886,7 @@ class CornerstoneElement extends Component {
                 alert("请先登录!")
                 sessionStorage.setItem('location',window.location.pathname.split('/')[0]+
                 '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/')
+                // sessionStorage.setItem('location',NewDraftRes.data.nextPath)
                 window.location.href = '/login'
             }
         }).catch((error) => {
