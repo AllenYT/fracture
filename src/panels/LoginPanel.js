@@ -62,7 +62,7 @@ class LoginPanel extends Component {
                 localStorage.setItem('totalRecords', response.data.totalRecords)
                 localStorage.setItem('modelProgress', response.data.modelProgress)
                 if(sessionStorage.getItem('location')!=undefined){
-                    window.location.href=sessionStorage.getItem('location')+user.username
+                    window.location.href=sessionStorage.getItem('location')+'deepln'
                 }
                 else{
                     window.location.href = '/'
