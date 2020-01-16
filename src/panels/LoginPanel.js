@@ -102,7 +102,7 @@ class LoginPanel extends Component {
                             DEEPLN
                         </div>
                         <div id='left-align1' >
-                            肺癌全周期智能管理多模态数据平台
+                            DeepLN肺癌全周期智能管理影像数据平台
                         </div>
                     </Grid.Column>
                     <Grid.Column width={8}>
