@@ -75,7 +75,20 @@ class MainList extends Component {
             this.loadMainList()
         }
 
-        if (prevProps.pidKeyword !== this.props.pidKeyword || prevProps.dateKeyword !== this.props.dateKeyword || prevProps.type !== this.props.type) {
+        else if (prevProps.pidKeyword !== this.props.pidKeyword) {
+            if(this.props.pidKeyword.length>3 || this.props.pidKeyword.length==0){
+                this.setState({selectMainItem: ''})
+                this.loadMainList()
+            }
+        }
+        else if(prevProps.dateKeyword !== this.props.dateKeyword){
+            if(this.props.dateKeyword.length>3|| this.props.dateKeyword.length==0){
+                this.setState({selectMainItem: ''})
+                this.loadMainList()
+            }
+            
+        }
+        else if(prevProps.type !== this.props.type){
             this.setState({selectMainItem: ''})
             this.loadMainList()
         }
