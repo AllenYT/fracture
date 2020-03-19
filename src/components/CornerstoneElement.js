@@ -721,21 +721,22 @@ class CornerstoneElement extends Component {
                                 <div style={{display:'inline-block',marginLeft:60}}>
                                     {this.state.readonly?
                                      <select id={placeId} style={selectStyle} onChange={this.onSelectPlace} disabled> 
-                                        <option value="" disabled="disabled" selected={inside.place === ''}>选择位置</option>
-                                        <option value="1" selected={inside.place === '1'}>左肺上叶</option>
-                                        <option value="2" selected={inside.place === '2'}>左肺下叶</option>
-                                        <option value="3" selected={inside.place === '3'}>右肺上叶</option>
-                                        <option value="4" selected={inside.place === '4'}>右肺中叶</option>
-                                        <option value="5" selected={inside.place === '5'}>右肺下叶</option>
+                                        <option value="0" selected={inside.place === '0'}>选择位置</option>
+                                        <option value="1" selected={inside.place === '1'}>右肺中叶</option>
+                                        <option value="2" selected={inside.place === '2'}>右肺上叶</option>
+                                        <option value="3" selected={inside.place === '3'}>右肺下叶</option>
+                                        <option value="4" selected={inside.place === '4'}>左肺上叶</option>
+                                        <option value="5" selected={inside.place === '5'}>左肺下叶</option>
                                     </select>
                                     :
                                     <select id={placeId} style={selectStyle} onChange={this.onSelectPlace} >
                                         <option value="" disabled="disabled" selected={inside.place === ''}>选择位置</option>
-                                        <option value="1" selected={inside.place === '1'}>左肺上叶</option>
-                                        <option value="2" selected={inside.place === '2'}>左肺下叶</option>
-                                        <option value="3" selected={inside.place === '3'}>右肺上叶</option>
-                                        <option value="4" selected={inside.place === '4'}>右肺中叶</option>
-                                        <option value="5" selected={inside.place === '5'}>右肺下叶</option>
+                                        <option value="0" selected={inside.place === '0'}>选择位置</option>
+                                        <option value="1" selected={inside.place === '1'}>右肺中叶</option>
+                                        <option value="2" selected={inside.place === '2'}>右肺上叶</option>
+                                        <option value="3" selected={inside.place === '3'}>右肺下叶</option>
+                                        <option value="4" selected={inside.place === '4'}>左肺上叶</option>
+                                        <option value="5" selected={inside.place === '5'}>左肺下叶</option>
                                     </select>
                                     }
                                     
