@@ -1,6 +1,8 @@
 {
     "data": {
-        "getDataListForCaseId": "http://data.deepln.deepx.machineilab.org/data/getDataListForCaseId"
+        "getDataListForCaseId": "http://data.deepln.deepx.machineilab.org/data/getDataListForCaseId",
+        "getDataListForCov19CaseId":"http://data.deepln.deepx.machineilab.org/data/getCovidMaskListForCaseId",
+        "getSingleJpg":"http://data.deepln.deepx.machineilab.org/data/covidMask"
     },
 
     "user": {
@@ -18,7 +20,8 @@
         "getTotalPages": "http://data.deepln.deepx.machineilab.org/record/getTotalPages",
         "getPatientInfo": "http://data.deepln.deepx.machineilab.org/record/getPatientInfo",
         "filterNodules":"http://data.deepln.deepx.machineilab.org/nodule/filterNodules",
-        "getNodulesAtPage":"http://data.deepln.deepx.machineilab.org/nodule/getNodulesAtPage"
+        "getNodulesAtPage":"http://data.deepln.deepx.machineilab.org/nodule/getNodulesAtPage",
+        "getCov19List":"http://data.deepln.deepx.machineilab.org/covid/getCovidlist"
 
     },
 

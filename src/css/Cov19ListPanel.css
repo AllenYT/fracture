@@ -1,0 +1,12 @@
+#cov19container {
+    height: 616px;
+
+   
+    margin-top: 40px; 
+    margin-bottom: 60px;
+    padding: 30px 20px;
+    background-image: url(../images/cov19.jpg) no-repeat;
+    border: 1px solid #313131;
+    border-radius: 4px;
+    /* box-shadow: 0 1px 0 rgba(255, 255, 255, 0), 0 0 10px rgba(0, 0, 0, 0.1); */
+}

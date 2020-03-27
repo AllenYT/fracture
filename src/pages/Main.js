@@ -14,6 +14,8 @@ import '../css/main.css'
 import axios from 'axios'
 import src1 from '../images/MILab.png'
 import src2 from '../images/logo.jpg'
+import Cov19ListPanel from '../panels/Cov19ListPanel';
+import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
 
 const config = require('../config.json')
 const userConfig = config.user
@@ -172,6 +174,14 @@ class Main extends Component {
                     name='patientInfo'>
                     病人详情
                 </Menu.Item>
+                <Menu.Item
+                    active={activeItem === 'cov19List'}
+                    onClick={this.handleItemClick}
+                    as={Link}
+                    to='/cov19List'
+                    name='cov19List'>
+                    新冠肺炎专题
+                </Menu.Item>
             </>
         )
 
@@ -244,6 +254,8 @@ class Main extends Component {
                         <Route exact path="/download/" component={DownloadPanel}/>
                         <Route path="/case/" component={DisplayPanel}/>
                         <Route path="/patientInfo/" component={PatientPanel}/>
+                        <Route path="/cov19List/" component={Cov19ListPanel} />
+                        <Route path='/cov19Case/' component={Cov19DisplayPanel}/>
                     </div>
                 </div>
 
