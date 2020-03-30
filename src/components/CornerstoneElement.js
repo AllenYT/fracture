@@ -112,6 +112,7 @@ class CornerstoneElement extends Component {
             boxes: props.stack.boxes,
             clicked: false,
             clickedArea: {},
+            tmpCoord:{},
             tmpBox: {},
             showNodules: true,
             immersive: false,
@@ -1556,8 +1557,14 @@ class CornerstoneElement extends Component {
 
         if (this.state.clicked && this.state.clickedArea.box === -1) {
             let tmpBox = this.state.tmpBox
-            tmpBox.x2 = x
-            tmpBox.y2 = y
+            let tmpCoord = this.state.tmpCoord
+            let r = ((tmpCoord.x1 - x)**2+(tmpCoord.y1 - y)**2)**0.5
+            tmpBox.x1 = tmpCoord.x1 - r
+            tmpBox.y1 = tmpCoord.y1 - r
+            tmpBox.x2 = tmpCoord.x1 + r
+            tmpBox.y2 = tmpCoord.y1 + r
+            // tmpBox.x2 = x
+            // tmpBox.y2 = y
             this.setState({tmpBox})
             this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
             // this.drawTmpBox()
@@ -1660,6 +1667,11 @@ class CornerstoneElement extends Component {
                 y1: y,
                 y2: y
             }
+
+            // const coords = {
+            //     x:x,
+            //     y:y
+            // }
             let content = this.findCurrentArea(x, y)
             if (content.pos == 'o') {
                 document
@@ -1667,13 +1679,14 @@ class CornerstoneElement extends Component {
                     .style
                     .cursor = "crosshair"
             }
-            this.setState({clicked: true, clickedArea: content, tmpBox: coords})
+            // this.setState({clicked: true, clickedArea: content, tmpBox: coords})
+            this.setState({clicked: true, clickedArea: content, tmpCoord: coords})
         }
     }
 
     onMouseOut(event) {
         if (this.state.clicked) {
-            this.setState({clicked: false, tmpBox: {}, clickedArea: {}})
+            this.setState({clicked: false, tmpBox: {}, tmpCoord:{}, clickedArea: {}})
         }
 
     }
@@ -1699,6 +1712,7 @@ class CornerstoneElement extends Component {
             clicked: false,
             clickedArea: {},
             tmpBox: {},
+            tmpCoord:{},
             random: Math.random()
         })
         document
@@ -1725,10 +1739,10 @@ class CornerstoneElement extends Component {
 
     ZoomIn(){
         let viewport = cornerstone.getViewport(this.element)
-        viewport.translation = {
-            x: 0,
-            y: 0
-        }
+        // viewport.translation = {
+        //     x: 0,
+        //     y: 0
+        // }
         if(viewport.scale <= 5){
             viewport.scale = 1 + viewport.scale
         }
@@ -1742,10 +1756,10 @@ class CornerstoneElement extends Component {
 
     ZoomOut(){
         let viewport = cornerstone.getViewport(this.element)
-        viewport.translation = {
-            x: 0,
-            y: 0
-        }
+        // viewport.translation = {
+        //     x: 0,
+        //     y: 0
+        // }
         if(viewport.scale >= 2){
             viewport.scale = viewport.scale - 1
         }
