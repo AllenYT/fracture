@@ -1,64 +1,67 @@
 {
     "data": {
-        "getDataListForCaseId": "http://192.168.7.175:9902/data/getDataListForCaseId"
+        "getDataListForCaseId": "http://data.deepln.deepx.machineilab.org/data/getDataListForCaseId",
+        "getDataListForCov19CaseId":"http://data.deepln.deepx.machineilab.org/data/getCovidMaskListForCaseId",
+        "getSingleJpg":"http://data.deepln.deepx.machineilab.org/data/covidMask"
     },
 
     "user": {
-        "get_statistics": "http://192.168.7.175:9902/user/getStatistics/",
-        "get_session": "http://192.168.7.175:9902/user/getSessionUser/",
-        "validUser": "http://192.168.7.175:9902/user/loginAction/",
-        "signoutUser": "http://192.168.7.175:9902/user/signoutUser",
-        "get_sexData":" http://192.168.7.175:9902/patient/getPatientSexRatio"
+        "get_statistics": "http://data.deepln.deepx.machineilab.org/user/getStatistics/",
+        "get_session": "http://data.deepln.deepx.machineilab.org/user/getSessionUser/",
+        "validUser": "http://data.deepln.deepx.machineilab.org/user/loginAction/",
+        "signoutUser": "http://data.deepln.deepx.machineilab.org/user/signoutUser",
+        "get_sexData":" http://data.deepln.deepx.machineilab.org/patient/getPatientSexRatio"
     },
 
     "record": {
-        "getMainList": "http://192.168.7.175:9902/record/getMainListForPage",
-        "getSubList": "http://192.168.7.175:9902/record/getSubListForMainItem",
-        "getPatientListForCond": "http://192.168.7.175:9902/record/getPatientListForCond",
-        "getTotalPages": "http://192.168.7.175:9902/record/getTotalPages",
-        "getPatientInfo": "http://192.168.7.175:9902/record/getPatientInfo",
-        "filterNodules":"http://192.168.7.175:9902/nodule/filterNodules",
-        "getNodulesAtPage":"http://192.168.7.175:9902/nodule/getNodulesAtPage"
+        "getMainList": "http://data.deepln.deepx.machineilab.org/record/getMainListForPage",
+        "getSubList": "http://data.deepln.deepx.machineilab.org/record/getSubListForMainItem",
+        "getPatientListForCond": "http://data.deepln.deepx.machineilab.org/record/getPatientListForCond",
+        "getTotalPages": "http://data.deepln.deepx.machineilab.org/record/getTotalPages",
+        "getPatientInfo": "http://data.deepln.deepx.machineilab.org/record/getPatientInfo",
+        "filterNodules":"http://data.deepln.deepx.machineilab.org/nodule/filterNodules",
+        "getNodulesAtPage":"http://data.deepln.deepx.machineilab.org/nodule/getNodulesAtPage",
+        "getCov19List":"http://data.deepln.deepx.machineilab.org/covid/getCovidlist"
 
     },
 
     "draft": {
-        "submitDraft": "http://192.168.7.175:9902/draft/submitDraft",
-        "deSubmitDraft": "http://192.168.7.175:9902/draft/deSubmitDraft",
-        "updateRects":"http://192.168.7.175:9902/draft/updateRects",
-        "getMyAnnos": "http://192.168.7.175:9902/draft/getMyAnnos",
-        "getRectsForCaseIdAndUsername": "http://192.168.7.175:9902/draft/getRectsForCaseIdAndUsername",
-        "getModelResults": "http://192.168.7.175:9902/draft/getModelResults",
-        "getAnnoResults": "http://192.168.7.175:9902/draft/getAnnoResults",
-        "getDataPath": "http://192.168.7.175:9902/draft/getDataPath",
-        "readonly":"http://192.168.7.175:9902/draft/isReadonly",
-        "createNewDraft":"http://192.168.7.175:9902/draft/createNewDraft",
-        "removeDraft": "http://192.168.7.175:9902/draft/removeDraft"
+        "submitDraft": "http://data.deepln.deepx.machineilab.org/draft/submitDraft",
+        "deSubmitDraft": "http://data.deepln.deepx.machineilab.org/draft/deSubmitDraft",
+        "updateRects":"http://data.deepln.deepx.machineilab.org/draft/updateRects",
+        "getMyAnnos": "http://data.deepln.deepx.machineilab.org/draft/getMyAnnos",
+        "getRectsForCaseIdAndUsername": "http://data.deepln.deepx.machineilab.org/draft/getRectsForCaseIdAndUsername",
+        "getModelResults": "http://data.deepln.deepx.machineilab.org/draft/getModelResults",
+        "getAnnoResults": "http://data.deepln.deepx.machineilab.org/draft/getAnnoResults",
+        "getDataPath": "http://data.deepln.deepx.machineilab.org/draft/getDataPath",
+        "readonly":"http://data.deepln.deepx.machineilab.org/draft/isReadonly",
+        "createNewDraft":"http://data.deepln.deepx.machineilab.org/draft/createNewDraft",
+        "removeDraft": "http://data.deepln.deepx.machineilab.org/draft/removeDraft"
     },
 
     "review": {
-        "isOkayForReview": "http://192.168.7.175:9902/review/isOkayForReview",
-        "getReviewResults": "http://192.168.7.175:9902/review/getReviewResults"
+        "isOkayForReview": "http://data.deepln.deepx.machineilab.org/review/isOkayForReview",
+        "getReviewResults": "http://data.deepln.deepx.machineilab.org/review/getReviewResults"
     },
 
     "cart": {
-        "saveCart": "http://192.168.7.175:9902/cart/saveCart",
-        "getCart": "http://192.168.7.175:9902/cart/getCart",
-        "downloadCart": "http://192.168.7.175:9902/cart/downloadCart"
+        "saveCart": "http://data.deepln.deepx.machineilab.org/cart/saveCart",
+        "getCart": "http://data.deepln.deepx.machineilab.org/cart/getCart",
+        "downloadCart": "http://data.deepln.deepx.machineilab.org/cart/downloadCart"
     },
 
     "nodule":{
-        "totalMalDist":"http://192.168.7.175:9902/nodule/totalMalDist",
-        "totalAgeDist":"http://192.168.7.175:9902/patient/totalAgeDist",
-        "totalDiameterDist":"http://192.168.7.175:9902/nodule/totalDiameterDist",
-        "characterDiameterDist":"http://192.168.7.175:9902/nodule/characterDiameterDist",
-        "nonSpiculationDiameterDist":"http://192.168.7.175:9902/nodule/nonSpiculationDiameterDist",
-        "nonCalcificationDiameterDist":"http://192.168.7.175:9902/nodule/nonCalcificationDiameterDist",
-        "nonLobulationDiameterDist":" http://192.168.7.175:9902/nodule/nonLobulationDiameterDist",
-        "nonTextureDiameterDist":"http://192.168.7.175:9902/nodule/nonTextureDiameterDist",
-        "spiculationMalDist":"http://192.168.7.175:9902/nodule/spiculationMalDist",
-        "calcificationMalDist":"http://192.168.7.175:9902/nodule/calcificationMalDist",
-        "lobulationMalDist":"http://192.168.7.175:9902/nodule/lobulationMalDist",
-        "textureMalDist":"http://192.168.7.175:9902/nodule/textureMalDist"
+        "totalMalDist":"http://data.deepln.deepx.machineilab.org/nodule/totalMalDist",
+        "totalAgeDist":"http://data.deepln.deepx.machineilab.org/patient/totalAgeDist",
+        "totalDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/totalDiameterDist",
+        "characterDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/characterDiameterDist",
+        "nonSpiculationDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/nonSpiculationDiameterDist",
+        "nonCalcificationDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/nonCalcificationDiameterDist",
+        "nonLobulationDiameterDist":" http://data.deepln.deepx.machineilab.org/nodule/nonLobulationDiameterDist",
+        "nonTextureDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/nonTextureDiameterDist",
+        "spiculationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/spiculationMalDist",
+        "calcificationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/calcificationMalDist",
+        "lobulationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/lobulationMalDist",
+        "textureMalDist":"http://data.deepln.deepx.machineilab.org/nodule/textureMalDist"
     }
 }

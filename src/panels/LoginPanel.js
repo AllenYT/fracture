@@ -62,7 +62,7 @@ class LoginPanel extends Component {
                 localStorage.setItem('totalRecords', response.data.totalRecords)
                 localStorage.setItem('modelProgress', response.data.modelProgress)
                 if(sessionStorage.getItem('location')!=undefined){
-                    window.location.href=sessionStorage.getItem('location')+user.username
+                    window.location.href=sessionStorage.getItem('location')+'deepln'
                 }
                 else{
                     window.location.href = '/'
@@ -102,7 +102,7 @@ class LoginPanel extends Component {
                             DEEPLN
                         </div>
                         <div id='left-align1' >
-                            肺癌全周期智能管理多模态数据平台
+                            DeepLN肺癌全周期智能管理影像数据平台
                         </div>
                     </Grid.Column>
                     <Grid.Column width={8}>

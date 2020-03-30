@@ -287,7 +287,7 @@ class CornerstoneElement extends Component {
         this.setState({activeIndex: newIndex})
     }
 
-    handleSliderChange = (e, { name, value }) => {
+    handleSliderChange = (e, { name, value }) => {//窗宽
         this.setState({ [name]: value })
         let viewport = cornerstone.getViewport(this.element)
         viewport.voi.windowWidth = value
@@ -295,7 +295,7 @@ class CornerstoneElement extends Component {
         this.setState({viewport})
         // console.log("to media", viewport)
     }
-    wcSlider =  (e, { name, value }) => {
+    wcSlider =  (e, { name, value }) => {//窗位
         this.setState({ [name]: value })
         let viewport = cornerstone.getViewport(this.element)
         viewport.voi.windowCenter = value
@@ -313,7 +313,7 @@ class CornerstoneElement extends Component {
 
     //     this.setState({listsActiveIndex: newIndex})
     // }
-    handleListClick = (currentIdx,index,e) => {
+    handleListClick = (currentIdx,index,e) => {//点击list-item
         console.log('id',e.target.id)
         // const {index} = titleProps
         // console.log('index',index)
@@ -332,7 +332,7 @@ class CornerstoneElement extends Component {
         
     }
 
-    cache() {
+    cache() {//coffee button
         for (var i = this.state.imageIds.length - 1; i >= 0; i--) {
             this.refreshImage(false, this.state.imageIds[i], i)
         }
@@ -345,18 +345,18 @@ class CornerstoneElement extends Component {
             .push(path, {activeItem: 'case'})
     }
 
-    toPage(text,e) {
-        // let doms = document.getElementsByClassName('table-row') for (let i = 0; i <
-        // doms.length; i ++) {     doms[i].style.backgroundColor = "white" }
-        // const currentIdx = event.target.text
-        const currentIdx=text
-        // const idd = event.currentTarget.dataset.id console.log(idd)
-        // document.getElementById(idd).style.backgroundColor = "yellow"
-        this.setState({
-            currentIdx: currentIdx - 1,
-            autoRefresh: true
-        })
-    }
+    // toPage(text,e) {
+    //     // let doms = document.getElementsByClassName('table-row') for (let i = 0; i <
+    //     // doms.length; i ++) {     doms[i].style.backgroundColor = "white" }
+    //     // const currentIdx = event.target.text
+    //     const currentIdx=text
+    //     // const idd = event.currentTarget.dataset.id console.log(idd)
+    //     // document.getElementById(idd).style.backgroundColor = "yellow"
+    //     this.setState({
+    //         currentIdx: currentIdx - 1,
+    //         autoRefresh: true
+    //     })
+    // }
 
     toHidebox() {
         this.setState(({showNodules}) => ({
@@ -686,7 +686,7 @@ class CornerstoneElement extends Component {
                     .state
                     .boxes
                     .map((inside, idx) => {
-                        console.log('inside',inside)
+                        // console.log('inside',inside)
                         let classNamee = ""
                         let representArray=[]
                         const delId = 'del-' + inside.nodule_no
@@ -722,21 +722,22 @@ class CornerstoneElement extends Component {
                                 <div style={{display:'inline-block',marginLeft:60}}>
                                     {this.state.readonly?
                                      <select id={placeId} style={selectStyle} onChange={this.onSelectPlace} disabled> 
-                                        <option value="" disabled="disabled" selected={inside.place === ''}>选择位置</option>
-                                        <option value="1" selected={inside.place === '1'}>左肺上叶</option>
-                                        <option value="2" selected={inside.place === '2'}>左肺下叶</option>
-                                        <option value="3" selected={inside.place === '3'}>右肺上叶</option>
-                                        <option value="4" selected={inside.place === '4'}>右肺中叶</option>
-                                        <option value="5" selected={inside.place === '5'}>右肺下叶</option>
+                                        <option value="0" selected={inside.place === '0'}>选择位置</option>
+                                        <option value="1" selected={inside.place === '1'}>右肺中叶</option>
+                                        <option value="2" selected={inside.place === '2'}>右肺上叶</option>
+                                        <option value="3" selected={inside.place === '3'}>右肺下叶</option>
+                                        <option value="4" selected={inside.place === '4'}>左肺上叶</option>
+                                        <option value="5" selected={inside.place === '5'}>左肺下叶</option>
                                     </select>
                                     :
                                     <select id={placeId} style={selectStyle} onChange={this.onSelectPlace} >
                                         <option value="" disabled="disabled" selected={inside.place === ''}>选择位置</option>
-                                        <option value="1" selected={inside.place === '1'}>左肺上叶</option>
-                                        <option value="2" selected={inside.place === '2'}>左肺下叶</option>
-                                        <option value="3" selected={inside.place === '3'}>右肺上叶</option>
-                                        <option value="4" selected={inside.place === '4'}>右肺中叶</option>
-                                        <option value="5" selected={inside.place === '5'}>右肺下叶</option>
+                                        <option value="0" selected={inside.place === '0'}>选择位置</option>
+                                        <option value="1" selected={inside.place === '1'}>右肺中叶</option>
+                                        <option value="2" selected={inside.place === '2'}>右肺上叶</option>
+                                        <option value="3" selected={inside.place === '3'}>右肺下叶</option>
+                                        <option value="4" selected={inside.place === '4'}>左肺上叶</option>
+                                        <option value="5" selected={inside.place === '5'}>左肺下叶</option>
                                     </select>
                                     }
                                     
@@ -1725,7 +1726,7 @@ class CornerstoneElement extends Component {
         event.preventDefault()
     }
 
-    reset() {
+    reset() {//重置
         let viewport = cornerstone.getViewport(this.element)
         viewport.translation = {
             x: 0,
@@ -1737,7 +1738,7 @@ class CornerstoneElement extends Component {
         console.log("to pulmonary", viewport)
     }
 
-    ZoomIn(){
+    ZoomIn(){//放大
         let viewport = cornerstone.getViewport(this.element)
         // viewport.translation = {
         //     x: 0,
@@ -1754,7 +1755,7 @@ class CornerstoneElement extends Component {
         console.log("to ZoomIn", viewport)
     }
 
-    ZoomOut(){
+    ZoomOut(){//缩小
         let viewport = cornerstone.getViewport(this.element)
         // viewport.translation = {
         //     x: 0,
@@ -1771,7 +1772,7 @@ class CornerstoneElement extends Component {
         console.log("to ZoomOut", viewport)
     }
 
-    toPulmonary() {
+    toPulmonary() {//肺窗
         let viewport = cornerstone.getViewport(this.element)
         viewport.voi.windowWidth = 1600
         viewport.voi.windowCenter = -600
@@ -1780,7 +1781,7 @@ class CornerstoneElement extends Component {
         console.log("to pulmonary", viewport)
     }
 
-    toMedia() {
+    toMedia() {//纵隔窗
         let viewport = cornerstone.getViewport(this.element)
         viewport.voi.windowWidth = 500
         viewport.voi.windowCenter = 50
@@ -1789,7 +1790,7 @@ class CornerstoneElement extends Component {
         console.log("to media", viewport)
     }
 
-    toBoneWindow() {
+    toBoneWindow() {//骨窗
         let viewport = cornerstone.getViewport(this.element)
         viewport.voi.windowWidth = 1000
         viewport.voi.windowCenter = 300
@@ -1798,7 +1799,7 @@ class CornerstoneElement extends Component {
         console.log("to media", viewport)
     }
 
-    toVentralWindow() {
+    toVentralWindow() {//腹窗
         let viewport = cornerstone.getViewport(this.element)
         viewport.voi.windowWidth = 400
         viewport.voi.windowCenter = 40
@@ -1900,6 +1901,7 @@ class CornerstoneElement extends Component {
                 alert("请先登录!")
                 sessionStorage.setItem('location',window.location.pathname.split('/')[0]+
                 '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/')
+                // sessionStorage.setItem('location',NewDraftRes.data.nextPath)
                 window.location.href = '/login'
             }
         }).catch((error) => {
@@ -2041,7 +2043,7 @@ class CornerstoneElement extends Component {
         } else {
             cornerstone.getEnabledElement(element)
         }
-
+        console.log(imageId)
         cornerstone
             .loadAndCacheImage(imageId)
             .then(image => {

@@ -39,7 +39,19 @@ export class SearchPanel extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (prevState.pidKeyword !== this.state.pidKeyword || prevState.dateKeyword !== this.state.dateKeyword || prevState.checked !== this.state.checked) {
+        console.log('pidkeyword',this.state.pidKeyword.length)
+        if (prevState.pidKeyword !== this.state.pidKeyword){
+            if(this.state.pidKeyword.length>3||this.state.pidKeyword.length==0){
+                this.getTotalPages()
+            }
+        }
+        else if(prevState.dateKeyword !== this.state.dateKeyword){
+            if(this.state.dateKeyword.length>3||this.state.dateKeyword.length==0){
+                this.getTotalPages()
+            }
+        }
+        else if(prevState.checked !== this.state.checked){
+            // console.log('true')
             this.getTotalPages()
         }
     }
@@ -79,7 +91,9 @@ export class SearchPanel extends Component {
 
     handleCheckbox(e) {
         this.setState({
-            checked: !this.state.checked
+            checked: !this.state.checked,
+            pidKeyword: '',
+            dateKeyword: ''
         })
         this.setState({activePage: 1})
     }
@@ -135,7 +149,8 @@ export class SearchPanel extends Component {
                                     id="patient-search"
                                     icon='user'
                                     iconPosition='left'
-                                    placeholder="病人ID"/>
+                                    placeholder="病人ID"
+                                    disabled={this.state.checked}/>
 
                                 <span id="type-slider"><Checkbox
                                     slider
@@ -149,7 +164,8 @@ export class SearchPanel extends Component {
                                     id="date-search"
                                     icon='calendar'
                                     iconPosition='left'
-                                    placeholder="检查时间"/>
+                                    placeholder="检查时间"
+                                    disabled={!this.state.checked}/>
                             </div>
 
                             <div className="patientList" style={{minHeight:500}}>
