@@ -30,31 +30,48 @@ class Cov19DisplayPanel extends Component{
           caseId: this.state.caseId
         }
     
-        axios.post(dataConfig.getDataListForCov19CaseId, qs.stringify(dataParams)).then(dataResponse => {
-            // Promise.all(dataResponse.data.map(doc => {
-            //   return axios.get(doc)
-            // }  
-            // )).then(jpgResponses=>{
-            //   console.log('jpgResponses',jpgResponses)
-            //   let list=[]
-            //   for(let i in jpgResponses){
-            //     list.push(jpgResponses[i].data)
-            //   }
-            //   // console.log('list',list)
-            //   const stack = {
-            //     imageIds: dataResponse.data,
-            //     caseId: this.state.caseId
-            //   }
-            //   this.setState({stack: stack, show: true})
-            // }
-            // )
+        // axios.post(dataConfig.getDataListForCov19CaseId, qs.stringify(dataParams)).then(dataResponse => {
+        //   console.log('response',dataResponse)
+        //     // Promise.all(dataResponse.data.map(doc => {
+        //     //   return axios.get(doc)
+        //     // }  
+        //     // )).then(jpgResponses=>{
+        //     //   console.log('jpgResponses',jpgResponses)
+        //     //   let list=[]
+        //     //   for(let i in jpgResponses){
+        //     //     list.push(jpgResponses[i].data)
+        //     //   }
+        //     //   // console.log('list',list)
+        //     //   const stack = {
+        //     //     imageIds: dataResponse.data,
+        //     //     caseId: this.state.caseId
+        //     //   }
+        //     //   this.setState({stack: stack, show: true})
+        //     // }
+        //     // )
+        //     const stack = {
+        //       imageIds: dataResponse.data,
+        //       caseId: this.state.caseId
+        //     }
+        //     this.setState({stack: stack, show: true})
+        //   }).catch(error => {
+        //     console.log(error)
+        //   })
+
+          Promise.all([
+            axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)),
+            axios.post(dataConfig.getDataListForCov19CaseId, qs.stringify(dataParams))
+            
+          ]).then(([dcmResponse, jpgResponse]) => {
+            console.log('dcmResponse',dcmResponse.data)
+            console.log('jpgResponse',jpgResponse.data)
             const stack = {
-              imageIds: dataResponse.data,
-              caseId: this.state.caseId
+              imageIds: dcmResponse.data,
+              caseId: this.state.caseId,
+              jpgIds: jpgResponse.data,
             }
+            
             this.setState({stack: stack, show: true})
-          }).catch(error => {
-            console.log(error)
           })
     
       }
