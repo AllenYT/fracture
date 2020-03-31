@@ -2059,7 +2059,6 @@ class CornerstoneElement extends Component {
                     }
 
                 }
-
                 cornerstone.displayImage(element, image)
 
                 cornerstoneTools
@@ -2205,13 +2204,14 @@ class CornerstoneElement extends Component {
     }
 
     componentWillUnmount() {
+        console.log('remove')
         const element = this.element
         element.removeEventListener("cornerstoneimagerendered", this.onImageRendered)
 
         element.removeEventListener("cornerstonenewimage", this.onNewImage)
 
         // window.removeEventListener("resize", this.onWindowResize)
-
+        document.removeEventListener("keydown", this.onKeydown)
         cornerstone.disable(element)
     }
 
