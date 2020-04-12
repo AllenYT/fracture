@@ -274,7 +274,8 @@ option {
     border-color: white;
     color: white;
     max-height:100%; 
-    overflow-y:auto;
+    /* overflow-y:auto; */
+    overflow-y: visible;
 }
 
 #cornerstone-accordion > div > .title {
@@ -623,7 +624,8 @@ option {
       border-color: white;
       color: white;
       max-height:100%; 
-      overflow-y:auto;
+     /* overflow-y:auto; */
+    overflow-y: visible;
   }
   
   #cornerstone-accordion > div > .title {
@@ -973,7 +975,8 @@ option {
       border-color: white;
       color: white;
       max-height:100%; 
-      overflow-y:auto;
+     /* overflow-y:auto; */
+    overflow-y: visible;
   }
   
   #cornerstone-accordion > div > .title {
@@ -1313,7 +1316,8 @@ option {
         border-color: white;
         color: white;
         max-height:100%; 
-        overflow-y:auto;
+        /* overflow-y:auto; */
+    overflow-y: visible;
     }
     
     #cornerstone-accordion > div > .title {

@@ -124,7 +124,8 @@ class MainList extends Component {
                                 {elements.map((value, index) => {
                                     let valueL = value.split('_')
                                     let patientId = valueL[0]
-                                    let patientName = valueL[1]
+                                    // let patientName = valueL[1]
+                                    let patientName = ""
                                     let patientSex = valueL[2] == 'M' ? '男' : '女'
                                     // const newValue = patientId + ' ' + patientName + ' ' + patientSex
                                     let newValue=[]
