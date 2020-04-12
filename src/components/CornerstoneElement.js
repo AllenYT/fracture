@@ -129,9 +129,7 @@ class CornerstoneElement extends Component {
             okayForReview: false,
             random: Math.random(),
             wwDefine: 500,
-            wcDefine:500,
-            places:['选择位置','右肺中叶','右肺上叶','右肺下叶','左肺上叶','左肺下叶'],
-            segments:['S1','S2','S3','S4','S5','S6','S7','S8','S9','S10','S11','S12','S13','S14','S15','S16','S17','S18']
+            wcDefine:500
 
             // list:[],
             // malignancy: -1,
@@ -454,16 +452,53 @@ class CornerstoneElement extends Component {
         })
     }
 
+    // onSelectPlace = (event) => {
+    //     // const segment = event.currentTarget.innerHTML
+    //     // const place=event.currentTarget.parentNode.innerHTML
+    //     // console.log('segment',segment,place)
+    //     const value = event.currentTarget.value
+    //     const noduleId = event
+    //         .currentTarget
+    //         .id
+    //         .split('-')[1]
+    //     let boxes = this.state.boxes
+    //     for (let i = 0; i < boxes.length; i++) {
+    //         if (boxes[i].nodule_no === noduleId) {
+    //             boxes[i].place = value
+    //         }
+    //     }
+    //     this.setState({
+    //         boxes: boxes,
+    //         random: Math.random()
+    //     })
+    // }
     onSelectPlace = (event) => {
-        const value = event.currentTarget.value
-        const noduleId = event
-            .currentTarget
-            .id
-            .split('-')[1]
+        let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
+        let segments={
+            'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
+            'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
+            'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
+            'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
+        const segment = event.currentTarget.innerHTML
+        const place = event.currentTarget.id.split('-')[2]
+        const noduleId = event.currentTarget.id.split('-')[1]
+        console.log('id',segment,place,noduleId)
         let boxes = this.state.boxes
         for (let i = 0; i < boxes.length; i++) {
             if (boxes[i].nodule_no === noduleId) {
-                boxes[i].place = value
+                for(let item in places){
+                    if(segments[item]===place+'-'+segment){
+                        boxes[i].place = item
+                        console.log('place',place)
+                    }
+                }
+                
+                for(let item in segments){
+                    if(segments[item]===place+'-'+segment){
+                        boxes[i].segment=item
+                        console.log('segment',segment)
+                    }
+                }
             }
         }
         this.setState({
@@ -514,6 +549,12 @@ class CornerstoneElement extends Component {
         let StartReviewButton;
         let calCount=0
         let canvas;
+        let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
+        let segments={
+        'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
+        'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
+        'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
+        'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
         
         const options = [
             { key: '分叶', text: '分叶', value: '分叶' },
@@ -692,6 +733,7 @@ class CornerstoneElement extends Component {
                         // console.log('inside',inside)
                         let classNamee = ""
                         let representArray=[]
+                        let dropdownText=''
                         const delId = 'del-' + inside.nodule_no
                         const malId = 'malSel-' + inside.nodule_no
                         const texId = 'texSel-' + inside.nodule_no
@@ -708,6 +750,21 @@ class CornerstoneElement extends Component {
                         if(inside.calcification===2){
                             calCount+=1
                         }
+                        if(1){
+                            if(inside.segment!==undefined
+                            && inside.segment!==""){
+                                dropdownText=segments[inside.segment]
+                            }
+                            else if(inside.segment===undefined||inside.segment===''){
+                                if(inside.place!==''){
+                                    dropdownText=places[inside.place]
+                                }
+                                else{
+                                    dropdownText='选择位置'
+                                }
+                            }
+                        }
+                        
                         return (
                             <div key={idx}>
                                 <Accordion.Title  className={classNamee} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
@@ -720,61 +777,71 @@ class CornerstoneElement extends Component {
                                     <a onClick={this.toPage.bind(this,inside.slice_idx + 1)}>{inside.slice_idx + 1}号切片</a>
                                     <a >{inside.slice_idx + 1}号切片</a>
                                 </Table.Cell> */}
-                                
-                                     {/* <Dropdown id={placeId} style={selectStyle} text={inside.place!=='' && inside.segment!==undefined
-                                    && inside.segment!==""?this.state.places[inside.place]+"-"+inside.segment:'选择位置'}>
-                                        <Dropdown.Menu>
-                                            <Dropdown.Header>肺叶</Dropdown.Header>
-                                            <Dropdown.Item>
-                                            <Dropdown text='右肺中叶'>
-                                                <Dropdown.Menu>
-                                                    <Dropdown.Header>肺段</Dropdown.Header>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                </Dropdown.Menu>
-                                                </Dropdown>
-                                            </Dropdown.Item>
-                                            <Dropdown.Item>
-                                            <Dropdown text='右肺上叶'>
-                                                <Dropdown.Menu>
-                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                </Dropdown.Menu>
-                                                </Dropdown>
-                                            </Dropdown.Item>
-                                            <Dropdown.Item>
-                                            <Dropdown text='右肺下叶'>
-                                                <Dropdown.Menu>
-                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                </Dropdown.Menu>
-                                                </Dropdown>
-                                            </Dropdown.Item>
-                                            <Dropdown.Item>
-                                            <Dropdown text='左肺上叶'>
-                                                <Dropdown.Menu>
-                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                </Dropdown.Menu>
-                                            </Dropdown>
-                                            </Dropdown.Item>
-                                            <Dropdown.Item>
-                                            <Dropdown text='左肺下叶'>
-                                                <Dropdown.Menu>
-                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                    <Dropdown.Item onClick={this.onSelectPlace}>s1</Dropdown.Item>
-                                                </Dropdown.Menu>
-                                                </Dropdown>
-                                            </Dropdown.Item>
-                                        </Dropdown.Menu>
-                                    </Dropdown> */}
                                     
-                                <div style={{display:'inline-block',marginLeft:40}}>
-                                    {this.state.readonly?
+                                <div style={{display:'inline-block',marginLeft:40,width:180}}>
+                                    {
+                                        this.state.readonly?<Dropdown  style={selectStyle} text={dropdownText} disabled/>:
+                                        <Dropdown  style={selectStyle} text={dropdownText}>
+                                            <Dropdown.Menu>
+                                                <Dropdown.Header>肺叶</Dropdown.Header>
+                                                <Dropdown.Item>
+                                                <Dropdown text='右肺中叶'>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>外侧段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>内侧段</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Dropdown.Item>
+                                                <Dropdown.Item>
+                                                <Dropdown text='右肺上叶'>
+                                                    <Dropdown.Menu>
+                                                    <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>尖段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>后段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>前段</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Dropdown.Item>
+                                                <Dropdown.Item>
+                                                <Dropdown text='右肺下叶'>
+                                                    <Dropdown.Menu>
+                                                    <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>上段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>内底段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>前底段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>外侧底段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>后底段</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Dropdown.Item>
+                                                <Dropdown.Item>
+                                                <Dropdown text='左肺上叶'>
+                                                    <Dropdown.Menu>
+                                                    <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>尖后段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>前段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>上舌段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>下舌段</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                                </Dropdown.Item>
+                                                <Dropdown.Item>
+                                                <Dropdown text='左肺下叶'>
+                                                    <Dropdown.Menu>
+                                                    <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>上段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>前底段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>外侧底段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>后底段</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Dropdown.Item>
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                    }
+                                    
+                                    {/* {this.state.readonly?
                                      <select id={placeId} style={selectStyle} onChange={this.onSelectPlace} disabled> 
                                         <option value="0" selected={inside.place === 0}>肺叶位置</option>
                                         <option value="1" selected={inside.place === 1}>右肺中叶</option>
@@ -792,10 +859,10 @@ class CornerstoneElement extends Component {
                                         <option value="4" selected={inside.place === 4}>左肺上叶</option>
                                         <option value="5" selected={inside.place === 5}>左肺下叶</option>
                                     </select>
-                                    }
+                                    } */}
                                     
                                 </div>
-                                <div style={{display:'inline-block',marginLeft:10}}>
+                                {/* <div style={{display:'inline-block',marginLeft:10}}>
                                     {this.state.readonly?
                                      <select id={placeId} style={selectStyle} onChange={this.onSelectPlace} disabled> 
                                         <option value="0" selected={inside.segment === undefined||inside.segment === ""}>肺段位置</option>
@@ -842,7 +909,7 @@ class CornerstoneElement extends Component {
                                     </select>
                                     }
                                     
-                                </div>
+                                </div> */}
                                 <div style={{display:'inline-block',marginLeft:40}}>
                                     {/* {Math.round(inside.diameter * 10) / 100+'cm'} */}
                                     {(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'cm'}
