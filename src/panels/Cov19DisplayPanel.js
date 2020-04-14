@@ -70,8 +70,9 @@ class Cov19DisplayPanel extends Component{
               imageIds: dcmResponse.data,
               caseId: this.state.caseId,
               jpgIds: jpgResponse.data,
-              covidHist:histResponse.data.covid_hist.content,
-              lungHist:histResponse.data.lung_hist.content
+              // covidHist:histResponse.data.covid_hist===undefined?'':histResponse.data.covid_hist.content,
+              // lungHist:histResponse.data.lung_hist===undefined?'':histResponse.data.lung_hist.content
+              histogram:histResponse.data
             }
             
             this.setState({stack: stack, show: true})
