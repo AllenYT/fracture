@@ -138,8 +138,9 @@ class CornerstoneElement extends Component {
             random: Math.random(),
             wwDefine: 500,
             wcDefine:500,
-            covidHist:props.stack.covidHist,
-            lungHist:props.stack.lungHist,
+            // covidHist:props.stack.covidHist,
+            // lungHist:props.stack.lungHist,
+            histogram:props.stack.histogram,
             focus:true,
             meanValue:0,
             variance:0//控制病灶或肺窗显示
@@ -309,27 +310,19 @@ class CornerstoneElement extends Component {
         document.getElementById('diaGlitch').innerHTML=''
         let bins=[]
         let ns=[]
-        let meanValue=0
-        let variance=0
-        
-        if(this.state.focus){
-            bins = this.state.covidHist.bins.content
-            ns=this.state.covidHist.n.content
+        if(this.state.covidHist===''){
+            
         }
-        else {
-            bins=this.state.lungHist.bins.content
-            ns=this.state.lungHist.n.content
+        else{
+            if(this.state.focus){
+                bins = this.state.histogram.covid_hist.content.bins.content
+                ns=this.state.histogram.covid_hist.content.n.content
+            }
+            else {
+                bins=this.state.histogram.lung_hist.content.bins.content
+                ns=this.state.histogram.lung_hist.content.n.content
+            }
         }
-
-        for (var i = 0; i < ns.length; i++){//均值
-            meanValue=meanValue+ns[i]
-        }
-        meanValue=Math.floor(meanValue/ns.length*100)/100 
-        for (var i = 0; i < ns.length; i++){//方差
-            variance=variance+Math.pow((ns[i]-meanValue),2)
-        }
-        variance=Math.floor(variance/ns.length*100)/100
-
         console.log('bins',bins)
         console.log('ns',ns)
         var histogram = []
@@ -374,9 +367,9 @@ class CornerstoneElement extends Component {
         // view1.axis(false)
         view1.source(dv, {
             value: {
-              nice: true,
-            //   min: -1024,
-            //   max:1269,
+            //   nice: true,
+              minLimit: bins[0]-50,
+              maxLimit:bins[bins.length-1]+50,
             //   tickCount:20
             },
             count: {
@@ -389,12 +382,13 @@ class CornerstoneElement extends Component {
         view1.interval().position('value*count')
 
         var view2 = chart.view()
-        // view2.axis(false)
+        view2.axis(false)
         // view2.source(line)
         view2.source(line,{
             value: {
-                nice: true,
-                
+                // nice: true,
+                minLimit: bins[0]-50,
+              maxLimit:bins[bins.length-1]+50,
                 // tickCount:10
               },
               count: {
@@ -405,10 +399,9 @@ class CornerstoneElement extends Component {
         view2.line().position('value*count').style({
             stroke: 'white',
             
-            }).tooltip(false)
+            }).shape('smooth')
         
         chart.render()
-        this.setState({meanValue:meanValue,variance:variance})
     }
 
     handleClick = (e, titleProps) => {
@@ -905,7 +898,10 @@ class CornerstoneElement extends Component {
                                                 <Header inverted size='medium'>均值</Header>
                                             </Grid.Column>
                                             <Grid.Column width={3}>
-                                                <Header inverted size='medium'>{this.state.meanValue}</Header>
+                                                <Header inverted size='medium'>
+                                                    {this.state.focus===true?Math.floor(this.state.histogram.covid_hist.content.mean*100)/100
+                                                    :Math.floor(this.state.histogram.lung_hist.content.mean)*100/100 }
+                                                </Header>
                                             </Grid.Column>
                                             <Grid.Column width={2}>
                                             </Grid.Column>
@@ -913,7 +909,10 @@ class CornerstoneElement extends Component {
                                                 <Header inverted size='medium'>方差</Header>
                                             </Grid.Column>
                                             <Grid.Column width={3}>
-                                                <Header inverted size='medium'>{this.state.variance}</Header>
+                                                <Header inverted size='medium'>
+                                                    {this.state.focus===true?Math.floor(this.state.histogram.covid_hist.content.var*100)/100
+                                                    :Math.floor(this.state.histogram.lung_hist.content.var*100)/100}
+                                                </Header>
                                             </Grid.Column>
                                         </Grid.Row>
                                         <Grid.Row>
@@ -929,7 +928,9 @@ class CornerstoneElement extends Component {
                                             </Grid.Column>
                                             
                                             <Grid.Column width={3}>
-                                                
+                                                <Header inverted size='medium'>
+                                                    {Math.floor(this.state.histogram.covid_hist.content.proportion*10000)/100+'%'}
+                                                </Header>
                                             </Grid.Column>
                                         </Grid.Row>
                                     </Grid>

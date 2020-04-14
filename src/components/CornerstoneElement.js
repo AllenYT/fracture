@@ -487,16 +487,21 @@ class CornerstoneElement extends Component {
         for (let i = 0; i < boxes.length; i++) {
             if (boxes[i].nodule_no === noduleId) {
                 for(let item in places){
-                    if(segments[item]===place+'-'+segment){
+                    if(places[item]===place){
                         boxes[i].place = item
                         console.log('place',place)
                     }
                 }
-                
-                for(let item in segments){
-                    if(segments[item]===place+'-'+segment){
-                        boxes[i].segment=item
-                        console.log('segment',segment)
+                if(segment==='无法定位'){
+                    boxes[i].segment=''
+                    console.log('segment','')
+                }
+                else{
+                    for(let item in segments){
+                        if(segments[item]===place+'-'+segment){
+                            boxes[i].segment=item
+                            console.log('segment',segment)
+                        }
                     }
                 }
             }
@@ -790,6 +795,7 @@ class CornerstoneElement extends Component {
                                                         <Dropdown.Header>肺段</Dropdown.Header>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>外侧段</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>内侧段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
                                                     </Dropdown.Menu>
                                                     </Dropdown>
                                                 </Dropdown.Item>
@@ -800,6 +806,7 @@ class CornerstoneElement extends Component {
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>尖段</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>后段</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>前段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
                                                     </Dropdown.Menu>
                                                     </Dropdown>
                                                 </Dropdown.Item>
@@ -812,6 +819,7 @@ class CornerstoneElement extends Component {
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>前底段</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>外侧底段</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>后底段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
                                                     </Dropdown.Menu>
                                                     </Dropdown>
                                                 </Dropdown.Item>
@@ -823,6 +831,7 @@ class CornerstoneElement extends Component {
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>前段</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>上舌段</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>下舌段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                                 </Dropdown.Item>
@@ -834,6 +843,7 @@ class CornerstoneElement extends Component {
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>前底段</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>外侧底段</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>后底段</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
                                                     </Dropdown.Menu>
                                                     </Dropdown>
                                                 </Dropdown.Item>
