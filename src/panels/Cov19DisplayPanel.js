@@ -60,15 +60,19 @@ class Cov19DisplayPanel extends Component{
 
           Promise.all([
             axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)),
-            axios.post(dataConfig.getDataListForCov19CaseId, qs.stringify(dataParams))
-            
-          ]).then(([dcmResponse, jpgResponse]) => {
-            console.log('dcmResponse',dcmResponse.data)
-            console.log('jpgResponse',jpgResponse.data)
+            axios.post(dataConfig.getDataListForCov19CaseId, qs.stringify(dataParams)),
+            axios.post(dataConfig.getHist, qs.stringify(dataParams))
+          ]).then(([dcmResponse, jpgResponse,histResponse]) => {
+            console.log('dcmResponse',dcmResponse)
+            console.log('jpgResponse',jpgResponse)
+            console.log('histResponse',histResponse.data)
             const stack = {
               imageIds: dcmResponse.data,
               caseId: this.state.caseId,
               jpgIds: jpgResponse.data,
+              // covidHist:histResponse.data.covid_hist===undefined?'':histResponse.data.covid_hist.content,
+              // lungHist:histResponse.data.lung_hist===undefined?'':histResponse.data.lung_hist.content
+              histogram:histResponse.data
             }
             
             this.setState({stack: stack, show: true})

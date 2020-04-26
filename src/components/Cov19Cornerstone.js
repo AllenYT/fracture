@@ -9,12 +9,13 @@ import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import * as cornerstoneWebImageLoader from "cornerstone-web-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form } from 'semantic-ui-react'
+import {  Grid, Table, Icon, Button, Accordion, Checkbox,Popup,Form, Header } from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
-// import { config } from "rxjs"
 import axios from "axios"
-// import { Dropdown } from "antd"
+import { Chart } from '@antv/g2'
+// import { Chart } from '@antv/g2/lib/index-all'
+import DataSet from '@antv/data-set'
 
 
 cornerstoneTools.external.cornerstone = cornerstone
@@ -102,6 +103,11 @@ const selectStyle = {
     'margin-left':'15px'
 }
 
+const histData= [
+    { type: '良性', value: 40},
+    { type: '恶性', value: 21},
+  ];
+
 class CornerstoneElement extends Component {
     constructor(props) {
         super(props)
@@ -131,7 +137,13 @@ class CornerstoneElement extends Component {
             okayForReview: false,
             random: Math.random(),
             wwDefine: 500,
-            wcDefine:500
+            wcDefine:500,
+            // covidHist:props.stack.covidHist,
+            // lungHist:props.stack.lungHist,
+            histogram:props.stack.histogram,
+            focus:true,
+            meanValue:0,
+            variance:0//控制病灶或肺窗显示
 
             // list:[],
             // malignancy: -1,
@@ -277,7 +289,119 @@ class CornerstoneElement extends Component {
         this.ZoomOut = this
             .ZoomOut
             .bind(this)
-        // this.drawTmpBox = this.drawTmpBox.bind(this)
+        this.visualize = this
+            .visualize
+            .bind(this)
+        this.focus=this
+            .focus
+            .bind(this)
+    }
+
+    focus(e){
+        console.log(e.currentTarget.innerHTML)
+        if(e.currentTarget.innerHTML==='病灶'){
+            this.setState({focus:true})
+        }
+        else{
+            this.setState({focus:false})
+        }
+    }
+    visualize(){
+        document.getElementById('diaGlitch').innerHTML=''
+        let bins=[]
+        let ns=[]
+        if(this.state.covidHist===''){
+            
+        }
+        else{
+            if(this.state.focus){
+                bins = this.state.histogram.covid_hist.content.bins.content
+                ns=this.state.histogram.covid_hist.content.n.content
+            }
+            else {
+                bins=this.state.histogram.lung_hist.content.bins.content
+                ns=this.state.histogram.lung_hist.content.n.content
+            }
+        }
+        console.log('bins',bins)
+        console.log('ns',ns)
+        var histogram = []
+        var line=[]
+        for (var i = 0; i < bins.length-1; i++) {
+            var obj = {}
+            obj.value = [bins[i],bins[i+1]]
+            obj.count=ns[i]
+            histogram.push(obj)
+            
+            var obj2={}
+            obj2.value=bins[i]
+            obj2.count=ns[i]
+            line.push(obj2)
+        }
+        console.log('histogram',histogram)
+        console.log('line',line)
+        const ds = new DataSet();
+        const dv = ds.createView().source(histogram)
+        // const dv2=ds.createView().source(line)
+        console.log('dv',dv)
+        // dv.transform({
+        //     type: 'bin.histogram',
+        //     field: 'value',
+        //     binWidth: 5000,
+        //     as: ['value', 'count'],
+        // })
+        const chart = new Chart({
+            container: 'diaGlitch',
+            // forceFit: true,
+            forceFit:true,
+            height: 500,
+            // width:100,
+            // padding: [30,30,'auto',30]
+        });
+        // chart.tooltip({
+        //     crosshairs: false,
+        //     inPlot: false,
+        //     position: 'top'
+        //   })
+        let view1=chart.view()
+        // view1.axis(false)
+        view1.source(dv, {
+            value: {
+            //   nice: true,
+              minLimit: bins[0]-50,
+              maxLimit:bins[bins.length-1]+50,
+            //   tickCount:20
+            },
+            count: {
+            //   max: 350000,
+            //   tickInterval:50000
+              tickCount:10
+            }
+          })
+        // view1.source(dv)
+        view1.interval().position('value*count')
+
+        var view2 = chart.view()
+        view2.axis(false)
+        // view2.source(line)
+        view2.source(line,{
+            value: {
+                // nice: true,
+                minLimit: bins[0]-50,
+              maxLimit:bins[bins.length-1]+50,
+                // tickCount:10
+              },
+              count: {
+                // max: 350000,
+                tickCount:10
+              }
+        })
+        view2.line().position('value*count').style({
+            stroke: 'white',
+            
+            }).shape('smooth')
+        
+        chart.render()
     }
 
     handleClick = (e, titleProps) => {
@@ -396,46 +520,15 @@ class CornerstoneElement extends Component {
     }
 
     delNodule(event) {
-        const delNoduleId = event.target.id
-        const nodule_no = delNoduleId.split("-")[1]
-        let boxes = this.state.boxes
-        for (var i = 0; i < boxes.length; i++) {
-            if (boxes[i].nodule_no === nodule_no) {
-                boxes.splice(i, 1)
-            }
-        }
-        this.setState({
-            boxes: boxes,
-            random: Math.random()
-        })
-        this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
 
     }
 
     highlightNodule(event) {
-        console.log('in', event.target.textContent)
-        let boxes = this.state.boxes
-        for (var i = 0; i < boxes.length; i++) {
-            if (boxes[i].nodule_no === event.target.textContent) {
-                boxes[i].highlight = true
-            }
-        }
-        // console.log(this.state.boxes, boxes)
-        this.setState({boxes: boxes})
-        this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+        
     }
 
     dehighlightNodule(event) {
-        console.log('out', event.target.textContent)
-        let boxes = this.state.boxes
-        for (var i = 0; i < boxes.length; i++) {
-            if (boxes[i].nodule_no === event.target.textContent) {
-                boxes[i].highlight = false
-            }
-        }
-        // console.log(this.state.boxes, boxes)
-        this.setState({boxes: boxes})
-        this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+        
     }
 
     closeModalNew() {
@@ -776,6 +869,71 @@ class CornerstoneElement extends Component {
                                 </div>
                                 </Grid.Column>
                                 <Grid.Column width={6}> 
+                                    <Grid>
+                                        <Grid.Row>
+                                            <Grid.Column>
+                                                <Header inverted size='large'>影像学指标</Header>
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                        <Grid.Row>
+                                            <Grid.Column width={4}>
+                                                <Header inverted size='medium'>像素分布直方图</Header>
+                                            </Grid.Column>
+                                            <Grid.Column width={3}>
+                                                <Button color='blue' inverted onClick={this.focus}>病灶</Button>
+                                            </Grid.Column>
+                                            <Grid.Column width={3}>
+                                                <Button color='blue' inverted onClick={this.focus}>肺部</Button>
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                        <Grid.Row>
+                                            <Grid.Column>
+                                                <div id='diaGlitch'></div>
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                        <Grid.Row>
+                                            <Grid.Column width={2}>
+                                            </Grid.Column>
+                                            <Grid.Column width={2}>
+                                                <Header inverted size='medium'>均值</Header>
+                                            </Grid.Column>
+                                            <Grid.Column width={3}>
+                                                <Header inverted size='medium'>
+                                                    {this.state.focus===true?Math.floor(this.state.histogram.covid_hist.content.mean*100)/100
+                                                    :Math.floor(this.state.histogram.lung_hist.content.mean)*100/100 }
+                                                </Header>
+                                            </Grid.Column>
+                                            <Grid.Column width={2}>
+                                            </Grid.Column>
+                                            <Grid.Column width={2}>
+                                                <Header inverted size='medium'>方差</Header>
+                                            </Grid.Column>
+                                            <Grid.Column width={3}>
+                                                <Header inverted size='medium'>
+                                                    {this.state.focus===true?Math.floor(this.state.histogram.covid_hist.content.var*100)/100
+                                                    :Math.floor(this.state.histogram.lung_hist.content.var*100)/100}
+                                                </Header>
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                        <Grid.Row>
+                                            <Grid.Column width={2}>
+                                            </Grid.Column>
+                                            <Grid.Column width={2}>
+                                                <Header inverted size='medium'>全肺</Header>
+                                            </Grid.Column>
+                                            <Grid.Column width={3}>
+                                                <Header inverted size='medium'>病灶总占比</Header>
+                                            </Grid.Column>
+                                            <Grid.Column width={2}>
+                                            </Grid.Column>
+                                            
+                                            <Grid.Column width={3}>
+                                                <Header inverted size='medium'>
+                                                    {Math.floor(this.state.histogram.covid_hist.content.proportion*10000)/100+'%'}
+                                                </Header>
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                    </Grid>
                                 </Grid.Column>
                             </Grid.Row>
                             
@@ -1354,16 +1512,13 @@ class CornerstoneElement extends Component {
     }
 
     componentDidMount() {
-        // this.getNoduleIfos()
+        this.visualize()
         if(this.state.showNodules){
             this.refreshImage(true, this.state.jpgIds[this.state.currentIdx], 0)
         }
         else{
             this.refreshImage(true, this.state.imageIds[this.state.currentIdx], 0)
         }
-
-        
-
     }
 
     componentWillUnmount() {
@@ -1379,6 +1534,7 @@ class CornerstoneElement extends Component {
     }
 
     componentDidUpdate(prevProps, prevState) {
+        // this.visualize()
         if (prevState.currentIdx !== this.state.currentIdx && this.state.autoRefresh === true) {
             if(this.state.showNodules){
                 this.refreshImage(false, this.state.jpgIds[this.state.currentIdx], this.state.currentIdx)
@@ -1408,6 +1564,9 @@ class CornerstoneElement extends Component {
         if (prevState.random !== this.state.random) {
             console.log(this.state.boxes)
             // this.saveToDB()
+        }
+        if(prevState.focus!== this.state.focus){
+            this.visualize()
         }
     }
 }
