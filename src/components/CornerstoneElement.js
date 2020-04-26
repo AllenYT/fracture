@@ -2209,7 +2209,7 @@ class CornerstoneElement extends Component {
                 cornerstoneTools
                     .wwwc
                     .activate(element, 2) // ww/wc is the default tool for middle mouse button
-
+                
                 if (!this.state.immersive) {
 
                     cornerstoneTools
