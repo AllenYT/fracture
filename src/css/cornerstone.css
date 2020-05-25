@@ -159,7 +159,7 @@ table#nodule-table {
 
 #elec-table{
   /* position: relative; */
-  height: 700px;
+  height: 550px;
   table-layout: fixed;
   margin-top: 0px;
 }
@@ -268,13 +268,39 @@ option {
   margin-left: 1350px;
 }
 
+#report{
+    background-color:rgba(1, 23, 46, 0.997) !important;
+    border-radius: 0.1rem !important;
+    border-color: white;
+    color: white;
+    min-height:250px; 
+    overflow-y:auto;
+    /* overflow-y: visible;     */
+}
+
+#report>div>.ui.attached.tabular.menu{
+  background-color: rgb(20, 1, 43) !important;
+}
+
+#report>div>.ui.attached.tabular.menu>.active.item{
+  background-color:rgba(1, 23, 46, 0.997) !important;
+  color:#66CFEC !important;
+  font-size: medium;
+  border-width: 0px;
+}
+#report>div>.ui.attached.tabular.menu>.item{
+  /* background-color:rgba(1, 23, 46, 0.997) !important; */
+  color:gray !important;
+  font-size: medium;
+}
+
 #cornerstone-accordion{
   background-color:rgba(1, 23, 46, 0.997) !important;
     border-radius: 0.1rem !important;
     border-color: white;
     color: white;
     max-height:100%; 
-    /* overflow-y:auto; */
+    /* overflow-y:clip; */
     overflow-y: visible;
 }
 
@@ -369,13 +395,15 @@ option {
 }
 
 #submitbtn{
-  margin-top: 30px;
+  /* margin-top: 30px; */
+  margin-top: 0px;
 }
 
 #tempStore{
   margin-right: 15px;
   margin-left: 350px;
-  margin-top: 30px;
+  /* margin-top: 30px; */
+  margin-top: 0px;
 }
 
 @media screen and (max-width: 1280px){
@@ -540,7 +568,7 @@ option {
   
   #elec-table{
     /* position: relative; */
-    height: 700px;
+    height: 550px;
     table-layout: fixed;
     margin-top: 0px;
   }
@@ -621,6 +649,16 @@ option {
   #accord-right{
     margin-left: 1100px;
   }
+
+#report{
+    background-color:rgba(1, 23, 46, 0.997) !important;
+    border-radius: 0.1rem !important;
+    border-color: white;
+    color: white;
+    min-height:250px; 
+    overflow-y:auto;
+    /* overflow-y: visible; */
+}
   
   #cornerstone-accordion{
     background-color:rgba(1, 23, 46, 0.997) !important;
@@ -628,7 +666,7 @@ option {
       border-color: white;
       color: white;
       max-height:100%; 
-     /* overflow-y:auto; */
+     /* overflow-y:clip; */
     overflow-y: visible;
   }
   
@@ -721,13 +759,15 @@ option {
   }
 
   #submitbtn{
-    margin-top: -50px;
+    /* margin-top: -50px; */
+    margin-top: 0px;
   }
   
   #tempStore{
     margin-right: 15px;
     margin-left: 200px;
-    margin-top: -50px;
+    /* margin-top: -50px; */
+    margin-top: 0px;
   }
 }
 
@@ -893,7 +933,7 @@ option {
   
   #elec-table{
     /* position: relative; */
-    height: 700px;
+    height: 550px;
     table-layout: fixed;
     margin-top: 0px;
   }
@@ -974,6 +1014,16 @@ option {
   #accord-right{
     margin-left: 1100px;
   }
+
+  #report{
+    background-color:rgba(1, 23, 46, 0.997) !important;
+    border-radius: 0.1rem !important;
+    border-color: white;
+    color: white;
+    min-height:250px; 
+    overflow-y:auto;
+    /* overflow-y: visible; */
+  }
   
   #cornerstone-accordion{
     background-color:rgba(1, 23, 46, 0.997) !important;
@@ -981,7 +1031,7 @@ option {
       border-color: white;
       color: white;
       max-height:100%; 
-     /* overflow-y:auto; */
+     /* overflow-y:clip; */
     overflow-y: visible;
   }
   
@@ -1236,7 +1286,7 @@ option {
     
     #elec-table{
       /* position: relative; */
-      height: 700px;
+      height: 550px;
       table-layout: fixed;
       margin-top: 0px;
     }
@@ -1317,6 +1367,16 @@ option {
     #accord-right{
       margin-left: 1100px;
     }
+
+    #report{
+      background-color:rgba(1, 23, 46, 0.997) !important;
+      border-radius: 0.1rem !important;
+      border-color: white;
+      color: white;
+      min-height:250px;  
+      overflow-y:auto;
+      /* overflow-y: visible; */
+    }
     
     #cornerstone-accordion{
       background-color:rgba(1, 23, 46, 0.997) !important;
@@ -1324,7 +1384,7 @@ option {
         border-color: white;
         color: white;
         max-height:100%; 
-        /* overflow-y:auto; */
+        /* overflow-y:clip; */
     overflow-y: visible;
     }
     
@@ -1418,12 +1478,14 @@ option {
     }
 
     #submitbtn{
-      margin-top: -50px;
+      /* margin-top: -50px; */
+      margin-top: 0px;
     }
     
     #tempStore{
       margin-right: 15px;
       margin-left: 200px;
-      margin-top: -50px;
+      /* margin-top: -50px; */
+      margin-top: 0px;
     }
     }

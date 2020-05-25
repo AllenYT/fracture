@@ -56,7 +56,8 @@ class DisplayPanel extends Component {
           boxes: [],
           readonly: true,
           draftStatus: -1,
-          noduleNo: noduleNo
+          noduleNo: noduleNo,
+          
         }
         this.setState({stack: stack, show: true})
       }).catch(error => {
@@ -88,7 +89,8 @@ class DisplayPanel extends Component {
           boxes: draftResponse.data,
           readonly: readonly,
           draftStatus: draftStatus,
-          noduleNo: noduleNo
+          noduleNo: noduleNo,
+          
         }
         console.log('draftdata',draftResponse)
         console.log('dataResponse',dataResponse)
@@ -120,7 +122,7 @@ class DisplayPanel extends Component {
         {/* {this.state.caseId} */}
         <CornerstoneElement stack={{
             ...this.state.stack
-          }} caseId={this.state.caseId}/>
+          }} caseId={this.state.caseId} username={this.state.username}/>
         </div>
       )
     } else {

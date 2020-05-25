@@ -856,7 +856,7 @@ class CornerstoneElement extends Component {
                                         min="1"
                                         max={this.state.stack.imageIds.length}></input>
                                     <div id="button-container">
-                                        <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox} id='checkbox'/></div>
+                                        <div id='showNodules'><Checkbox label='显示标注' checked={showNodules} onChange={this.toHidebox} id='checkbox'/></div>
                                         <p id="page-indicator">{this.state.currentIdx + 1}
                                             / {this.state.imageIds.length}</p>
                                         <a
