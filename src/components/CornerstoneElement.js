@@ -8,13 +8,13 @@ import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form } from 'semantic-ui-react'
+import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form,Tab } from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
 import axios from "axios"
 import { Menu } from "antd"
-import SubMenu from "antd/lib/menu/SubMenu"
+import MiniReport from './MiniReport'
 // import { Dropdown } from "antd"
 
 
@@ -82,6 +82,8 @@ const modalBtnStyle = {
     marginRight: "auto"
 }
 
+
+
 let users = []
 
 const config = require('../config.json')
@@ -106,12 +108,13 @@ class CornerstoneElement extends Component {
         super(props)
         this.state = {
             caseId: props.caseId,
+            username:props.username,
             stack: props.stack,
             viewport: cornerstone.getDefaultViewport(null, undefined),
-            imageIds: props.stack.imageIds,
+            imageIds: props.stack.imageIds===""?[]:props.stack.imageIds,
             currentIdx: 0,
             autoRefresh: false,
-            boxes: props.stack.boxes,
+            boxes: props.stack.boxes===""?[]:props.stack.boxes,
             clicked: false,
             clickedArea: {},
             tmpBox: {},
@@ -375,6 +378,10 @@ class CornerstoneElement extends Component {
                 boxes.splice(i, 1)
             }
         }
+        for (var i = nodule_no; i < boxes.length; i++) {
+            boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
+            
+        }
         this.setState({
             boxes: boxes,
             random: Math.random()
@@ -545,8 +552,14 @@ class CornerstoneElement extends Component {
     }
 
     render() {
+        const panes = [
+            { menuItem: '影像所见', render: () => 
+                <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username}/></Tab.Pane> },
+            // { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议'/></Tab.Pane> },
+          ]
         // sessionStorage.clear()
         // console.log('boxes', this.state.boxes)
+        // console.log('boxes', this.state.username)
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, wcDefine} = this.state
         let tableContent = ""
         let createDraftModal;
@@ -627,7 +640,7 @@ class CornerstoneElement extends Component {
                     inverted
                     color='blue'
                     onClick={this.submit}
-                    id='submitbtn'
+                    // id='submitbtn'
                     >提交</Button>
             )
         else 
@@ -637,7 +650,7 @@ class CornerstoneElement extends Component {
                     color='blue'
                     onClick={this.deSubmit}
                     style={{
-                    marginTop: 60 + 'px'
+                    // marginTop: 60 + 'px'
                 }}>撤销</Button>
             )
         if (window.location.pathname.split('/')[3] === 'origin') 
@@ -775,7 +788,7 @@ class CornerstoneElement extends Component {
                                 <Accordion.Title  className={classNamee} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
                                 active={listsActiveIndex===idx} index={idx}>
                                 <div style={{display:'inline-block',width:5}}>
-                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{inside.nodule_no}</div>
+                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                     {/* <div style={{fontSize:'large'}}>{inside.nodule_no}</div> */}
                                 </div>
                                 {/* <Table.Cell width={1}>
@@ -783,7 +796,7 @@ class CornerstoneElement extends Component {
                                     <a >{inside.slice_idx + 1}号切片</a>
                                 </Table.Cell> */}
                                     
-                                <div style={{display:'inline-block',marginLeft:40,width:180}}>
+                                <div style={{display:'inline-block',marginLeft:20,width:180}}>
                                     {
                                         this.state.readonly?<Dropdown  style={selectStyle} text={dropdownText} disabled/>:
                                         <Dropdown  style={selectStyle} text={dropdownText}>
@@ -920,11 +933,8 @@ class CornerstoneElement extends Component {
                                     }
                                     
                                 </div> */}
-                                <div style={{display:'inline-block',marginLeft:40}}>
-                                    {/* {Math.round(inside.diameter * 10) / 100+'cm'} */}
-                                    {(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'cm'}
-                                    </div>
-                                <div style={{display:'inline-block',marginLeft:40}}>
+                                
+                                <div style={{display:'inline-block',marginLeft:10}}>
                                     {this.state.readonly?
                                     <select id={texId} style={selectStyle} onChange={this.onSelectTex} disabled>
                                         <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
@@ -942,7 +952,7 @@ class CornerstoneElement extends Component {
                                     }
                                     
                                 </div>
-                                <div style={{display:'inline-block',marginLeft:40}}>
+                                <div style={{display:'inline-block',marginLeft:20}}>
                                     {this.state.readonly?
                                     <select id={malId} style={selectStyle} onChange={this.onSelectMal} disabled>
                                         <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
@@ -958,15 +968,36 @@ class CornerstoneElement extends Component {
                                     }
                                     
                                 </div>
+                                <div style={{display:'inline-block',marginLeft:5}}>
+                                    {this.state.readonly?"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")":null}
+                                </div>
+                                
+                                <div style={{display:'inline-block',marginLeft:10}}>
+                                    {this.state.readonly?
+                                    <select id={texId} style={selectStyle} disabled>
+                                        <option value="" disabled="disabled" selected>初始结果未选定</option>
+                    
+                                    </select>
+                                    :
+                                    <select id={texId} style={selectStyle}>
+                                        <option value="" disabled="disabled" selected>选择亚型</option>
+                                        
+                                    </select>
+                                    } 
+                                </div>
                                 <div style={{display:'inline-block',marginLeft:50}}>
                                     {this.state.readonly? null:<Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>}
                                 </div>
                                 </Accordion.Title>
                                 <Accordion.Content active={listsActiveIndex===idx}>
                                     <div style={{width:'100%'}}>
-                                        <div style={{fontSize:'medium',display:'inline-block',width:'30%'}}>IM:{this.state.currentIdx+1}</div>
-                                        <div style={{fontSize:'medium',display:'inline-block',width:'10%'}}>-566HU</div>
-                                        <div style={{fontSize:'medium',display:'inline-block',width:'50%',textAlign:'right'}}>0.37cm³</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:20}}>IM:{this.state.currentIdx+1}</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:50}}>{inside.huMin}~{inside.huMax}HU</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:50}}>
+                                            {(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'cm'}</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:20}}>
+                                            {(Math.floor(inside.volume * 100) / 100).toFixed(2)+'cm³'}
+                                        </div>
                                     </div>
                                     <div style={{width:'100%',marginTop:'2%',borderBottom:'1px solid white'}}>
                                         <div style={{fontSize:'medium',display:'inline-block',textAlign:'right'}}>表征</div>
@@ -1228,6 +1259,16 @@ class CornerstoneElement extends Component {
                                     <div id='listTitle'>
                                             <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
                                             <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div>
+                                            <div style={{display:'inline-block',marginLeft:'40px',marginTop:'5px'}}>
+                                                <Button
+                                                    inverted
+                                                    color='blue'
+                                                    onClick={this.temporaryStorage}
+                                                    // id='tempStore'
+                                                >暂存</Button>
+                                                {submitButton}
+                                            </div>
+                                            
                                     </div>
                                     <div id='elec-table'>
                                         {/* <div className='table-head'>
@@ -1255,6 +1296,10 @@ class CornerstoneElement extends Component {
                                         <Accordion styled id="cornerstone-accordion" fluid>
                                             {tableContent}
                                         </Accordion>
+                                    </div>
+                                    <div id='report'>
+                                        <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
+                                            panes={panes} />
                                     </div>
                                 </Grid.Column>
                             </Grid>
@@ -1498,13 +1543,22 @@ class CornerstoneElement extends Component {
                                         <div id='listTitle'>
                                             <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
                                             <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div>
+                                            <div style={{display:'inline-block',marginLeft:'40px',marginTop:'5px'}}>
+                                                <Button
+                                                    inverted
+                                                    color='blue'
+                                                    onClick={this.temporaryStorage}
+                                                    // id='tempStore'
+                                                >暂存</Button>
+                                                {submitButton}
+                                            </div>
                                         </div>
                                     
                                         {/* <h3 id="annotator-header">标注人：{window
                                             .location
                                             .pathname
                                             .split('/')[3]}</h3> */}
-                                    <div id='elec-table'>
+                                        <div id='elec-table'>
                                             {/* <div className='table-head'>
                                                 <Table
                                                     inverted
@@ -1537,13 +1591,10 @@ class CornerstoneElement extends Component {
                                             </Accordion>
                                     
                                         </div>
-                                        <Button
-                                            inverted
-                                            color='blue'
-                                            onClick={this.temporaryStorage}
-                                            id='tempStore'
-                                           >暂存</Button>
-                                        {submitButton}
+                                        <div id='report'>
+                                            <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
+                                            panes={panes} />
+                                        </div>
                                     </Grid.Column>
                                 </Grid.Row>
                                 
@@ -1659,7 +1710,7 @@ class CornerstoneElement extends Component {
         context.lineWidth = 1
         context.stroke()
         if (box.nodule_no != undefined) {
-            context.fillText(box.nodule_no, xCenter - 3, new_y1 - 10)
+            context.fillText(parseInt(box.nodule_no)+1, xCenter - 3, new_y1 - 10)
         }
 
     }
@@ -1902,7 +1953,7 @@ class CornerstoneElement extends Component {
             const y1 = this.state.tmpBox.y1
             const x2 = this.state.tmpBox.x2
             const y2 = this.state.tmpBox.y2
-            let newNodule_no = 0
+            let newNodule_no = -1
             const boxes = this.state.boxes
             for (var i = 0; i < boxes.length; i++) {
                 const current_nodule_no = parseInt(boxes[i].nodule_no)
@@ -1910,7 +1961,7 @@ class CornerstoneElement extends Component {
                     newNodule_no = current_nodule_no
                 }
             }
-            this.createBox(x1, x2, y1, y2, this.state.currentIdx, (1 + newNodule_no).toString())
+            this.createBox(x1, x2, y1, y2, this.state.currentIdx, (1+newNodule_no).toString())
         }
         this.setState({
             clicked: false,
