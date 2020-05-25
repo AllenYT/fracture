@@ -145,6 +145,7 @@ class SubList extends Component {
                 console.log("Not okay")
                 // window.location.href = '/'
             } else {
+                console.log('sublist',data.subList)
                 const subList = data.subList
                 let totalDates = 0
                 let totalStudies = 0
@@ -171,6 +172,7 @@ class SubList extends Component {
     render() {
 
         const subList = this.state.subList
+        
         const hint = this.state.hint
         const mainItem = this.props.mainItem
         const cart = this.state.cart

@@ -11,10 +11,9 @@ const config = require('../config.json')
 const recordConfig = config.record
 const draftConfig = config.draft
 
-let panels=[]//labels赋值
-let idx=0//labels内部索引
-let nums={'危险':-1,'钙化':-1,'毛刺':-1,'分叶':-1,'实性':-1,'diameter':-1}//限制labels数量
-// let diaMeters=-1//保留直径所在labels位置
+
+let  nums={'危险':null,'毛刺':null,'分叶':null,'钙化':null,'实性':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,
+'1cm-1.3cm':null,'1.3cm-3cm':null,'>=3cm':null}//限制labels数量
 
 export class SearchNodulePanel extends Component {
     constructor(props){
@@ -24,7 +23,7 @@ export class SearchNodulePanel extends Component {
             totalPage: 1,
             // diameterLeftKeyword: '',
             // diameterRightKeyword:'',
-            labels:[],//标签显示
+            // labels:[],//标签显示
             lists:[],//数据显示
 
             malignancy: -1,
@@ -37,7 +36,9 @@ export class SearchNodulePanel extends Component {
             // volumeStart:-1,
             // volumeEnd:-1,
             diameterStart:0,
-            diameterEnd:5
+            diameterEnd:5,
+            totalResults:1,
+            diameterContainer:'0_5'
         }
         this.handleLabels = this
             .handleLabels
@@ -60,16 +61,14 @@ export class SearchNodulePanel extends Component {
     }
 
     componentDidMount() {
-        panels=[]//labels赋值
-        idx=0//labels内部索引
-        nums={'危险':-1,'钙化':-1,'毛刺':-1,'分叶':-1,'实性':-1,'diameter':-1}//限制labels数量
-        // diaMeters=-1//保留直径所在labels位置
+        nums={'危险':null,'毛刺':null,'分叶':null,'钙化':null,'实性':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,
+    '1cm-1.3cm':null,'1.3cm-3cm':null,'>=3cm':null}//限制labels数量
         this.getTotalPages()
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if (prevState.diameterStart !== this.state.diameterStart || prevState.diameterEnd !== this.state.diameterEnd ||
-            prevState.labels != this.state.labels) {
+        console.log('diameterContainer',prevState.diameterContainer,this.state.diameterContainer)
+        if (prevState.diameterContainer!==this.state.diameterContainer) {
             this.getTotalPages()
         }
         if(prevState.malignancy !== this.state.malignancy || prevState.calcification !== this.state.calcification ||prevState.spiculation != this.state.spiculation
@@ -80,20 +79,6 @@ export class SearchNodulePanel extends Component {
             this.getAtPageIfo()
         }
     }
-    // shouldComponentUpdate(nextProps, nextState){
-    //     if (nextState.diameterLeftKeyword !== this.state.diameterLeftKeyword || nextState.diameterRightKeyword !== nextState.diameterRightKeyword ||
-    //         nextState.labels != this.state.labels) {
-    //         this.getTotalPages()
-    //     }
-    //     if(nextState.malignancy !== this.state.malignancy || nextState.calcification !== nextState.calcification ||nextState.spiculation != this.state.spiculation
-    //         ||nextState.lobulation !== this.state.lobulation){
-    //             this.getTotalPages()
-    //     }
-    //     if(nextState.activePage!==this.state.activePage){
-    //         this.getAtPageIfo()
-    //     }
-    //     return true
-    // }
 
     getTotalPages() {
         // const token = localStorage.getItem('token')
@@ -106,25 +91,17 @@ export class SearchNodulePanel extends Component {
             spiculation: this.state.spiculation,
             lobulation:this.state.lobulation,
             texture:this.state.texture,
+            diameters:this.state.diameterContainer
             // volumeStart:this.state.volumeStart,
             // volumeEnd:this.state.volumeEnd,
-            diameterStart:this.state.diameterStart,
-            diameterEnd:this.state.diameterEnd
+            
         }
-        axios.post(recordConfig.filterNodules, qs.stringify(params)).then((response) => {
+        axios.post(recordConfig.filterNodulesMulti, qs.stringify(params)).then((response) => {
             const data = response.data
             console.log('total:',data)
             
-            // if (data.status !== 'okay') {
-            //     alert("错误，请联系管理员")
-            //     // window.location.href = '/'
-            // } else {
-            //     // const totalPage = data.count
-            //     console.log('data:',data)
-            //     // this.setState({totalPage: totalPage})
-            // }
             this.getAtPageIfo()
-            this.setState({totalPage:data.pages})
+            this.setState({totalPage:data.pages,totalResults:data.nodules})
         }).catch((error) => console.log(error))
     }
 
@@ -138,23 +115,24 @@ export class SearchNodulePanel extends Component {
             page:this.state.activePage,
             // volumeStart:this.state.volumeStart,
             // volumeEnd:this.state.volumeEnd,
-            diameterStart:this.state.diameterStart,
-            diameterEnd:this.state.diameterEnd
+            diameters:this.state.diameterContainer
         }
         
-        axios.post(recordConfig.getNodulesAtPage, qs.stringify(params)).then((response) => {
+        axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
             let lists=[]
             const data = response.data
-
-            console.log('params', params)
             
             console.log('pages:',data)
             for (const idx in data){
-                let sequence={'volume':0,'diameter':0,'malignancy':'','lobulation':'','spiculation':'','texture':'','calcification':'','caseId':'','noduleNo':'','status':0}
-                // console()
+                let sequence={'patienId':'','patientSex':'','patientBirth':'','volume':0,'diameter':0,'malignancy':'','lobulation':'',
+                'spiculation':'','texture':'','calcification':'','caseId':'','noduleNo':'','status':0}
+                
                 if(data[idx]['volume']===undefined){
                     console.log(data[idx])
                 }
+                sequence['patienId']=data[idx]['patienId']
+                sequence['patientSex']=data[idx]['patientSex']==='M'?'男':'女';
+                sequence['patientBirth']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
                 sequence['volume']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
                 sequence['diameter']=Math.floor(data[idx]['diameter'] * 100) / 100
                 sequence['malignancy']=data[idx]['malignancy']==2?'高危 ':'低危'
@@ -166,40 +144,10 @@ export class SearchNodulePanel extends Component {
                 sequence['noduleNo']=data[idx]['noduleNo']
                 sequence['status']=data[idx]['status']
                 lists.push(sequence)
-                // if(idxx === 'volume'){
-                //     // console.log('lists[idx][idxx]:',lists[idx][idxx])
-                //     // lists[idx][idxx]=Math.floor(lists[idx][idxx] * 100) / 100
-                    
-                // }
-            //     else if(idxx === 'diameter'){
-            //         lists[idx][idxx]=Math.floor(lists[idx][idxx] * 100) / 100
-            //         let value=lists[idx][idxx]
-            //         lists[idx][idxx]=lists[idx]['spiculation']
-            //         lists[idx]['spiculation']=value
-
-            //     }
-            //     else if(idxx==='status'){
-            //         delete lists[idx][idxx]
-            //     }
-            //     else if(idxx==='malignancy'){
-            //         lists[idx][idxx]=lists[idx][idxx]==2?'高危 ':'低危'
-            //         let value=lists[idx][idxx]
-            //         lists[idx][idxx]=lists[idx]['lobulation']
-            //         lists[idx]['lobulation']=value
-            //     }
-            //     else if(idxx==='noduleNo' || idxx==='caseId'){
-
-            //     }
-            //     else{
-            //         lists[idx][idxx]=lists[idx][idxx]==2?'是 ':'否'
-            //     }
-            // }
-            // if(!('volume' in lists[idx])){
-            //     lists[idx]['volume']=' '
-            // }
             }
             console.log('lists1:',lists)
             this.setState({lists:lists})
+            // this.setState({totalPage:data.pages,totalResults:data.nodules})
         }).catch((error) => console.log(error))
         // console.log('lists2:',lists)
     }
@@ -236,52 +184,103 @@ export class SearchNodulePanel extends Component {
         this.setState({activePage})
     }
 
-    handleLabelsIcon(indexx,value,e){
-        console.log('value',value,indexx)
-        delete panels[indexx]
+    handleLabelsIcon(value,e){
         switch(value){
             case '低危':
                 // console.log('value',value)
-                nums['危险']-=1
-                    this.setState({malignancy:-1,labels:panels,activePage:'1'});break
+                nums['危险']=null
+                    this.setState({malignancy:-1,activePage:'1'});break
             case '高危':
                         // console.log('value',value)
-                nums['危险']-=1
-                    this.setState({malignancy:-1,labels:panels,activePage:'1'});break
+                nums['危险']=null
+                    this.setState({malignancy:-1,activePage:'1'});break
             case '毛刺':
-                nums['毛刺']-=1
-                this.setState({spiculation:-1,labels:panels,activePage:'1'}) ;break
+                nums['毛刺']=null
+                this.setState({spiculation:-1,activePage:'1'}) ;break
             case '非毛刺':
-                nums['毛刺']-=1
-                this.setState({spiculation:-1,labels:panels,activePage:'1'}) ;break
+                nums['毛刺']=null
+                this.setState({spiculation:-1,activePage:'1'}) ;break
             case '分叶':
-                nums['分叶']-=1
-                this.setState({lobulation:-1,labels:panels,activePage:'1'}) ;break
+                nums['分叶']=null
+                this.setState({lobulation:-1,activePage:'1'}) ;break
             case '非分叶':
-                nums['分叶']-=1
-                this.setState({lobulation:-1,labels:panels,activePage:'1'}) ;break
+                nums['分叶']=null
+                this.setState({lobulation:-1,activePage:'1'}) ;break
             case '钙化':
-                nums['钙化']-=1
-                this.setState({calcification:-1,labels:panels,activePage:'1'}) ;break
+                nums['钙化']=null
+                this.setState({calcification:-1,activePage:'1'}) ;break
             case '非钙化':
-                nums['钙化']-=1
-                this.setState({calcification:-1,labels:panels,activePage:'1'}) ;break
+                nums['钙化']=null
+                this.setState({calcification:-1,activePage:'1'}) ;break
             case '实性':
-                nums['实性']-=1
-                this.setState({texture:-1,labels:panels,activePage:'1'}) ;break
+                nums['实性']=null
+                this.setState({texture:-1,activePage:'1'}) ;break
             case '半实性':
-                nums['半实性']-=1
-                this.setState({texture:-1,labels:panels,activePage:'1'}) ;break
+                nums['半实性']=null
+                this.setState({texture:-1,activePage:'1'}) ;break
             case '磨玻璃':
-                nums['实性']-=1
-                this.setState({texture:-1,labels:panels,activePage:'1'}) ;break
+                nums['实性']=null
+                this.setState({texture:-1,activePage:'1'}) ;break
+            case '<=0.3cm':
+                nums['<=0.3cm']=null
+                this.setState((state, props) => ({
+                    diameterContainer:state.diameterContainer.indexOf("@")===-1?'0_5':
+                    state.diameterContainer.indexOf('0_0.3')===0?
+                    state.diameterContainer.split('0_0.3@').join(''):state.diameterContainer.split('@0_0.3').join(''),
+                    activePage:'1'
+                }));break
+            // case '0.3cm-0.5cm':
+            //     nums['0.3cm-0.5cm']=null
+            //     this.setState((state, props) => ({
+            //         diameterContainer:state.diameterContainer.indexOf("@")===-1?'0_5':
+            //         state.diameterContainer.indexOf('0.3_0.5')===0?
+            //         state.diameterContainer.split('0.3_0.5@').join(''):state.diameterContainer.split('@0.3_0.5').join(''),
+            //         activePage:'1'
+            //     }));break    
+            // case '0.5cm-1cm':
+            //     nums['0.5cm-1cm']=null
+            //     this.setState((state, props) => ({
+            //         diameterContainer:state.diameterContainer.indexOf("@")===-1?'0_5':
+            //         state.diameterContainer.indexOf('0.5_1')===0?
+            //         state.diameterContainer.split('0.5_1@').join(''):state.diameterContainer.split('@0.5_1').join(''),
+            //         activePage:'1'
+            //     }));break
+            // case '1cm-1.3cm':
+            //     nums['1cm-1.3cm']=null
+            //     this.setState((state, props) => ({
+            //         diameterContainer:state.diameterContainer.indexOf("@")===-1?'0_5':
+            //         state.diameterContainer.indexOf('1_1.3')===0?
+            //         state.diameterContainer.split('1_1.3@').join(''):state.diameterContainer.split('@1_1.3').join(''),
+            //         activePage:'1'
+            //     }));break
+            // case '1.3cm-3cm':
+            //     nums['1.3cm-3cm']=null
+            //     this.setState((state, props) => ({
+            //         diameterContainer:state.diameterContainer.indexOf("@")===-1?'0_5':
+            //         state.diameterContainer.indexOf('1.3_3')===0?
+            //         state.diameterContainer.split('1.3_3@').join(''):state.diameterContainer.split('@1.3_3').join(''),
+            //         activePage:'1'
+            //     }));break
+            case '>=3cm':
+                nums['>=3cm']=null
+                this.setState((state, props) => ({
+                    diameterContainer:state.diameterContainer.indexOf("@")===-1?'0_5':
+                    state.diameterContainer.indexOf('3_5')===0?
+                    state.diameterContainer.split('3_5@').join(''):state.diameterContainer.split('@3_5').join(''),
+                    activePage:'1'
+                }));break
             default:
-                this.setState({labels:panels,activePage:'1',diameterStart:0,diameterEnd:5});break
+                nums[value]=null
+                let left=value.split('cm-')[0]
+                let right=value.split('cm-')[1].split('cm')[0]
+                // console.log('del',left,right)
+                this.setState((state, props) => ({
+                    diameterContainer:state.diameterContainer.indexOf("@")===-1?'0_5':
+                    state.diameterContainer.indexOf(left+'_'+right)===0?
+                    state.diameterContainer.split(left+'_'+right+'@').join(''):state.diameterContainer.split('@'+left+'_'+right).join(''),
+                    activePage:'1'
+                }));break
         }
-        // console.log('indexx',indexx)
-        // console.log('panels',panels)
-        // console.log('idx',idx)
-        // this.setState({labels:panels})
     }
 
     handleLabels(e){  
@@ -289,56 +288,61 @@ export class SearchNodulePanel extends Component {
         // const hhh=e.target.innerHTML
         // console.log('value',value,hhh)
         // console.log('value',value,nums[value],typeof(value),value.length)
-        if(value.split("",value.length).includes("m")){//直径专属
-            if(nums['diameter']!==-1){
-                delete panels[nums['diameter']]
-            }
-            nums['diameter']=idx
-            panels.push(
-                <Label as='a' key={idx}  className='labelTags'>
-                    {value}
-                    <Icon name='delete' onClick={this.handleLabelsIcon.bind(this,idx,value)} inverted color='green'/>
-                </Label>
-            )
-            idx+=1
-            if(value==='<=0.3cm'){
-                this.setState({diameterStart:0,diameterEnd:0.3,labels:panels,activePage:'1'})
-            }
-            else if(value==='0.3cm-0.5cm'){
-                this.setState({diameterStart:0.3,diameterEnd:0.5,labels:panels,activePage:'1'})
-            }
-            else if(value==='0.5cm-1cm'){
-                this.setState({diameterStart:0.5,diameterEnd:1,labels:panels,activePage:'1'})
-            }
-            else if(value==='1cm-1.3cm'){
-                this.setState({diameterStart:1,diameterEnd:1.3,labels:panels,activePage:'1'})
-            }
-            else if(value==='1.3cm-3cm'){
-                this.setState({diameterStart:1.3,diameterEnd:3,labels:panels,activePage:'1'})
-            }
-            else if(value==='>=3cm'){
-                this.setState({diameterStart:3,diameterEnd:5,labels:panels,activePage:'1'})
-            }
-            return
+        if(value==='<=0.3cm'){
+            nums['<=0.3cm']=value
+            this.setState((state, props) => ({
+                diameterContainer: state.diameterContainer==='0_5'?'0_0.3':state.diameterContainer + '@0_0.3',
+                activePage:'1'
+            }))
+        }
+        else if(value==='0.3cm-0.5cm'){
+            nums['0.3cm-0.5cm']=value
+            
+            this.setState((state, props) => ({
+                diameterContainer: state.diameterContainer==='0_5'?'0.3_0.5':state.diameterContainer + '@0.3_0.5',
+                activePage:'1'
+            }))
+        }
+        else if(value==='0.5cm-1cm'){
+            nums['0.5cm-1cm']=value
+            
+            this.setState((state, props) => ({
+                diameterContainer: state.diameterContainer==='0_5'?'0.5_1':state.diameterContainer + '@0.5_1',
+                activePage:'1'
+            }))
+        }
+        else if(value==='1cm-1.3cm'){
+            nums['1cm-1.3cm']=value
+            
+            this.setState((state, props) => ({
+                diameterContainer: state.diameterContainer==='0_5'?'1_1.3':state.diameterContainer + '@1_1.3',
+                activePage:'1'
+            }))
+        }
+        else if(value==='1.3cm-3cm'){
+            nums['1.3cm-3cm']=value
+            
+            this.setState((state, props) => ({
+                diameterContainer: state.diameterContainer==='0_5'?'1.3_3':state.diameterContainer + '@1.3_3',
+                activePage:'1'
+            }))
+        }
+        else if(value==='>=3cm'){
+            nums['>=3cm']=value
+            
+            this.setState((state, props) => ({
+                diameterContainer: state.diameterContainer==='0_5'?'3_5':state.diameterContainer + '@3_5',
+                activePage:'1'
+            }))
         }
 
         else{
-            if(nums['危险']!==-1){
-                delete panels[nums['危险']]
-            }
-            nums['危险']=idx
-            panels.push(
-                <Label as='a' key={idx}  className='labelTags'>
-                    {value}
-                    <Icon name='delete' onClick={this.handleLabelsIcon.bind(this,idx,value)} inverted color='green'/>
-                </Label>
-            )
-            idx+=1
+            nums['危险']=value
             switch(value){
                 case '低危':
-                    this.setState({malignancy:1,labels:panels,activePage:'1'});break
+                    this.setState({malignancy:1,activePage:'1'});break
                 case '高危':
-                    this.setState({malignancy:2,labels:panels,activePage:'1'});break
+                    this.setState({malignancy:2,activePage:'1'});break
             }
         }
     }
@@ -346,79 +350,68 @@ export class SearchNodulePanel extends Component {
     handleImageLabels(e){
         const text=e.target.innerHTML
         if(text==='毛刺'||text==='非毛刺'){
-            if(nums['毛刺']!==-1){
-                delete panels[nums['毛刺']]
-            }
-            nums['毛刺']=idx
+            nums['毛刺']=text
         }
         else if(text==='分叶'||text==='非分叶'){
-            if(nums['分叶']!==-1){
-                delete panels[nums['分叶']]
-            }
-            nums['分叶']=idx
+            nums['分叶']=text
         }
         else if(text==='钙化'||text==='非钙化'){
-            if(nums['钙化']!==-1){
-                delete panels[nums['钙化']]
-            }
-            nums['钙化']=idx
+            nums['钙化']=text
         }
         else if(text==='实性'||text==='半实性'||text==='磨玻璃'){
-            if(nums['实性']!==-1){
-                delete panels[nums['实性']]
-            }
-            nums['实性']=idx
+            nums['实性']=text
         }
-        panels.push(
-            <Label as='a' key={idx}  className='labelTags'>
-                {text}
-                <Icon name='delete' onClick={this.handleLabelsIcon.bind(this,idx,text)} inverted color='green'/>
-            </Label>
-        )
-        idx+=1
 
         switch(text){
             case '毛刺':
-                this.setState({spiculation:2,labels:panels,activePage:'1'});break
+                this.setState({spiculation:2,activePage:'1'});break
             case '非毛刺':
-                this.setState({spiculation:1,labels:panels,activePage:'1'});break
+                this.setState({spiculation:1,activePage:'1'});break
             case '分叶':
-                this.setState({lobulation:2,labels:panels,activePage:'1'});break
+                this.setState({lobulation:2,activePage:'1'});break
             case '非分叶':
-                this.setState({lobulation:1,labels:panels,activePage:'1'});break
+                this.setState({lobulation:1,activePage:'1'});break
             case '钙化':
-                this.setState({calcification:2,labels:panels,activePage:'1'});break
+                this.setState({calcification:2,activePage:'1'});break
             case '非钙化':
-                this.setState({calcification:1,labels:panels,activePage:'1'});break
+                this.setState({calcification:1,activePage:'1'});break
             case '实性':
-                this.setState({texture:2,labels:panels,activePage:'1'});break
+                this.setState({texture:2,activePage:'1'});break
             case '半实性':
-                this.setState({texture:3,labels:panels,activePage:'1'});break
+                this.setState({texture:3,activePage:'1'});break
             case '磨玻璃':
-                this.setState({texture:1,labels:panels,activePage:'1'});break
+                this.setState({texture:1,activePage:'1'});break
         }
     }
 
     handleInputChange(e) {
         const value = e.currentTarget.value
         const name = e.currentTarget.name
-        if(nums['diameter']!==-1){
-            delete panels[nums['diameter']]
-            nums['diameter']=-1
-            this.setState({labels:panels,activePage:'1'})
-        }
         if (name === 'left') {
-            this.setState({diameterStart:value,activePage:'1'})
-            
+            this.left=value
         } 
         else if (name === 'right') {
-            this.setState({diameterEnd:value,activePage:'1'})
+            this.right=value
         }
+    }
+
+    handleAddDiameters(e){
+        console.log('add',this.left)
+        console.log('add',this.right)
+        nums[this.left+'cm-'+this.right+'cm']=this.left+'cm-'+this.right+'cm'
+        this.setState((state, props) => ({
+            diameterContainer: state.diameterContainer==='0_5'?this.left+'_'+this.right:state.diameterContainer + '@'+this.left+'_'+this.right,
+            activePage:'1'
+        }))
+    }
+
+    componentWillUnmount() {
+        console.log('searchNodule')
     }
 
     render(){
         const lists = this.state.lists
-        // console.log('panels',panels)
+        // console.log('diameter',this.state.diameterContainer)
         // console.log('idx',idx)
         // console.log('nums',nums)
         // console.log('diameters',diaMeters)
@@ -431,7 +424,16 @@ export class SearchNodulePanel extends Component {
                             <Header as='h3' inverted >筛选条件:</Header>
                         </Grid.Column>
                         <Grid.Column width={7}>
-                            {this.state.labels}
+                            {Object.entries(nums).map((key,value)=>{
+                                
+                                return(
+                                    key[1]!==null?
+                                    <Label as='a' key={value}  className='labelTags'>
+                                        {key[1]}
+                                        <Icon name='delete' onClick={this.handleLabelsIcon.bind(this,key[1])} inverted color='green'/>
+                                    </Label>:null
+                                )
+                            })}
                         </Grid.Column>
                     </Grid.Row>
                     <Grid.Row>
@@ -484,14 +486,17 @@ export class SearchNodulePanel extends Component {
                                             <Grid.Row>
                                                 <Grid.Column width={6} className="gridLabel inputContainer">
                                                     <a style={{color:'#66cfec'}}>自定义：</a>
-                                                    <Input id="searchBox" placeholder="cm" onChange={this.handleInputChange} value={
-                                                         this.state.diameterStart}
-                                                    name='left'/>
+                                                    <Input id="searchBox" placeholder="cm" onChange={this.handleInputChange} name='left'/>
                                                     <em>&nbsp;&nbsp;-&nbsp;&nbsp;</em>
-                                                    <Input id="searchBox" placeholder="cm" onChange={this.handleInputChange} value={
-                                                        this.state.diameterEnd}
-                                                    name='right'/>
+                                                    <Input id="searchBox" placeholder="cm" onChange={this.handleInputChange} name='right'/>
                                                     <a style={{marginLeft:15,color:'#66cfec',fontSize:20}}>cm</a>
+                                                    <em>&nbsp;&nbsp;&nbsp;&nbsp;</em>
+                                                    <Button 
+                                                        icon='add'
+                                                        className='ui green inverted button' 
+                                                        size='mini'
+                                                        onClick={this.handleAddDiameters.bind(this)}
+                                                    ></Button>
                                                 </Grid.Column>
                                             </Grid.Row>
                                         </Grid>
@@ -571,6 +576,12 @@ export class SearchNodulePanel extends Component {
                         </Grid.Column>
                         <Grid.Column width={2}></Grid.Column>
                     </Grid.Row>
+                    <Grid.Row className="conlabel">
+                        <Grid.Column width={2}>
+                            <Header as='h3' inverted >结节数目:{this.state.totalResults}</Header>
+                        </Grid.Column>
+                        
+                    </Grid.Row>
                     <Grid.Row >
                         <Grid.Column width={2}></Grid.Column>
                         <Grid.Column width={12} id="container">
@@ -578,6 +589,9 @@ export class SearchNodulePanel extends Component {
                             <Table celled inverted textAlign='center' fixed id="table">
                                 <Table.Header id='table-header'>
                                     <Table.Row>
+                                        <Table.HeaderCell>病人ID</Table.HeaderCell>
+                                        <Table.HeaderCell>性别</Table.HeaderCell>
+                                        <Table.HeaderCell>年龄</Table.HeaderCell>
                                         <Table.HeaderCell>结节体积(cm³)</Table.HeaderCell>
                                         <Table.HeaderCell>结节直径(cm)</Table.HeaderCell>
                                         
