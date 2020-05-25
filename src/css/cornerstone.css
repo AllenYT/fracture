@@ -314,24 +314,28 @@ option {
   background-color: #fff;
 }
 
-.hucolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button  .hubtn{
+.hucolumn .ui.button, .ui.buttons .button  .hubtn{
   width: 60px;
   height: 50px;
   font-size: 14px;
   padding: 0;
+  background-color: #020418;
+  color: rgb(212, 212, 212);
   /* display:"inline-block";
   margin-right:"5px";
   margin-left: "5px"; */
 }
 
-.funcolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+.funcolumn .ui.button, .ui.buttons .button .funcbtn{
   width: 60px;
   height: 50px;
   font-size: large;
+  background-color: #020418;
+  color: rgb(212, 212, 212);
   padding: 0;
 }
 
-.draftColumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+.draftColumn .ui.button, .ui.buttons .button .funcbtn{
   width: 60px;
   height: 50px;
   font-size: small;
@@ -664,24 +668,26 @@ option {
     background-color: #fff;
   }
   
-  .hucolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button  .hubtn{
+  .hucolumn .ui.button, .ui.buttons .button  .hubtn{
     width: 60px;
     height: 50px;
     font-size: 14px;
     padding: 0;
+    background-color: #020418;
+    color: rgb(212, 212, 212);;
     /* display:"inline-block";
     margin-right:"5px";
     margin-left: "5px"; */
   }
   
-  .funcolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  .funcolumn .ui.button, .ui.buttons .button .funcbtn{
     width: 60px;
     height: 50px;
     font-size: large;
     padding: 0;
   }
   
-  .draftColumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  .draftColumn .ui.button, .ui.buttons .button .funcbtn{
     width: 60px;
     height: 50px;
     font-size: small;
@@ -1015,24 +1021,26 @@ option {
     background-color: #fff;
   }
   
-  .hucolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button  .hubtn{
+  .hucolumn .ui.button, .ui.buttons .button  .hubtn{
     width: 60px;
     height: 50px;
     font-size: 14px;
     padding: 0;
+    background-color: #020418;
+    color: rgb(212, 212, 212);;
     /* display:"inline-block";
     margin-right:"5px";
     margin-left: "5px"; */
   }
   
-  .funcolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  .funcolumn .ui.button, .ui.buttons .button .funcbtn{
     width: 60px;
     height: 50px;
     font-size: large;
     padding: 0;
   }
   
-  .draftColumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  .draftColumn .ui.button, .ui.buttons .button .funcbtn{
     width: 60px;
     height: 50px;
     font-size: small;
@@ -1356,24 +1364,27 @@ option {
       background-color: #fff;
     }
     
-    .hucolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button  .hubtn{
+    .hucolumn .ui.button, .ui.buttons .button  .hubtn{
       width: 40px;
       height: 40px;
       font-size: 0.1rem;
       padding: 0;
+      background-color: #020418;
+      color: rgb(212, 212, 212);;
       /* display:"inline-block";
       margin-right:"5px";
       margin-left: "5px"; */
     }
     
-    .funcolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+    .funcolumn .ui.button, .ui.buttons .button .funcbtn{
       width: 40px;
       height: 40px;
       font-size: medium;
       padding: 0;
+      
     }
     
-    .draftColumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+    .draftColumn .ui.button, .ui.buttons .button .funcbtn{
       width: 40px;
       height: 40px;
       font-size: 0.8rem;

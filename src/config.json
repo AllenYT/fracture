@@ -3,7 +3,8 @@
         "getDataListForCaseId": "http://data.deepln.deepx.machineilab.org/data/getDataListForCaseId",
         "getDataListForCov19CaseId":"http://data.deepln.deepx.machineilab.org/data/getCovidMaskListForCaseId",
         "getSingleJpg":"http://data.deepln.deepx.machineilab.org/data/covidMask",
-        "getHist":"http://data.deepln.deepx.machineilab.org/covid/getHist"
+        "getHist":"http://data.deepln.deepx.machineilab.org/covid/getHist",
+        "uploadMutiply":"http://data.deepln.deepx.machineilab.org/data/uploadMutiply"
     },
 
     "user": {

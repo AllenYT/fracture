@@ -8,7 +8,7 @@ import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form } from 'semantic-ui-react'
+import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form, Container } from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
@@ -16,6 +16,8 @@ import axios from "axios"
 import { Menu } from "antd"
 import SubMenu from "antd/lib/menu/SubMenu"
 // import { Dropdown } from "antd"
+import { Chart } from '@antv/g2'
+import DataSet from '@antv/data-set'
 
 
 cornerstoneTools.external.cornerstone = cornerstone
@@ -276,6 +278,14 @@ class CornerstoneElement extends Component {
         this.ZoomOut = this
             .ZoomOut
             .bind(this)
+        this.imagesFilp = this
+            .imagesFilp
+            .bind(this)
+        this.visualize = this
+            .visualize
+            .bind(this)
+        this.lengthMeasure = this.lengthMeasure.bind(this)
+        this.featureAnalysis = this.featureAnalysis.bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -297,6 +307,93 @@ class CornerstoneElement extends Component {
         this.setState({viewport})
         // console.log("to media", viewport)
     }
+
+    visualize(hist_data,idx){
+        const visId = 'visual-' + idx
+        document.getElementById(visId).innerHTML=''
+        let bins=hist_data.bins
+        let ns=hist_data.n
+        console.log('bins',bins)
+        console.log('ns',ns)
+        var histogram = []
+        var line=[]
+        for (var i = 0; i < bins.length-1; i++) {
+            var obj = {}
+            obj.value = [bins[i],bins[i+1]]
+            obj.count=ns[i]
+            histogram.push(obj)
+            
+            var obj2={}
+            obj2.value=bins[i]
+            obj2.count=ns[i]
+            line.push(obj2)
+        }
+        console.log('histogram',histogram)
+        console.log('line',line)
+        const ds = new DataSet();
+        const dv = ds.createView().source(histogram)
+        // const dv2=ds.createView().source(line)
+
+        // dv.transform({
+        //     type: 'bin.histogram',
+        //     field: 'value',
+        //     binWidth: 5000,
+        //     as: ['value', 'count'],
+        // })
+        const chart = new Chart({
+            container: visId,
+            // forceFit: true,
+            forceFit:true,
+            height: 300,
+            width:400,
+            // padding: [30,30,'auto',30]
+        });
+        // chart.tooltip({
+        //     crosshairs: false,
+        //     inPlot: false,
+        //     position: 'top'
+        //   })
+        let view1=chart.view()
+        // view1.axis(false)
+        view1.source(dv, {
+            value: {
+            //   nice: true,
+              minLimit: bins[0]-50,
+              maxLimit:bins[bins.length-1]+50,
+            //   tickCount:20
+            },
+            count: {
+            //   max: 350000,
+            //   tickInterval:50000
+              tickCount:10
+            }
+          })
+        // view1.source(dv)
+        view1.interval().position('value*count')
+
+        var view2 = chart.view()
+        view2.axis(false)
+        // view2.source(line)
+        view2.source(line,{
+            value: {
+                // nice: true,
+                minLimit: bins[0]-50,
+              maxLimit:bins[bins.length-1]+50,
+                // tickCount:10
+              },
+              count: {
+                // max: 350000,
+                tickCount:10
+              }
+        })
+        view2.line().position('value*count').style({
+            stroke: 'white',
+            
+            }).shape('smooth')
+        
+        chart.render()
+    }
+
     wcSlider =  (e, { name, value }) => {//窗位
         this.setState({ [name]: value })
         let viewport = cornerstone.getViewport(this.element)
@@ -317,6 +414,7 @@ class CornerstoneElement extends Component {
     // }
     handleListClick = (currentIdx,index,e) => {//点击list-item
         console.log('id',e.target.id)
+        
         // const {index} = titleProps
         // console.log('index',index)
         const id=e.target.id
@@ -364,6 +462,14 @@ class CornerstoneElement extends Component {
         this.setState(({showNodules}) => ({
             showNodules: !showNodules
         }))
+        if(this.state.showNodules){
+            document.getElementById('showNodule').style.display='none'
+            document.getElementById('hideNodule').style.display=''
+        }
+        else{
+            document.getElementById('showNodule').style.display=''
+            document.getElementById('hideNodule').style.display='none'
+        }
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
@@ -543,6 +649,56 @@ class CornerstoneElement extends Component {
         }).catch(err => {
             console.log('err: ' + err)
         })
+    }
+
+    // forEachViewport(callback) {
+    //     var elements = $('.viewport');
+    //     $.each(elements, function(index, value) {
+    //         var element = value;
+    //         try {
+    //             callback(element);
+    //         }
+    //         catch(e) {
+    
+    //         }
+    //     });
+    // }
+
+    // disableAllTools(){
+    //     forEachViewport(function(element) {
+    //         cornerstoneTools.wwwc.disable(element);
+    //         cornerstoneTools.pan.activate(element, 2); // 2 is middle mouse button
+    //         cornerstoneTools.zoom.activate(element, 4); // 4 is right mouse button
+    //         cornerstoneTools.probe.deactivate(element, 1);
+    //         cornerstoneTools.length.deactivate(element, 1);
+    //         cornerstoneTools.angle.deactivate(element, 1);
+    //         cornerstoneTools.ellipticalRoi.deactivate(element, 1);
+    //         cornerstoneTools.rectangleRoi.deactivate(element, 1);
+    //         cornerstoneTools.stackScroll.deactivate(element, 1);
+    //         cornerstoneTools.wwwcTouchDrag.deactivate(element);
+    //         cornerstoneTools.zoomTouchDrag.deactivate(element);
+    //         cornerstoneTools.panTouchDrag.deactivate(element);
+    //         cornerstoneTools.stackScrollTouchDrag.deactivate(element);
+    //     });
+    // }
+
+    lengthMeasure(){
+        const element = document.getElementById('origin-canvas')
+        this.setState({immersive: true})
+        // cornerstoneTools.length.activate(element,4);
+    }
+
+    featureAnalysis(e){
+        const idx = e.target.value
+        const boxes = this.state.boxes
+        var hist_data = boxes[idx].nodule_hist
+        console.log('hist_data',hist_data)
+        this.visualize(hist_data,idx)
+        // var data = e.target.value
+        // data = JSON.stringify(data)
+        // data = JSON.parse(data)
+        
+        // this.visualize(hist)
     }
 
     render() {
@@ -744,6 +900,7 @@ class CornerstoneElement extends Component {
                         const malId = 'malSel-' + inside.nodule_no
                         const texId = 'texSel-' + inside.nodule_no
                         const placeId = 'place-' + inside.nodule_no
+                        const visualId = 'visual-' + inside.nodule_no
                         if(inside.lobulation===2){
                             representArray.push('分叶')
                         }
@@ -983,17 +1140,20 @@ class CornerstoneElement extends Component {
                                         <div style={{width:'100%',marginTop:'2%'}}>
                                         <div style={{display:'inline-block',width:'50%'}}>
                                             <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
-                                            content='测量' icon='edit' id="immersive-hover" onClick={() => {this.setState({immersive: true})}}>
+                                            content='测量' icon='edit' id="immersive-hover" onClick={this.lengthMeasure}>
                                             </Button>
                                         </div>
                                         <div style={{display:'inline-block',width:'50%'}}>
                                             <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
-                                            icon='chart bar' content='特征分析'>
+                                            icon='chart bar' content='特征分析' value={idx} onClick={this.featureAnalysis}>
                                             </Button>
                                         </div>
                                         </div>
+                                       
                                     }
-                                    
+                                     <Container>
+                                        <div id={visualId}></div>
+                                    </Container>
                                 </Accordion.Content>
                             </div>
                         )
@@ -1209,7 +1369,7 @@ class CornerstoneElement extends Component {
                                         min="1"
                                         max={this.state.stack.imageIds.length}></input>
                                     <div id="button-container">
-                                        <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
+                                        {/* <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div> */}
                                         <p id="page-indicator">{this.state.currentIdx + 1}
                                             / {this.state.imageIds.length}</p>
                                         <a
@@ -1271,10 +1431,11 @@ class CornerstoneElement extends Component {
                                     <Grid.Column  className='hucolumn' width={5}>
                                         <Grid>
                                             <Grid.Row columns='equal' >
+                                                <Button.Group>
                                                 <Grid.Column>
                                                     <Button
-                                                        inverted
-                                                        color='blue'
+                                                        // inverted
+                                                        // color='black'
                                                         onClick={this.toPulmonary}
                                                         content='肺窗'
                                                         className='hubtn'
@@ -1282,8 +1443,8 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column>
                                                     <Button
-                                                        inverted
-                                                        color='blue'
+                                                        // inverted
+                                                        // color='blue'
                                                         onClick={this.toBoneWindow} //骨窗窗宽窗位函数
                                                         content='骨窗'
                                                         className='hubtn'
@@ -1291,8 +1452,8 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column>
                                                     <Button
-                                                        inverted
-                                                        color='blue'
+                                                        // inverted
+                                                        // color='blue'
                                                         onClick={this.toVentralWindow} //腹窗窗宽窗位函数
                                                         content='腹窗'
                                                         className='hubtn'
@@ -1300,8 +1461,8 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column>
                                                     <Button
-                                                        inverted
-                                                        color='blue'
+                                                        // inverted
+                                                        // color='blue'
                                                         onClick={this.toMedia}
                                                         content='纵隔窗'
                                                         className='hubtn'
@@ -1317,8 +1478,8 @@ class CornerstoneElement extends Component {
                                                         <Popup
                                                     trigger={
                                                         <Button
-                                                        inverted
-                                                        color='blue'
+                                                        // inverted
+                                                        // color='blue'
                                                         // onClick={this.toMedia}
                                                         className='hubtn'
                                                         >自定义</Button>
@@ -1353,6 +1514,8 @@ class CornerstoneElement extends Component {
                                                     id='defWindow'
                                                 />
                                                 </Grid.Column>
+                                                    
+                                                </Button.Group>
                                             </Grid.Row>
                                         </Grid>  
                                     </Grid.Column>
@@ -1360,32 +1523,51 @@ class CornerstoneElement extends Component {
                                     <Grid.Column className='funcolumn' width={4}>
                                         <Grid>
                                             <Grid.Row columns='equal'>
-                                                <Grid.Column> 
-                                                    <Button
-                                                        inverted
-                                                        color='blue'
-                                                        icon
-                                                        // style={{width:55,height:60,fontSize:14,fontSize:14}}
-                                                        onClick={this.ZoomIn}
-                                                        className='funcbtn'
-                                                        ><Icon name='search plus'></Icon></Button>
-                                                </Grid.Column>
-                                                <Grid.Column> 
-                                                    <Button
-                                                        inverted
-                                                        color='blue'
-                                                        icon
-                                                        // style={{width:55,height:60,fontSize:14}}
-                                                        onClick={this.ZoomOut}
-                                                        className='funcbtn'
-                                                        ><Icon name='search minus'></Icon></Button>
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    <Button inverted color='blue' icon onClick={this.reset} className='funcbtn'><Icon name='repeat'></Icon></Button>
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    <Button icon inverted color='blue' onClick={this.cache} className='funcbtn'><Icon id="cache-button" name='coffee'></Icon></Button>
-                                                </Grid.Column>
+                                                <Button.Group>
+                                                    <Grid.Column>
+                                                        <Button
+                                                            // inverted
+                                                            // color='blue'
+                                                            icon
+                                                            title='影像翻转'
+                                                            // style={{width:55,height:60,fontSize:14,fontSize:14}}
+                                                            onClick={this.imagesFilp}
+                                                            className='funcbtn'
+                                                            ><Icon name='retweet' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column> 
+                                                        <Button
+                                                            // inverted
+                                                            // color='blue'
+                                                            icon
+                                                            title='放大'
+                                                            // style={{width:55,height:60,fontSize:14,fontSize:14}}
+                                                            onClick={this.ZoomIn}
+                                                            className='funcbtn'
+                                                            ><Icon name='search plus' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column> 
+                                                        <Button
+                                                            // inverted
+                                                            // color='blue'
+                                                            icon
+                                                            title='缩小'
+                                                            // style={{width:55,height:60,fontSize:14}}
+                                                            onClick={this.ZoomOut}
+                                                            className='funcbtn'
+                                                            ><Icon name='search minus' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        <Button icon onClick={this.reset} className='funcbtn' title='刷新'><Icon name='repeat' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        <Button icon onClick={this.toHidebox} className='funcbtn' id='showNodule' title='显示结节'><Icon id="cache-button" name='eye' size='large'></Icon></Button>
+                                                        <Button icon onClick={this.toHidebox} className='funcbtn' id='hideNodule' title='隐藏结节'><Icon id="cache-button" name='eye slash' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                </Button.Group>
                                             </Grid.Row>
                                         </Grid>    
                                     </Grid.Column>
@@ -1483,7 +1665,7 @@ class CornerstoneElement extends Component {
                                             min="1"
                                             max={this.state.stack.imageIds.length}></input>
                                         <div id="button-container">
-                                            <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
+                                            {/* <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div> */}
                                             <p id="page-indicator">{this.state.currentIdx + 1}
                                                 / {this.state.imageIds.length}</p>
                                             <a
@@ -1954,6 +2136,17 @@ class CornerstoneElement extends Component {
         console.log("to pulmonary", viewport)
     }
 
+    imagesFilp(){
+        let viewport = cornerstone.getViewport(this.element)
+        if(viewport.invert === true){
+            viewport.invert = false;
+        } else {
+            viewport.invert = true;
+        }
+        cornerstone.setViewport(this.element, viewport)
+        this.setState({viewport})
+    }
+
     ZoomIn(){//放大
         let viewport = cornerstone.getViewport(this.element)
         // viewport.translation = {
@@ -2118,7 +2311,7 @@ class CornerstoneElement extends Component {
                 sessionStorage.setItem('location',window.location.pathname.split('/')[0]+
                 '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/')
                 // sessionStorage.setItem('location',NewDraftRes.data.nextPath)
-                window.location.href = '/login'
+                window.location.href = '/'
             }
         }).catch((error) => {
             console.log("ERRRRROR", error);
@@ -2223,13 +2416,13 @@ class CornerstoneElement extends Component {
         const viewport = cornerstone.getViewport(element)
         if (this.state.showNodules === true && this.state.caseId === window.location.pathname.split('/')[2]) {
             for (let i = 0; i < this.state.boxes.length; i++) {
-                if (this.state.boxes[i].slice_idx == this.state.currentIdx) 
+                if (this.state.boxes[i].slice_idx == this.state.currentIdx && this.state.immersive == false) 
                     this.drawBoxes(this.state.boxes[i])
             }
 
         }
 
-        if (this.state.clicked && this.state.clickedArea.box == -1) {
+        if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.immersive == false) {
             this.drawBoxes(this.state.tmpBox)
         }
 
@@ -2287,6 +2480,7 @@ class CornerstoneElement extends Component {
                     .wwwc
                     .activate(element, 2) // ww/wc is the default tool for middle mouse button
                 
+
                 if (!this.state.immersive) {
 
                     cornerstoneTools
@@ -2305,6 +2499,11 @@ class CornerstoneElement extends Component {
                     cornerstoneTools
                         .zoomTouchPinch
                         .activate(element)
+                }
+                else{
+                    cornerstoneTools
+                        .length
+                        .activate(element,1)
                 }
 
                 element.addEventListener("cornerstoneimagerendered", this.onImageRendered)
@@ -2346,7 +2545,7 @@ class CornerstoneElement extends Component {
 
     componentDidMount() {
         // this.getNoduleIfos()
-
+        // this.visualize()
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
 
         const token = localStorage.getItem('token')
@@ -2416,7 +2615,9 @@ class CornerstoneElement extends Component {
         }).catch((error) => {
             console.log(error)
         })
-
+        if(document.getElementById('hideNodule') != null){
+            document.getElementById('hideNodule').style.display='none'
+        }
     }
 
     componentWillUnmount() {

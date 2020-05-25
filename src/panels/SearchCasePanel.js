@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Pagination, Input, Grid, Checkbox, Button} from 'semantic-ui-react'
+import {Pagination, Input, Grid, Checkbox, Button, Icon, Header} from 'semantic-ui-react'
 import MainList from '../components/MainList'
 import '../css/dataPanel.css'
 import axios from 'axios';
@@ -9,7 +9,11 @@ import {withRouter} from 'react-router-dom'
 
 const config = require('../config.json')
 const recordConfig = config.record
-
+const cartConfig = config.cart
+const style = {
+    textAlign: 'center',
+    marginTop: '300px'
+  }
 export class SearchPanel extends Component {
 
 
@@ -31,6 +35,9 @@ export class SearchPanel extends Component {
 
         this.handleCheckbox = this
             .handleCheckbox
+            .bind(this)
+        this.startDownload = this  
+            .startDownload
             .bind(this)
     }
 
@@ -113,6 +120,26 @@ export class SearchPanel extends Component {
         this.setState({activePage})
     }
 
+    startDownload() {
+        console.log("Start downloading")
+        this.setState({loading: true})
+        const token = localStorage.getItem('token')
+        const headers = {
+            'Authorization': 'Bearer '.concat(token)
+        }
+        axios.get(cartConfig.downloadCart, { headers })
+        .then(res => {
+          const filename = res.data
+          console.log('Filename', filename)
+          window.location.href = 'http://data.deepln.deepx.machineilab.org/data/zip/' + filename
+          this.setState({loading: false})
+          // window.location.reload()
+        })
+        .catch(err => {
+          console.log(err)
+        })
+  
+      }
 
     render() {
 
@@ -124,76 +151,88 @@ export class SearchPanel extends Component {
             type = "date"
         }
 
-        return (
-            <div>
+        if (localStorage.getItem('token') == null) {
+            return(
+                <div style={style}>
+                    <Icon name='user secret' color='teal' size='huge'></Icon>
+                    <Header as='h1' color='teal'>请先登录</Header>
+                </div>
+            )
+        }
+        else{
+            return (
+                <div>
 
-            <Grid>
-                <Grid.Row className="banner">
+                <Grid>
+                    <Grid.Row className="banner">
+                            <Grid.Column width={2}></Grid.Column>
+                            <Grid.Column width={12}>
+                                <Statistics/>
+                            </Grid.Column>
+                            <Grid.Column width={2}></Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row className="data-content">
                         <Grid.Column width={2}></Grid.Column>
+
                         <Grid.Column width={12}>
-                            <Statistics/>
+
+                            <div id="container">
+                                <div className="searchBar">
+                                    <Input
+                                        name="pid"
+                                        value={this.state.pidKeyword}
+                                        onChange={this.handleInputChange}
+                                        id="patient-search"
+                                        icon='user'
+                                        iconPosition='left'
+                                        placeholder="病人ID"
+                                        disabled={this.state.checked}/>
+
+                                    <span id="type-slider"><Checkbox
+                                        slider
+                                        onChange={this.handleCheckbox}
+                                        defaultChecked={this.state.checked}/></span>
+
+                                    <Input
+                                        name="date"
+                                        value={this.state.dateKeyword}
+                                        onChange={this.handleInputChange}
+                                        id="date-search"
+                                        icon='calendar'
+                                        iconPosition='left'
+                                        placeholder="检查时间"
+                                        disabled={!this.state.checked}/>
+                                </div>
+
+                                <div className="patientList" style={{minHeight:500}}>
+                                    <MainList 
+                                        type={type}
+                                        currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
+                                        pidKeyword={this.state.pidKeyword}
+                                        dateKeyword={this.state.dateKeyword}/>
+                                        <div className='exportButton'>
+                                            <Button inverted color='blue' onClick={this.startDownload}>导出</Button>
+                                        </div>
+                                </div>
+                                
+                                <div className="pagination-component">
+                                    <Pagination
+                                        id="pagination"
+                                        onPageChange={this.handlePaginationChange}
+                                        activePage={this.state.activePage}
+                                        totalPages={this.state.totalPage}/>
+                                </div>
+                            </div>
+
                         </Grid.Column>
+
                         <Grid.Column width={2}></Grid.Column>
-                </Grid.Row>
-                <Grid.Row className="data-content">
-                    <Grid.Column width={2}></Grid.Column>
-
-                    <Grid.Column width={12}>
-
-                        <div id="container">
-                            <div className="searchBar">
-                                <Input
-                                    name="pid"
-                                    value={this.state.pidKeyword}
-                                    onChange={this.handleInputChange}
-                                    id="patient-search"
-                                    icon='user'
-                                    iconPosition='left'
-                                    placeholder="病人ID"
-                                    disabled={this.state.checked}/>
-
-                                <span id="type-slider"><Checkbox
-                                    slider
-                                    onChange={this.handleCheckbox}
-                                    defaultChecked={this.state.checked}/></span>
-
-                                <Input
-                                    name="date"
-                                    value={this.state.dateKeyword}
-                                    onChange={this.handleInputChange}
-                                    id="date-search"
-                                    icon='calendar'
-                                    iconPosition='left'
-                                    placeholder="检查时间"
-                                    disabled={!this.state.checked}/>
-                            </div>
-
-                            <div className="patientList" style={{minHeight:500}}>
-                                <MainList 
-                                    type={type}
-                                    currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
-                                    pidKeyword={this.state.pidKeyword}
-                                    dateKeyword={this.state.dateKeyword}/>
-                            </div>
-                            {/* <div className='exportButton'>
-                                <Button inverted color='blue' onClick={this.exportCaseId}>导出</Button>
-                            </div> */}
-                            <div className="pagination-component">
-                                <Pagination
-                                    id="pagination"
-                                    onPageChange={this.handlePaginationChange}
-                                    activePage={this.state.activePage}
-                                    totalPages={this.state.totalPage}/>
-                            </div>
-                        </div>
-
-                    </Grid.Column>
-
-                    <Grid.Column width={2}></Grid.Column>
-                </Grid.Row>
-            </Grid>
-            </div>
-        )
+                    </Grid.Row>
+                </Grid>
+                </div>
+            )
+        }
+        
     }
 }
 

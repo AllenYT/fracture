@@ -65,7 +65,7 @@ class LoginPanel extends Component {
                     window.location.href=sessionStorage.getItem('location')+'deepln'
                 }
                 else{
-                    window.location.href = '/'
+                    window.location.href = '/dataCockpit'
                 }
             }
         })

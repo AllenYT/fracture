@@ -93,7 +93,7 @@ class DownloadPanel extends Component {
       .then(res => {
         const filename = res.data
         console.log('Filename', filename)
-        window.location.href = 'http://192.168.104.136:8095/data/zip/' + filename
+        window.location.href = 'http://data.deepln.deepx.machineilab.org/data/zip/' + filename
         this.setState({loading: false})
         // window.location.reload()
       })

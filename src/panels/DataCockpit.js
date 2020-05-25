@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Form, Radio ,Grid, Image, Button, Icon} from 'semantic-ui-react'
+import { Form, Radio ,Grid, Image, Button, Icon, Header} from 'semantic-ui-react'
 import G2 from '@antv/g2'
 import {DataSet} from '@antv/data-set'
 import '../css/DataCockpit.css'
@@ -14,6 +14,11 @@ const _G = G2,
     Shape = _G.Shape;
 
 const btstyle='float:right;'
+
+const style = {
+  textAlign: 'center',
+  marginTop: '300px'
+}
 
 var ageTotalData = [{
   //总体年龄分布
@@ -1587,30 +1592,43 @@ const dv16 = new DataView();
       }
   }
     componentDidMount() {
-        this.visualize()
-        document.getElementById('ageTotal').style.display='none'
-        document.getElementById('diaTotal').style.display='none'
-        document.getElementById('diabt1').style.display='none'
-        document.getElementById('agebt1').style.display='none'
-        document.getElementById('glitchbt2').style.display='none'
-        document.getElementById('diaGlitchPie').style.display='none'
-        document.getElementById('diaSublobePie').style.display='none'
-        document.getElementById('sublobebt2').style.display='none'
-        document.getElementById('diaCalcifyPie').style.display='none'
-        document.getElementById('calcifybt2').style.display='none'
-        document.getElementById('diaGGOPie').style.display='none'
-        document.getElementById('ggobt2').style.display='none'
-        // document.getElementById('diaNonGlitchPie').style.display='none'
-        // document.getElementById('nonglitchbt2').style.display='none'
-        // document.getElementById('diaNonSublobePie').style.display='none'
-        // document.getElementById('nonsublobebt2').style.display='none'
-        // document.getElementById('diaNonCalcifyPie').style.display='none'
-        // document.getElementById('noncalcifybt2').style.display='none'
-        document.getElementById('diaNonGGOPie').style.display='none'
-        document.getElementById('nonggobt2').style.display='none'  
+      if (localStorage.getItem('token') != null) {
+          this.visualize()
+        
+          document.getElementById('ageTotal').style.display='none'
+          document.getElementById('diaTotal').style.display='none'
+          document.getElementById('diabt1').style.display='none'
+          document.getElementById('agebt1').style.display='none'
+          document.getElementById('glitchbt2').style.display='none'
+          document.getElementById('diaGlitchPie').style.display='none'
+          document.getElementById('diaSublobePie').style.display='none'
+          document.getElementById('sublobebt2').style.display='none'
+          document.getElementById('diaCalcifyPie').style.display='none'
+          document.getElementById('calcifybt2').style.display='none'
+          document.getElementById('diaGGOPie').style.display='none'
+          document.getElementById('ggobt2').style.display='none'
+          // document.getElementById('diaNonGlitchPie').style.display='none'
+          // document.getElementById('nonglitchbt2').style.display='none'
+          // document.getElementById('diaNonSublobePie').style.display='none'
+          // document.getElementById('nonsublobebt2').style.display='none'
+          // document.getElementById('diaNonCalcifyPie').style.display='none'
+          // document.getElementById('noncalcifybt2').style.display='none'
+          document.getElementById('diaNonGGOPie').style.display='none'
+          document.getElementById('nonggobt2').style.display='none'  
+        }
     }
     
     render() {
+      if (localStorage.getItem('token') == null) {
+        return (
+          // <div style={style}>
+          //     <Icon name='user secret' color='teal' size='huge'></Icon>
+          //     <Header as='h1' color='teal'>请先登录</Header>
+          // </div>
+          window.location.href = '/'
+        )
+      }
+      else{
         return (
             <div class='VisualCanvas'>
                 <div class='total'>
@@ -1750,6 +1768,8 @@ const dv16 = new DataView();
 
             </div>
         )
+      }
+        
     }
     typeChange(e,{value}){
       this.setState({ value:value })

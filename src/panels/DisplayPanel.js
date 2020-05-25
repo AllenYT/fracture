@@ -33,7 +33,8 @@ class DisplayPanel extends Component {
     }
     const draftParams = {
       caseId: this.state.caseId,
-      username: this.state.username
+      // username: this.state.username
+      username:'deepln'
     }
     const readonlyParams = {
       caseId: this.state.caseId,
