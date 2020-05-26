@@ -33,7 +33,7 @@ class MiniReport extends Component{
             const data = response.data
             console.log('report:',data,params)
             
-            this.setState({age:data.age,date:data.date,nodules:data.nodules,patientBirth:data.patientBirth,
+            this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
                 patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
         }).catch((error) => console.log(error))
     }
