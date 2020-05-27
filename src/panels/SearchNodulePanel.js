@@ -140,7 +140,8 @@ export class SearchNodulePanel extends Component {
             console.log('pages:',data)
             for (const idx in data){
                 let sequence={'病人ID':'','性别':'','年龄':'','结节体积(cm³)':0,'结节直径(cm)':0,'危险程度':'','分叶征':'',
-                '毛刺征':'','密度':'','钙化':'','胸膜凹陷征':'','空洞征':'','血管集束征':'','空泡征':'','支气管充气征':''}
+                '毛刺征':'','密度':'','钙化':'','胸膜凹陷征':'','空洞征':'','血管集束征':'','空泡征':'','支气管充气征':'',
+                'caseId':'','status':''}
                 
                 if(data[idx]['volume']===undefined){
                     console.log(data[idx])
@@ -160,9 +161,9 @@ export class SearchNodulePanel extends Component {
                 sequence['血管集束征']=data[idx]['vss']===undefined?'':data[idx]['vss']===2?'是':'否'
                 sequence['空泡征']=data[idx]['bea']===undefined?'':data[idx]['bea']===2?'是':'否'
                 sequence['支气管充气征']=data[idx]['bro']===undefined?'':data[idx]['cav']===2?'是':'否'
-                // sequence['caseId']=data[idx]['caseId']
-                // sequence['noduleNo']=data[idx]['noduleNo']
-                // sequence['status']=data[idx]['status']
+                sequence['caseId']=data[idx]['caseId']
+                sequence['noduleNo']=data[idx]['noduleNo']
+                sequence['status']=data[idx]['status']
                 lists.push(sequence)
             }
             console.log('lists1:',lists)
@@ -764,7 +765,7 @@ export class SearchNodulePanel extends Component {
                                                     <Button 
                                                         icon='right arrow'
                                                         className='ui green inverted button' 
-                                                        onClick={this.handleLinkClick.bind(this,caseId,noduleNo)}
+                                                        onClick={this.handleLinkClick.bind(this,content['caseId'],content['noduleNo'])}
                                                         size='mini'
                                                         // data-id={dataset}
                                                     ></Button>

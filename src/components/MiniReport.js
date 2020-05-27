@@ -188,7 +188,7 @@ class MiniReport extends Component{
                 </Grid.Row>
                 :
                 <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}>
-                    <Grid.Column width={7}>
+                    <Grid.Column width={9}>
 
                     </Grid.Column>
                     <Grid.Column width={4} textAlign='right'>
