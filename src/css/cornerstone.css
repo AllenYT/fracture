@@ -225,7 +225,7 @@ table#nodule-table {
   background:rgba(1, 23, 46, 0.774) !important;
   width: 200px !important;
   height: 40px !important;
-  
+  z-index: 1;
 }
 
 .accordation > .title{
@@ -303,11 +303,20 @@ option {
     /* overflow-y:clip; */
     overflow-y: visible;
 }
+#cornerstone-accordion-readonly{
+  background-color:rgba(1, 23, 46, 0.997) !important;
+    border-radius: 0.1rem !important;
+    border-color: white;
+    color: white;
+    max-height:100%; 
+    overflow-y: auto;
+}
 
 #cornerstone-accordion > div > .title {
   /* color: #66cfec; */
   color:whitesmoke;
   /* display: inline-block; */
+  /* max-height: 30px; */
 }
 
 /* td{
@@ -603,7 +612,7 @@ option {
     width: 60px !important;
     font-size: 0.05rem;
     height: 20px !important;
-    
+    z-index: 1;
   }
   
   .accordation > .title{
@@ -665,11 +674,19 @@ option {
      /* overflow-y:clip; */
     overflow-y: visible;
   }
-  
+  #cornerstone-accordion-readonly{
+    background-color:rgba(1, 23, 46, 0.997) !important;
+      border-radius: 0.1rem !important;
+      border-color: white;
+      color: white;
+      max-height:100%; 
+      overflow-y: auto;
+  }
   #cornerstone-accordion > div > .title {
     /* color: #66cfec; */
     color:whitesmoke;
     /* display: inline-block; */
+    /* max-height: 30px; */
   }
   
   /* td{
@@ -966,7 +983,7 @@ option {
     width: 60px !important;
     font-size: 0.05rem;
     height: 20px !important;
-    
+    z-index: 1;
   }
   
   .accordation > .title{
@@ -1028,11 +1045,19 @@ option {
      /* overflow-y:clip; */
     overflow-y: visible;
   }
-  
+  #cornerstone-accordion-readonly{
+    background-color:rgba(1, 23, 46, 0.997) !important;
+      border-radius: 0.1rem !important;
+      border-color: white;
+      color: white;
+      max-height:100%; 
+      overflow-y: auto;
+  }
   #cornerstone-accordion > div > .title {
     /* color: #66cfec; */
     color:whitesmoke;
     /* display: inline-block; */
+    /* max-height: 30px; */
   }
   
   /* td{
@@ -1317,7 +1342,7 @@ option {
       width: 60px !important;
       font-size: 0.05rem;
       height: 20px !important;
-      
+      z-index: 1;
     }
     
     .accordation > .title{
@@ -1379,11 +1404,20 @@ option {
         /* overflow-y:clip; */
     overflow-y: visible;
     }
+    #cornerstone-accordion-readonly{
+      background-color:rgba(1, 23, 46, 0.997) !important;
+        border-radius: 0.1rem !important;
+        border-color: white;
+        color: white;
+        max-height:100%; 
+        overflow-y: auto;
+    }
     
     #cornerstone-accordion > div > .title {
       /* color: #66cfec; */
       color:whitesmoke;
       /* display: inline-block; */
+      /* max-height: 30px; */
     }
     
     /* td{

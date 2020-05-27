@@ -1,5 +1,5 @@
 import React, {Component,createRef} from 'react'
-import {Button, Grid, Modal,Header, Divider, Table} from 'semantic-ui-react'
+import {Button, Grid, Modal,Header, Divider, Table,Dropdown} from 'semantic-ui-react'
 import axios from 'axios'
 import qs from 'qs'
 
@@ -10,7 +10,6 @@ class MiniReport extends Component{
     constructor(props){
         super(props)
         this.state={
-            type:props.type,
             caseId:props.caseId,
             username:props.username,
             patientName:'',
@@ -38,12 +37,20 @@ class MiniReport extends Component{
         }).catch((error) => console.log(error))
     }
 
-
     render(){
+        console.log('type',this.props.type)
         return(
-            <Grid>
-                <Grid.Row>
-                    <Grid.Column textAlign='right'>
+            <Grid divided='vertically'>
+                {
+                    this.props.type==='影像所见'?
+                <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}>
+                    <Grid.Column textAlign='left' width={6}>
+                        <div style={{fontSize:18}}>IM:  1mm</div>
+                    </Grid.Column>
+                    <Grid.Column width={4} textAlign='right'>
+                        <Dropdown style={{background:'none',fontSize:18}} text='结节排序'></Dropdown>
+                    </Grid.Column>
+                    <Grid.Column textAlign='center' width={3}>
                     <Modal trigger={<Button icon='expand arrows alternate' content='放大' className='inverted blue button'></Button>}>
                         <Modal.Header>影像诊断报告</Modal.Header>
                         <Modal.Content image scrolling>
@@ -175,10 +182,25 @@ class MiniReport extends Component{
                         </Modal.Content>
                     </Modal>
                     </Grid.Column>
-
+                    <Grid.Column textAlign='left' width={3}>
+                        <Button content='复制' className='inverted blue button'></Button>
+                    </Grid.Column>
                 </Grid.Row>
+                :
+                <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}>
+                    <Grid.Column width={9}>
+
+                    </Grid.Column>
+                    <Grid.Column width={4} textAlign='right'>
+                        <Dropdown style={{background:'none',fontSize:18}} text='Fleischner'></Dropdown>
+                    </Grid.Column>
+                    <Grid.Column textAlign='center' width={3}>
+                        <Button content='复制' className='inverted blue button'></Button>
+                    </Grid.Column>
+                </Grid.Row>
+                }
                 <Divider></Divider>
-                <Grid.Row>
+                <Grid.Row >
                     
                     <Grid.Column>
                     <div style={{fontSize:'large'}}>

@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import {Table, Button} from 'semantic-ui-react'
+import {Table, Button,Pagination} from 'semantic-ui-react'
 import '../css/myAnnosTable.css'
 import axios from 'axios'
 import qs from 'qs'
@@ -13,11 +13,14 @@ export class MyAnnosTable extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            content: []
+            content: [],
+            activePage:1,
+            totalPage:1
         }
         this.getAnnos = this.getAnnos.bind(this)
         this.timestampToDate = this.timestampToDate.bind(this)
         this.handleLinkClick = this.handleLinkClick.bind(this)
+        this.handlePaginationChange=this.handlePaginationChange.bind(this)
     }
 
     getAnnos() {
@@ -32,7 +35,7 @@ export class MyAnnosTable extends Component {
         .then(res => {
             if (res.data.status === 'okay') {
                 const content = res.data.allDrafts
-                this.setState({content: content})
+                this.setState({content: content,totalPage:parseInt(content.length/10)+1,activePage:1})
             }
         })
         .catch(err => {
@@ -73,13 +76,24 @@ export class MyAnnosTable extends Component {
         const ret = year + '年' + month + '月' + day + '日 ' + hour + ':' + minute + ':' + second
         return ret
     }
-
+    handlePaginationChange(e, {activePage}) {
+        this.setState({activePage})
+    }
 
 
     render() {
-        const content = this.state.content
+        let content=[]
+        let start=(this.state.activePage-1)*10
+        for(let i=0;i<10;i++){
+            if(start+i===this.state.content.length){
+                break
+            }
+            content.push(this.state.content[start+i])
+        }
+        
         return (
             <div id="annos-table">
+                <div style={{minHeight:700}}>
                 <Table celled inverted fixed>
                 <Table.Header>
                 <Table.Row>
@@ -110,7 +124,17 @@ export class MyAnnosTable extends Component {
 
                 </Table.Body>
             </Table>
+                </div>
+                
+                <div className="pagination-component">
+                <Pagination
+                    id="pagination"
+                    onPageChange={this.handlePaginationChange}
+                    activePage={this.state.activePage}
+                    totalPages={this.state.totalPage}/>
+                </div>
             </div>
+            
         )
     }
 }

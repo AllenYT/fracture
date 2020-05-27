@@ -555,7 +555,7 @@ class CornerstoneElement extends Component {
         const panes = [
             { menuItem: '影像所见', render: () => 
                 <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username}/></Tab.Pane> },
-            // { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议'/></Tab.Pane> },
+            { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议'/></Tab.Pane> },
           ]
         // sessionStorage.clear()
         // console.log('boxes', this.state.boxes)
@@ -749,7 +749,6 @@ class CornerstoneElement extends Component {
                     .boxes
                     .map((inside, idx) => {
                         // console.log('inside',inside)
-                        let classNamee = ""
                         let representArray=[]
                         let dropdownText=''
                         const delId = 'del-' + inside.nodule_no
@@ -785,7 +784,7 @@ class CornerstoneElement extends Component {
                         
                         return (
                             <div key={idx}>
-                                <Accordion.Title  className={classNamee} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
+                                <Accordion.Title onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
                                 active={listsActiveIndex===idx} index={idx}>
                                 <div style={{display:'inline-block',width:5}}>
                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
@@ -985,9 +984,12 @@ class CornerstoneElement extends Component {
                                     </select>
                                     } 
                                 </div>
-                                <div style={{display:'inline-block',marginLeft:50}}>
-                                    {this.state.readonly? null:<Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>}
-                                </div>
+                                {
+                                    this.state.readonly?null:
+                                    <div style={{display:'inline-block',marginLeft:50}}>
+                                        <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
+                                    </div>
+                                }
                                 </Accordion.Title>
                                 <Accordion.Content active={listsActiveIndex===idx}>
                                     <div style={{width:'100%'}}>
@@ -1206,6 +1208,7 @@ class CornerstoneElement extends Component {
                         
                         {/* <div className='corner-contnt'> */}
                             <Grid celled className='corner-contnt'>
+                                <Grid.Row columns={3}>
                                 <Grid.Column width={2}>
 
                                 </Grid.Column>
@@ -1258,8 +1261,8 @@ class CornerstoneElement extends Component {
                                                 .split('/')[3]}{StartReviewButton}</h3> */}
                                     <div id='listTitle'>
                                             <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
-                                            <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div>
-                                            <div style={{display:'inline-block',marginLeft:'40px',marginTop:'5px'}}>
+                                            {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
+                                            <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px'}}>
                                                 <Button
                                                     inverted
                                                     color='blue'
@@ -1302,6 +1305,8 @@ class CornerstoneElement extends Component {
                                             panes={panes} />
                                     </div>
                                 </Grid.Column>
+                                </Grid.Row>
+                                
                             </Grid>
                         {/* </div> */}
                     </div>
@@ -1542,8 +1547,8 @@ class CornerstoneElement extends Component {
                                     <Grid.Column width={6}> 
                                         <div id='listTitle'>
                                             <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
-                                            <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div>
-                                            <div style={{display:'inline-block',marginLeft:'40px',marginTop:'5px'}}>
+                                            {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
+                                            <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px'}}>
                                                 <Button
                                                     inverted
                                                     color='blue'
@@ -2428,6 +2433,7 @@ class CornerstoneElement extends Component {
                     modelStr += '<a href="/case/' + this.state.caseId + '/' + modelList[i] + '"><div class="ui blue label">'
                     modelStr += modelList[i]
                     modelStr += '</div></a>'
+                    modelStr += '</br></br>'
                 }
                 this.setState({modelResults: modelStr})
                 // console.log('模型结果',modelStr)
@@ -2438,6 +2444,7 @@ class CornerstoneElement extends Component {
                     annoStr += '<a href="/case/' + this.state.caseId + '/' + annoList[i] + '"><div class="ui label">'
                     annoStr += annoList[i]
                     annoStr += '</div></a>'
+                    annoStr += '</br></br>'
                 }
                 this.setState({annoResults: annoStr})
             }
@@ -2447,6 +2454,7 @@ class CornerstoneElement extends Component {
                     reviewStr += '<a href="/review/' + this.state.caseId + '/' + reviewList[i] + '"><div class="ui teal label">'
                     reviewStr += reviewList[i]
                     reviewStr += '</div></a>'
+                    reviewStr += '</br></br>'
                 }
                 this.setState({reviewResults: reviewStr})
             }
