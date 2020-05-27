@@ -80,7 +80,9 @@ export class SearchNodulePanel extends Component {
             this.getTotalPages()
         }
         if(prevState.malignancy !== this.state.malignancy || prevState.calcification !== this.state.calcification ||prevState.spiculation != this.state.spiculation
-            ||prevState.lobulation !== this.state.lobulation||prevState.texture !== this.state.texture){
+            ||prevState.lobulation !== this.state.lobulation||prevState.texture !== this.state.texture||prevState.pin !== this.state.pin
+            ||prevState.cav !== this.state.cav||prevState.vss !== this.state.vss||prevState.bea !== this.state.bea
+            ||prevState.bro !== this.state.bro){
                 this.getTotalPages()
         }
         if(prevState.activePage!==this.state.activePage){
@@ -244,34 +246,34 @@ export class SearchNodulePanel extends Component {
                 this.setState({texture:-1,activePage:'1'}) ;break
             case '胸膜凹陷':
                 nums['胸膜凹陷征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({pin:-1,activePage:'1'}) ;break
             case '非胸膜凹陷':
                 nums['胸膜凹陷征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({pin:-1,activePage:'1'}) ;break
             case '空洞':
                 nums['空洞征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({cav:-1,activePage:'1'}) ;break
             case '非空洞':
                 nums['空洞征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({cav:-1,activePage:'1'}) ;break
             case '血管集束':
                 nums['血管集束征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({vss:-1,activePage:'1'}) ;break
             case '非血管集束':
                 nums['血管集束征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({vss:-1,activePage:'1'}) ;break
             case '空泡':
                 nums['空泡征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({bea:-1,activePage:'1'}) ;break
             case '非空泡':
                 nums['空泡征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({bea:-1,activePage:'1'}) ;break
             case '支气管充气':
                 nums['支气管充气征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({bro:-1,activePage:'1'}) ;break
             case '非支气管充气':
                 nums['支气管充气征']=null
-                this.setState({texture:-1,activePage:'1'}) ;break
+                this.setState({bro:-1,activePage:'1'}) ;break
             case '<=0.3cm':
                 nums['<=0.3cm']=null
                 this.setState((state, props) => ({
@@ -410,7 +412,7 @@ export class SearchNodulePanel extends Component {
             nums['钙化']=text
         }
         else if(text==='实性'||text==='半实性'||text==='磨玻璃'){
-            nums['实性']=text
+            nums['密度']=text
         }
         else if(text==='胸膜凹陷'||text==='非胸膜凹陷'){
             nums['胸膜凹陷征']=text
