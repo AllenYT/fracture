@@ -216,62 +216,6 @@ class MiniReport extends Component{
                         左肺上叶上舌段有一0.38cm的实性结节，有钙化成分
                         </p>
                     </div>
-                    <Dropdown text='hhhhh'>
-                                            <Dropdown.Menu>
-                                                <Dropdown.Header>肺叶</Dropdown.Header>
-                                                <Dropdown.Item>
-                                                <Dropdown text='右肺中叶'>
-                                                    <Dropdown.Menu>
-                                                        <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
-                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
-                                                        <Dropdown.Item >无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item>
-                                                <Dropdown text='右肺中叶'>
-                                                    <Dropdown.Menu>
-                                                        <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
-                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
-                                                        <Dropdown.Item >无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item>
-                                                <Dropdown text='右肺中叶'>
-                                                    <Dropdown.Menu>
-                                                        <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
-                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
-                                                        <Dropdown.Item >无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item>
-                                                <Dropdown text='右肺中叶'>
-                                                    <Dropdown.Menu>
-                                                        <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
-                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
-                                                        <Dropdown.Item >无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item>
-                                                <Dropdown text='右肺中叶'>
-                                                    <Dropdown.Menu>
-                                                        <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
-                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
-                                                        <Dropdown.Item >无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Dropdown.Item>
-                                               
-                                            </Dropdown.Menu>
-                                        </Dropdown>
                                         
                     </Grid.Column>
                 </Grid.Row>
