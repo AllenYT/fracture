@@ -1,5 +1,5 @@
 import React, {Component,createRef} from 'react'
-import {Button, Grid, Modal,Header, Divider, Table,Dropdown} from 'semantic-ui-react'
+import {Button, Grid, Modal,Header, Divider, Table,Dropdown, Image} from 'semantic-ui-react'
 import axios from 'axios'
 import qs from 'qs'
 
@@ -39,18 +39,19 @@ class MiniReport extends Component{
 
     render(){
         console.log('type',this.props.type)
+        console.log('image',this.props.images[0])
         return(
             <Grid divided='vertically'>
                 {
                     this.props.type==='影像所见'?
-                <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}>
-                    <Grid.Column textAlign='left' width={6}>
+                <Grid.Row verticalAlign='middle' columns={4} style={{height:40}}>
+                    <Grid.Column textAlign='left' width={5}>
                         <div style={{fontSize:18}}>IM:  1mm</div>
                     </Grid.Column>
                     <Grid.Column width={4} textAlign='right'>
                         <Dropdown style={{background:'none',fontSize:18}} text='结节排序'></Dropdown>
                     </Grid.Column>
-                    <Grid.Column textAlign='center' width={3}>
+                    <Grid.Column textAlign='center' width={4}>
                     <Modal trigger={<Button icon='expand arrows alternate' content='放大' className='inverted blue button'></Button>}>
                         <Modal.Header>影像诊断报告</Modal.Header>
                         <Modal.Content image scrolling>
@@ -168,6 +169,10 @@ class MiniReport extends Component{
                                                             <Table.Cell>HU (Min / Avg /Max)</Table.Cell>
                                                             <Table.Cell>{nodule['huMin']===undefined?null:nodule['huMin']+' / '+nodule['huMean']+' / '+nodule['huMax']}</Table.Cell>
                                                         </Table.Row>
+                                                        <Table.Row>
+                                                            <Table.Cell>Image Capture</Table.Cell>
+                                                            <Table.Cell><Image src={this.props.images[0]}></Image></Table.Cell>
+                                                        </Table.Row>
                                                     </Table.Body>
                                                 </Table>
                                             </div>
@@ -205,9 +210,69 @@ class MiniReport extends Component{
                     <Grid.Column>
                     <div style={{fontSize:'large'}}>
                         <p>
-                            右肺可见磨玻璃，病变累及右肺中叶
+                        右肺下叶有一0.39cm的实性结节，有钙化成分，风险较低
+                        </p>
+                        <p>
+                        左肺上叶上舌段有一0.38cm的实性结节，有钙化成分
                         </p>
                     </div>
+                    <Dropdown text='hhhhh'>
+                                            <Dropdown.Menu>
+                                                <Dropdown.Header>肺叶</Dropdown.Header>
+                                                <Dropdown.Item>
+                                                <Dropdown text='右肺中叶'>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
+                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
+                                                        <Dropdown.Item >无法定位</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Dropdown.Item>
+                                                <Dropdown.Item>
+                                                <Dropdown text='右肺中叶'>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
+                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
+                                                        <Dropdown.Item >无法定位</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Dropdown.Item>
+                                                <Dropdown.Item>
+                                                <Dropdown text='右肺中叶'>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
+                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
+                                                        <Dropdown.Item >无法定位</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Dropdown.Item>
+                                                <Dropdown.Item>
+                                                <Dropdown text='右肺中叶'>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
+                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
+                                                        <Dropdown.Item >无法定位</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Dropdown.Item>
+                                                <Dropdown.Item>
+                                                <Dropdown text='右肺中叶'>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Header>肺段</Dropdown.Header>
+                                                        <Dropdown.Item  >外侧段</Dropdown.Item>
+                                                        <Dropdown.Item  >内侧段</Dropdown.Item>
+                                                        <Dropdown.Item >无法定位</Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Dropdown.Item>
+                                               
+                                            </Dropdown.Menu>
+                                        </Dropdown>
+                                        
                     </Grid.Column>
                 </Grid.Row>
             </Grid>
