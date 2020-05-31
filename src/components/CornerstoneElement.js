@@ -711,7 +711,7 @@ class CornerstoneElement extends Component {
     render() {
         const panes = [
             { menuItem: '影像所见', render: () => 
-                <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username}/></Tab.Pane> },
+                <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} imageIds={this.state.imageIds} /></Tab.Pane> },
             // { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议'/></Tab.Pane> },
           ]
         // sessionStorage.clear()
@@ -2553,7 +2553,7 @@ class CornerstoneElement extends Component {
                 }
                 else{
                     cornerstoneTools
-                        .length
+                        .ellipticalRoi
                         .activate(element,1)
                 }
 

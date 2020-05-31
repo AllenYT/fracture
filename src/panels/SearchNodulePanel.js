@@ -186,11 +186,15 @@ export class SearchNodulePanel extends Component {
         
         // console.log('pages:',data)
         for (const idx in data){
-            let sequence={'volume':0,'diameter':0,'malignancy':'','lobulation':'','spiculation':'','texture':'','calcification':'','caseId':'','noduleNo':'','status':0}
+            let sequence={'patienId':'','patientSex':'','patientBirth':'','volume':0,'diameter':0,'malignancy':'','lobulation':'',
+                'spiculation':'','texture':'','calcification':'','caseId':'','noduleNo':'','status':0}
             // console()
             if(data[idx]['volume']===undefined){
                 console.log(data[idx])
             }
+            sequence['patienId']=data[idx]['patienId']
+            sequence['patientSex']=data[idx]['patientSex']==='M'?'男':'女';
+            sequence['patientBirth']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
             sequence['volume']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
             sequence['diameter']=Math.floor(data[idx]['diameter'] * 100) / 100
             sequence['malignancy']=data[idx]['malignancy']==2?'高危 ':'低危'
@@ -207,7 +211,7 @@ export class SearchNodulePanel extends Component {
         // console.log('lists1:',datalists)
         var arr = []
         var value=[]
-        arr[0] =  ["结节体积(cm³)", "结节直径(cm)", "危险程度", "分叶", "毛刺", "实性", "钙化"]
+        arr[0] =  ["病人ID","性别","年龄","结节体积(cm³)", "结节直径(cm)", "危险程度", "分叶", "毛刺", "实性", "钙化"]
         for(var i =0;i<datalists.length;i++){
             value = []
             for(var key in datalists[i]){
@@ -694,11 +698,16 @@ export class SearchNodulePanel extends Component {
                         </Grid.Column>
                         <Grid.Column width={2}></Grid.Column>
                     </Grid.Row>
+                    <Header as='h3' color='grey' style={{marginLeft:12+'%'}}>
+                        <Icon name='list' />
+                        <Header.Content>列表下载</Header.Content>
+                    </Header>
+                    <Button inverted color='blue' onClick={this.savetoExcel} id='excelBtn' icon><Icon name='download' size='small'/></Button>   
                     <Grid.Row className="conlabel">
                         <Grid.Column width={2}>
                             <Header as='h3' inverted >结节数目:{this.state.totalResults}</Header>
                         </Grid.Column>
-                        
+                     
                     </Grid.Row>
                     <Grid.Row >
                         <Grid.Column width={2}></Grid.Column>
@@ -772,81 +781,7 @@ export class SearchNodulePanel extends Component {
                             </Grid.Column>
                             <Grid.Column width={2}></Grid.Column>
                         </Grid.Row>
-                        <Header as='h3' color='grey' style={{marginLeft:12+'%'}}>
-                            <Icon name='list' />
-                            <Header.Content>列表下载</Header.Content>
-                        </Header>
-                        <Button inverted color='blue' onClick={this.savetoExcel} id='excelBtn' icon><Icon name='download' size='small'/></Button>
-                        <Grid.Row >
-                            <Grid.Column width={2}></Grid.Column>
-                            <Grid.Column width={12} id="container">
-                                <div style={{minHeight:590}}>
-                                <Table celled inverted textAlign='center' fixed id="table">
-                                    <Table.Header id='table-header'>
-                                        <Table.Row>
-                                            <Table.HeaderCell>结节体积(cm³)</Table.HeaderCell>
-                                            <Table.HeaderCell>结节直径(cm)</Table.HeaderCell>
-                                            
-                                            <Table.HeaderCell>危险程度</Table.HeaderCell>
-                                            <Table.HeaderCell>分叶</Table.HeaderCell>
-                                            <Table.HeaderCell>毛刺</Table.HeaderCell>
-                                            <Table.HeaderCell>实性</Table.HeaderCell>
-                                            {/* <Table.HeaderCell>caseId</Table.HeaderCell> */}
-                                            <Table.HeaderCell>钙化</Table.HeaderCell>
-                                            <Table.HeaderCell>查看详情</Table.HeaderCell>
-                                        </Table.Row>
-                                    </Table.Header>
-                                    <Table.Body>
-                                        {lists.map((content, index) => {
-                                            let caseId
-                                            let noduleNo
-                                            // console.log('content:',content)
-                                            return (
-                                                <Table.Row key={index}>
-                                                    {Object.entries(content).map((key,value)=>{
-                                                        // console.log('key:',key[0])
-                                                        if(key[0]==='caseId'){
-                                                            caseId=key[1]
-                                                        }
-                                                        else if(key[0]==='noduleNo'){
-                                                            noduleNo=key[1]
-                                                        }
-                                                        else if(key[0]==='status'){
-
-                                                        }
-                                                        else{
-                                                            return(
-                                                                <Table.Cell key={value}>{key[1]}</Table.Cell>
-                                                            )
-                                                        }
-                                                    })}
-                                                    <Table.Cell>
-                                                        <Button 
-                                                            icon='right arrow'
-                                                            className='ui green inverted button' 
-                                                            onClick={this.handleLinkClick.bind(this,caseId,noduleNo)}
-                                                            size='mini'
-                                                            // data-id={dataset}
-                                                        ></Button>
-                                                    </Table.Cell>
-                                                </Table.Row>
-                                            )
-                                        })}
-                                        
-                                    </Table.Body>
-                                </Table>
-                                </div>
-                                <div className="pagination-component">
-                                    <Pagination
-                                        id="pagination"
-                                        onPageChange={this.handlePaginationChange}
-                                        activePage={this.state.activePage}
-                                        totalPages={this.state.totalPage}/>
-                                </div>
-                                </Grid.Column>
-                                
-                            <Grid.Column width={2}></Grid.Column>
-                        </Grid.Row> 
+                       
                     </Grid>
                     
             </div>
@@ -855,6 +790,6 @@ export class SearchNodulePanel extends Component {
         }
         
     }
-}
+// }
 
 export default SearchNodulePanel
