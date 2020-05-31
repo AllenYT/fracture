@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import { Form, Radio ,Grid, Image, Button, Icon} from 'semantic-ui-react'
+import { Form, Radio ,Grid, Image, Button, Icon, Header} from 'semantic-ui-react'
 import G2 from '@antv/g2'
 import {DataSet} from '@antv/data-set'
 import '../css/DataCockpit.css'
@@ -14,6 +14,11 @@ const _G = G2,
     Shape = _G.Shape;
 
 const btstyle='float:right;'
+
+const style = {
+  textAlign: 'center',
+  marginTop: '300px'
+}
 
 var ageTotalData = [{
   //总体年龄分布
@@ -426,9 +431,9 @@ class DataCockpit extends Component {
           showTitle: false,
           itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
         });
-        // ['#188B8E','#002687', '#BB7329','#3C1E74', '#061846']
+        // ['#188B8E','#002687', '#BB7329','#3C1E74', '#061846']/['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3']
         // diaTotal2chart.legend(false)
-        diaTotal2chart.intervalStack().position('value').color('type', ['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e']).opacity(1).label('value', function(val) {
+        diaTotal2chart.intervalStack().position('value').color('type', ['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3']).opacity(1).label('value', function(val) {
           return {
             formatter: (text, item) => {
               const point = item.point; // 每个弧度对应的点
@@ -517,8 +522,8 @@ class DataCockpit extends Component {
         diaTotal2chart.tooltip({
           showTitle: false
         });
-        // diaTotal2chart.legend(false)
-        diaTotal2chart.intervalStack().position('value').color('type', ['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e']).opacity(1).label('value', function(val) {
+        // diaTotal2chart.legend(false) ['#ff9a25','#29e7f9','#25bbf9','#637bfc','#b029ff']
+        diaTotal2chart.intervalStack().position('value').color('type', ['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3']).opacity(1).label('value', function(val) {
           return {
             formatter: (text, item) => {
               const point = item.point; // 每个弧度对应的点
@@ -566,7 +571,7 @@ class DataCockpit extends Component {
           showTitle: false,
           itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
         });
-        benmaliChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
+        benmaliChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
           offset: -40,
           autoRotate: false,
           textStyle: {
@@ -667,7 +672,7 @@ class DataCockpit extends Component {
     });
     diaSublobePie.intervalStack()
       .position('value')
-      .color('diameter',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
+      .color('diameter',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
@@ -764,7 +769,7 @@ class DataCockpit extends Component {
     //['#188B8E','#002687', '#E08031','#3C1E74', '#061846']
     diaGlitchPie.intervalStack()
       .position('value')
-      .color('diameter',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
+      .color('diameter',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
@@ -859,7 +864,7 @@ class DataCockpit extends Component {
     });
     diaCalcifyPie.intervalStack()
       .position('value')
-      .color('diameter',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
+      .color('diameter',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
       .label('percent', {
         formatter: (val, item) => {
           const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
@@ -954,7 +959,7 @@ dv15.source(dv11).transform({
   });
   diaGGOPie.intervalStack()
     .position('value')
-    .color('diameter',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
+    .color('diameter',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
     .label('percent', {
       formatter: (val, item) => {
         const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
@@ -974,274 +979,274 @@ dv15.source(dv11).transform({
   diaGGOPie.render();
 
     //形态学非分叶直径分布
-    document.getElementById('diaNonSublobe').innerHTML=''
-    const nonLubD = this.state.nonLobulationDiameterDist
-    const diaNonSublobeData1 = JSON.parse(nonLubD)
-    const diaNonSublobechart = new G2.Chart({
-      container: 'diaNonSublobe',
-      forceFit: true,
-      height: 250,
-      // width:100,
-      padding: [30,30,'auto',30]
-    });
-    diaNonSublobechart.source(diaNonSublobeData1);
-    diaNonSublobechart.scale('value', {
-      alias: '结节数'
-    });
-    diaNonSublobechart.axis('type', {
-      label: {
-        textStyle: {
-          fill: '#aaaaaa'
-        }
-      },
-      tickLine: {
-        alignWithLabel: false,
-        length: 0
-      }
-    });
-    diaNonSublobechart.tooltip({
-      share: true
-    });
-    diaNonSublobechart.interval().position('type*value').opacity(1).label('value',{
-      textStyle:{
-        fontSize:14,
-        fill:'#aaa'
-      }
-    }).color(['#00B4D8']).size(30);
-    diaNonSublobechart.render();
+//     document.getElementById('diaNonSublobe').innerHTML=''
+//     const nonLubD = this.state.nonLobulationDiameterDist
+//     const diaNonSublobeData1 = JSON.parse(nonLubD)
+//     const diaNonSublobechart = new G2.Chart({
+//       container: 'diaNonSublobe',
+//       forceFit: true,
+//       height: 250,
+//       // width:100,
+//       padding: [30,30,'auto',30]
+//     });
+//     diaNonSublobechart.source(diaNonSublobeData1);
+//     diaNonSublobechart.scale('value', {
+//       alias: '结节数'
+//     });
+//     diaNonSublobechart.axis('type', {
+//       label: {
+//         textStyle: {
+//           fill: '#aaaaaa'
+//         }
+//       },
+//       tickLine: {
+//         alignWithLabel: false,
+//         length: 0
+//       }
+//     });
+//     diaNonSublobechart.tooltip({
+//       share: true
+//     });
+//     diaNonSublobechart.interval().position('type*value').opacity(1).label('value',{
+//       textStyle:{
+//         fontSize:14,
+//         fill:'#aaa'
+//       }
+//     }).color(['#00B4D8']).size(30);
+//     diaNonSublobechart.render();
 
-//形态学非分叶直径分布饼图
-document.getElementById('diaNonSublobePie').innerHTML=''
-const dv19 = new DataView();
-  dv19.source(diaNonSublobeData1).transform({
-      type: 'percent',
-      field: 'value',
-      dimension: 'type',
-      as: 'percent'
-    });
-    const diaNonSublobePie = new G2.Chart({
-      container: 'diaNonSublobePie',
-      forceFit: false,
-      height: 250,
-      width: 400,
-      padding:[45,30,45,30],
-      animate: false
-    });
-    diaNonSublobePie.source(dv19, {
-      percent: {
-        formatter: val => {
-          val = (val * 100).toFixed(2) + '%';
-          return val;
-        }
-      }
-    });
-    diaNonSublobePie.coord('theta', {
-      radius:1,
-      innerRadius: 0.7
-    });
-    diaNonSublobePie.tooltip({
-      showTitle: false,
-      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
-    });
-    diaNonSublobePie.intervalStack()
-      .position('value')
-      .color('type',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
-      .label('percent', {
-        formatter: (val, item) => {
-          const showTitle = item.point.value == 0 ?   null:item.point.type + ': ' + val 
-          return showTitle
-        },
-        textStyle: {
-          fill: '#fff'
-        }
-      })
-      .tooltip('type*value', (item, value) => {
-        return {
-          name: item,
-          value: value
-        };
-      });
-    diaNonSublobePie.render();
+// //形态学非分叶直径分布饼图
+// document.getElementById('diaNonSublobePie').innerHTML=''
+// const dv19 = new DataView();
+//   dv19.source(diaNonSublobeData1).transform({
+//       type: 'percent',
+//       field: 'value',
+//       dimension: 'type',
+//       as: 'percent'
+//     });
+//     const diaNonSublobePie = new G2.Chart({
+//       container: 'diaNonSublobePie',
+//       forceFit: false,
+//       height: 250,
+//       width: 400,
+//       padding:[45,30,45,30],
+//       animate: false
+//     });
+//     diaNonSublobePie.source(dv19, {
+//       percent: {
+//         formatter: val => {
+//           val = (val * 100).toFixed(2) + '%';
+//           return val;
+//         }
+//       }
+//     });
+//     diaNonSublobePie.coord('theta', {
+//       radius:1,
+//       innerRadius: 0.7
+//     });
+//     diaNonSublobePie.tooltip({
+//       showTitle: false,
+//       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+//     });
+//     diaNonSublobePie.intervalStack()
+//       .position('value')
+//       .color('type',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
+//       .label('percent', {
+//         formatter: (val, item) => {
+//           const showTitle = item.point.value == 0 ?   null:item.point.type + ': ' + val 
+//           return showTitle
+//         },
+//         textStyle: {
+//           fill: '#fff'
+//         }
+//       })
+//       .tooltip('type*value', (item, value) => {
+//         return {
+//           name: item,
+//           value: value
+//         };
+//       });
+//     diaNonSublobePie.render();
 
-  //形态学非毛刺直径分布
-  document.getElementById('diaNonGlitch').innerHTML=''
-  const nonSpiD = this.state.nonSpiculationDiameterDist
-  const diaNonGlitchData1 = JSON.parse(nonSpiD)
-  const diaNonGlitchchart = new G2.Chart({
-    container: 'diaNonGlitch',
-    forceFit: true,
-    height: 250,
-    // width:100,
-    padding: [30,30,'auto',30]
-  });
-  diaNonGlitchchart.source(diaNonGlitchData1);
-  diaNonGlitchchart.scale('value', {
-    alias: '结节数'
-  });
-  diaNonGlitchchart.axis('type', {
-    label: {
-      textStyle: {
-        fill: '#aaaaaa'
-      }
-    },
-    tickLine: {
-      alignWithLabel: false,
-      length: 0
-    }
-  });
-  diaNonGlitchchart.tooltip({
-    share: true
-  });
-  diaNonGlitchchart.interval().position('type*value').opacity(1).label('value',{
-    textStyle:{
-      fontSize:14,
-      fill:'#aaa'
-    }
-  }).color(['#00B4D8']).size(30);
-  diaNonGlitchchart.render();
+//   //形态学非毛刺直径分布
+//   document.getElementById('diaNonGlitch').innerHTML=''
+//   const nonSpiD = this.state.nonSpiculationDiameterDist
+//   const diaNonGlitchData1 = JSON.parse(nonSpiD)
+//   const diaNonGlitchchart = new G2.Chart({
+//     container: 'diaNonGlitch',
+//     forceFit: true,
+//     height: 250,
+//     // width:100,
+//     padding: [30,30,'auto',30]
+//   });
+//   diaNonGlitchchart.source(diaNonGlitchData1);
+//   diaNonGlitchchart.scale('value', {
+//     alias: '结节数'
+//   });
+//   diaNonGlitchchart.axis('type', {
+//     label: {
+//       textStyle: {
+//         fill: '#aaaaaa'
+//       }
+//     },
+//     tickLine: {
+//       alignWithLabel: false,
+//       length: 0
+//     }
+//   });
+//   diaNonGlitchchart.tooltip({
+//     share: true
+//   });
+//   diaNonGlitchchart.interval().position('type*value').opacity(1).label('value',{
+//     textStyle:{
+//       fontSize:14,
+//       fill:'#aaa'
+//     }
+//   }).color(['#00B4D8']).size(30);
+//   diaNonGlitchchart.render();
 
-//形态学非毛刺直径分布饼图
-document.getElementById('diaNonGlitchPie').innerHTML=''
-const dv18 = new DataView();
-  dv18.source(diaNonGlitchData1).transform({
-      type: 'percent',
-      field: 'value',
-      dimension: 'type',
-      as: 'percent'
-    });
-    const diaNonGlitchPie = new G2.Chart({
-      container: 'diaNonGlitchPie',
-      forceFit: false,
-      height: 250,
-      width:400,
-      padding:[45,30,45,30],
-      animate: false
-    });
-    diaNonGlitchPie.source(dv18, {
-      percent: {
-        formatter: val => {
-          val = (val * 100).toFixed(2) + '%';
-          return val;
-        }
-      }
-    });
-    diaNonGlitchPie.coord('theta', {
-      radius:1,
-      innerRadius: 0.7
-    });
-    diaNonGlitchPie.tooltip({
-      showTitle: false,
-      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
-    });
-    diaNonGlitchPie.intervalStack()
-      .position('value')
-      .color('type',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
-      .label('percent',{
-          formatter: (val, item) => {
-            const showTitle = item.point.value == 0 ?  null:item.point.type + ': ' + val 
-            return showTitle
-        },
-        textStyle: {
-          fill: '#fff'
-        }
+// //形态学非毛刺直径分布饼图
+// document.getElementById('diaNonGlitchPie').innerHTML=''
+// const dv18 = new DataView();
+//   dv18.source(diaNonGlitchData1).transform({
+//       type: 'percent',
+//       field: 'value',
+//       dimension: 'type',
+//       as: 'percent'
+//     });
+//     const diaNonGlitchPie = new G2.Chart({
+//       container: 'diaNonGlitchPie',
+//       forceFit: false,
+//       height: 250,
+//       width:400,
+//       padding:[45,30,45,30],
+//       animate: false
+//     });
+//     diaNonGlitchPie.source(dv18, {
+//       percent: {
+//         formatter: val => {
+//           val = (val * 100).toFixed(2) + '%';
+//           return val;
+//         }
+//       }
+//     });
+//     diaNonGlitchPie.coord('theta', {
+//       radius:1,
+//       innerRadius: 0.7
+//     });
+//     diaNonGlitchPie.tooltip({
+//       showTitle: false,
+//       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+//     });
+//     diaNonGlitchPie.intervalStack()
+//       .position('value')
+//       .color('type',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
+//       .label('percent',{
+//           formatter: (val, item) => {
+//             const showTitle = item.point.value == 0 ?  null:item.point.type + ': ' + val 
+//             return showTitle
+//         },
+//         textStyle: {
+//           fill: '#fff'
+//         }
         
-      })
-      .tooltip('type*value', (item, value) => {
-        return {
-          name: item,
-          value: value
-        };
-      });
-    diaNonGlitchPie.render();
+//       })
+//       .tooltip('type*value', (item, value) => {
+//         return {
+//           name: item,
+//           value: value
+//         };
+//       });
+//     diaNonGlitchPie.render();
 
-  //形态学非钙化直径分布
-  document.getElementById('diaNonCalcify').innerHTML=''
-  const nonCalD = this.state.nonCalcificationDiameterDist
-  const diaNonCalcifyData1 = JSON.parse(nonCalD)
-  const diaNonCalcifychart = new G2.Chart({
-    container: 'diaNonCalcify',
-    forceFit: true,
-    height: 250,
-    // width:100,
-    padding: [30,30,'auto',30]
-  });
-  diaNonCalcifychart.source(diaNonCalcifyData1);
-  diaNonCalcifychart.scale('value', {
-    alias: '结节数'
-  });
-  diaNonCalcifychart.axis('type', {
-    label: {
-      textStyle: {
-        fill: '#aaaaaa'
-      }
-    },
-    tickLine: {
-      alignWithLabel: false,
-      length: 0
-    }
-  });
-  diaNonCalcifychart.tooltip({
-    share: true
-  });
-  diaNonCalcifychart.interval().position('type*value').opacity(1).label('value',{
-    textStyle:{
-      fontSize:14,
-      fill:'#aaa'
-    }
-  }).color(['#00B4D8']).size(30);
-  diaNonCalcifychart.render();
+//   //形态学非钙化直径分布
+//   document.getElementById('diaNonCalcify').innerHTML=''
+//   const nonCalD = this.state.nonCalcificationDiameterDist
+//   const diaNonCalcifyData1 = JSON.parse(nonCalD)
+//   const diaNonCalcifychart = new G2.Chart({
+//     container: 'diaNonCalcify',
+//     forceFit: true,
+//     height: 250,
+//     // width:100,
+//     padding: [30,30,'auto',30]
+//   });
+//   diaNonCalcifychart.source(diaNonCalcifyData1);
+//   diaNonCalcifychart.scale('value', {
+//     alias: '结节数'
+//   });
+//   diaNonCalcifychart.axis('type', {
+//     label: {
+//       textStyle: {
+//         fill: '#aaaaaa'
+//       }
+//     },
+//     tickLine: {
+//       alignWithLabel: false,
+//       length: 0
+//     }
+//   });
+//   diaNonCalcifychart.tooltip({
+//     share: true
+//   });
+//   diaNonCalcifychart.interval().position('type*value').opacity(1).label('value',{
+//     textStyle:{
+//       fontSize:14,
+//       fill:'#aaa'
+//     }
+//   }).color(['#00B4D8']).size(30);
+//   diaNonCalcifychart.render();
 
-//形态学非钙化直径分布饼图
-document.getElementById('diaNonCalcifyPie').innerHTML=''
-const dv17 = new DataView();
-  dv17.source(diaNonCalcifyData1).transform({
-      type: 'percent',
-      field: 'value',
-      dimension: 'type',
-      as: 'percent'
-    });
-    const diaNonCalcifyPie = new G2.Chart({
-      container: 'diaNonCalcifyPie',
-      forceFit: false,
-      height: 250,
-      width:400,
-      padding:[45,30,45,30],
-      animate: false
-    });
-    diaNonCalcifyPie.source(dv17, {
-      percent: {
-        formatter: val => {
-          val = (val * 100).toFixed(2) + '%';
-          return val;
-        }
-      }
-    });
-    diaNonCalcifyPie.coord('theta', {
-      radius:1,
-      innerRadius: 0.7
-    });
-    diaNonCalcifyPie.tooltip({
-      showTitle: false,
-      itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
-    });
-    diaNonCalcifyPie.intervalStack()
-      .position('value')
-      .color('type',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
-      .label('percent', {
-        formatter: (val, item) => {
-          return item.point.type + ': ' + val;
-        },
-        textStyle: {
-          fill: '#fff'
-        }
-      })
-      .tooltip('type*value', (item, value) => {
-        return {
-          name: item,
-          value: value
-        };
-      });
-    diaNonCalcifyPie.render();
+// //形态学非钙化直径分布饼图
+// document.getElementById('diaNonCalcifyPie').innerHTML=''
+// const dv17 = new DataView();
+//   dv17.source(diaNonCalcifyData1).transform({
+//       type: 'percent',
+//       field: 'value',
+//       dimension: 'type',
+//       as: 'percent'
+//     });
+//     const diaNonCalcifyPie = new G2.Chart({
+//       container: 'diaNonCalcifyPie',
+//       forceFit: false,
+//       height: 250,
+//       width:400,
+//       padding:[45,30,45,30],
+//       animate: false
+//     });
+//     diaNonCalcifyPie.source(dv17, {
+//       percent: {
+//         formatter: val => {
+//           val = (val * 100).toFixed(2) + '%';
+//           return val;
+//         }
+//       }
+//     });
+//     diaNonCalcifyPie.coord('theta', {
+//       radius:1,
+//       innerRadius: 0.7
+//     });
+//     diaNonCalcifyPie.tooltip({
+//       showTitle: false,
+//       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+//     });
+//     diaNonCalcifyPie.intervalStack()
+//       .position('value')
+//       .color('type',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
+//       .label('percent', {
+//         formatter: (val, item) => {
+//           return item.point.type + ': ' + val;
+//         },
+//         textStyle: {
+//           fill: '#fff'
+//         }
+//       })
+//       .tooltip('type*value', (item, value) => {
+//         return {
+//           name: item,
+//           value: value
+//         };
+//       });
+//     diaNonCalcifyPie.render();
 
 
   //形态学实性直径分布
@@ -1317,7 +1322,7 @@ const dv16 = new DataView();
     });
     diaNonGGOPie.intervalStack()
       .position('value')
-      .color('type',['#ffffcc','#a1dab4','#41b6c4','#2c7fb8','#4a488e'])
+      .color('type',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
       .label('percent', {
         formatter: (val, item) => {
             const showTitle = item.point.value == 0 ?  null:item.point.type + ': ' + val 
@@ -1370,7 +1375,7 @@ const dv16 = new DataView();
       showTitle: false,
       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
-  maliGlitchChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
+  maliGlitchChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
       offset: -20,
       autoRotate: false,
       textStyle: {
@@ -1426,7 +1431,7 @@ const dv16 = new DataView();
       showTitle: false,
       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
-  maliSublobeChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
+  maliSublobeChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
       offset: -20,
       autoRotate: false,
       textStyle: {
@@ -1483,7 +1488,7 @@ const dv16 = new DataView();
       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
   //['#4682B4','#20B2AA']
-  maliCalcifyChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
+  maliCalcifyChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
       offset: -20,
       autoRotate: false,
       textStyle: {
@@ -1539,7 +1544,7 @@ const dv16 = new DataView();
       showTitle: false,
       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
   });
-  maliGGOChart.intervalStack().position('percent').color('type',['#a1dab4','#2c7fb8']).label('percent', {
+  maliGGOChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
       offset: -20,
       autoRotate: false,
       textStyle: {
@@ -1576,41 +1581,54 @@ const dv16 = new DataView();
           document.getElementById('calcifybt2').style.display='none'
           document.getElementById('diaGGOPie').style.display='none'
           document.getElementById('ggobt2').style.display='none'
-          document.getElementById('diaNonGlitchPie').style.display='none'
-          document.getElementById('nonglitchbt2').style.display='none'
-          document.getElementById('diaNonSublobePie').style.display='none'
-          document.getElementById('nonsublobebt2').style.display='none'
-          document.getElementById('diaNonCalcifyPie').style.display='none'
-          document.getElementById('noncalcifybt2').style.display='none'
+          // document.getElementById('diaNonGlitchPie').style.display='none'
+          // document.getElementById('nonglitchbt2').style.display='none'
+          // document.getElementById('diaNonSublobePie').style.display='none'
+          // document.getElementById('nonsublobebt2').style.display='none'
+          // document.getElementById('diaNonCalcifyPie').style.display='none'
+          // document.getElementById('noncalcifybt2').style.display='none'
           document.getElementById('diaNonGGOPie').style.display='none'
           document.getElementById('nonggobt2').style.display='none'
       }
   }
     componentDidMount() {
-        this.visualize()
-        document.getElementById('ageTotal').style.display='none'
-        document.getElementById('diaTotal').style.display='none'
-        document.getElementById('diabt1').style.display='none'
-        document.getElementById('agebt1').style.display='none'
-        document.getElementById('glitchbt2').style.display='none'
-        document.getElementById('diaGlitchPie').style.display='none'
-        document.getElementById('diaSublobePie').style.display='none'
-        document.getElementById('sublobebt2').style.display='none'
-        document.getElementById('diaCalcifyPie').style.display='none'
-        document.getElementById('calcifybt2').style.display='none'
-        document.getElementById('diaGGOPie').style.display='none'
-        document.getElementById('ggobt2').style.display='none'
-        document.getElementById('diaNonGlitchPie').style.display='none'
-        document.getElementById('nonglitchbt2').style.display='none'
-        document.getElementById('diaNonSublobePie').style.display='none'
-        document.getElementById('nonsublobebt2').style.display='none'
-        document.getElementById('diaNonCalcifyPie').style.display='none'
-        document.getElementById('noncalcifybt2').style.display='none'
-        document.getElementById('diaNonGGOPie').style.display='none'
-        document.getElementById('nonggobt2').style.display='none'  
+      if (localStorage.getItem('token') != null) {
+          this.visualize()
+        
+          document.getElementById('ageTotal').style.display='none'
+          document.getElementById('diaTotal').style.display='none'
+          document.getElementById('diabt1').style.display='none'
+          document.getElementById('agebt1').style.display='none'
+          document.getElementById('glitchbt2').style.display='none'
+          document.getElementById('diaGlitchPie').style.display='none'
+          document.getElementById('diaSublobePie').style.display='none'
+          document.getElementById('sublobebt2').style.display='none'
+          document.getElementById('diaCalcifyPie').style.display='none'
+          document.getElementById('calcifybt2').style.display='none'
+          document.getElementById('diaGGOPie').style.display='none'
+          document.getElementById('ggobt2').style.display='none'
+          // document.getElementById('diaNonGlitchPie').style.display='none'
+          // document.getElementById('nonglitchbt2').style.display='none'
+          // document.getElementById('diaNonSublobePie').style.display='none'
+          // document.getElementById('nonsublobebt2').style.display='none'
+          // document.getElementById('diaNonCalcifyPie').style.display='none'
+          // document.getElementById('noncalcifybt2').style.display='none'
+          document.getElementById('diaNonGGOPie').style.display='none'
+          document.getElementById('nonggobt2').style.display='none'  
+        }
     }
     
     render() {
+      if (localStorage.getItem('token') == null) {
+        return (
+          // <div style={style}>
+          //     <Icon name='user secret' color='teal' size='huge'></Icon>
+          //     <Header as='h1' color='teal'>请先登录</Header>
+          // </div>
+          window.location.href = '/'
+        )
+      }
+      else{
         return (
             <div class='VisualCanvas'>
                 <div class='total'>
@@ -1652,24 +1670,6 @@ const dv16 = new DataView();
                       <Grid.Row>
                         <Grid.Column width={4}>
                           <div class='tit'>
-                            <h2 class='tit2'>毛刺直径分布</h2>  
-                            <div class='tit3' id='glitchbt1'><Button icon onClick={this.typeChange} value='glitchbar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit3' id='glitchbt2'><Button icon onClick={this.typeChange} value='glitchpie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                          </div>
-                          <div id='diaGlitch'></div>
-                          <div id='diaGlitchPie'></div>
-                        </Grid.Column>
-                        <Grid.Column width={4}>
-                          <div class='tit'>
-                            <h2 class='tit2'>分叶直径分布</h2>
-                            <div class='tit3' id='sublobebt1'><Button icon onClick={this.typeChange} value='sublobebar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit3' id='sublobebt2'><Button icon onClick={this.typeChange} value='sublobepie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                          </div>
-                          <div id='diaSublobe'></div>
-                          <div id='diaSublobePie'></div>
-                        </Grid.Column>
-                        <Grid.Column width={4}>
-                          <div class='tit'>
                             <h2 class='tit2'>钙化直径分布</h2>
                             <div class='tit3' id='calcifybt1'><Button icon onClick={this.typeChange} value='calcifybar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
                             <div class='tit3' id='calcifybt2'><Button icon onClick={this.typeChange} value='calcifypie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
@@ -1686,9 +1686,36 @@ const dv16 = new DataView();
                           <div id='diaGGO'></div>
                           <div id='diaGGOPie'></div>
                         </Grid.Column>
+                        <Grid.Column width={4}>
+                            <div class='tit'>
+                              <h2 class='tit2'>实性直径分布</h2>
+                              <div class='tit3' id='nonggobt1'><Button icon onClick={this.typeChange} value='nonggobar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                              <div class='tit3' id='nonggobt2'><Button icon onClick={this.typeChange} value='nonggopie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                            </div>
+                            <div id='diaNonGGO'></div>
+                            <div id='diaNonGGOPie'></div>
+                          </Grid.Column>
                       </Grid.Row>
                       <Grid.Row>
+                      <Grid.Column width={4}>
+                          <div class='tit'>
+                            <h2 class='tit2'>毛刺直径分布</h2>  
+                            <div class='tit3' id='glitchbt1'><Button icon onClick={this.typeChange} value='glitchbar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='glitchbt2'><Button icon onClick={this.typeChange} value='glitchpie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                          </div>
+                          <div id='diaGlitch'></div>
+                          <div id='diaGlitchPie'></div>
+                        </Grid.Column>
                         <Grid.Column width={4}>
+                          <div class='tit'>
+                            <h2 class='tit2'>分叶直径分布</h2>
+                            <div class='tit3' id='sublobebt1'><Button icon onClick={this.typeChange} value='sublobebar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='sublobebt2'><Button icon onClick={this.typeChange} value='sublobepie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                          </div>
+                          <div id='diaSublobe'></div>
+                          <div id='diaSublobePie'></div>
+                        </Grid.Column>
+                        {/* <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>非毛刺直径分布</h2>  
                             <div class='tit3' id='nonglitchbt1'><Button icon onClick={this.typeChange} value='nonglitchbar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
@@ -1714,16 +1741,8 @@ const dv16 = new DataView();
                             </div>
                             <div id='diaNonCalcify'></div>
                             <div id='diaNonCalcifyPie'></div>
-                          </Grid.Column>
-                          <Grid.Column width={4}>
-                            <div class='tit'>
-                              <h2 class='tit2'>实性直径分布</h2>
-                              <div class='tit3' id='nonggobt1'><Button icon onClick={this.typeChange} value='nonggobar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                              <div class='tit3' id='nonggobt2'><Button icon onClick={this.typeChange} value='nonggopie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            </div>
-                            <div id='diaNonGGO'></div>
-                            <div id='diaNonGGOPie'></div>
-                          </Grid.Column>
+                          </Grid.Column> */}
+                          
                       </Grid.Row>
                       <Grid.Row>
                         <Grid.Column width={4}>
@@ -1749,6 +1768,8 @@ const dv16 = new DataView();
 
             </div>
         )
+      }
+        
     }
     typeChange(e,{value}){
       this.setState({ value:value })
@@ -1825,42 +1846,42 @@ const dv16 = new DataView();
         document.getElementById('ggobt2').style.display='none'
       }
       //非
-      else if(value=='nonglitchbar'){
-        document.getElementById('diaNonGlitch').style.display='none'
-        document.getElementById('diaNonGlitchPie').style.display='block'
-        document.getElementById('nonglitchbt1').style.display='none'
-        document.getElementById('nonglitchbt2').style={btstyle}
-      }
-      else if(value=='nonglitchpie'){
-        document.getElementById('diaNonGlitch').style.display='block'
-        document.getElementById('diaNonGlitchPie').style.display='none'
-        document.getElementById('nonglitchbt1').style={btstyle}
-        document.getElementById('nonglitchbt2').style.display='none'
-      }
-      else if(value=='nonsublobebar'){
-        document.getElementById('diaNonSublobe').style.display='none'
-        document.getElementById('diaNonSublobePie').style.display='block'
-        document.getElementById('nonsublobebt1').style.display='none'
-        document.getElementById('nonsublobebt2').style={btstyle}
-      }
-      else if(value=='nonsublobepie'){
-        document.getElementById('diaNonSublobe').style.display='block'
-        document.getElementById('diaNonSublobePie').style.display='none'
-        document.getElementById('nonsublobebt1').style={btstyle}
-        document.getElementById('nonsublobebt2').style.display='none'
-      }
-      else if(value=='noncalcifybar'){
-        document.getElementById('diaNonCalcify').style.display='none'
-        document.getElementById('diaNonCalcifyPie').style.display='block'
-        document.getElementById('noncalcifybt1').style.display='none'
-        document.getElementById('noncalcifybt2').style={btstyle}
-      }
-      else if(value=='noncalcifypie'){
-        document.getElementById('diaNonCalcify').style.display='block'
-        document.getElementById('diaNonCalcifyPie').style.display='none'
-        document.getElementById('noncalcifybt1').style={btstyle}
-        document.getElementById('noncalcifybt2').style.display='none'
-      }
+      // else if(value=='nonglitchbar'){
+      //   document.getElementById('diaNonGlitch').style.display='none'
+      //   document.getElementById('diaNonGlitchPie').style.display='block'
+      //   document.getElementById('nonglitchbt1').style.display='none'
+      //   document.getElementById('nonglitchbt2').style={btstyle}
+      // }
+      // else if(value=='nonglitchpie'){
+      //   document.getElementById('diaNonGlitch').style.display='block'
+      //   document.getElementById('diaNonGlitchPie').style.display='none'
+      //   document.getElementById('nonglitchbt1').style={btstyle}
+      //   document.getElementById('nonglitchbt2').style.display='none'
+      // }
+      // else if(value=='nonsublobebar'){
+      //   document.getElementById('diaNonSublobe').style.display='none'
+      //   document.getElementById('diaNonSublobePie').style.display='block'
+      //   document.getElementById('nonsublobebt1').style.display='none'
+      //   document.getElementById('nonsublobebt2').style={btstyle}
+      // }
+      // else if(value=='nonsublobepie'){
+      //   document.getElementById('diaNonSublobe').style.display='block'
+      //   document.getElementById('diaNonSublobePie').style.display='none'
+      //   document.getElementById('nonsublobebt1').style={btstyle}
+      //   document.getElementById('nonsublobebt2').style.display='none'
+      // }
+      // else if(value=='noncalcifybar'){
+      //   document.getElementById('diaNonCalcify').style.display='none'
+      //   document.getElementById('diaNonCalcifyPie').style.display='block'
+      //   document.getElementById('noncalcifybt1').style.display='none'
+      //   document.getElementById('noncalcifybt2').style={btstyle}
+      // }
+      // else if(value=='noncalcifypie'){
+      //   document.getElementById('diaNonCalcify').style.display='block'
+      //   document.getElementById('diaNonCalcifyPie').style.display='none'
+      //   document.getElementById('noncalcifybt1').style={btstyle}
+      //   document.getElementById('noncalcifybt2').style.display='none'
+      // }
       else if(value=='nonggobar'){
         document.getElementById('diaNonGGO').style.display='none'
         document.getElementById('diaNonGGOPie').style.display='block'

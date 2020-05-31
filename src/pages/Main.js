@@ -16,6 +16,7 @@ import src1 from '../images/MILab.png'
 import src2 from '../images/logo.jpg'
 import Cov19ListPanel from '../panels/Cov19ListPanel';
 import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
+import HomepagePanel from '../panels/HomepagePanel'
 
 const config = require('../config.json')
 const userConfig = config.user
@@ -44,6 +45,11 @@ class Main extends Component {
     }
 
     handleItemClick = (e, {name}) => this.setState({activeItem: name});
+
+    toHomepage(){
+        window.location.href = '/homepage'
+        // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
+    }
 
     handleLogin() {
         this.setState({
@@ -113,7 +119,7 @@ class Main extends Component {
 
         const mainMenus = (
             <>
-                <Menu.Item onClick={this.handleItemClick} as={Link} to='/' name='home'>
+                <Menu.Item onClick={this.handleItemClick} as={Link} to='/dataCockpit' name='home'>
                     DeepLN肺癌全周期智能管理影像数据平台
                 </Menu.Item>
 
@@ -193,6 +199,7 @@ class Main extends Component {
                     <Menu.Item position='right'>
                         <Dropdown text={welcome}>
                             <Dropdown.Menu id="logout-menu">
+                                <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
                                 <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
                                 <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
                             </Dropdown.Menu>
@@ -204,13 +211,14 @@ class Main extends Component {
 
         } else {
             console.log(window.location.pathname)
-            if (window.location.pathname !== '/login') {
+            // if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
+                if (window.location.pathname !== '/') {
                 logButtonPlace = (
                     <Menu id="header" pointing secondary>
                         {mainMenus}
 
                         <Menu.Item position='right'>
-                            <Button inverted color='green' as={Link} to='/login' onClick={this.handleLogin}>登录</Button>
+                            <Button inverted color='green' as={Link} to='/' onClick={this.handleLogin}>登录</Button>
                         </Menu.Item>
                     </Menu>
 
@@ -229,7 +237,7 @@ class Main extends Component {
                                 inverted
                                 color='green'
                                 as={Link}
-                                to='/login'
+                                to='/'
                                 onClick={this.handleLogin}>登录</Button>
                         </Menu.Item>
                     </Menu>
@@ -245,17 +253,19 @@ class Main extends Component {
                     {logButtonPlace}
                     {/* </Menu> */}
                     <div id="main">
-                        <Route exact path="/" component={DataPanel}/>
+                        <Route exact path="/" component={LoginPanel}/>
+                        <Route exact path="/dataCockpit" component={DataPanel}/>
                         <Route path="/searchCase" component={SearchCasePanel} />
                         <Route path="/searchNodule" component={SearchNodulePanel} />
                         <Route path="/myAnnos/" component={MyAnnosPanel}/> {/* <Route path="/startAnnos" component={StartAnnosPanel} /> */}
-                        <Route exact path="/login" component={LoginPanel}/> 
+                        {/* <Route exact path="/login" component={LoginPanel}/>  */}
                         <Route path="/myReviews/" component={MyReviewsPanel} />
                         <Route exact path="/download/" component={DownloadPanel}/>
                         <Route path="/case/" component={DisplayPanel}/>
                         <Route path="/patientInfo/" component={PatientPanel}/>
                         <Route path="/cov19List/" component={Cov19ListPanel} />
                         <Route path='/cov19Case/' component={Cov19DisplayPanel}/>
+                        <Route path='/homepage/' component={HomepagePanel}/>
                     </div>
                 </div>
 

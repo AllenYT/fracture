@@ -1,10 +1,13 @@
 import React, {Component} from 'react'
+import XLSX from 'xlsx'
 import { Pagination,Label,Grid, Table,Header, Icon,Button,Input, Dropdown } from 'semantic-ui-react'
+// import ReactHTMLTableToExcel from 'react-html-table-to-excel'
 import MainList from '../components/MainList'
 import axios from 'axios'
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'
 import '../css/searchnodulePanel.css'
+// import reqwest from 'reqwest'
 import { isType } from '@babel/types'
 
 const config = require('../config.json')
@@ -15,6 +18,7 @@ const draftConfig = config.draft
 let  nums={'危险':null,'毛刺征':null,'分叶征':null,'钙化':null,'密度':null,'胸膜凹陷征':null,'空洞征':null,'血管集束征':null,
 '空泡征':null,'支气管充气征':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,'1cm-1.3cm':null,'1.3cm-3cm':null,
 '>=3cm':null}//限制labels数量
+
 
 export class SearchNodulePanel extends Component {
     constructor(props){
@@ -64,6 +68,9 @@ export class SearchNodulePanel extends Component {
             .bind(this)
         this.handleImageLabels=this
             .handleImageLabels
+            .bind(this)
+        this.savetoExcel=this
+            .savetoExcel
             .bind(this)
     }
 
@@ -174,6 +181,93 @@ export class SearchNodulePanel extends Component {
         }).catch((error) => console.log(error))
         // console.log('lists2:',lists)
     }
+
+    savetoExcel(){
+      //要导出的json数据
+      const params = {
+        malignancy: this.state.malignancy,
+            calcification: this.state.calcification,
+            spiculation: this.state.spiculation,
+            lobulation:this.state.lobulation,
+            texture:this.state.texture,
+            page:'all',
+            // volumeStart:this.state.volumeStart,
+            // volumeEnd:this.state.volumeEnd,
+            diameters:this.state.diameterContainer,
+            pin:this.state.pin,
+            cav:this.state.cav,
+            vss:this.state.vss,
+            bea:this.state.bea,
+            bro:this.state.bro
+    }
+    
+    axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
+        let datalists=[]
+        const data = response.data
+
+        console.log('params', params)
+        
+        // console.log('pages:',data)
+        for (const idx in data){
+            let sequence={'病人ID':'','性别':'','年龄':'','结节体积(cm³)':0,'结节直径(cm)':0,'危险程度':'','分叶征':'',
+                '毛刺征':'','密度':'','钙化':'','胸膜凹陷征':'','空洞征':'','血管集束征':'','空泡征':'','支气管充气征':'',
+                'caseId':'','status':''}
+                
+                if(data[idx]['volume']===undefined){
+                    console.log(data[idx])
+                }
+                sequence['病人ID']=data[idx]['patienId']
+                sequence['性别']=data[idx]['patientSex']==='M'?'男':'女';
+                sequence['年龄']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
+                sequence['结节体积(cm³)']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
+                sequence['结节直径(cm)']=Math.floor(data[idx]['diameter'] * 100) / 100
+                sequence['危险程度']=data[idx]['malignancy']==2?'高危':'低危'
+                sequence['分叶征']=data[idx]['lobulation']==2?'是':'否'
+                sequence['毛刺征']=data[idx]['spiculation']==2?'是':'否'
+                sequence['密度']=data[idx]['texture']==2?'实性':'磨玻璃'
+                sequence['钙化']=data[idx]['calcification']==2?'是':'否'
+                sequence['胸膜凹陷征']=data[idx]['pin']===undefined?'':data[idx]['pin']===2?'是':'否'
+                sequence['空洞征']=data[idx]['cav']===undefined?'':data[idx]['cav']===2?'是':'否'
+                sequence['血管集束征']=data[idx]['vss']===undefined?'':data[idx]['vss']===2?'是':'否'
+                sequence['空泡征']=data[idx]['bea']===undefined?'':data[idx]['bea']===2?'是':'否'
+                sequence['支气管充气征']=data[idx]['bro']===undefined?'':data[idx]['cav']===2?'是':'否'
+                sequence['caseId']=data[idx]['caseId']
+                sequence['noduleNo']=data[idx]['noduleNo']
+                sequence['status']=data[idx]['status']
+            datalists.push(sequence)
+            
+        }
+        // console.log('lists1:',datalists)
+        var arr = []
+        var value=[]
+        arr[0] =  ["病人ID","性别","年龄","结节体积(cm³)", "结节直径(cm)", "危险程度", "分叶征", "毛刺征", "密度", "钙化",
+         "胸膜凹陷征", "空洞征", "血管集束征", "空泡征", "支气管充气征"]
+        for(var i =0;i<datalists.length;i++){
+            value = []
+            for(var key in datalists[i]){
+                if(key =='status' || key == 'noduleNo' || key == 'caseId')
+                    continue
+                value.push(datalists[i][key])
+            }
+            arr[i+1] = value
+        }
+        //   console.log('arr',arr)
+        //列标题
+        const sheet = XLSX.utils.aoa_to_sheet(arr);
+
+        // 先组装wookbook数据格式
+            let workbook = {
+                SheetNames: ['test'], // 总表名
+                Sheets: {test: sheet}, // test是表名
+            };
+            // 下载表格
+            XLSX.writeFile(workbook, '肺结节列表.xlsx');
+        
+    }).catch((error) => console.log(error))
+      
+    }
+
+    
 
     nextPath(path) {
         // console.log('cas',storecid)
@@ -571,6 +665,8 @@ export class SearchNodulePanel extends Component {
                                                 <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&gt;=3cm</a>
                                                     
                                                 </Grid.Column>
+                                                
+                                                
                                             </Grid.Row>
                                             <Grid.Row>
                                                 <Grid.Column width={6} className="gridLabel inputContainer">
@@ -599,8 +695,8 @@ export class SearchNodulePanel extends Component {
                                     <Grid.Column width={13} className="gridLabel">
                                     <Grid inverted divided>
                                         <Grid.Row >
-                                            <Grid.Column style={{width:'9%'}} >
-                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>毛刺</a> */}
+                                            
+                                            <Grid.Column style={{width:'9%'}} >    
                                                 <Dropdown text='毛刺征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
                                                         <Dropdown.Item onClick={this.handleImageLabels}>毛刺</Dropdown.Item>
@@ -708,11 +804,19 @@ export class SearchNodulePanel extends Component {
                         </Grid.Column>
                         <Grid.Column width={2}></Grid.Column>
                     </Grid.Row>
+                    <Header as='h3' color='grey' style={{marginLeft:12+'%'}}>
+                        <Icon name='list' />
+                        <Header.Content>列表下载</Header.Content>
+                    </Header>
+                    <Button inverted color='blue' onClick={this.savetoExcel} id='excelBtn' icon><Icon name='download' size='small'/></Button>   
                     <Grid.Row className="conlabel">
                         <Grid.Column width={2}>
                             <Header as='h3' inverted >结节数目:{this.state.totalResults}</Header>
                         </Grid.Column>
-                        
+                        <Grid.Column>
+                            
+                        </Grid.Column>
+                     
                     </Grid.Row>
                     <Grid.Row >
                         <Grid.Column width={2}></Grid.Column>
@@ -787,14 +891,17 @@ export class SearchNodulePanel extends Component {
                                     totalPages={this.state.totalPage}/>
                             </div>
                             </Grid.Column>
-                            
-                        <Grid.Column width={2}></Grid.Column>
-                    </Grid.Row> 
-                </Grid>
-        </div>
-            
-        )
+                            <Grid.Column width={2}></Grid.Column>
+                        </Grid.Row>
+                       
+                    </Grid>
+                    
+            </div>
+                
+            )
+        }
+        
     }
-}
+// }
 
 export default SearchNodulePanel

@@ -160,8 +160,10 @@ table#nodule-table {
 #elec-table{
   /* position: relative; */
   height: 550px;
-  table-layout: fixed;
+  /* table-layout: fixed; */
   margin-top: 0px;
+  overflow-y: auto;
+  /* background-color:rgba(1, 23, 46, 0.997) !important; */
 }
 
 .table-body{
@@ -295,28 +297,24 @@ option {
 }
 
 #cornerstone-accordion{
-  background-color:rgba(1, 23, 46, 0.997) !important;
+  /* background-color:rgba(1, 23, 46, 0.997) !important; */
+  background-color:transparent !important;
     border-radius: 0.1rem !important;
     border-color: white;
     color: white;
     max-height:100%; 
-    /* overflow-y:clip; */
-    overflow-y: visible;
+    /* overflow-y:auto; */
+    
+    /* overflow-y: visible; */
 }
-#cornerstone-accordion-readonly{
-  background-color:rgba(1, 23, 46, 0.997) !important;
-    border-radius: 0.1rem !important;
-    border-color: white;
-    color: white;
-    max-height:100%; 
-    overflow-y: auto;
-}
+
 
 #cornerstone-accordion > div > .title {
   /* color: #66cfec; */
   color:whitesmoke;
   /* display: inline-block; */
   /* max-height: 30px; */
+  background-color:rgba(1, 23, 46, 0.997) !important;
 }
 
 /* td{
@@ -349,24 +347,28 @@ option {
   background-color: #fff;
 }
 
-.hucolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button  .hubtn{
+.hucolumn .ui.button, .ui.buttons .button  .hubtn{
   width: 60px;
   height: 50px;
   font-size: 14px;
   padding: 0;
+  background-color: #010c29;
+  color: rgb(212, 212, 212);
   /* display:"inline-block";
   margin-right:"5px";
   margin-left: "5px"; */
 }
 
-.funcolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+.funcolumn .ui.button, .ui.buttons .button .funcbtn{
   width: 60px;
   height: 50px;
   font-size: large;
+  background-color: #010c29;
+  color: rgb(212, 212, 212);
   padding: 0;
 }
 
-.draftColumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+.draftColumn .ui.button, .ui.buttons .button .funcbtn{
   width: 60px;
   height: 50px;
   font-size: small;
@@ -574,8 +576,10 @@ option {
   #elec-table{
     /* position: relative; */
     height: 550px;
-    table-layout: fixed;
+    /* table-layout: fixed; */
     margin-top: 0px;
+    overflow-y: auto;
+    /* background-color:rgba(1, 23, 46, 0.997) !important; */
   }
   
   .table-body{
@@ -666,27 +670,22 @@ option {
 }
   
   #cornerstone-accordion{
-    background-color:rgba(1, 23, 46, 0.997) !important;
+    /* background-color:rgba(1, 23, 46, 0.997) !important; */
+    background-color:transparent !important;
       border-radius: 0.1rem !important;
       border-color: white;
       color: white;
       max-height:100%; 
-     /* overflow-y:clip; */
-    overflow-y: visible;
+     /* overflow-y:auto; */
+    /* overflow-y: visible; */
   }
-  #cornerstone-accordion-readonly{
-    background-color:rgba(1, 23, 46, 0.997) !important;
-      border-radius: 0.1rem !important;
-      border-color: white;
-      color: white;
-      max-height:100%; 
-      overflow-y: auto;
-  }
+  
   #cornerstone-accordion > div > .title {
     /* color: #66cfec; */
     color:whitesmoke;
     /* display: inline-block; */
     /* max-height: 30px; */
+    background-color:rgba(1, 23, 46, 0.997) !important;
   }
   
   /* td{
@@ -719,24 +718,26 @@ option {
     background-color: #fff;
   }
   
-  .hucolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button  .hubtn{
+  .hucolumn .ui.button, .ui.buttons .button  .hubtn{
     width: 60px;
     height: 50px;
     font-size: 14px;
     padding: 0;
+    background-color: #010c29;
+    color: rgb(212, 212, 212);;
     /* display:"inline-block";
     margin-right:"5px";
     margin-left: "5px"; */
   }
   
-  .funcolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  .funcolumn .ui.button, .ui.buttons .button .funcbtn{
     width: 60px;
     height: 50px;
     font-size: large;
     padding: 0;
   }
   
-  .draftColumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  .draftColumn .ui.button, .ui.buttons .button .funcbtn{
     width: 60px;
     height: 50px;
     font-size: small;
@@ -945,8 +946,10 @@ option {
   #elec-table{
     /* position: relative; */
     height: 550px;
-    table-layout: fixed;
+    /* table-layout: fixed; */
     margin-top: 0px;
+    overflow-y: auto;
+    /* background-color:rgba(1, 23, 46, 0.997) !important; */
   }
   
   .table-body{
@@ -1037,27 +1040,22 @@ option {
   }
   
   #cornerstone-accordion{
-    background-color:rgba(1, 23, 46, 0.997) !important;
+    /* background-color:rgba(1, 23, 46, 0.997) !important; */
+    background-color:transparent !important;
       border-radius: 0.1rem !important;
       border-color: white;
       color: white;
       max-height:100%; 
      /* overflow-y:clip; */
-    overflow-y: visible;
+    /* overflow-y: auto; */
   }
-  #cornerstone-accordion-readonly{
-    background-color:rgba(1, 23, 46, 0.997) !important;
-      border-radius: 0.1rem !important;
-      border-color: white;
-      color: white;
-      max-height:100%; 
-      overflow-y: auto;
-  }
+  
   #cornerstone-accordion > div > .title {
     /* color: #66cfec; */
     color:whitesmoke;
     /* display: inline-block; */
     /* max-height: 30px; */
+    background-color:rgba(1, 23, 46, 0.997) !important;
   }
   
   /* td{
@@ -1090,24 +1088,26 @@ option {
     background-color: #fff;
   }
   
-  .hucolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button  .hubtn{
+  .hucolumn .ui.button, .ui.buttons .button  .hubtn{
     width: 60px;
     height: 50px;
     font-size: 14px;
     padding: 0;
+    background-color: #010c29;
+    color: rgb(212, 212, 212);;
     /* display:"inline-block";
     margin-right:"5px";
     margin-left: "5px"; */
   }
   
-  .funcolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  .funcolumn .ui.button, .ui.buttons .button .funcbtn{
     width: 60px;
     height: 50px;
     font-size: large;
     padding: 0;
   }
   
-  .draftColumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+  .draftColumn .ui.button, .ui.buttons .button .funcbtn{
     width: 60px;
     height: 50px;
     font-size: small;
@@ -1304,8 +1304,9 @@ option {
     #elec-table{
       /* position: relative; */
       height: 550px;
-      table-layout: fixed;
+      /* background-color:rgba(1, 23, 46, 0.997) !important; */
       margin-top: 0px;
+      overflow-y: auto;
     }
     
     .table-body{
@@ -1396,25 +1397,20 @@ option {
     }
     
     #cornerstone-accordion{
-      background-color:rgba(1, 23, 46, 0.997) !important;
+      /* background-color:rgba(1, 23, 46, 0.997) !important; */
+      background-color:transparent !important;
         border-radius: 0.1rem !important;
         border-color: white;
         color: white;
         max-height:100%; 
         /* overflow-y:clip; */
-    overflow-y: visible;
+        /* overflow-y: auto; */
     }
-    #cornerstone-accordion-readonly{
-      background-color:rgba(1, 23, 46, 0.997) !important;
-        border-radius: 0.1rem !important;
-        border-color: white;
-        color: white;
-        max-height:100%; 
-        overflow-y: auto;
-    }
+    
     
     #cornerstone-accordion > div > .title {
       /* color: #66cfec; */
+      background-color:rgba(1, 23, 46, 0.997) !important;
       color:whitesmoke;
       /* display: inline-block; */
       /* max-height: 30px; */
@@ -1450,24 +1446,27 @@ option {
       background-color: #fff;
     }
     
-    .hucolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button  .hubtn{
+    .hucolumn .ui.button, .ui.buttons .button  .hubtn{
       width: 40px;
       height: 40px;
       font-size: 0.1rem;
       padding: 0;
+      background-color: #010c29;
+      color: rgb(212, 212, 212);;
       /* display:"inline-block";
       margin-right:"5px";
       margin-left: "5px"; */
     }
     
-    .funcolumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+    .funcolumn .ui.button, .ui.buttons .button .funcbtn{
       width: 40px;
       height: 40px;
       font-size: medium;
       padding: 0;
+      
     }
     
-    .draftColumn .ui.inverted.blue.button, .ui.inverted.blue.buttons .button .funcbtn{
+    .draftColumn .ui.button, .ui.buttons .button .funcbtn{
       width: 40px;
       height: 40px;
       font-size: 0.8rem;

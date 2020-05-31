@@ -1,10 +1,20 @@
 import React, {Component,createRef} from 'react'
-import {Button, Grid, Modal,Header, Divider, Table,Dropdown} from 'semantic-ui-react'
+import {Button, Grid, Modal,Header, Divider, Table, Dropdown, Image} from 'semantic-ui-react'
 import axios from 'axios'
 import qs from 'qs'
-
+import * as cornerstone from "cornerstone-core"
+import * as cornerstoneMath from "cornerstone-math"
+import * as cornerstoneTools from "cornerstone-tools"
+import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 const config = require('../config.json')
 const draftConfig=config.draft
+cornerstoneTools.external.cornerstone = cornerstone
+cornerstoneTools.external.cornerstoneMath = cornerstoneMath
+// cornerstoneWebImageLoader.external.cornerstone = cornerstone
+cornerstoneWadoImageLoader.external.cornerstone = cornerstone
+
+
+
 
 class MiniReport extends Component{
     constructor(props){
@@ -19,8 +29,11 @@ class MiniReport extends Component{
             date:'',
             age:0,
             spacing:'',
-            nodules:[]
+            nodules:[],
+            imageIds:props.imageIds,
+            viewport: cornerstone.getDefaultViewport(null, undefined),
         }
+        this.showImages = this.showImages.bind(this)
     }
 
     componentDidMount(){
@@ -34,28 +47,75 @@ class MiniReport extends Component{
             
             this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
                 patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
+           
         }).catch((error) => console.log(error))
+
+        
+    }
+
+    
+    showImages(){
+        const nodules = this.state.nodules
+        const imageIds = this.state.imageIds
+        console.log('imagesid',imageIds)
+        let nodule_id = 'nodule-' + nodules[0].nodule_no + '-' + nodules[0].slice_idx
+        let num = 0
+        
+        var timer = setInterval(function () {
+            console.log('timer',num)
+            num++
+            if(document.getElementById(nodule_id) != null){
+                for(var i = 0;i<nodules.length;i++){
+                nodule_id = 'nodule-' + nodules[i].nodule_no + '-' + nodules[i].slice_idx
+                // console.log('id',nodule_id)
+                const element = document.getElementById(nodule_id);
+                // console.log('element',element)
+                let imageId = imageIds[nodules[i].slice_idx]
+                console.log('image',imageId)
+                cornerstone.enable(element);
+                // let viewport =this.state.viewport
+                // console.log('viewport',viewport)
+                // viewport.voi.windowWidth = 1600
+                // viewport.voi.windowCenter = -600
+                // cornerstone.setViewport(element, viewport)
+                cornerstone.loadAndCacheImage(imageId).then(function(image) {  
+                    var viewport = cornerstone.getDefaultViewportForImage(element, image);
+                    viewport.voi.windowWidth = 1600
+                    viewport.voi.windowCenter = -600
+                    console.log('viewport',viewport)
+                    cornerstone.displayImage(element, image);
+                });
+            }
+                clearInterval(timer);
+            }
+
+        },500);
+        
+        
     }
 
     render(){
         console.log('type',this.props.type)
+        // console.log('image',this.props.images[0])
         return(
             <Grid divided='vertically'>
                 {
                     this.props.type==='影像所见'?
-                <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}>
-                    <Grid.Column textAlign='left' width={6}>
+                <Grid.Row verticalAlign='middle' columns={4} style={{height:40}}>
+                    <Grid.Column textAlign='left' width={5}>
                         <div style={{fontSize:18}}>IM:  1mm</div>
                     </Grid.Column>
                     <Grid.Column width={4} textAlign='right'>
                         <Dropdown style={{background:'none',fontSize:18}} text='结节排序'></Dropdown>
                     </Grid.Column>
-                    <Grid.Column textAlign='center' width={3}>
-                    <Modal trigger={<Button icon='expand arrows alternate' content='放大' className='inverted blue button'></Button>}>
+                    <Grid.Column textAlign='center' width={4}>
+                    <Modal trigger={<Button icon='expand arrows alternate' content='放大' className='inverted blue button'  onClick={this.showImages}></Button>}>
                         <Modal.Header>影像诊断报告</Modal.Header>
                         <Modal.Content image scrolling>
                             <Modal.Description>
-                                <tr>
+                                <table>
+                                    <tbody>
+                                         <tr>
                                     <td><Header>Patient ID:</Header></td>
                                     <td>{this.state.patientId}</td>
                                     <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
@@ -90,16 +150,27 @@ class MiniReport extends Component{
                                     <td align='right'><Header>Requested Procedure Description:</Header></td>
                                     <td>&nbsp;</td>
                                 </tr>
-                            
+                                    </tbody>
+                               
+                                </table>
                                 <Divider/>
-                                <tr>
-                                    <td><Header>Weight:</Header></td>
-                                </tr>
-                                <tr>
-                                    <td><Header>Height:</Header></td>
-                                    <td align='right'><Header>Body Mass Index:</Header></td>
-                                </tr>
+                                <table>
+                                    <tbody>
+                                      <tr>
+                                        <td width='50%'><Header>Weight:</Header></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td><Header>Height:</Header></td>
+                                        <td align='right'><Header>Body Mass Index:</Header></td>
+                                    </tr>  
+                                    </tbody>
+                                    
+                                </table>
+                                
+                                
                                 <Divider/>
+                                
                                 
                                 <div style={{fontSize:20,color:'#6495ED'}}>Scan Parameters</div>
                                 <Table celled>
@@ -134,6 +205,7 @@ class MiniReport extends Component{
                                 </Table>
                                 {
                                     this.state.nodules.map((nodule,index)=>{
+                                        let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
                                         return(
                                             <div key={index}>
                                                 <Divider/>
@@ -167,6 +239,11 @@ class MiniReport extends Component{
                                                         <Table.Row>
                                                             <Table.Cell>HU (Min / Avg /Max)</Table.Cell>
                                                             <Table.Cell>{nodule['huMin']===undefined?null:nodule['huMin']+' / '+nodule['huMean']+' / '+nodule['huMax']}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                            <Table.Cell>Image Capture</Table.Cell>
+                                                            <Table.Cell><div id={nodule_id}></div></Table.Cell>
+                                                            {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
                                                         </Table.Row>
                                                     </Table.Body>
                                                 </Table>
@@ -205,9 +282,13 @@ class MiniReport extends Component{
                     <Grid.Column>
                     <div style={{fontSize:'large'}}>
                         <p>
-                            右肺可见磨玻璃，病变累及右肺中叶
+                        右肺下叶有一0.39cm的实性结节，有钙化成分，风险较低
+                        </p>
+                        <p>
+                        左肺上叶上舌段有一0.38cm的实性结节，有钙化成分
                         </p>
                     </div>
+                                        
                     </Grid.Column>
                 </Grid.Row>
             </Grid>
