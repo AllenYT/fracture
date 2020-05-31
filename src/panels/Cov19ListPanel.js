@@ -67,7 +67,7 @@ class Cov19ListPanel extends Component{
         return(
             <div>
                 <Grid>
-                <Grid.Row className="data-content">
+                <Grid.Row>
                         <Grid.Column width={2}></Grid.Column>
                         <Grid.Column width={12} id="cov19container">
                             <div style={{minHeight:590}}>

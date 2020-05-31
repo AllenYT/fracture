@@ -144,6 +144,7 @@
 
 .data-content {
     background:#020022 url(../images/app-bg.jpg) no-repeat center center/cover;
+    /* background:#020022 url(../images/bg.png) no-repeat center center/cover;  */
 }
 
 #total-bg{
