@@ -186,18 +186,22 @@ export class SearchNodulePanel extends Component {
       //要导出的json数据
       const params = {
         malignancy: this.state.malignancy,
-        calcification: this.state.calcification,
-        spiculation: this.state.spiculation,
-        lobulation:this.state.lobulation,
-        texture:this.state.texture,
-        page:'all',
-        // volumeStart:this.state.volumeStart,
-        // volumeEnd:this.state.volumeEnd,
-        diameterStart:this.state.diameterStart,
-        diameterEnd:this.state.diameterEnd
+            calcification: this.state.calcification,
+            spiculation: this.state.spiculation,
+            lobulation:this.state.lobulation,
+            texture:this.state.texture,
+            page:'all',
+            // volumeStart:this.state.volumeStart,
+            // volumeEnd:this.state.volumeEnd,
+            diameters:this.state.diameterContainer,
+            pin:this.state.pin,
+            cav:this.state.cav,
+            vss:this.state.vss,
+            bea:this.state.bea,
+            bro:this.state.bro
     }
     
-    axios.post(recordConfig.getNodulesAtPage, qs.stringify(params)).then((response) => {
+    axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
         let datalists=[]
         const data = response.data
 
@@ -205,13 +209,14 @@ export class SearchNodulePanel extends Component {
         
         // console.log('pages:',data)
         for (const idx in data){
-            let sequence={'patienId':'','patientSex':'','patientBirth':'','volume':0,'diameter':0,'malignancy':'','lobulation':'',
-                'spiculation':'','texture':'','calcification':'','caseId':'','noduleNo':'','status':0}
-            // console()
-            if(data[idx]['volume']===undefined){
-                console.log(data[idx])
-            }
-            sequence['病人ID']=data[idx]['patienId']
+            let sequence={'病人ID':'','性别':'','年龄':'','结节体积(cm³)':0,'结节直径(cm)':0,'危险程度':'','分叶征':'',
+                '毛刺征':'','密度':'','钙化':'','胸膜凹陷征':'','空洞征':'','血管集束征':'','空泡征':'','支气管充气征':'',
+                'caseId':'','status':''}
+                
+                if(data[idx]['volume']===undefined){
+                    console.log(data[idx])
+                }
+                sequence['病人ID']=data[idx]['patienId']
                 sequence['性别']=data[idx]['patientSex']==='M'?'男':'女';
                 sequence['年龄']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
                 sequence['结节体积(cm³)']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
@@ -640,53 +645,28 @@ export class SearchNodulePanel extends Component {
                                                 <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&lt;=0.3cm</a>
                                                     
                                                 </Grid.Column>
-                                                <Grid.Column style={{width:'8%'}} >
-                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
-                                                <Dropdown text='分叶' style={{color:'#66cfec'}} id='feaDropdown'>
-                                                        <Dropdown.Menu style={{background:'black'}}>
-                                                            <Dropdown.Item onClick={this.handleImageLabels}>分叶</Dropdown.Item>
-                                                            <Dropdown.Item onClick={this.handleImageLabels}>非分叶</Dropdown.Item>
-                                                            
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Grid.Column>
-                                                {/* <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>胸膜内陷</a>
-                                                    
-                                                </Grid.Column> */}
-                                                <Grid.Column style={{width:'8%'}} >
-                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>钙化</a> */}
-                                                <Dropdown text='钙化' style={{color:'#66cfec'}} id='feaDropdown'>
-                                                        <Dropdown.Menu style={{background:'black'}}>
-                                                        <Dropdown.Item onClick={this.handleImageLabels}>钙化</Dropdown.Item>
-                                                            <Dropdown.Item onClick={this.handleImageLabels}>非钙化</Dropdown.Item>
-                                                            
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
-                                                    
-                                                </Grid.Column>
-                                                {/* <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>半实性</a>
-                                                    
-                                                </Grid.Column> */}
-                                                <Grid.Column style={{width:'8%'}} >
-                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>实性</a> */}
-                                                <Dropdown text='实性' style={{color:'#66cfec'}} id='feaDropdown'>
-                                                        <Dropdown.Menu style={{background:'black'}}>
-                                                        <Dropdown.Item onClick={this.handleImageLabels}>实性</Dropdown.Item>
-                                                            <Dropdown.Item >半实性</Dropdown.Item>
-                                                            <Dropdown.Item onClick={this.handleImageLabels}>磨玻璃</Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Grid.Column>
-                                                {/* <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>血管集束征</a>
+                                                <Grid.Column width={2} className="gridLabel">
+                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>0.3cm-0.5cm</a>
                                                     
                                                 </Grid.Column>
                                                 <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>含支气管影</a>
+                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>0.5cm-1cm</a>
                                                     
                                                 </Grid.Column>
+                                                <Grid.Column width={2} className="gridLabel">
+                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>1cm-1.3cm</a>
+                                                    
+                                                </Grid.Column>
+                                                <Grid.Column width={2} className="gridLabel">
+                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>1.3cm-3cm</a>
+                                                    
+                                                </Grid.Column>
+                                                <Grid.Column width={2} className="gridLabel">
+                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&gt;=3cm</a>
+                                                    
+                                                </Grid.Column>
+                                                
+                                                
                                             </Grid.Row>
                                             <Grid.Row>
                                                 <Grid.Column width={6} className="gridLabel inputContainer">
@@ -715,9 +695,8 @@ export class SearchNodulePanel extends Component {
                                     <Grid.Column width={13} className="gridLabel">
                                     <Grid inverted divided>
                                         <Grid.Row >
-                                            <Grid.Column style={{width:'9%'}} >
-                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>毛刺</a> */}
-                                            <Grid.Column style={{width:'8%'}} >    
+                                            
+                                            <Grid.Column style={{width:'9%'}} >    
                                                 <Dropdown text='毛刺征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
                                                         <Dropdown.Item onClick={this.handleImageLabels}>毛刺</Dropdown.Item>
@@ -833,6 +812,9 @@ export class SearchNodulePanel extends Component {
                     <Grid.Row className="conlabel">
                         <Grid.Column width={2}>
                             <Header as='h3' inverted >结节数目:{this.state.totalResults}</Header>
+                        </Grid.Column>
+                        <Grid.Column>
+                            
                         </Grid.Column>
                      
                     </Grid.Row>

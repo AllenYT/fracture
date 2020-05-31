@@ -163,15 +163,16 @@ export class SearchPanel extends Component {
             return (
                 <div>
 
-                <Grid>
-                    <Grid.Row className="banner">
+                <Grid className="banner">
+                    <Grid.Row >
                             <Grid.Column width={2}></Grid.Column>
                             <Grid.Column width={12}>
                                 <Statistics/>
                             </Grid.Column>
                             <Grid.Column width={2}></Grid.Column>
                     </Grid.Row>
-                    <Grid.Row className="data-content">
+                    {/* <Grid.Row className="data-content"> */}
+                    <Grid.Row>
                         <Grid.Column width={2}></Grid.Column>
 
                         <Grid.Column width={12}>

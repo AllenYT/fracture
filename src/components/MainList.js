@@ -177,7 +177,7 @@ class MainList extends Component {
                                     />
                                 </td>
                                 <td>
-                                    <label ref={this.contextRef}>hidden ref</label>
+                                    <label ref={this.contextRef} style={{visibility:'hidden'}}>hidden ref</label>
                                 </td>
                             </tr>
                         </Grid.Column>
