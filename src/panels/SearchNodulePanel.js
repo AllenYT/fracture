@@ -13,14 +13,11 @@ import { isType } from '@babel/types'
 const config = require('../config.json')
 const recordConfig = config.record
 const draftConfig = config.draft
-const style = {
-    textAlign: 'center',
-    marginTop: '300px'
-  }
-let panels=[]//labels赋值
-let idx=0//labels内部索引
-let  nums={'危险':null,'毛刺':null,'分叶':null,'钙化':null,'实性':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,
-'1cm-1.3cm':null,'1.3cm-3cm':null,'>=3cm':null}//限制labels数量
+
+
+let  nums={'危险':null,'毛刺征':null,'分叶征':null,'钙化':null,'密度':null,'胸膜凹陷征':null,'空洞征':null,'血管集束征':null,
+'空泡征':null,'支气管充气征':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,'1cm-1.3cm':null,'1.3cm-3cm':null,
+'>=3cm':null}//限制labels数量
 
 
 export class SearchNodulePanel extends Component {
@@ -39,14 +36,20 @@ export class SearchNodulePanel extends Component {
             spiculation: -1,
             lobulation:-1,
             texture:-1,
+            pin:-1,
+            cav:-1,
+            vss:-1,
+            bea:-1,
+            bro:-1,
             totalPage: 1,//全部页面
             activePage:'1',
             // volumeStart:-1,
             // volumeEnd:-1,
-            diameterStart:0,
-            diameterEnd:5,
-            totalResults:1,
+            // diameterStart:0,
+            // diameterEnd:5,
+            totalResults:0,
             diameterContainer:'0_5'
+            
         }
         this.handleLabels = this
             .handleLabels
@@ -72,8 +75,9 @@ export class SearchNodulePanel extends Component {
     }
 
     componentDidMount() {
-        nums={'危险':null,'毛刺':null,'分叶':null,'钙化':null,'实性':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,
-    '1cm-1.3cm':null,'1.3cm-3cm':null,'>=3cm':null}//限制labels数量
+        nums={'危险':null,'毛刺征':null,'分叶征':null,'钙化':null,'密度':null,'胸膜凹陷征':null,'空洞征':null,'血管集束征':null,
+'空泡征':null,'支气管充气征':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,'1cm-1.3cm':null,'1.3cm-3cm':null,
+'>=3cm':null}//限制labels数量
         this.getTotalPages()
     }
 
@@ -83,7 +87,9 @@ export class SearchNodulePanel extends Component {
             this.getTotalPages()
         }
         if(prevState.malignancy !== this.state.malignancy || prevState.calcification !== this.state.calcification ||prevState.spiculation != this.state.spiculation
-            ||prevState.lobulation !== this.state.lobulation||prevState.texture !== this.state.texture){
+            ||prevState.lobulation !== this.state.lobulation||prevState.texture !== this.state.texture||prevState.pin !== this.state.pin
+            ||prevState.cav !== this.state.cav||prevState.vss !== this.state.vss||prevState.bea !== this.state.bea
+            ||prevState.bro !== this.state.bro){
                 this.getTotalPages()
         }
         if(prevState.activePage!==this.state.activePage){
@@ -102,10 +108,12 @@ export class SearchNodulePanel extends Component {
             spiculation: this.state.spiculation,
             lobulation:this.state.lobulation,
             texture:this.state.texture,
-            diameters:this.state.diameterContainer
-            // volumeStart:this.state.volumeStart,
-            // volumeEnd:this.state.volumeEnd,
-            
+            diameters:this.state.diameterContainer,
+            pin:this.state.pin,
+            cav:this.state.cav,
+            vss:this.state.vss,
+            bea:this.state.bea,
+            bro:this.state.bro
         }
         axios.post(recordConfig.filterNodulesMulti, qs.stringify(params)).then((response) => {
             const data = response.data
@@ -126,7 +134,12 @@ export class SearchNodulePanel extends Component {
             page:this.state.activePage,
             // volumeStart:this.state.volumeStart,
             // volumeEnd:this.state.volumeEnd,
-            diameters:this.state.diameterContainer
+            diameters:this.state.diameterContainer,
+            pin:this.state.pin,
+            cav:this.state.cav,
+            vss:this.state.vss,
+            bea:this.state.bea,
+            bro:this.state.bro
         }
         
         axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
@@ -135,22 +148,28 @@ export class SearchNodulePanel extends Component {
             
             console.log('pages:',data)
             for (const idx in data){
-                let sequence={'patienId':'','patientSex':'','patientBirth':'','volume':0,'diameter':0,'malignancy':'','lobulation':'',
-                'spiculation':'','texture':'','calcification':'','caseId':'','noduleNo':'','status':0}
+                let sequence={'病人ID':'','性别':'','年龄':'','结节体积(cm³)':0,'结节直径(cm)':0,'危险程度':'','分叶征':'',
+                '毛刺征':'','密度':'','钙化':'','胸膜凹陷征':'','空洞征':'','血管集束征':'','空泡征':'','支气管充气征':'',
+                'caseId':'','status':''}
                 
                 if(data[idx]['volume']===undefined){
                     console.log(data[idx])
                 }
-                sequence['patienId']=data[idx]['patienId']
-                sequence['patientSex']=data[idx]['patientSex']==='M'?'男':'女';
-                sequence['patientBirth']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
-                sequence['volume']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
-                sequence['diameter']=Math.floor(data[idx]['diameter'] * 100) / 100
-                sequence['malignancy']=data[idx]['malignancy']==2?'高危 ':'低危'
-                sequence['lobulation']=data[idx]['lobulation']==2?'是 ':'否'
-                sequence['spiculation']=data[idx]['spiculation']==2?'是 ':'否'
-                sequence['texture']=data[idx]['texture']==2?'实性 ':'磨玻璃'
-                sequence['calcification']=data[idx]['calcification']==2?'是 ':'否'
+                sequence['病人ID']=data[idx]['patienId']
+                sequence['性别']=data[idx]['patientSex']==='M'?'男':'女';
+                sequence['年龄']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
+                sequence['结节体积(cm³)']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
+                sequence['结节直径(cm)']=Math.floor(data[idx]['diameter'] * 100) / 100
+                sequence['危险程度']=data[idx]['malignancy']==2?'高危':'低危'
+                sequence['分叶征']=data[idx]['lobulation']==2?'是':'否'
+                sequence['毛刺征']=data[idx]['spiculation']==2?'是':'否'
+                sequence['密度']=data[idx]['texture']==2?'实性':'磨玻璃'
+                sequence['钙化']=data[idx]['calcification']==2?'是':'否'
+                sequence['胸膜凹陷征']=data[idx]['pin']===undefined?'':data[idx]['pin']===2?'是':'否'
+                sequence['空洞征']=data[idx]['cav']===undefined?'':data[idx]['cav']===2?'是':'否'
+                sequence['血管集束征']=data[idx]['vss']===undefined?'':data[idx]['vss']===2?'是':'否'
+                sequence['空泡征']=data[idx]['bea']===undefined?'':data[idx]['bea']===2?'是':'否'
+                sequence['支气管充气征']=data[idx]['bro']===undefined?'':data[idx]['cav']===2?'是':'否'
                 sequence['caseId']=data[idx]['caseId']
                 sequence['noduleNo']=data[idx]['noduleNo']
                 sequence['status']=data[idx]['status']
@@ -192,26 +211,32 @@ export class SearchNodulePanel extends Component {
             if(data[idx]['volume']===undefined){
                 console.log(data[idx])
             }
-            sequence['patienId']=data[idx]['patienId']
-            sequence['patientSex']=data[idx]['patientSex']==='M'?'男':'女';
-            sequence['patientBirth']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
-            sequence['volume']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
-            sequence['diameter']=Math.floor(data[idx]['diameter'] * 100) / 100
-            sequence['malignancy']=data[idx]['malignancy']==2?'高危 ':'低危'
-            sequence['lobulation']=data[idx]['lobulation']==2?'是 ':'否'
-            sequence['spiculation']=data[idx]['spiculation']==2?'是 ':'否'
-            sequence['texture']=data[idx]['texture']==2?'实性 ':'磨玻璃'
-            sequence['calcification']=data[idx]['calcification']==2?'是 ':'否'
-            sequence['caseId']=data[idx]['caseId']
-            sequence['noduleNo']=data[idx]['noduleNo']
-            sequence['status']=data[idx]['status']
+            sequence['病人ID']=data[idx]['patienId']
+                sequence['性别']=data[idx]['patientSex']==='M'?'男':'女';
+                sequence['年龄']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
+                sequence['结节体积(cm³)']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
+                sequence['结节直径(cm)']=Math.floor(data[idx]['diameter'] * 100) / 100
+                sequence['危险程度']=data[idx]['malignancy']==2?'高危':'低危'
+                sequence['分叶征']=data[idx]['lobulation']==2?'是':'否'
+                sequence['毛刺征']=data[idx]['spiculation']==2?'是':'否'
+                sequence['密度']=data[idx]['texture']==2?'实性':'磨玻璃'
+                sequence['钙化']=data[idx]['calcification']==2?'是':'否'
+                sequence['胸膜凹陷征']=data[idx]['pin']===undefined?'':data[idx]['pin']===2?'是':'否'
+                sequence['空洞征']=data[idx]['cav']===undefined?'':data[idx]['cav']===2?'是':'否'
+                sequence['血管集束征']=data[idx]['vss']===undefined?'':data[idx]['vss']===2?'是':'否'
+                sequence['空泡征']=data[idx]['bea']===undefined?'':data[idx]['bea']===2?'是':'否'
+                sequence['支气管充气征']=data[idx]['bro']===undefined?'':data[idx]['cav']===2?'是':'否'
+                sequence['caseId']=data[idx]['caseId']
+                sequence['noduleNo']=data[idx]['noduleNo']
+                sequence['status']=data[idx]['status']
             datalists.push(sequence)
             
         }
         // console.log('lists1:',datalists)
         var arr = []
         var value=[]
-        arr[0] =  ["病人ID","性别","年龄","结节体积(cm³)", "结节直径(cm)", "危险程度", "分叶", "毛刺", "实性", "钙化"]
+        arr[0] =  ["病人ID","性别","年龄","结节体积(cm³)", "结节直径(cm)", "危险程度", "分叶征", "毛刺征", "密度", "钙化",
+         "胸膜凹陷征", "空洞征", "血管集束征", "空泡征", "支气管充气征"]
         for(var i =0;i<datalists.length;i++){
             value = []
             for(var key in datalists[i]){
@@ -282,16 +307,16 @@ export class SearchNodulePanel extends Component {
                 nums['危险']=null
                     this.setState({malignancy:-1,activePage:'1'});break
             case '毛刺':
-                nums['毛刺']=null
+                nums['毛刺征']=null
                 this.setState({spiculation:-1,activePage:'1'}) ;break
             case '非毛刺':
-                nums['毛刺']=null
+                nums['毛刺征']=null
                 this.setState({spiculation:-1,activePage:'1'}) ;break
             case '分叶':
-                nums['分叶']=null
+                nums['分叶征']=null
                 this.setState({lobulation:-1,activePage:'1'}) ;break
             case '非分叶':
-                nums['分叶']=null
+                nums['分叶征']=null
                 this.setState({lobulation:-1,activePage:'1'}) ;break
             case '钙化':
                 nums['钙化']=null
@@ -300,14 +325,44 @@ export class SearchNodulePanel extends Component {
                 nums['钙化']=null
                 this.setState({calcification:-1,activePage:'1'}) ;break
             case '实性':
-                nums['实性']=null
+                nums['密度']=null
                 this.setState({texture:-1,activePage:'1'}) ;break
             case '半实性':
-                nums['半实性']=null
+                nums['密度']=null
                 this.setState({texture:-1,activePage:'1'}) ;break
             case '磨玻璃':
-                nums['实性']=null
+                nums['密度']=null
                 this.setState({texture:-1,activePage:'1'}) ;break
+            case '胸膜凹陷':
+                nums['胸膜凹陷征']=null
+                this.setState({pin:-1,activePage:'1'}) ;break
+            case '非胸膜凹陷':
+                nums['胸膜凹陷征']=null
+                this.setState({pin:-1,activePage:'1'}) ;break
+            case '空洞':
+                nums['空洞征']=null
+                this.setState({cav:-1,activePage:'1'}) ;break
+            case '非空洞':
+                nums['空洞征']=null
+                this.setState({cav:-1,activePage:'1'}) ;break
+            case '血管集束':
+                nums['血管集束征']=null
+                this.setState({vss:-1,activePage:'1'}) ;break
+            case '非血管集束':
+                nums['血管集束征']=null
+                this.setState({vss:-1,activePage:'1'}) ;break
+            case '空泡':
+                nums['空泡征']=null
+                this.setState({bea:-1,activePage:'1'}) ;break
+            case '非空泡':
+                nums['空泡征']=null
+                this.setState({bea:-1,activePage:'1'}) ;break
+            case '支气管充气':
+                nums['支气管充气征']=null
+                this.setState({bro:-1,activePage:'1'}) ;break
+            case '非支气管充气':
+                nums['支气管充气征']=null
+                this.setState({bro:-1,activePage:'1'}) ;break
             case '<=0.3cm':
                 nums['<=0.3cm']=null
                 this.setState((state, props) => ({
@@ -437,16 +492,31 @@ export class SearchNodulePanel extends Component {
     handleImageLabels(e){
         const text=e.target.innerHTML
         if(text==='毛刺'||text==='非毛刺'){
-            nums['毛刺']=text
+            nums['毛刺征']=text
         }
         else if(text==='分叶'||text==='非分叶'){
-            nums['分叶']=text
+            nums['分叶征']=text
         }
         else if(text==='钙化'||text==='非钙化'){
             nums['钙化']=text
         }
         else if(text==='实性'||text==='半实性'||text==='磨玻璃'){
-            nums['实性']=text
+            nums['密度']=text
+        }
+        else if(text==='胸膜凹陷'||text==='非胸膜凹陷'){
+            nums['胸膜凹陷征']=text
+        }
+        else if(text==='空洞'||text==='非空洞'){
+            nums['空洞征']=text
+        }
+        else if(text==='血管集束'||text==='非血管集束'){
+            nums['血管集束征']=text
+        }
+        else if(text==='空泡'||text==='非空泡'){
+            nums['空泡征']=text
+        }
+        else if(text==='支气管充气'||text==='非支气管充气'){
+            nums['支气管充气征']=text
         }
 
         switch(text){
@@ -468,6 +538,27 @@ export class SearchNodulePanel extends Component {
                 this.setState({texture:3,activePage:'1'});break
             case '磨玻璃':
                 this.setState({texture:1,activePage:'1'});break
+            case '胸膜凹陷':
+                this.setState({pin:2,activePage:'1'});break
+            case '非胸膜凹陷':
+                this.setState({pin:1,activePage:'1'});break
+            case '空洞':
+                this.setState({cav:2,activePage:'1'});break
+            case '非空洞':
+                this.setState({cav:1,activePage:'1'});break
+            case '血管集束':
+                this.setState({vss:2,activePage:'1'});break
+            case '非血管集束':
+                this.setState({vss:1,activePage:'1'});break
+            case '空泡':
+                this.setState({bea:2,activePage:'1'});break
+            case '非空泡':
+                this.setState({bea:1,activePage:'1'});break
+            case '支气管充气':
+                this.setState({bro:2,activePage:'1'});break
+            case '非支气管充气':
+                this.setState({bro:1,activePage:'1'});break
+
         }
     }
 
@@ -527,7 +618,7 @@ export class SearchNodulePanel extends Component {
                         <Grid.Column width={2}></Grid.Column>
                         <Grid.Column width={12}>
                             <Grid inverted divided className="gridcontainer">
-                                <Grid.Row className="gridRow">
+                                <Grid.Row className="gridRow" columns={3}>
                                     <Grid.Column width={3} className="gridCategory">
                                         <strong>风险程度</strong>
                                     </Grid.Column>
@@ -544,16 +635,9 @@ export class SearchNodulePanel extends Component {
                                     </Grid.Column>
                                     <Grid.Column width={13} className="gridLabel">
                                         <Grid inverted divided>
-                                            <Grid.Row>
-                                                <Grid.Column style={{width:'8%'}} >
-                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>毛刺</a> */}
-                                                    <Dropdown text='毛刺' style={{color:'#66cfec'}} id='feaDropdown'>
-                                                        <Dropdown.Menu style={{background:'black'}}>
-                                                            <Dropdown.Item onClick={this.handleImageLabels}>毛刺</Dropdown.Item>
-                                                            <Dropdown.Item onClick={this.handleImageLabels}>非毛刺</Dropdown.Item>
-                                                            
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                            <Grid.Row columns={6}>
+                                                <Grid.Column width={2} className="gridLabel">
+                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&lt;=0.3cm</a>
                                                     
                                                 </Grid.Column>
                                                 <Grid.Column style={{width:'8%'}} >
@@ -630,11 +714,11 @@ export class SearchNodulePanel extends Component {
                                     </Grid.Column>
                                     <Grid.Column width={13} className="gridLabel">
                                     <Grid inverted divided>
-                                        <Grid.Row>
-                                            <Grid.Column style={{width:'8%'}} >
+                                        <Grid.Row >
+                                            <Grid.Column style={{width:'9%'}} >
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>毛刺</a> */}
-                                            <Grid.Column style={{width:'8%'}} >
-                                                <Dropdown text='毛刺' style={{color:'#66cfec'}} id='feaDropdown'>
+                                            <Grid.Column style={{width:'8%'}} >    
+                                                <Dropdown text='毛刺征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
                                                         <Dropdown.Item onClick={this.handleImageLabels}>毛刺</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.handleImageLabels}>非毛刺</Dropdown.Item>
@@ -643,9 +727,9 @@ export class SearchNodulePanel extends Component {
                                                 </Dropdown>
                                                 
                                             </Grid.Column>
-                                            <Grid.Column style={{width:'8%'}} >
+                                            <Grid.Column style={{width:'9%'}} >
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
-                                            <Dropdown text='分叶' style={{color:'#66cfec'}} id='feaDropdown'>
+                                            <Dropdown text='分叶征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
                                                         <Dropdown.Item onClick={this.handleImageLabels}>分叶</Dropdown.Item>
                                                         <Dropdown.Item onClick={this.handleImageLabels}>非分叶</Dropdown.Item>
@@ -674,7 +758,7 @@ export class SearchNodulePanel extends Component {
                                             </Grid.Column> */}
                                             <Grid.Column style={{width:'8%'}} >
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>实性</a> */}
-                                            <Dropdown text='实性' style={{color:'#66cfec'}} id='feaDropdown'>
+                                            <Dropdown text='密度' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
                                                     <Dropdown.Item onClick={this.handleImageLabels}>实性</Dropdown.Item>
                                                         <Dropdown.Item >半实性</Dropdown.Item>
@@ -682,14 +766,57 @@ export class SearchNodulePanel extends Component {
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                             </Grid.Column>
-                                            {/* <Grid.Column width={2} className="gridLabel">
-                                            <a style={{color:'#66cfec'}} onClick={this.handleLabels}>血管集束征</a>
-                                                
+                                            <Grid.Column style={{width:'12%'}} >
+                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
+                                            <Dropdown text='胸膜凹陷征' style={{color:'#66cfec'}} id='feaDropdown'>
+                                                    <Dropdown.Menu style={{background:'black'}}>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>胸膜凹陷</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>非胸膜凹陷</Dropdown.Item>
+                                                        
+                                                    </Dropdown.Menu>
+                                            </Dropdown>
                                             </Grid.Column>
-                                            <Grid.Column width={2} className="gridLabel">
-                                            <a style={{color:'#66cfec'}} onClick={this.handleLabels}>含支气管影</a>
-                                                
-                                            </Grid.Column> */}
+                                            <Grid.Column style={{width:'9%'}} >
+                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
+                                            <Dropdown text='空洞征' style={{color:'#66cfec'}} id='feaDropdown'>
+                                                    <Dropdown.Menu style={{background:'black'}}>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>空洞</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>非空洞</Dropdown.Item>
+                                                        
+                                                    </Dropdown.Menu>
+                                            </Dropdown>
+                                            </Grid.Column>
+                                            <Grid.Column style={{width:'12%'}} >
+                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
+                                            <Dropdown text='血管集束征' style={{color:'#66cfec'}} id='feaDropdown'>
+                                                    <Dropdown.Menu style={{background:'black'}}>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>血管集束</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>非血管集束</Dropdown.Item>
+                                                        
+                                                    </Dropdown.Menu>
+                                            </Dropdown>
+                                            </Grid.Column>
+                                            <Grid.Column style={{width:'9%'}} >
+                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
+                                            <Dropdown text='空泡征' style={{color:'#66cfec'}} id='feaDropdown'>
+                                                    <Dropdown.Menu style={{background:'black'}}>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>空泡</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>非空泡</Dropdown.Item>
+                                                        
+                                                    </Dropdown.Menu>
+                                            </Dropdown>
+                                            </Grid.Column>
+                                            <Grid.Column style={{width:'13%'}} >
+                                            {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
+                                            <Dropdown text='支气管充气征' style={{color:'#66cfec'}} id='feaDropdown'>
+                                                    <Dropdown.Menu style={{background:'black'}}>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>支气管充气</Dropdown.Item>
+                                                        <Dropdown.Item onClick={this.handleImageLabels}>非支气管充气</Dropdown.Item>
+                                                        
+                                                    </Dropdown.Menu>
+                                            </Dropdown>
+                                            </Grid.Column>
+                                            
                                         </Grid.Row>
                                     </Grid>
                                     </Grid.Column>
@@ -713,21 +840,26 @@ export class SearchNodulePanel extends Component {
                         <Grid.Column width={2}></Grid.Column>
                         <Grid.Column width={12} id="container">
                             <div style={{minHeight:590}}>
-                            <Table celled inverted textAlign='center' fixed id="table">
+                            <Table celled inverted textAlign='center'  id="table" >
                                 <Table.Header id='table-header'>
                                     <Table.Row>
-                                        <Table.HeaderCell>病人ID</Table.HeaderCell>
-                                        <Table.HeaderCell>性别</Table.HeaderCell>
-                                        <Table.HeaderCell>年龄</Table.HeaderCell>
-                                        <Table.HeaderCell>结节体积(cm³)</Table.HeaderCell>
-                                        <Table.HeaderCell>结节直径(cm)</Table.HeaderCell>
+                                        <Table.HeaderCell >病人ID</Table.HeaderCell>
+                                        <Table.HeaderCell  >性别</Table.HeaderCell>
+                                        <Table.HeaderCell  >年龄</Table.HeaderCell>
+                                        <Table.HeaderCell  >结节体积(cm³)</Table.HeaderCell>
+                                        <Table.HeaderCell  >结节直径(cm)</Table.HeaderCell>
                                         
                                         <Table.HeaderCell>危险程度</Table.HeaderCell>
-                                        <Table.HeaderCell>分叶</Table.HeaderCell>
-                                        <Table.HeaderCell>毛刺</Table.HeaderCell>
-                                        <Table.HeaderCell>实性</Table.HeaderCell>
-                                        {/* <Table.HeaderCell>caseId</Table.HeaderCell> */}
+                                        <Table.HeaderCell>分叶征</Table.HeaderCell>
+                                        <Table.HeaderCell>毛刺征</Table.HeaderCell>
+                                        <Table.HeaderCell>密度</Table.HeaderCell>
+                                        
                                         <Table.HeaderCell>钙化</Table.HeaderCell>
+                                        <Table.HeaderCell >胸膜凹陷征</Table.HeaderCell>
+                                        <Table.HeaderCell>空洞征</Table.HeaderCell>
+                                        <Table.HeaderCell >血管集束征</Table.HeaderCell>
+                                        <Table.HeaderCell>空泡征</Table.HeaderCell>
+                                        <Table.HeaderCell >支气管充气征</Table.HeaderCell>
                                         <Table.HeaderCell>查看详情</Table.HeaderCell>
                                     </Table.Row>
                                 </Table.Header>
@@ -738,28 +870,26 @@ export class SearchNodulePanel extends Component {
                                         // console.log('content:',content)
                                         return (
                                             <Table.Row key={index}>
-                                                {Object.entries(content).map((key,value)=>{
-                                                    // console.log('key:',key[0])
-                                                    if(key[0]==='caseId'){
-                                                        caseId=key[1]
-                                                    }
-                                                    else if(key[0]==='noduleNo'){
-                                                        noduleNo=key[1]
-                                                    }
-                                                    else if(key[0]==='status'){
-
-                                                    }
-                                                    else{
-                                                        return(
-                                                            <Table.Cell key={value}>{key[1]}</Table.Cell>
-                                                        )
-                                                    }
-                                                })}
+                                                <Table.Cell >{content['病人ID']}</Table.Cell>
+                                                <Table.Cell >{content['性别']}</Table.Cell>
+                                                <Table.Cell >{content['年龄']}</Table.Cell>
+                                                <Table.Cell >{content['结节体积(cm³)']}</Table.Cell>
+                                                <Table.Cell >{content['结节直径(cm)']}</Table.Cell>
+                                                <Table.Cell >{content['危险程度']}</Table.Cell>
+                                                <Table.Cell >{content['分叶征']}</Table.Cell>
+                                                <Table.Cell >{content['毛刺征']}</Table.Cell>
+                                                <Table.Cell >{content['密度']}</Table.Cell>
+                                                <Table.Cell >{content['钙化']}</Table.Cell>
+                                                <Table.Cell >{content['胸膜凹陷征']}</Table.Cell>
+                                                <Table.Cell >{content['空洞征']}</Table.Cell>
+                                                <Table.Cell >{content['血管集束征']}</Table.Cell>
+                                                <Table.Cell >{content['空泡征']}</Table.Cell>
+                                                <Table.Cell >{content['支气管充气征']}</Table.Cell>
                                                 <Table.Cell>
                                                     <Button 
                                                         icon='right arrow'
                                                         className='ui green inverted button' 
-                                                        onClick={this.handleLinkClick.bind(this,caseId,noduleNo)}
+                                                        onClick={this.handleLinkClick.bind(this,content['caseId'],content['noduleNo'])}
                                                         size='mini'
                                                         // data-id={dataset}
                                                     ></Button>
