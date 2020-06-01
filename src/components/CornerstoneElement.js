@@ -699,7 +699,10 @@ class CornerstoneElement extends Component {
         const boxes = this.state.boxes
         var hist_data = boxes[idx].nodule_hist
         console.log('hist_data',hist_data)
-        this.visualize(hist_data,idx)
+        if(hist_data!==undefined){
+            this.visualize(hist_data,idx)
+        }
+        
         // var data = e.target.value
         // data = JSON.stringify(data)
         // data = JSON.parse(data)
@@ -953,7 +956,7 @@ class CornerstoneElement extends Component {
                                             {
                                         this.state.readonly?<Dropdown  style={selectStyle} text={dropdownText} disabled/>:
                                         idx<8?
-                                        <Dropdown  style={selectStyle} text={dropdownText}>
+                                        <Dropdown style={selectStyle} text={dropdownText}>
                                             <Dropdown.Menu>
                                                 <Dropdown.Header>肺叶</Dropdown.Header>
                                                 <Dropdown.Item>

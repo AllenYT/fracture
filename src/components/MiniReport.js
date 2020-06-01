@@ -163,87 +163,79 @@ class MiniReport extends Component{
                 // console.log(visId)
             document.getElementById(visId).innerHTML=''
             const hist_data=nodule.nodule_hist
-            let bins=hist_data.bins
-            let ns=hist_data.n
-            // console.log('bins',bins)
-            // console.log('ns',ns)
-            var histogram = []
-            var line=[]
-            for (var i = 0; i < bins.length-1; i++) {
-                var obj = {}
-                obj.value = [bins[i],bins[i+1]]
-                obj.count=ns[i]
-                histogram.push(obj)
-                
-                var obj2={}
-                obj2.value=bins[i]
-                obj2.count=ns[i]
-                line.push(obj2)
-            }
-            console.log('histogram',histogram)
-            console.log('line',line)
-            const ds = new DataSet();
-            const dv = ds.createView().source(histogram)
-            // const dv2=ds.createView().source(line)
-
-            // dv.transform({
-            //     type: 'bin.histogram',
-            //     field: 'value',
-            //     binWidth: 5000,
-            //     as: ['value', 'count'],
-            // })
-            const chart = new Chart({
-                container: visId,
-                // forceFit: true,
-                forceFit:true,
-                height: 300,
-                width:400
-                // padding: [30,30,'auto',30]
-            });
-            // chart.tooltip({
-            //     crosshairs: false,
-            //     inPlot: false,
-            //     position: 'top'
-            //   })
-            let view1=chart.view()
-            // view1.axis(false)
-            view1.source(dv, {
-                value: {
-                //   nice: true,
-                    minLimit: bins[0]-50,
-                    maxLimit:bins[bins.length-1]+50,
-                //   tickCount:10
-                },
-                count: {
-                //   max: 350000,
-                //   tickInterval:50000
-                    tickCount:10
+            if(hist_data!==undefined){
+                let bins=hist_data.bins
+                let ns=hist_data.n
+                // console.log('bins',bins)
+                // console.log('ns',ns)
+                var histogram = []
+                var line=[]
+                for (var i = 0; i < bins.length-1; i++) {
+                    var obj = {}
+                    obj.value = [bins[i],bins[i+1]]
+                    obj.count=ns[i]
+                    histogram.push(obj)
+                    
+                    var obj2={}
+                    obj2.value=bins[i]
+                    obj2.count=ns[i]
+                    line.push(obj2)
                 }
-                })
-            // view1.source(dv)
-            view1.interval().position('value*count')
-
-            var view2 = chart.view()
-            view2.axis(false)
-            // view2.source(line)
-            view2.source(line,{
-                value: {
-                    // nice: true,
-                    minLimit: bins[0]-50,
-                    maxLimit:bins[bins.length-1]+50,
-                    // tickCount:10
+                console.log('histogram',histogram)
+                console.log('line',line)
+                const ds = new DataSet();
+                const dv = ds.createView().source(histogram)
+                
+                const chart = new Chart({
+                    container: visId,
+                    // forceFit: true,
+                    forceFit:true,
+                    height: 300,
+                    width:400
+                    // padding: [30,30,'auto',30]
+                });
+                
+                let view1=chart.view()
+                // view1.axis(false)
+                view1.source(dv, {
+                    value: {
+                    //   nice: true,
+                        minLimit: bins[0]-50,
+                        maxLimit:bins[bins.length-1]+50,
+                    //   tickCount:10
                     },
                     count: {
-                    // max: 350000,
-                    tickCount:10
+                    //   max: 350000,
+                    //   tickInterval:50000
+                        tickCount:10
                     }
-            })
-            view2.line().position('value*count').style({
-                stroke: 'grey',
-                
-                }).shape('smooth')
-            // console.log('chart',dv)
-            chart.render()
+                    })
+                // view1.source(dv)
+                view1.interval().position('value*count')
+    
+                var view2 = chart.view()
+                view2.axis(false)
+                // view2.source(line)
+                view2.source(line,{
+                    value: {
+                        // nice: true,
+                        minLimit: bins[0]-50,
+                        maxLimit:bins[bins.length-1]+50,
+                        // tickCount:10
+                        },
+                        count: {
+                        // max: 350000,
+                        tickCount:10
+                        }
+                })
+                view2.line().position('value*count').style({
+                    stroke: 'grey',
+                    
+                    }).shape('smooth')
+                // console.log('chart',dv)
+                chart.render()
+            }
+            
             })
             if(document.getElementById(nodule_id) != null){
                 nodules.map((nodule,index)=>{
