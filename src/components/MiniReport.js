@@ -6,6 +6,9 @@ import * as cornerstone from "cornerstone-core"
 import * as cornerstoneMath from "cornerstone-math"
 import * as cornerstoneTools from "cornerstone-tools"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
+import { Chart } from '@antv/g2'
+import DataSet from '@antv/data-set'
+
 const config = require('../config.json')
 const draftConfig=config.draft
 cornerstoneTools.external.cornerstone = cornerstone
@@ -34,9 +37,11 @@ class MiniReport extends Component{
             viewport: cornerstone.getDefaultViewport(null, undefined),
         }
         this.showImages = this.showImages.bind(this)
+        this.visualize = this.visualize.bind(this)
     }
 
     componentDidMount(){
+        console.log('mount')
         const params = {
             caseId: this.state.caseId,
             username: this.state.username
@@ -44,48 +49,253 @@ class MiniReport extends Component{
         axios.post(draftConfig.structedReport, qs.stringify(params)).then((response) => {
             const data = response.data
             console.log('report:',data,params)
-            
             this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
                 patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
            
         }).catch((error) => console.log(error))
-
+        
         
     }
+
+    
+    visualize(hist_data,idx){
+        const visId = 'visual-' + idx
+        document.getElementById(visId).innerHTML=''
+        let bins=hist_data.bins
+        let ns=hist_data.n
+        console.log('bins',bins)
+        console.log('ns',ns)
+        var histogram = []
+        var line=[]
+        for (var i = 0; i < bins.length-1; i++) {
+            var obj = {}
+            obj.value = [bins[i],bins[i+1]]
+            obj.count=ns[i]
+            histogram.push(obj)
+            
+            var obj2={}
+            obj2.value=bins[i]
+            obj2.count=ns[i]
+            line.push(obj2)
+        }
+        console.log('histogram',histogram)
+        console.log('line',line)
+        const ds = new DataSet();
+        const dv = ds.createView().source(histogram)
+        // const dv2=ds.createView().source(line)
+
+        // dv.transform({
+        //     type: 'bin.histogram',
+        //     field: 'value',
+        //     binWidth: 5000,
+        //     as: ['value', 'count'],
+        // })
+        const chart = new Chart({
+            container: visId,
+            // forceFit: true,
+            forceFit:true,
+            height: 300,
+            width:400,
+            // padding: [30,30,'auto',30]
+        });
+        // chart.tooltip({
+        //     crosshairs: false,
+        //     inPlot: false,
+        //     position: 'top'
+        //   })
+        let view1=chart.view()
+        // view1.axis(false)
+        view1.source(dv, {
+            value: {
+            //   nice: true,
+                minLimit: bins[0]-50,
+                maxLimit:bins[bins.length-1]+50,
+            //   tickCount:20
+            },
+            count: {
+            //   max: 350000,
+            //   tickInterval:50000
+                tickCount:10
+            }
+            })
+        // view1.source(dv)
+        view1.interval().position('value*count')
+
+        var view2 = chart.view()
+        view2.axis(false)
+        // view2.source(line)
+        view2.source(line,{
+            value: {
+                // nice: true,
+                minLimit: bins[0]-50,
+                maxLimit:bins[bins.length-1]+50,
+                // tickCount:10
+                },
+                count: {
+                // max: 350000,
+                tickCount:10
+                }
+        })
+        view2.line().position('value*count').style({
+            stroke: 'white',
+            
+            }).shape('smooth')
+        
+        chart.render()
+    }
+    
 
     
     showImages(){
         const nodules = this.state.nodules
         const imageIds = this.state.imageIds
-        console.log('imagesid',imageIds)
+        if(nodules.length===0){
+            return
+        }
+        // console.log('imagesid',imageIds)
         let nodule_id = 'nodule-' + nodules[0].nodule_no + '-' + nodules[0].slice_idx
         let num = 0
-        
         var timer = setInterval(function () {
             console.log('timer',num)
             num++
-            if(document.getElementById(nodule_id) != null){
-                for(var i = 0;i<nodules.length;i++){
-                nodule_id = 'nodule-' + nodules[i].nodule_no + '-' + nodules[i].slice_idx
-                // console.log('id',nodule_id)
-                const element = document.getElementById(nodule_id);
-                // console.log('element',element)
-                let imageId = imageIds[nodules[i].slice_idx]
-                console.log('image',imageId)
-                cornerstone.enable(element);
-                // let viewport =this.state.viewport
-                // console.log('viewport',viewport)
-                // viewport.voi.windowWidth = 1600
-                // viewport.voi.windowCenter = -600
-                // cornerstone.setViewport(element, viewport)
-                cornerstone.loadAndCacheImage(imageId).then(function(image) {  
-                    var viewport = cornerstone.getDefaultViewportForImage(element, image);
-                    viewport.voi.windowWidth = 1600
-                    viewport.voi.windowCenter = -600
-                    console.log('viewport',viewport)
-                    cornerstone.displayImage(element, image);
-                });
+            nodules.map((nodule,index)=>{
+                const visId = 'visual' + index
+                // console.log(visId)
+            document.getElementById(visId).innerHTML=''
+            const hist_data=nodule.nodule_hist
+            let bins=hist_data.bins
+            let ns=hist_data.n
+            // console.log('bins',bins)
+            // console.log('ns',ns)
+            var histogram = []
+            var line=[]
+            for (var i = 0; i < bins.length-1; i++) {
+                var obj = {}
+                obj.value = [bins[i],bins[i+1]]
+                obj.count=ns[i]
+                histogram.push(obj)
+                
+                var obj2={}
+                obj2.value=bins[i]
+                obj2.count=ns[i]
+                line.push(obj2)
             }
+            console.log('histogram',histogram)
+            console.log('line',line)
+            const ds = new DataSet();
+            const dv = ds.createView().source(histogram)
+            // const dv2=ds.createView().source(line)
+
+            // dv.transform({
+            //     type: 'bin.histogram',
+            //     field: 'value',
+            //     binWidth: 5000,
+            //     as: ['value', 'count'],
+            // })
+            const chart = new Chart({
+                container: visId,
+                // forceFit: true,
+                forceFit:true,
+                height: 300,
+                width:400
+                // padding: [30,30,'auto',30]
+            });
+            // chart.tooltip({
+            //     crosshairs: false,
+            //     inPlot: false,
+            //     position: 'top'
+            //   })
+            let view1=chart.view()
+            // view1.axis(false)
+            view1.source(dv, {
+                value: {
+                //   nice: true,
+                    minLimit: bins[0]-50,
+                    maxLimit:bins[bins.length-1]+50,
+                //   tickCount:10
+                },
+                count: {
+                //   max: 350000,
+                //   tickInterval:50000
+                    tickCount:10
+                }
+                })
+            // view1.source(dv)
+            view1.interval().position('value*count')
+
+            var view2 = chart.view()
+            view2.axis(false)
+            // view2.source(line)
+            view2.source(line,{
+                value: {
+                    // nice: true,
+                    minLimit: bins[0]-50,
+                    maxLimit:bins[bins.length-1]+50,
+                    // tickCount:10
+                    },
+                    count: {
+                    // max: 350000,
+                    tickCount:10
+                    }
+            })
+            view2.line().position('value*count').style({
+                stroke: 'grey',
+                
+                }).shape('smooth')
+            // console.log('chart',dv)
+            chart.render()
+            })
+            if(document.getElementById(nodule_id) != null){
+                nodules.map((nodule,index)=>{
+                    // console.log('nodules1',nodule)
+                    nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
+                    const element = document.getElementById(nodule_id);
+                    let imageId = imageIds[nodule.slice_idx]
+                    cornerstone.enable(element);
+                    cornerstone.loadAndCacheImage(imageId).then(function(image) { 
+                        // console.log('cache') 
+                        var viewport = cornerstone.getDefaultViewportForImage(element, image);
+                        viewport.voi.windowWidth = 1600
+                        viewport.voi.windowCenter = -600
+                        viewport.scale=2
+                        // console.log('nodules2',nodule)
+                        const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
+                        const yCenter = nodule.y1 + (nodule.y2 - nodule.y1) / 2
+                        viewport.translation.x=250-xCenter
+                        viewport.translation.y=250-yCenter
+                        // console.log('viewport',viewport)
+                        cornerstone.setViewport(element, viewport)
+                        cornerstone.displayImage(element, image);
+                    });
+                })
+            //     for(var i = 0;i<nodules.length;i++){
+            //     nodule_id = 'nodule-' + nodules[i].nodule_no + '-' + nodules[i].slice_idx
+            //     // console.log('id',nodule_id)
+            //     const element = document.getElementById(nodule_id);
+            //     // console.log('element',element)
+            //     let imageId = imageIds[nodules[i].slice_idx]
+            //     cornerstone.enable(element);
+            //     // let viewport =this.state.viewport
+            //     // console.log('viewport',viewport)
+            //     // viewport.voi.windowWidth = 1600
+            //     // viewport.voi.windowCenter = -600
+            //     // cornerstone.setViewport(element, viewport)
+            //     cornerstone.loadAndCacheImage(imageId).then(function(image) { 
+            //         console.log('cache') 
+            //         var viewport = cornerstone.getDefaultViewportForImage(element, image);
+            //         viewport.voi.windowWidth = 1600
+            //         viewport.voi.windowCenter = -600
+            //         viewport.scale=2
+            //         console.log('nodules',i)
+            //         // const xCenter = nodules[0].x1 + (nodules[0].x2 - nodules[0].x1) / 2
+            //         // const yCenter = nodules[0].y1 + (nodules[0].y2 - nodules[0].y1) / 2
+            //         viewport.translation.x=100
+            //         viewport.translation.y=0
+            //         console.log('viewport',viewport)
+            //         cornerstone.setViewport(element, viewport)
+            //         cornerstone.displayImage(element, image);
+            //     });
+            // }
                 clearInterval(timer);
             }
 
@@ -95,6 +305,12 @@ class MiniReport extends Component{
     }
 
     render(){
+        let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
+        let segments={
+        'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
+        'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
+        'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
+        'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
         console.log('type',this.props.type)
         // console.log('image',this.props.images[0])
         return(
@@ -206,6 +422,8 @@ class MiniReport extends Component{
                                 {
                                     this.state.nodules.map((nodule,index)=>{
                                         let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
+                                        let visualId='visual'+index
+                                        console.log('visualId',visualId)
                                         return(
                                             <div key={index}>
                                                 <Divider/>
@@ -221,7 +439,31 @@ class MiniReport extends Component{
                                                     <Table.Body>
                                                         <Table.Row>
                                                             <Table.Cell>Slice Index</Table.Cell>
-                                                            <Table.Cell>{nodule['slice_idx']}</Table.Cell>
+                                                            <Table.Cell>{nodule['slice_idx']+1}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                            <Table.Cell>Lung Place</Table.Cell>
+                                                            <Table.Cell>{nodule['place']===undefined || nodule['place']===0?'':places[nodule['place']]}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                            <Table.Cell>Lung Segment</Table.Cell>
+                                                            <Table.Cell>{nodule['segment']===undefined?'':segments[nodule['segment']]}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                            <Table.Cell>Malignancy</Table.Cell>
+                                                            <Table.Cell>{nodule['malignancy']===2?'高危':'低危'}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                            <Table.Cell>Spiculation</Table.Cell>
+                                                            <Table.Cell>{nodule['spiculation']===2?'毛刺':'非毛刺'}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                            <Table.Cell>Lobulation</Table.Cell>
+                                                            <Table.Cell>{nodule['lobulation']===2?'分叶':'非分叶'}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                            <Table.Cell>Calcification</Table.Cell>
+                                                            <Table.Cell>{nodule['calcification']===2?'钙化':'非钙化'}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
                                                             <Table.Cell>Density</Table.Cell>
@@ -242,8 +484,12 @@ class MiniReport extends Component{
                                                         </Table.Row>
                                                         <Table.Row>
                                                             <Table.Cell>Image Capture</Table.Cell>
-                                                            <Table.Cell><div id={nodule_id}></div></Table.Cell>
+                                                            <Table.Cell><div id={nodule_id} style={{width:'400px',height:'300px'}}></div></Table.Cell>
                                                             {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                            <Table.Cell>Histogram</Table.Cell>
+                                                            <Table.Cell><div id={visualId}></div></Table.Cell>
                                                         </Table.Row>
                                                     </Table.Body>
                                                 </Table>

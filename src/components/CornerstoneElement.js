@@ -393,7 +393,6 @@ class CornerstoneElement extends Component {
             stroke: 'white',
             
             }).shape('smooth')
-        
         chart.render()
     }
 
