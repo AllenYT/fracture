@@ -154,12 +154,11 @@ class MiniReport extends Component{
         }
         // console.log('imagesid',imageIds)
         let nodule_id = 'nodule-' + nodules[0].nodule_no + '-' + nodules[0].slice_idx
-        let num = 0
         var timer = setInterval(function () {
-            console.log('timer',num)
-            num++
-            nodules.map((nodule,index)=>{
-                const visId = 'visual' + index
+            if(document.getElementById(nodule_id) != null){
+                nodules.map((nodule,index)=>{
+                    // console.log('nodules1',nodule)
+                    const visId = 'visual' + index
                 // console.log(visId)
             document.getElementById(visId).innerHTML=''
             const hist_data=nodule.nodule_hist
@@ -235,11 +234,6 @@ class MiniReport extends Component{
                 // console.log('chart',dv)
                 chart.render()
             }
-            
-            })
-            if(document.getElementById(nodule_id) != null){
-                nodules.map((nodule,index)=>{
-                    // console.log('nodules1',nodule)
                     nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
                     const element = document.getElementById(nodule_id);
                     let imageId = imageIds[nodule.slice_idx]
@@ -415,7 +409,7 @@ class MiniReport extends Component{
                                     this.state.nodules.map((nodule,index)=>{
                                         let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
                                         let visualId='visual'+index
-                                        console.log('visualId',visualId)
+                                        // console.log('visualId',visualId)
                                         return(
                                             <div key={index}>
                                                 <Divider/>
