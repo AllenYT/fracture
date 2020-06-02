@@ -33,8 +33,8 @@ class DisplayPanel extends Component {
     }
     const draftParams = {
       caseId: this.state.caseId,
-      // username: this.state.username
-      username:'deepln'
+      username: this.state.username
+      // username:'deepln'
     }
     const readonlyParams = {
       caseId: this.state.caseId,
@@ -80,6 +80,7 @@ class DisplayPanel extends Component {
         // console.log(draftResponse.data)
         // console.log(readonlyResponse.data)
         const readonly = readonlyResponse.data.readonly === 'true'
+        // const readonly = false
         let draftStatus = -1
         if (!readonly)
           draftStatus = readonlyResponse.data.status
@@ -92,7 +93,7 @@ class DisplayPanel extends Component {
           noduleNo: noduleNo,
           
         }
-        console.log('draftdata',draftResponse)
+        console.log('draftdata',draftResponse,draftParams)
         console.log('dataResponse',dataResponse)
         this.setState({stack: stack, show: true})
       })

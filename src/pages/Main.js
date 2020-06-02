@@ -253,7 +253,12 @@ class Main extends Component {
                     {logButtonPlace}
                     {/* </Menu> */}
                     <div id="main">
-                        <Route exact path="/" component={LoginPanel}/>
+                        {
+                            this.state.isLoggedIn?<Route exact path="/" component={DataPanel}/>
+                            :<Route exact path="/" component={LoginPanel}/>
+
+                        }
+                        
                         <Route exact path="/dataCockpit" component={DataPanel}/>
                         <Route path="/searchCase" component={SearchCasePanel} />
                         <Route path="/searchNodule" component={SearchNodulePanel} />
