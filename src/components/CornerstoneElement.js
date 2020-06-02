@@ -1298,7 +1298,12 @@ class CornerstoneElement extends Component {
                                     <Grid.Column width={3} textAlign='center'>
                                         <div>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
                                     </Grid.Column>
-                                    :null
+                                    // :null
+                                    :
+                                    <Grid.Column width={3} textAlign='center'>
+                                        <div>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
+                                    </Grid.Column>
+                                    
                                 }
                                 {/* <div style={{display:'inline-block',marginLeft:5}}>
                                     {this.state.readonly?"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")":null}
