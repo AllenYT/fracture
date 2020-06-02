@@ -46,10 +46,11 @@ class SeriesIdList extends Component {
         }
         axios.post(draftConfig.getDataPath, qs.stringify(params), {headers})
         .then(res => {
-            // console.log('result from server', res.data)
+            console.log('result from server', res.data)
             console.log('params',params)
-            console.log('data',res.data)
+            // console.log('data',res.data)
             this.nextPath('/case/' + params.caseId + '/' + res.data)
+            // this.nextPath('/case/' + params.caseId + '/deepln')
         })
         .catch(err => {
             console.log(err)

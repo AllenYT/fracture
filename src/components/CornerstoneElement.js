@@ -1299,6 +1299,7 @@ class CornerstoneElement extends Component {
                                         <div>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
                                     </Grid.Column>
                                     :null
+                                    
                                 }
                                 {/* <div style={{display:'inline-block',marginLeft:5}}>
                                     {this.state.readonly?"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")":null}
@@ -1364,19 +1365,21 @@ class CornerstoneElement extends Component {
                                         
                                     </div>
                                     {
-                                        this.state.readonly?null:
-                                        <div style={{width:'100%',marginTop:'2%'}}>
+                                        this.state.readonly?
+                                        // <div style={{width:'100%',marginTop:'2%'}}>
+                                         <div style={{display:'inline-block',width:'50%'}}>
+                                            <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
+                                            icon='chart bar' content='特征分析' value={idx} onClick={this.featureAnalysis}>
+                                            </Button>
+                                        </div>
+                                        :
                                         <div style={{display:'inline-block',width:'50%'}}>
                                             <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
                                             content='测量' icon='edit' id="immersive-hover" onClick={this.lengthMeasure}>
                                             </Button>
                                         </div>
-                                        <div style={{display:'inline-block',width:'50%'}}>
-                                            <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
-                                            icon='chart bar' content='特征分析' value={idx} onClick={this.featureAnalysis}>
-                                            </Button>
-                                        </div>
-                                        </div>
+                                       
+                                        // </div>
                                        
                                     }
                                      <Container>
