@@ -79,8 +79,8 @@ class DisplayPanel extends Component {
         // console.log(dataResponse.data)
         // console.log(draftResponse.data)
         // console.log(readonlyResponse.data)
-        // const readonly = readonlyResponse.data.readonly === 'true'
-        const readonly = false
+        const readonly = readonlyResponse.data.readonly === 'true'
+        // const readonly = false
         let draftStatus = -1
         if (!readonly)
           draftStatus = readonlyResponse.data.status
