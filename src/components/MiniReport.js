@@ -62,7 +62,7 @@ class MiniReport extends Component{
     exportPDF(){
         const element=document.getElementById('pdf')
         const opt = {
-            margin: [0,1,1,1],
+            margin: [1,1,1,1],
             filename: 'minireport.pdf',
             pagebreak:{ avoid:'canvas',before:'#noduleDivide' },
             image: { type: 'jpeg', quality: 0.98 }, // 导出的图片质量和格式
