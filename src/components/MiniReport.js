@@ -2,6 +2,7 @@ import React, {Component,createRef} from 'react'
 import {Button, Grid, Modal,Header, Divider, Table, Dropdown, Image} from 'semantic-ui-react'
 import axios from 'axios'
 import qs from 'qs'
+import html2pdf from 'html2pdf.js'
 import * as cornerstone from "cornerstone-core"
 import * as cornerstoneMath from "cornerstone-math"
 import * as cornerstoneTools from "cornerstone-tools"
@@ -11,6 +12,7 @@ import DataSet from '@antv/data-set'
 
 const config = require('../config.json')
 const draftConfig=config.draft
+let buttonflag=0
 cornerstoneTools.external.cornerstone = cornerstone
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 // cornerstoneWebImageLoader.external.cornerstone = cornerstone
@@ -35,9 +37,10 @@ class MiniReport extends Component{
             nodules:[],
             imageIds:props.imageIds,
             viewport: cornerstone.getDefaultViewport(null, undefined),
+            temp:0
         }
         this.showImages = this.showImages.bind(this)
-        this.visualize = this.visualize.bind(this)
+        this.exportPDF = this.exportPDF.bind(this)
     }
 
     componentDidMount(){
@@ -54,96 +57,22 @@ class MiniReport extends Component{
            
         }).catch((error) => console.log(error))
         
-        
     }
 
-    
-    visualize(hist_data,idx){
-        const visId = 'visual-' + idx
-        document.getElementById(visId).innerHTML=''
-        let bins=hist_data.bins
-        let ns=hist_data.n
-        console.log('bins',bins)
-        console.log('ns',ns)
-        var histogram = []
-        var line=[]
-        for (var i = 0; i < bins.length-1; i++) {
-            var obj = {}
-            obj.value = [bins[i],bins[i+1]]
-            obj.count=ns[i]
-            histogram.push(obj)
-            
-            var obj2={}
-            obj2.value=bins[i]
-            obj2.count=ns[i]
-            line.push(obj2)
-        }
-        console.log('histogram',histogram)
-        console.log('line',line)
-        const ds = new DataSet();
-        const dv = ds.createView().source(histogram)
-        // const dv2=ds.createView().source(line)
-
-        // dv.transform({
-        //     type: 'bin.histogram',
-        //     field: 'value',
-        //     binWidth: 5000,
-        //     as: ['value', 'count'],
-        // })
-        const chart = new Chart({
-            container: visId,
-            // forceFit: true,
-            forceFit:true,
-            height: 300,
-            width:400,
-            // padding: [30,30,'auto',30]
-        });
-        // chart.tooltip({
-        //     crosshairs: false,
-        //     inPlot: false,
-        //     position: 'top'
-        //   })
-        let view1=chart.view()
-        // view1.axis(false)
-        view1.source(dv, {
-            value: {
-            //   nice: true,
-                minLimit: bins[0]-50,
-                maxLimit:bins[bins.length-1]+50,
-            //   tickCount:20
-            },
-            count: {
-            //   max: 350000,
-            //   tickInterval:50000
-                tickCount:10
-            }
-            })
-        // view1.source(dv)
-        view1.interval().position('value*count')
-
-        var view2 = chart.view()
-        view2.axis(false)
-        // view2.source(line)
-        view2.source(line,{
-            value: {
-                // nice: true,
-                minLimit: bins[0]-50,
-                maxLimit:bins[bins.length-1]+50,
-                // tickCount:10
-                },
-                count: {
-                // max: 350000,
-                tickCount:10
-                }
-        })
-        view2.line().position('value*count').style({
-            stroke: 'white',
-            
-            }).shape('smooth')
-        
-        chart.render()
+    exportPDF(){
+        const element=document.getElementById('pdf')
+        const opt = {
+            margin: 1,
+            filename: 'minireport.pdf',
+            pagebreak:{ avoid:'canvas' },
+            image: { type: 'jpeg', quality: 0.98 }, // 导出的图片质量和格式
+            html2canvas: { scale: 2, useCORS: true }, // useCORS很重要，解决文档中图片跨域问题
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+          };
+          if (element) {
+            html2pdf().set(opt).from(element).save() // 导出
+          }
     }
-    
 
     
     showImages(){
@@ -154,6 +83,7 @@ class MiniReport extends Component{
         }
         // console.log('imagesid',imageIds)
         let nodule_id = 'nodule-' + nodules[0].nodule_no + '-' + nodules[0].slice_idx
+        let that=this
         var timer = setInterval(function () {
             if(document.getElementById(nodule_id) != null){
                 nodules.map((nodule,index)=>{
@@ -180,8 +110,8 @@ class MiniReport extends Component{
                     obj2.count=ns[i]
                     line.push(obj2)
                 }
-                console.log('histogram',histogram)
-                console.log('line',line)
+                // console.log('histogram',histogram)
+                // console.log('line',line)
                 const ds = new DataSet();
                 const dv = ds.createView().source(histogram)
                 
@@ -252,6 +182,11 @@ class MiniReport extends Component{
                         // console.log('viewport',viewport)
                         cornerstone.setViewport(element, viewport)
                         cornerstone.displayImage(element, image);
+                        buttonflag+=1
+                        console.log('buttonflag',buttonflag)
+                        if(buttonflag===nodules.length){
+                            that.setState({temp:1})
+                        }
                     });
                 })
             //     for(var i = 0;i<nodules.length;i++){
@@ -287,7 +222,6 @@ class MiniReport extends Component{
 
         },500);
         
-        
     }
 
     render(){
@@ -298,6 +232,7 @@ class MiniReport extends Component{
         'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
         'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
         console.log('type',this.props.type)
+        console.log('time',buttonflag,this.state.nodules.length)
         // console.log('image',this.props.images[0])
         return(
             <Grid divided='vertically'>
@@ -312,8 +247,27 @@ class MiniReport extends Component{
                     </Grid.Column>
                     <Grid.Column textAlign='center' width={4}>
                     <Modal trigger={<Button icon='expand arrows alternate' content='放大' className='inverted blue button'  onClick={this.showImages}></Button>}>
-                        <Modal.Header>影像诊断报告</Modal.Header>
-                        <Modal.Content image scrolling>
+                        
+                        <Modal.Header>
+                            <Grid>
+                                <Grid.Row>
+                                    <Grid.Column width={3} textAlign='left'>
+                                        影像诊断报告
+                                    </Grid.Column>
+                                    <Grid.Column width={6}>
+                                        
+                                    </Grid.Column>
+                                    <Grid.Column width={3} textAlign='right'>
+                                        {this.state.temp===1?
+                                            <Button color='blue' onClick={this.exportPDF}>导出pdf</Button>
+                                            :
+                                            <Button color='blue' loading>Loading</Button>
+                                        }
+                                    </Grid.Column>
+                                </Grid.Row>
+                            </Grid>
+                        </Modal.Header>
+                        <Modal.Content image scrolling id='pdf'>
                             <Modal.Description>
                                 <table>
                                     <tbody>
@@ -465,7 +419,9 @@ class MiniReport extends Component{
                                                             <Table.Cell>{nodule['volume']===undefined?null:Math.floor(nodule['volume']*100)/100+'cm³'}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>HU (Min / Avg /Max)</Table.Cell>
+                                                            <Table.Cell>
+                                                                HU(Min/Avg/Max)
+                                                                </Table.Cell>
                                                             <Table.Cell>{nodule['huMin']===undefined?null:nodule['huMin']+' / '+nodule['huMean']+' / '+nodule['huMax']}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
@@ -489,6 +445,7 @@ class MiniReport extends Component{
                                 <div style={{fontSize:20,color:'blue'}}>Nodule 1</div> */}
                             </Modal.Description>
                         </Modal.Content>
+                        
                     </Modal>
                     </Grid.Column>
                     <Grid.Column textAlign='left' width={3}>
