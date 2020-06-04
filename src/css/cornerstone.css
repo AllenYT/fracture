@@ -245,8 +245,15 @@ option {
 
 .ui.grid.corner-header{
   /* margin-left: 320px; */
-  width: 1250px;
+  /* width: 1600px; */
   margin: auto;
+}
+
+#sys-name{
+  color: lightskyblue;
+  font-size: large;
+  font-family: 'Microsoft YaHei';
+  font-weight: bold;
 }
 
 .ui.celled.grid.corner-contnt{
@@ -259,15 +266,15 @@ option {
 }
 
 #accord-left{
-  left: 910px;
+  left: 53%;
 }
 
 #accord-mid{
-  margin-left: 1130px;
+  margin-left: 65%;
 }
 
 #accord-right{
-  margin-left: 1350px;
+  margin-left: 77%;
 }
 
 #report{
@@ -634,8 +641,15 @@ option {
   
   .ui.grid.corner-header{
     /* margin-left: 320px; */
-    width: 1250px;
+    /* width: 1600px; */
     margin: auto;
+  }
+
+  #sys-name{
+    color:lightskyblue;
+    font-size: large;
+    font-family: 'Microsoft YaHei';
+    font-weight: bold;
   }
   
   .ui.celled.grid.corner-contnt{
@@ -1004,10 +1018,17 @@ option {
   
   .ui.grid.corner-header{
     /* margin-left: 320px; */
-    width: 1250px;
+    /* width: 1600px; */
     margin: auto;
   }
   
+  #sys-name{
+    color:lightskyblue;
+    font-size: large;
+    font-family: 'Microsoft YaHei';
+    font-weight: bold;
+  }
+
   .ui.celled.grid.corner-contnt{
     width:96%;
     margin: auto;
@@ -1361,10 +1382,17 @@ option {
     
     .ui.grid.corner-header{
       /* margin-left: 320px; */
-      width: 1250px;
+      /* width: 1600px; */
       margin: auto;
     }
     
+    #sys-name{
+      color:lightskyblue;
+      font-size: large;
+      font-family: 'Microsoft YaHei';
+      font-weight: bold;
+    }
+
     .ui.celled.grid.corner-contnt{
       width:96%;
       margin: auto;

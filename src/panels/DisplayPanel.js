@@ -1,8 +1,9 @@
 import React, {Component} from 'react'
 import CornerstoneElement from '../components/CornerstoneElement'
+import * as cornerstone from "cornerstone-core"
 import axios from 'axios'
 import qs from 'qs'
-
+import dicomParser from 'dicom-parser'
 const config = require('../config.json')
 const dataConfig = config.data
 const draftConfig = config.draft
@@ -70,7 +71,6 @@ class DisplayPanel extends Component {
       // const headers = {
       //     'Authorization': 'Bearer '.concat(token)//add the fun of check
       // }
-
       Promise.all([
         axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)),
         axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParams)),
@@ -81,21 +81,31 @@ class DisplayPanel extends Component {
         // console.log(readonlyResponse.data)
         const readonly = readonlyResponse.data.readonly === 'true'
         // const readonly = false
-        let draftStatus = -1
-        if (!readonly)
-          draftStatus = readonlyResponse.data.status
-        const stack = {
-          imageIds: dataResponse.data,
-          caseId: this.state.caseId,
-          boxes: draftResponse.data,
-          readonly: readonly,
-          draftStatus: draftStatus,
-          noduleNo: noduleNo,
-          
-        }
-        console.log('draftdata',draftResponse,draftParams)
-        console.log('dataResponse',dataResponse)
-        this.setState({stack: stack, show: true})
+        cornerstone
+        .loadAndCacheImage(dataResponse.data[0])
+        .then(image => {
+          // const readonly = readonlyResponse.data.readonly === 'true'
+          console.log('image info',image.data)
+          // console.log('parse',dicomParser.parseDicom(image))
+          const dicomtag = image.data
+          let draftStatus = -1
+          if (!readonly)
+            draftStatus = readonlyResponse.data.status
+          const stack = {
+            imageIds: dataResponse.data,
+            caseId: this.state.caseId,
+            boxes: draftResponse.data,
+            readonly: readonly,
+            draftStatus: draftStatus,
+            noduleNo: noduleNo,
+            dicomTag:dicomtag
+          }
+          console.log('test',dicomtag)
+          console.log('draftdata',draftResponse,draftParams)
+          console.log('dataResponse',dataResponse)
+          this.setState({stack: stack, show: true})
+          })
+       
       })
     }
 
@@ -117,6 +127,7 @@ class DisplayPanel extends Component {
   }
 
   render() {
+    console.log('stack',this.state.stack)
     if (this.state.show) {
       return (
         <div>
