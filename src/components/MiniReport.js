@@ -62,9 +62,9 @@ class MiniReport extends Component{
     exportPDF(){
         const element=document.getElementById('pdf')
         const opt = {
-            margin: 1,
+            margin: [1,1,1,1],
             filename: 'minireport.pdf',
-            pagebreak:{ avoid:'canvas' },
+            pagebreak:{ avoid:'canvas',before:'#noduleDivide' },
             image: { type: 'jpeg', quality: 0.98 }, // 导出的图片质量和格式
             html2canvas: { scale: 2, useCORS: true }, // useCORS很重要，解决文档中图片跨域问题
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
@@ -120,7 +120,7 @@ class MiniReport extends Component{
                     // forceFit: true,
                     forceFit:true,
                     height: 300,
-                    width:400
+                    width:250
                     // padding: [30,30,'auto',30]
                 });
                 
@@ -231,8 +231,8 @@ class MiniReport extends Component{
         'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
         'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
         'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
-        console.log('type',this.props.type)
-        console.log('time',buttonflag,this.state.nodules.length)
+        // console.log('type',this.props.type)
+        // console.log('time',buttonflag,this.state.nodules.length)
         // console.log('image',this.props.images[0])
         return(
             <Grid divided='vertically'>
@@ -359,6 +359,7 @@ class MiniReport extends Component{
 
                                     </Table.Body>
                                 </Table>
+                                <div style={{}}></div>
                                 {
                                     this.state.nodules.map((nodule,index)=>{
                                         let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
@@ -368,7 +369,7 @@ class MiniReport extends Component{
                                             <div key={index}>
                                                 <Divider/>
                                                 <div>&nbsp;</div>
-                                                <div style={{fontSize:20,color:'#6495ED'}}>Nodule {index+1}</div>
+                                                <div style={{fontSize:20,color:'#6495ED'}} id='noduleDivide'>Nodule {index+1}</div>
                                                 <Table celled>
                                                     <Table.Header>
                                                         <Table.Row>
@@ -426,12 +427,12 @@ class MiniReport extends Component{
                                                         </Table.Row>
                                                         <Table.Row>
                                                             <Table.Cell>Image Capture</Table.Cell>
-                                                            <Table.Cell><div id={nodule_id} style={{width:'400px',height:'300px'}}></div></Table.Cell>
+                                                            <Table.Cell><div id={nodule_id} style={{width:'300px',height:'250px'}}></div></Table.Cell>
                                                             {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
                                                         </Table.Row>
                                                         <Table.Row>
                                                             <Table.Cell>Histogram</Table.Cell>
-                                                            <Table.Cell><div id={visualId}></div></Table.Cell>
+                                                            <Table.Cell><div id={visualId} ></div></Table.Cell>
                                                         </Table.Row>
                                                     </Table.Body>
                                                 </Table>
@@ -439,10 +440,7 @@ class MiniReport extends Component{
                                         )
                                     })
                                 }
-                                {/* <Divider/>
-
-                                <div>&nbsp;</div>
-                                <div style={{fontSize:20,color:'blue'}}>Nodule 1</div> */}
+                                <Divider/>
                             </Modal.Description>
                         </Modal.Content>
                         

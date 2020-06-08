@@ -24,6 +24,11 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 cornerstoneWadoImageLoader.external.cornerstone = cornerstone
 cornerstoneWadoImageLoader.external.dicomParser = dicomParser
 cornerstoneWebImageLoader.external.cornerstone = cornerstone
+cornerstoneTools.init();
+const wwwc = cornerstoneTools.WwwcTool
+const pan = cornerstoneTools.PanTool
+const zoomwheel = cornerstoneTools.ZoomMouseWheelTool
+const ZoomTouchPinchTool = cornerstoneTools.ZoomTouchPinchTool
 cornerstoneTools.external.Hammer = Hammer
 const {Column, HeaderCell, Cell, Pagination} = Table;
 
@@ -1455,34 +1460,43 @@ class CornerstoneElement extends Component {
                 //     }
                 // }
                 
-                cornerstoneTools
-                    .mouseInput
-                    .enable(element)
-                cornerstoneTools
-                    .mouseWheelInput
-                    .enable(element)
-                cornerstoneTools
-                    .wwwc
-                    .activate(element, 2) // ww/wc is the default tool for middle mouse button
+                cornerstoneTools.addToolForElement(element, wwwc)
+                cornerstoneTools.setToolActiveForElement(
+                    element,
+                    'Wwwc',
+                    {
+                        mouseButtonMask: 4, //middle mouse button
+                      },
+                      ['Mouse']
+                )
 
                 if (!this.state.immersive) {
+                    cornerstoneTools.addToolForElement(element, pan)
+                    cornerstoneTools.setToolActiveForElement(
+                        element,
+                        'Pan',
+                        {
+                            mouseButtonMask:2, //right mouse button
+                        },
+                        ['Mouse']
 
-                    cornerstoneTools
-                        .pan
-                        .activate(element, 4) // pan is the default tool for right mouse button
-                    cornerstoneTools
-                        .zoomWheel
-                        .activate(element) // zoom is the default tool for middle mouse wheel
-
-                    cornerstoneTools
-                        .touchInput
-                        .enable(element)
-                    cornerstoneTools
-                        .panTouchDrag
-                        .activate(element)
-                    cornerstoneTools
-                        .zoomTouchPinch
-                        .activate(element)
+                    )
+                    cornerstoneTools.addToolForElement(element, zoomwheel)
+                    cornerstoneTools.setToolActiveForElement(
+                        element,
+                        'ZoomMouseWheel',
+                        { 
+                            mouseButtonMask: 1,
+                        }
+                    )
+                    cornerstoneTools.addToolForElement(element, ZoomTouchPinchTool)
+                    cornerstoneTools.setToolActiveForElement(
+                        element,
+                        'ZoomTouchPinch',
+                        { 
+                            mouseButtonMask: 1,
+                        }
+                    )
                 }
 
                 element.addEventListener("cornerstoneimagerendered", this.onImageRendered)
