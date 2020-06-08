@@ -490,7 +490,7 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             boxes: boxes,
-            random: Math.random()
+            // random: Math.random()
         })
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
 
@@ -544,7 +544,7 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             boxes: boxes,
-            random: Math.random()
+            // random: Math.random()
         })
     }
     onSelectTex = (event) => {
@@ -561,7 +561,7 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             boxes: boxes,
-            random: Math.random()
+            // random: Math.random()
         })
     }
 
@@ -621,7 +621,7 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             boxes: boxes,
-            random: Math.random()
+            // random: Math.random()
         })
     }
 
@@ -2366,7 +2366,7 @@ class CornerstoneElement extends Component {
             clickedArea: {},
             tmpBox: {},
             tmpCoord:{},
-            random: Math.random()
+            // random: Math.random()
         })
         document
             .getElementById("canvas")
@@ -2900,7 +2900,7 @@ class CornerstoneElement extends Component {
 
         if (prevState.random !== this.state.random) {
             console.log(this.state.boxes)
-            // this.saveToDB()
+            this.saveToDB()
         }
     }
 }
