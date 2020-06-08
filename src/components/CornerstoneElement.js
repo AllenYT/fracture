@@ -27,7 +27,7 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 cornerstoneWadoImageLoader.external.cornerstone = cornerstone
 cornerstoneWadoImageLoader.external.dicomParser = dicomParser
 cornerstoneTools.external.Hammer = Hammer
-cornerstoneTools.init();
+cornerstoneTools.init()
 // const csTools = cornerstoneTools.init();
 // const mouseInput = cornerstoneTools.mouseInput;
 // const mouseWheelInput  =cornerstoneTools.mouseWheelInput
@@ -38,7 +38,7 @@ const bidirectional = cornerstoneTools.BidirectionalTool
 const ellipticalRoi = cornerstoneTools.ellipticalRoi
 const LengthTool = cornerstoneTools.LengthTool
 const ZoomTouchPinchTool = cornerstoneTools.ZoomTouchPinchTool
-const {Column, HeaderCell, Cell, Pagination} = Table;
+const {Column, HeaderCell, Cell, Pagination} = Table
 
 // const divStyle = {
 //     width: "512px",//768px
