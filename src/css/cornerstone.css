@@ -266,15 +266,15 @@ option {
 }
 
 #accord-left{
-  left: 53%;
+  left: 55%;
 }
 
 #accord-mid{
-  margin-left: 65%;
+  margin-left: 67%;
 }
 
 #accord-right{
-  margin-left: 77%;
+  margin-left: 79%;
 }
 
 #report{
@@ -367,7 +367,7 @@ option {
 }
 
 .funcolumn .ui.button, .ui.buttons .button .funcbtn{
-  width: 60px;
+  width: 50px;
   height: 50px;
   font-size: large;
   background-color: #010c29;
@@ -499,6 +499,7 @@ option {
     width:60px;
   }
   
+
   #showNodules{
     text-align: left;
     display: inline-block;

@@ -231,8 +231,8 @@ class MiniReport extends Component{
         'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
         'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
         'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
-        console.log('type',this.props.type)
-        console.log('time',buttonflag,this.state.nodules.length)
+        // console.log('type',this.props.type)
+        // console.log('time',buttonflag,this.state.nodules.length)
         // console.log('image',this.props.images[0])
         return(
             <Grid divided='vertically'>
