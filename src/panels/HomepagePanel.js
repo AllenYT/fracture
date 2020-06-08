@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import {Table, Button, Icon, Grid, Tab, Header, Form, Input} from 'semantic-ui-react'
+import {Table, Button, Icon, Grid, Tab, Header, Form, Input, Modal} from 'semantic-ui-react'
 import ReactDOM from 'react-dom';
 import axios from 'axios'
 import qs from 'qs'
@@ -42,7 +42,7 @@ class HomepagePanel extends Component {
 
     upload(){
         const files = []
-        const fileList = this.state.fileList
+        let fileList = this.state.fileList
         console.log('filelist',fileList)
         const formdata = new FormData()
         for(var i=0;i<fileList.length;i++){
@@ -57,8 +57,17 @@ class HomepagePanel extends Component {
         console.log('params',formdata)
         axios.post(dataConfig.uploadMutiply, formdata).then(res => {
             console.log(res.data)
-            if (res.data.status === 'okay') {
-                console.log(res.data)
+            const successList = res.data.success
+            if (successList !== null) {
+                
+                for(var i=0;i<successList.length;i++){
+                    for(var j=0;j<fileList.length;j++){
+                        if(successList[i] === fileList[j].fileName){
+                            fileList.splice(j, 1)
+                        }
+                    }
+                }
+                this.setState({fileList:fileList})
             }
         }).catch(err => {
             console.log('err: ' + err)
