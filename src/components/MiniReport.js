@@ -37,10 +37,12 @@ class MiniReport extends Component{
             nodules:[],
             imageIds:props.imageIds,
             viewport: cornerstone.getDefaultViewport(null, undefined),
-            temp:0
+            temp:0,
+            boxes:props.boxes
         }
         this.showImages = this.showImages.bind(this)
         this.exportPDF = this.exportPDF.bind(this)
+        this.template = this.template.bind(this)
     }
 
     componentDidMount(){
@@ -64,11 +66,11 @@ class MiniReport extends Component{
         const opt = {
             margin: [1,1,1,1],
             filename: 'minireport.pdf',
-            pagebreak:{ avoid:'canvas',before:'#noduleDivide' },
+            pagebreak:{ before:'#noduleDivide',avoid:'canvas'},
             image: { type: 'jpeg', quality: 0.98 }, // 导出的图片质量和格式
             html2canvas: { scale: 2, useCORS: true }, // useCORS很重要，解决文档中图片跨域问题
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-          };
+          }
           if (element) {
             html2pdf().set(opt).from(element).save() // 导出
           }
@@ -224,6 +226,106 @@ class MiniReport extends Component{
         
     }
 
+    template(){
+        let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
+        let segments={
+        'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
+        'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
+        'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
+        'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
+        if(this.props.type==='影像所见'){
+            let texts=''
+            for(let i=0;i<this.state.boxes.length;i++){
+                let place=''
+                let diameter=''
+                let texture=''
+                let calcification=''
+                let malignancy=''
+                if(this.state.boxes[i]['place']===0 || this.state.boxes[i]['place']===undefined || 
+                this.state.boxes[i]['place']===""){
+                    place='未知位置'
+                }
+                else{
+                    if(this.state.boxes[i]['segment']===undefined || this.state.boxes[i]['segment']===""){
+                        place=places[this.state.boxes[i]['place']]
+                    }
+                    else{
+                        place=segments[this.state.boxes[i]['segment']]
+                    }
+                }
+                if(this.state.boxes[i]['diameter']!==undefined){
+                    diameter='有一'+Math.floor(this.state.boxes[i]['diameter']*10)/100+'cm' 
+                }
+                else{
+                    diameter='有一未知大小'
+                }
+                if(this.state.boxes[i]['texture']===2){
+                    texture='的实性结节，'
+                }
+                else{
+                    texture='的磨玻璃结节，'
+                }
+                if(this.state.boxes[i]['calcification']===2){
+                    calcification='有钙化成分，'
+                }
+                else{
+                    calcification='无钙化成分，'
+                }
+                if(this.state.boxes[i]['malignancy']===2){
+                    malignancy='风险较高。'
+                }
+                else{
+                    malignancy='风险较低。'
+                }
+                texts=texts+place+diameter+texture+calcification+malignancy+'*'
+            }
+            return texts
+        }
+        else{
+            let malignancy=[]
+            for(let i=0;i<this.state.boxes.length;i++){
+                if(this.state.boxes[i]['malignancy']==2){
+                    malignancy.push(this.state.boxes[i]['diameter'])
+                }
+            }
+            if(malignancy.length==0){//良性概率高
+                let maxDiameter=this.state.boxes[0]['diameter']
+                for(let i=0;i<this.state.boxes.length;i++){
+                    if(this.state.boxes[i]['diameter']>maxDiameter){
+                        maxDiameter=this.state.boxes[i]['diameter']
+                    }
+                }
+                if(maxDiameter>=8){
+                    return '根据PET评估结节结果判断手术切除或非手术活检'
+                }
+                if(maxDiameter>=6 &&maxDiameter<8){
+                    return '6~12、18~24个月，如稳定，年度随访'
+                }
+                else if(maxDiameter>=4 &&maxDiameter<6){
+                    return '12个月，如稳定，年度随访'
+                }
+                else if(maxDiameter<4){
+                    return '选择性随访'
+                }
+            }
+            else{//恶性概率高
+                let maxDiameter=Math.max(...malignancy)
+                if(maxDiameter>=8){
+                    return '根据标准分析评估结果判断放化疗或手术切除'
+                }
+                if(maxDiameter>=6 &&maxDiameter<8){
+                    return '3~6、9~12及24个月，如稳定，年度随访'
+                }
+                else if(maxDiameter>=4 &&maxDiameter<6){
+                    return '6~12、18~24个月，如稳定，年度随访'
+                }
+                else if(maxDiameter<4){
+                    return '12个月，如稳定，年度随访'
+                }
+            }
+        }
+    }
+
     render(){
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
         let segments={
@@ -231,16 +333,17 @@ class MiniReport extends Component{
         'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
         'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
         'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
+
+        
         // console.log('type',this.props.type)
         // console.log('time',buttonflag,this.state.nodules.length)
-        // console.log('image',this.props.images[0])
         return(
             <Grid divided='vertically'>
                 {
                     this.props.type==='影像所见'?
                 <Grid.Row verticalAlign='middle' columns={4} style={{height:40}}>
                     <Grid.Column textAlign='left' width={5}>
-                        <div style={{fontSize:18}}>IM:  1mm</div>
+                        <div style={{fontSize:18}}></div>
                     </Grid.Column>
                     <Grid.Column width={4} textAlign='right'>
                         <Dropdown style={{background:'none',fontSize:18}} text='结节排序'></Dropdown>
@@ -464,20 +567,34 @@ class MiniReport extends Component{
                 </Grid.Row>
                 }
                 <Divider></Divider>
-                <Grid.Row >
-                    
-                    <Grid.Column>
-                    <div style={{fontSize:'large'}}>
-                        <p>
-                        右肺下叶有一0.39cm的实性结节，有钙化成分，风险较低
-                        </p>
-                        <p>
-                        左肺上叶上舌段有一0.38cm的实性结节，有钙化成分
-                        </p>
-                    </div>
-                                        
-                    </Grid.Column>
-                </Grid.Row>
+                {
+                    this.props.type==='影像所见'?
+                    <Grid.Row >
+                        <Grid.Column>
+                        <div style={{fontSize:'large'}}>
+                            {this.template().split('*').map((content,index)=>{
+                                return(
+                                    <p key={index}>
+                                        {content}
+                                    </p>
+                                )
+                                
+                            })}
+                        </div>
+                                            
+                        </Grid.Column>
+                    </Grid.Row>
+                    :
+                    <Grid.Row >
+                        <Grid.Column>
+                        <div style={{fontSize:'large'}}>
+                            {this.template()}
+                        </div>
+                                            
+                        </Grid.Column>
+                    </Grid.Row>
+                }
+                
             </Grid>
         )
     }

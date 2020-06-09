@@ -251,7 +251,7 @@ option {
 
 #sys-name{
   color: lightskyblue;
-  font-size: large;
+  font-size: medium;
   font-family: 'Microsoft YaHei';
   font-weight: bold;
 }
@@ -282,7 +282,8 @@ option {
     border-radius: 0.1rem !important;
     border-color: white;
     color: white;
-    min-height:250px; 
+    max-height:250px;
+    min-height:250px;
     overflow-y:auto;
     /* overflow-y: visible;     */
 }
@@ -679,7 +680,8 @@ option {
     border-radius: 0.1rem !important;
     border-color: white;
     color: white;
-    min-height:250px; 
+    max-height:250px; 
+    min-height:250px;
     overflow-y:auto;
     /* overflow-y: visible; */
 }
@@ -1056,7 +1058,8 @@ option {
     border-radius: 0.1rem !important;
     border-color: white;
     color: white;
-    min-height:250px; 
+    max-height:250px; 
+    min-height:250px;
     overflow-y:auto;
     /* overflow-y: visible; */
   }
@@ -1420,7 +1423,8 @@ option {
       border-radius: 0.1rem !important;
       border-color: white;
       color: white;
-      min-height:250px;  
+      max-height:250px;  
+      min-height:250px;
       overflow-y:auto;
       /* overflow-y: visible; */
     }
