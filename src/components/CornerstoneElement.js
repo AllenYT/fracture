@@ -786,8 +786,8 @@ class CornerstoneElement extends Component {
     render() {
         const panes = [
             { menuItem: '影像所见', render: () => 
-                <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} imageIds={this.state.imageIds}/></Tab.Pane> },
-            { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' images={this.state.imageIds}/></Tab.Pane> },
+                <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
+            { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
           ]
         // sessionStorage.clear()
         // console.log('boxes', this.state.boxes)
@@ -1432,7 +1432,7 @@ class CornerstoneElement extends Component {
                                 </Accordion.Title>
                                 <Accordion.Content active={listsActiveIndex===idx}>
                                     <div style={{width:'100%'}}>
-                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:20}}>IM:{this.state.currentIdx+1}</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:20}}>IM:{inside.slice_idx + 1}</div>
                                         <div style={{fontSize:'medium',display:'inline-block',marginLeft:50}}>{inside.huMin}~{inside.huMax}HU</div>
                                         <div style={{fontSize:'medium',display:'inline-block',marginLeft:50}}>
                                             {(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'cm'}</div>

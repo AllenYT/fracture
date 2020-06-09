@@ -772,53 +772,6 @@ class CornerstoneElement extends Component {
                                     {/* {createDraftModal}  */}
                                     {/* <Button inverted color = 'blue' className='hubtn' onClick={this.toMyAnno}>我的标注</Button> */}
                                 </Grid.Column>
-                                <Accordion styled className='accordation' id='accord-left'>
-                                    <Accordion.Title
-                                        active={activeIndex === 0}
-                                        index={0}
-                                        onClick={this.handleClick}>
-                                        <Icon name='dropdown'/>
-                                        模型结果
-                                    </Accordion.Title>
-                                    <Accordion.Content active={activeIndex === 0}>
-                                        
-                                            {ReactHtmlParser(this.state.modelResults)}
-                                        
-                                    </Accordion.Content>
-                                </Accordion>
-                                
-                                {/* </Grid.Column>
-                                <Grid.Column> */}
-                                <Accordion styled className='accordation' id='accord-mid'>
-                                    <Accordion.Title
-                                        active={activeIndex === 1}
-                                        index={1}
-                                        onClick={this.handleClick}>
-                                        <Icon name='dropdown'/>
-                                        标注结果
-                                    </Accordion.Title>
-                                    <Accordion.Content active={activeIndex === 1}>
-                                        
-                                            {ReactHtmlParser(this.state.annoResults)}
-                                        
-                                    </Accordion.Content>
-                                </Accordion>
-                                    
-                                {/* </Grid.Column> */}
-                                <Accordion styled className='accordation' id='accord-right'>
-                                <Accordion.Title
-                                    active={activeIndex === 2}
-                                    index={2}
-                                    onClick={this.handleClick}>
-                                    <Icon name='dropdown'/>
-                                    审核结果
-                                </Accordion.Title>
-                                <Accordion.Content active={activeIndex === 2}>
-                                    
-                                        {ReactHtmlParser(this.state.reviewResults)}
-                                    
-                                </Accordion.Content>
-                            </Accordion>
                             </Grid.Row>   
                         </Grid>
                     {/* </div> */}
