@@ -9,7 +9,7 @@
     "axios": "^0.19.0",
     "cornerstone-core": "^2.1.0",
     "cornerstone-math": "^0.1.6",
-    "cornerstone-tools": "^2.6.0",
+    "cornerstone-tools": "^4.15.2",
     "cornerstone-wado-image-loader": "^3.0.6",
     "cornerstone-web-image-loader": "^2.1.1",
     "dicom-parser": "^1.8.3",
@@ -30,7 +30,7 @@
     "xlsx": "^0.16.1"
   },
   "scripts": {
-    "start": "PORT=8096 react-scripts start",
+    "start": "PORT=8095 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
