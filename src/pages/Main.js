@@ -14,6 +14,7 @@ import '../css/main.css'
 import axios from 'axios'
 import src1 from '../images/MILab.png'
 import src2 from '../images/logo.jpg'
+import src3 from '../images/scu-logo.png'
 import Cov19ListPanel from '../panels/Cov19ListPanel';
 import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
 import HomepagePanel from '../panels/HomepagePanel'
@@ -294,13 +295,17 @@ class Main extends Component {
 
                 <div className="ui inverted vertical footer segment">
                     <div className="inline">
-                        © 2019 MILab. All rights reserved
+                        {/* © 2019 MILab. All rights reserved */}
+                        © 2019 Sichuan University. All rights reserved
                     </div>
-                    <div className="inline">
+                    {/* <div className="inline">
                         <Image src={src2} id='img-size'></Image>
                     </div>
                     <div className="inline">
                         <Image src={src1} id='img-size'></Image>
+                    </div> */}
+                    <div className="inline">
+                        <Image src={src3} id='img-size'></Image>
                     </div>
                 </div>
 
