@@ -192,22 +192,40 @@ class Main extends Component {
         )
 
         if (this.state.isLoggedIn) {
-            logButtonPlace = (
-                
-                <Menu id="header" pointing secondary>
-                    {mainMenus}
-                    <Menu.Item position='right'>
-                        <Dropdown text={welcome}>
-                            <Dropdown.Menu id="logout-menu">
-                                <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
-                                <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
-                                <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
-                            </Dropdown.Menu>
-                        </Dropdown>
-                    </Menu.Item>
-                </Menu>
-
-            )
+            console.log('islogin')
+            if(window.location.pathname.split('/')[1] != 'case'){
+                logButtonPlace = (
+                    <Menu id="header" pointing secondary>
+                        {mainMenus}
+                        <Menu.Item position='right'>
+                            <Dropdown text={welcome}>
+                                <Dropdown.Menu id="logout-menu">
+                                    <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
+                                    <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
+                                    <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </Menu.Item>
+                    </Menu>
+                )
+            }else{
+                console.log('标注界面')
+                logButtonPlace =(
+                    <Menu id="header" pointing secondary>
+                        {mainMenus}
+                        <Menu.Item position='right'>
+                            <Dropdown text={welcome}>
+                                <Dropdown.Menu id="logout-menu">
+                                    <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
+                                    <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
+                                    <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </Menu.Item>
+                    </Menu>
+                )
+            }
+            
 
         } else {
             console.log(window.location.pathname)
@@ -223,6 +241,7 @@ class Main extends Component {
                     </Menu>
 
                 )
+                // window.location.href = '/'
 
             } else {
                 logButtonPlace = (
@@ -258,7 +277,6 @@ class Main extends Component {
                             :<Route exact path="/" component={LoginPanel}/>
 
                         }
-                        
                         <Route exact path="/dataCockpit" component={DataPanel}/>
                         <Route path="/searchCase" component={SearchCasePanel} />
                         <Route path="/searchNodule" component={SearchNodulePanel} />

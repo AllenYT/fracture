@@ -38,6 +38,7 @@ class LoginPanel extends Component {
     }
 
     handleClick() {
+        console.log('loggin')
 
         // const headers = {
         //     'Authorization': localStorage.getItem('token')
