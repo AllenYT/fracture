@@ -27,7 +27,7 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 cornerstoneWadoImageLoader.external.cornerstone = cornerstone
 cornerstoneWadoImageLoader.external.dicomParser = dicomParser
 cornerstoneTools.external.Hammer = Hammer
-cornerstoneTools.init();
+cornerstoneTools.init()
 // const csTools = cornerstoneTools.init();
 // const mouseInput = cornerstoneTools.mouseInput;
 // const mouseWheelInput  =cornerstoneTools.mouseWheelInput
@@ -38,7 +38,7 @@ const bidirectional = cornerstoneTools.BidirectionalTool
 const ellipticalRoi = cornerstoneTools.ellipticalRoi
 const LengthTool = cornerstoneTools.LengthTool
 const ZoomTouchPinchTool = cornerstoneTools.ZoomTouchPinchTool
-const {Column, HeaderCell, Cell, Pagination} = Table;
+const {Column, HeaderCell, Cell, Pagination} = Table
 
 // const divStyle = {
 //     width: "512px",//768px
@@ -554,7 +554,7 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             boxes: boxes,
-            random: Math.random()
+            // random: Math.random()
         })
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
 
@@ -608,7 +608,7 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             boxes: boxes,
-            random: Math.random()
+            // random: Math.random()
         })
     }
     onSelectTex = (event) => {
@@ -625,7 +625,7 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             boxes: boxes,
-            random: Math.random()
+            // random: Math.random()
         })
     }
 
@@ -685,7 +685,7 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             boxes: boxes,
-            random: Math.random()
+            // random: Math.random()
         })
     }
 
@@ -2680,7 +2680,7 @@ class CornerstoneElement extends Component {
             clickedArea: {},
             tmpBox: {},
             tmpCoord:{},
-            random: Math.random()
+            // random: Math.random()
         })
         document
             .getElementById("canvas")
@@ -3278,7 +3278,7 @@ class CornerstoneElement extends Component {
 
         if (prevState.random !== this.state.random) {
             console.log(this.state.boxes)
-            // this.saveToDB()
+            this.saveToDB()
         }
         if(prevState.listsActiveIndex!==-1 && prevState.listsActiveIndex !== this.state.listsActiveIndex){
             const visId = 'visual-' + prevState.listsActiveIndex
