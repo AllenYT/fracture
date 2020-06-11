@@ -293,6 +293,7 @@ const maliGGOData = [
 
 
 class DataCockpit extends Component {
+
     constructor(props) {
         super(props)
         this.state = {
@@ -312,7 +313,6 @@ class DataCockpit extends Component {
         this.visualize = this.visualize.bind(this)
         this.typeChange = this.typeChange.bind(this)
     }
-
     componentWillMount() {
       Promise.all([
           axios.get(noduleConfig.totalMalDist),
