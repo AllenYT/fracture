@@ -1,0 +1,39 @@
+/* #homepagePanel{
+    width: 80%;
+    margin: 0 auto;
+} */
+
+#homepageMenu{
+    height: 1400px;
+}
+
+#filelist-tab{
+    width: 800px;
+    height: 600px;
+    background-color: #021c3800;
+    margin: 0 auto;
+    text-align: center;
+}
+
+#body-color{
+    background-color: #021c38;
+    color: white;
+    text-align: left;
+    font-size:medium;
+}
+
+#file_btn{
+    margin-left: 1000px;
+}
+
+#submitfile{
+    margin-top: 20px;
+    margin-left:900px;
+}
+
+#searchprocess{
+    background: transparent !important;
+    color:whitesmoke !important;
+    border: 0.5px solid aliceblue;
+    border-radius: 4px;
+}

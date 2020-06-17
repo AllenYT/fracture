@@ -2,6 +2,7 @@ import React, {Component,createRef} from 'react'
 import {Menu, Grid} from 'semantic-ui-react'
 import axios from 'axios'
 import qs from 'qs'
+import '../css/spinner.css'
 import SubList from './SubList'
 import { string } from 'postcss-selector-parser'
 import ReactHtmlParser from 'react-html-parser'
@@ -17,6 +18,7 @@ class MainList extends Component {
             lastPage: null,
             mainList: [],
             selectMainItem: '',
+            show: false
             // selectPid: ''
         }
         this.handlePatientIdClick = this
@@ -54,7 +56,7 @@ class MainList extends Component {
             // console.log('data:',data)
 
             const mainList = data.mainList
-            this.setState({mainList: mainList})
+            this.setState({mainList: mainList,show: true})
         }).catch((error) => {
             console.log(error)
         })
@@ -71,25 +73,25 @@ class MainList extends Component {
 
     componentDidUpdate(prevProps, prevState) {
         if (prevProps.currentPage !== this.props.currentPage) {
-            this.setState({selectMainItem: ''})
+            this.setState({selectMainItem: '',show: false})
             this.loadMainList()
         }
 
         else if (prevProps.pidKeyword !== this.props.pidKeyword) {
             if(this.props.pidKeyword.length>3 || this.props.pidKeyword.length==0){
-                this.setState({selectMainItem: ''})
+                this.setState({selectMainItem: '',show: false})
                 this.loadMainList()
             }
         }
         else if(prevProps.dateKeyword !== this.props.dateKeyword){
             if(this.props.dateKeyword.length>3|| this.props.dateKeyword.length==0){
-                this.setState({selectMainItem: ''})
+                this.setState({selectMainItem: '',show: false})
                 this.loadMainList()
             }
             
         }
         else if(prevProps.type !== this.props.type){
-            this.setState({selectMainItem: ''})
+            this.setState({selectMainItem: '',show: false})
             this.loadMainList()
         }
 
@@ -112,7 +114,7 @@ class MainList extends Component {
         }
 
         // console.log('props.type', this.props.type)
-
+        if (this.state.show)
         return (
             <div>
 
@@ -189,6 +191,19 @@ class MainList extends Component {
             </div>
 
         )
+        else
+            return (
+                <div style={{paddingTop: "60px"}}>
+                    <div class="sk-chase">
+                        <div class="sk-chase-dot"></div>
+                        <div class="sk-chase-dot"></div>
+                        <div class="sk-chase-dot"></div>
+                        <div class="sk-chase-dot"></div>
+                        <div class="sk-chase-dot"></div>
+                        <div class="sk-chase-dot"></div>
+                    </div>
+                </div>
+            )
     }
 }
 
