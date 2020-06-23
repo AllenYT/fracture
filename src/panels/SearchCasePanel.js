@@ -6,6 +6,7 @@ import axios from 'axios';
 import Statistics from '../components/Statistics'
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'
+import Info from '../components/Info'
 
 const config = require('../config.json')
 const recordConfig = config.record
@@ -25,6 +26,7 @@ export class SearchPanel extends Component {
             totalPage: 1,
             pidKeyword: '',
             dateKeyword: '',
+            searchResults: true
         }
         this.handlePaginationChange = this
             .handlePaginationChange
@@ -48,17 +50,28 @@ export class SearchPanel extends Component {
     componentDidUpdate(prevProps, prevState) {
         console.log('pidkeyword',this.state.pidKeyword.length)
         if (prevState.pidKeyword !== this.state.pidKeyword){
-            if(this.state.pidKeyword.length>3||this.state.pidKeyword.length==0){
+            if(this.state.pidKeyword.length >= 3 || this.state.pidKeyword.length == 0){
+                // console.log("call get total pages")
+                this.setState({searchResults: true})
                 this.getTotalPages()
+
+            } else {
+                this.setState({searchResults: false})
             }
         }
-        else if(prevState.dateKeyword !== this.state.dateKeyword){
-            if(this.state.dateKeyword.length>3||this.state.dateKeyword.length==0){
+        
+        if(prevState.dateKeyword !== this.state.dateKeyword){
+            if(this.state.dateKeyword.length >= 4 || this.state.dateKeyword.length == 0){
+                this.setState({searchResults: true})
                 this.getTotalPages()
+            } else {
+                this.setState({searchResults: false})
             }
         }
-        else if(prevState.checked !== this.state.checked){
+        
+        if(prevState.checked !== this.state.checked){
             // console.log('true')
+            this.setState({searchResults: true})
             this.getTotalPages()
         }
     }
@@ -150,7 +163,35 @@ export class SearchPanel extends Component {
         if (isChecked) {
             type = "date"
         }
-
+        let searchResults
+        if (this.state.searchResults) {
+            searchResults = (
+                <div>
+                    <div className="patientList" style={{minHeight:500}}>
+                        <MainList 
+                            type={type}
+                            currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
+                            pidKeyword={this.state.pidKeyword}
+                            dateKeyword={this.state.dateKeyword}/>
+                            <div className='exportButton'>
+                                <Button inverted color='blue' onClick={this.startDownload}>导出</Button>
+                            </div>
+                    </div>
+                    
+                    <div className="pagination-component">
+                        <Pagination
+                            id="pagination"
+                            onPageChange={this.handlePaginationChange}
+                            activePage={this.state.activePage}
+                            totalPages={this.state.totalPage}/>
+                    </div>
+                </div>
+            )
+        } else {
+            searchResults = (
+                <Info type='1' />
+            )
+        }
         if (localStorage.getItem('token') == null) {
             return(
                 <div style={style}>
@@ -204,8 +245,10 @@ export class SearchPanel extends Component {
                                         placeholder="检查时间"
                                         disabled={!this.state.checked}/>
                                 </div>
-
-                                <div className="patientList" style={{minHeight:500}}>
+                                <div id="show-search-content">
+                                    {searchResults}
+                                </div>
+                                {/* <div className="patientList" style={{minHeight:500}}>
                                     <MainList 
                                         type={type}
                                         currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
@@ -222,7 +265,7 @@ export class SearchPanel extends Component {
                                         onPageChange={this.handlePaginationChange}
                                         activePage={this.state.activePage}
                                         totalPages={this.state.totalPage}/>
-                                </div>
+                                </div> */}
                             </div>
 
                         </Grid.Column>

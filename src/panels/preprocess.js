@@ -4,23 +4,18 @@ import {withRouter, BrowserRouter as Router, Route, Link} from "react-router-dom
 import ReactDOM from 'react-dom';
 import axios from 'axios'
 import qs from 'qs'
-import '../css/homepagePanel.css'
-import MyAnnosPanel from '../panels/MyAnnosPanel'
-import DownloadPanel from '../panels/DownloadPanel'
-import MyReviewsPanel from '../panels/MyReviewsPanel'
-import MyQueuePanel from '../panels/MyQueuePanel'
-
-// import {withRouter, BrowserRouter as Router, Route, Link} from "react-router-dom"
+import '../css/preprocess.css'
 
 const config = require('../config.json')
 const dataConfig = config.data
 
-class HomepagePanel extends Component {
+class preprocess extends Component {
     constructor(props){
         super(props)
         this.state={
             fileList:[],
-            activeItem:'upload'
+            activeItem:'upload',
+            status:''
         }
     this.singlefile = this.singlefile.bind(this)
     this.getFileSize = this.getFileSize.bind(this)
@@ -43,55 +38,42 @@ class HomepagePanel extends Component {
         filepath.setAttribute('webkitdirectory', '')
         filepath.setAttribute('directory', '')
         // input.setAttribute('multiple', '')
-        document.getElementById('file_btn').addEventListener('click',function () {
-            document.getElementById('singlefile').click();
-          });
+        // document.getElementById('file_btn').addEventListener('click',function () {
+        //     document.getElementById('singlefile').click();
+        //   });
           
-        document.getElementById('folder_btn').addEventListener('click',function () {
-            document.getElementById('filefolder').click();
-        });
+        // document.getElementById('folder_btn').addEventListener('click',function () {
+        //     document.getElementById('filefolder').click();
+        // });
         document.getElementById('path_btn').addEventListener('click',function () {
             document.getElementById('filepath').click();
         });
-        document.getElementById('downloadList').style.display='none'
-        document.getElementById('myReviews').style.display='none'
-        document.getElementById('myAnnos').style.display='none'
-        document.getElementById('myqueue').style.display='none'
+        // document.getElementById('downloadList').style.display='none'
+        // document.getElementById('myReviews').style.display='none'
+        // document.getElementById('myAnnos').style.display='none'
+        // document.getElementById('myqueue').style.display='none'
 
     }
 
     upload(){
-        const files = []
-        let fileList = this.state.fileList
-        console.log('filelist',fileList)
-        const formdata = new FormData()
-        for(var i=0;i<fileList.length;i++){
-            console.log(fileList[i].content)
-            // files.push(fileList[i].content)
-            formdata.append('files',fileList[i].content)
-        }
-        // formdata.append('files',files)
-        const params = {
-             files : files
-        }
-        console.log('params',formdata)
-        axios.post(dataConfig.uploadMutiply, formdata).then(res => {
-            console.log(res.data)
-            const successList = res.data.success
-            if (successList !== null) {
-                
-                for(var i=0;i<successList.length;i++){
-                    for(var j=0;j<fileList.length;j++){
-                        if(successList[i] === fileList[j].fileName){
-                            fileList.splice(j, 1)
-                        }
-                    }
-                }
-                this.setState({fileList:fileList})
+        const cur_file = document.getElementById("searchprocess").value
+        // var filename = document.getElementById("filepath").value;
+        console.log('cur',cur_file)
+        if(cur_file != undefined){
+            const params={
+                filepath:cur_file
             }
-        }).catch(err => {
-            console.log('err: ' + err)
-        })
+            axios.post(dataConfig.preprocess, qs.stringify(params)).then(res => {
+                console.log(res.data)
+                if(res.data.status==='failed')
+                this.setState({status:'status:'+res.data.status+' msg:'+res.data.msg})
+                else
+                this.setState({status:res.data.status})
+                
+            }).catch(err => {
+                console.log('err: ' + err)
+            })
+        }
     }
 
     getFileSize(fileByte) {
@@ -149,6 +131,11 @@ class HomepagePanel extends Component {
             }
             axios.post(dataConfig.preprocess, qs.stringify(params)).then(res => {
                 console.log(res.data)
+                if(res.data.status==='failed')
+                this.setState({status:'status:'+res.data.status+' msg:'+res.data.msg})
+                else
+                this.setState({status:res.data.status})
+                
                 
             }).catch(err => {
                 console.log('err: ' + err)
@@ -228,45 +215,6 @@ class HomepagePanel extends Component {
             <div id='homepagePanel'>
                     <Grid divided='vertically'>
                         <Grid.Row stretched id='homepageMenu'>
-                            <Grid.Column width='3'>
-                                <Menu pointing secondary vertical size='huge' widths={3}>
-                                <Menu.Item
-                                name='upload'
-                                active={activeItem === 'upload'}
-                                onClick={this.handleItemClick}
-                                >
-                                上传病例
-                                </Menu.Item>
-                                <Menu.Item
-                                name='myAnnos'
-                                active={activeItem === 'myAnnos'}
-                                onClick={this.handleItemClick}
-                                >
-                                我的标注
-                                </Menu.Item>
-                                <Menu.Item
-                                name='myReviews'
-                                active={activeItem === 'myReviews'}
-                                onClick={this.handleItemClick}
-                                >
-                                我的审核
-                                </Menu.Item>
-                                <Menu.Item
-                                name='download'
-                                active={activeItem === 'download'}
-                                onClick={this.handleItemClick}
-                                >
-                                数据列表
-                                </Menu.Item>
-                                <Menu.Item
-                                name='myQueue'
-                                active={activeItem === 'myQueue'}
-                                onClick={this.handleItemClick}
-                                >
-                                我的队列
-                                </Menu.Item>
-                            </Menu>
-                            </Grid.Column>
                             <Grid.Column width='12'>
                                <div id='upload'>
                                  <Form enctype="multipart/form-data" >
@@ -276,7 +224,7 @@ class HomepagePanel extends Component {
                                         <Table celled inverted id='body-color'>
                                             <Table.Header>
                                             <Table.Row>
-                                                <Table.HeaderCell colSpan='3'>文件上传列表</Table.HeaderCell>
+                                                <Table.HeaderCell colSpan='3'>点击文件路径按钮进行预处理;或在文本框输入文件路径后，点击上传进行预处理</Table.HeaderCell>
                                             </Table.Row>
                                             </Table.Header>
 
@@ -292,29 +240,23 @@ class HomepagePanel extends Component {
                                     <input type='file' name='files' id='filefolder' ref='multi' onChange={this.multifile}  style={{display:'none'}}/>
                                     </Form.Field>
                                     
-                                    <div class="filefield">
-                                        <Button.Group>
-                                            <Button basic id="file_btn" color='blue'>上传文件</Button>
-                                            <Button basic id="folder_btn" color='blue'>上传文件夹</Button>
-                                            <Button basic id="path_btn" color='blue'>文件路径</Button>
-                                        </Button.Group>
+                                    <div class="filefield" style={{textAlign:'center'}}>
+                                        
+                                            {/* <Button basic id="file_btn" color='blue'>上传文件</Button>
+                                            <Button basic id="folder_btn" color='blue'>上传文件夹</Button> */}
+                                            <Button basic id="path_btn" color='green'>文件路径</Button>
                                         
                                     </div>
-                                    <Button type='submit' basic color='green' onClick={this.upload} id="submitfile">上传</Button>
+                                    <div style={{marginLeft:20}}>
+                                        <Input placeholder='请输入路径' id="searchprocess"></Input>
+                                        <Button inverted color='green' onClick={this.upload}>上传</Button>
+                                    </div>
+                                    <div>
+                                        <Header size='huge' color='white' inverted>{this.state.status}</Header>
+                                    </div>
                                 </Form>
                                </div>
-                               <div id='myAnnos'>
-                                    <MyAnnosPanel/>
-                               </div>
-                               <div id='myReviews'>
-                                   <MyReviewsPanel/>
-                               </div>
-                               <div id='downloadList'>
-                                    <DownloadPanel/>
-                               </div>
-                               <div id='myqueue'>
-                                    <MyQueuePanel/>
-                               </div>
+                               
                             </Grid.Column>
                         </Grid.Row>
                     </Grid>
@@ -323,31 +265,10 @@ class HomepagePanel extends Component {
         )
     }
     componentDidUpdate(prevProps, prevState){
-        if(prevState.activeItem !== this.state.activeItem){
-            document.getElementById('downloadList').style.display='none'
-            document.getElementById('myReviews').style.display='none'
-            document.getElementById('myAnnos').style.display='none'
-            document.getElementById('upload').style.display='none'
-            document.getElementById('myqueue').style.display='none'
-            if(this.state.activeItem === 'upload'){
-                document.getElementById('upload').style.display=''
-            }
-            else if(this.state.activeItem === 'myAnnos'){
-                document.getElementById('myAnnos').style.display=''
-            }
-            else if(this.state.activeItem === 'myReviews'){
-                document.getElementById('myReviews').style.display=''
-            }
-            else if(this.state.activeItem === 'download'){
-                document.getElementById('downloadList').style.display=''
-            }
-            else if(this.state.activeItem === 'myQueue'){
-                document.getElementById('myqueue').style.display=''
-            }
-        }
+        
     }
 
        
 }
 
-export default HomepagePanel
+export default preprocess

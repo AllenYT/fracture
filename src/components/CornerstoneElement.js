@@ -1618,12 +1618,24 @@ class CornerstoneElement extends Component {
                                 <Accordion.Content active={listsActiveIndex===idx}>
                                     <div style={{width:'100%'}}>
                                         <div style={{fontSize:'medium',display:'inline-block',marginLeft:20}}>IM:{inside.slice_idx + 1}</div>
-                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:50}}>{inside.huMin}~{inside.huMax}HU</div>
-                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:50}}>
-                                            {(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'cm'}</div>
-                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:20}}>
-                                            {(Math.floor(inside.volume * 100) / 100).toFixed(2)+'cm³'}
-                                        </div>
+                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:40}}>
+                                            {'Dia.:\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0\xa0cm'}</div>
+                                        {
+                                            inside.volume!==undefined?
+                                            <div style={{fontSize:'medium',display:'inline-block',marginLeft:20}}>
+                                            {'Volume:\xa0\xa0'+(Math.floor(inside.volume * 100) / 100).toFixed(2)+'\xa0\xa0cm³'}</div>
+                                            :
+                                            null
+                                        }
+                                        {inside.huMin!==undefined?
+                                        <div style={{fontSize:'medium',display:'inline-block',marginLeft:40}}>{inside.huMin}~{inside.huMax}HU</div>
+                                        :
+                                        null
+                                        }
+                                        
+                                        
+                                        
+                                        
                                     </div>
                                     <div style={{width:'100%',marginTop:'2%',borderBottom:'1px solid white'}}>
                                         <div style={{fontSize:'medium',display:'inline-block',textAlign:'right'}}>表征</div>

@@ -18,6 +18,7 @@ import src3 from '../images/scu-logo.png'
 import Cov19ListPanel from '../panels/Cov19ListPanel';
 import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
 import HomepagePanel from '../panels/HomepagePanel'
+import preprocess from '../panels/preprocess'
 
 const config = require('../config.json')
 const userConfig = config.user
@@ -189,6 +190,14 @@ class Main extends Component {
                     name='cov19List'>
                     新冠肺炎专题
                 </Menu.Item>
+                <Menu.Item
+                    active={activeItem === 'preprocess'}
+                    onClick={this.handleItemClick}
+                    as={Link}
+                    to='/preprocess'
+                    name='preprocess'>
+                    预处理
+                </Menu.Item>
             </>
         )
 
@@ -290,6 +299,7 @@ class Main extends Component {
                         <Route path="/cov19List/" component={Cov19ListPanel} />
                         <Route path='/cov19Case/' component={Cov19DisplayPanel}/>
                         <Route path='/homepage/' component={HomepagePanel}/>
+                        <Route path='/preprocess/' component={preprocess}/>
                     </div>
                 </div>
 
