@@ -1,9 +1,14 @@
 import React, { Component } from 'react'
-import {Table, Button, Icon, Grid, Tab, Header, Form, Input, Modal} from 'semantic-ui-react'
+import {Table, Button, Icon, Grid, Tab, Header, Form, Input, Modal, Menu} from 'semantic-ui-react'
+import {withRouter, BrowserRouter as Router, Route, Link} from "react-router-dom";
 import ReactDOM from 'react-dom';
 import axios from 'axios'
 import qs from 'qs'
 import '../css/homepagePanel.css'
+import MyAnnosPanel from '../panels/MyAnnosPanel'
+import DownloadPanel from '../panels/DownloadPanel'
+import MyReviewsPanel from '../panels/MyReviewsPanel'
+import MyQueuePanel from '../panels/MyQueuePanel'
 
 // import {withRouter, BrowserRouter as Router, Route, Link} from "react-router-dom"
 
@@ -14,14 +19,18 @@ class HomepagePanel extends Component {
     constructor(props){
         super(props)
         this.state={
-            fileList:[]
+            fileList:[],
+            activeItem:'upload'
         }
     this.singlefile = this.singlefile.bind(this)
     this.getFileSize = this.getFileSize.bind(this)
     this.multifile = this.multifile.bind(this)
     this.delFile = this.delFile.bind(this)
     this.upload = this.upload.bind(this)
+    this.filepath = this.filepath.bind(this)
     }
+
+    handleItemClick = (e, { name }) => this.setState({ activeItem: name })
 
     componentDidMount(){
         var input = ReactDOM.findDOMNode(this.refs.multi)
@@ -30,13 +39,24 @@ class HomepagePanel extends Component {
         input.setAttribute('multiple', '')
         var singleinput = ReactDOM.findDOMNode(this.refs.single)
         singleinput.setAttribute('multiple', '')
+        var filepath = ReactDOM.findDOMNode(this.refs.path)
+        filepath.setAttribute('webkitdirectory', '')
+        filepath.setAttribute('directory', '')
+        // input.setAttribute('multiple', '')
         document.getElementById('file_btn').addEventListener('click',function () {
             document.getElementById('singlefile').click();
           });
           
-          document.getElementById('folder_btn').addEventListener('click',function () {
+        document.getElementById('folder_btn').addEventListener('click',function () {
             document.getElementById('filefolder').click();
-          });
+        });
+        document.getElementById('path_btn').addEventListener('click',function () {
+            document.getElementById('filepath').click();
+        });
+        document.getElementById('downloadList').style.display='none'
+        document.getElementById('myReviews').style.display='none'
+        document.getElementById('myAnnos').style.display='none'
+        document.getElementById('myqueue').style.display='none'
 
     }
 
@@ -117,6 +137,25 @@ class HomepagePanel extends Component {
         
     }
 
+    filepath(e){
+        const cur_file = e.target.files
+        // var filename = document.getElementById("filepath").value;
+        console.log('cur',cur_file)
+        if(cur_file != undefined){
+            var filename = cur_file[0]
+            console.log('curfilename',filename['webkitRelativePath'].split('/')[0])
+            const params={
+                filepath:filename['webkitRelativePath'].split('/')[0]
+            }
+            axios.post(dataConfig.exec, qs.stringify(params)).then(res => {
+                console.log(res.data)
+                
+            }).catch(err => {
+                console.log('err: ' + err)
+            })
+        }
+    }
+
     multifile(e){
         const current_folder = e.target.files
         console.log('curfloder',current_folder)
@@ -163,6 +202,7 @@ class HomepagePanel extends Component {
 
     render() {
         let tableContent = ""
+        const { activeItem } = this.state
         tableContent = this
                 .state
                 .fileList
@@ -185,41 +225,128 @@ class HomepagePanel extends Component {
                 })
 
         return(
-            <div>
-                 <Form enctype="multipart/form-data" >
-                    <Form.Field>
-                    {/* <label>First Name</label> */}
-                    <div id='filelist-tab'>
-                        <Table celled inverted id='body-color'>
-                            <Table.Header>
-                            <Table.Row>
-                                <Table.HeaderCell colSpan='3'>文件上传列表</Table.HeaderCell>
-                            </Table.Row>
-                            </Table.Header>
+            <div id='homepagePanel'>
+                    <Grid divided='vertically'>
+                        <Grid.Row stretched id='homepageMenu'>
+                            <Grid.Column width='3'>
+                                <Menu pointing secondary vertical size='huge' widths={3}>
+                                <Menu.Item
+                                name='upload'
+                                active={activeItem === 'upload'}
+                                onClick={this.handleItemClick}
+                                >
+                                上传病例
+                                </Menu.Item>
+                                <Menu.Item
+                                name='myAnnos'
+                                active={activeItem === 'myAnnos'}
+                                onClick={this.handleItemClick}
+                                >
+                                我的标注
+                                </Menu.Item>
+                                <Menu.Item
+                                name='myReviews'
+                                active={activeItem === 'myReviews'}
+                                onClick={this.handleItemClick}
+                                >
+                                我的审核
+                                </Menu.Item>
+                                <Menu.Item
+                                name='download'
+                                active={activeItem === 'download'}
+                                onClick={this.handleItemClick}
+                                >
+                                数据列表
+                                </Menu.Item>
+                                <Menu.Item
+                                name='myQueue'
+                                active={activeItem === 'myQueue'}
+                                onClick={this.handleItemClick}
+                                >
+                                我的队列
+                                </Menu.Item>
+                            </Menu>
+                            </Grid.Column>
+                            <Grid.Column width='12'>
+                               <div id='upload'>
+                                 <Form enctype="multipart/form-data" >
+                                    <Form.Field>
+                                    {/* <label>First Name</label> */}
+                                    <div id='filelist-tab'>
+                                        <Table celled inverted id='body-color'>
+                                            <Table.Header>
+                                            <Table.Row>
+                                                <Table.HeaderCell colSpan='3'>文件上传列表</Table.HeaderCell>
+                                            </Table.Row>
+                                            </Table.Header>
 
-                            <Table.Body>
-                                {tableContent}
-                            </Table.Body>
-                        </Table>
-                    </div>
-                    
-                    {/* <input placeholder='First Name' /> */}
-                    <input type="file" name="files" id="singlefile" ref='single' onChange={this.singlefile} style={{display:'none'}} />
-                    <input type='file' name='files' id='filefolder' ref='multi' onChange={this.multifile}  style={{display:'none'}}/>
-                    </Form.Field>
-                    
-                    <div class="filefield">
-                        <Button.Group>
-                            <Button basic id="file_btn" color='blue'>上传文件</Button>
-                            <Button basic id="folder_btn" color='blue'>上传文件夹</Button>
-                        </Button.Group>
-                        
-                    </div>
-                    <Button type='submit' basic color='green' onClick={this.upload} id="submitfile">上传</Button>
-                </Form>
+                                            <Table.Body>
+                                                {tableContent}
+                                            </Table.Body>
+                                        </Table>
+                                    </div>
+                                    
+                                    {/* <input placeholder='First Name' /> */}
+                                    <input type="file" name="files" id="singlefile" ref='single' onChange={this.singlefile} style={{display:'none'}} />
+                                    <input type="file" name="files" id="filepath" ref='path' onChange={this.filepath} style={{display:'none'}} />
+                                    <input type='file' name='files' id='filefolder' ref='multi' onChange={this.multifile}  style={{display:'none'}}/>
+                                    </Form.Field>
+                                    
+                                    <div class="filefield">
+                                        <Button.Group>
+                                            <Button basic id="file_btn" color='blue'>上传文件</Button>
+                                            <Button basic id="folder_btn" color='blue'>上传文件夹</Button>
+                                            <Button basic id="path_btn" color='blue'>文件路径</Button>
+                                        </Button.Group>
+                                        
+                                    </div>
+                                    <Button type='submit' basic color='green' onClick={this.upload} id="submitfile">上传</Button>
+                                </Form>
+                               </div>
+                               <div id='myAnnos'>
+                                    <MyAnnosPanel/>
+                               </div>
+                               <div id='myReviews'>
+                                   <MyReviewsPanel/>
+                               </div>
+                               <div id='downloadList'>
+                                    <DownloadPanel/>
+                               </div>
+                               <div id='myqueue'>
+                                    <MyQueuePanel/>
+                               </div>
+                            </Grid.Column>
+                        </Grid.Row>
+                    </Grid>
+                
             </div>
         )
     }
+    componentDidUpdate(prevProps, prevState){
+        if(prevState.activeItem !== this.state.activeItem){
+            document.getElementById('downloadList').style.display='none'
+            document.getElementById('myReviews').style.display='none'
+            document.getElementById('myAnnos').style.display='none'
+            document.getElementById('upload').style.display='none'
+            document.getElementById('myqueue').style.display='none'
+            if(this.state.activeItem === 'upload'){
+                document.getElementById('upload').style.display=''
+            }
+            else if(this.state.activeItem === 'myAnnos'){
+                document.getElementById('myAnnos').style.display=''
+            }
+            else if(this.state.activeItem === 'myReviews'){
+                document.getElementById('myReviews').style.display=''
+            }
+            else if(this.state.activeItem === 'download'){
+                document.getElementById('downloadList').style.display=''
+            }
+            else if(this.state.activeItem === 'myQueue'){
+                document.getElementById('myqueue').style.display=''
+            }
+        }
+    }
+
        
 }
 

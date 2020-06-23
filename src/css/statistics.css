@@ -4,6 +4,7 @@
 .card-list {
     margin-top: 50px;
     margin-bottom: 50px;
+    /* background: #66cfec; */
     /* margin-left: 60px; */
 }
 
@@ -64,4 +65,8 @@
     position: relative;
     margin-left:70px;
     margin-top: -110px;
+}
+
+.ui.card, .ui.cards>.card{
+    box-shadow: -1px 0 0 0 rgba(170, 170, 170, 0.432) !important;
 }
