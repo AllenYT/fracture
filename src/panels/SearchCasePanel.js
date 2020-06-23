@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Pagination, Input, Grid, Checkbox, Button, Icon, Header} from 'semantic-ui-react'
+import {Pagination, Input, Grid, Checkbox, Button, Icon, Header, Dropdown} from 'semantic-ui-react'
 import MainList from '../components/MainList'
 import '../css/dataPanel.css'
 import axios from 'axios';
@@ -11,10 +11,12 @@ import Info from '../components/Info'
 const config = require('../config.json')
 const recordConfig = config.record
 const cartConfig = config.cart
+const subsetConfig=config.subset
 const style = {
     textAlign: 'center',
     marginTop: '300px'
-  }
+}
+
 export class SearchPanel extends Component {
 
 
@@ -26,7 +28,8 @@ export class SearchPanel extends Component {
             totalPage: 1,
             pidKeyword: '',
             dateKeyword: '',
-            searchResults: true
+            searchResults: true,
+            queue:[]
         }
         this.handlePaginationChange = this
             .handlePaginationChange
@@ -41,10 +44,14 @@ export class SearchPanel extends Component {
         this.startDownload = this  
             .startDownload
             .bind(this)
+        this.getQueue = this
+            .getQueue
+            .bind(this)
     }
 
     componentDidMount() {
         this.getTotalPages()
+        this.getQueue()
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -74,6 +81,21 @@ export class SearchPanel extends Component {
             this.setState({searchResults: true})
             this.getTotalPages()
         }
+    }
+    getQueue(){
+        const params={
+            username:localStorage.getItem('username')
+        }
+        axios.post(subsetConfig.getQueue, qs.stringify(params)).then(res => {
+            let queue=[]
+            for(let i=0;i<res.data.length;i++){
+                let item ={key:res.data[i],value:res.data[i],text:res.data[i]}
+                queue.push(item)
+            }
+            this.setState({queue:queue})
+        }).catch(err => {
+            console.log(err)
+        })
     }
 
     nextPath(path) {
@@ -152,7 +174,11 @@ export class SearchPanel extends Component {
           console.log(err)
         })
   
-      }
+    }
+
+    getQueueIds(){
+        
+    }
 
     render() {
 
@@ -205,10 +231,37 @@ export class SearchPanel extends Component {
                 <div>
 
                 <Grid className="banner">
-                    <Grid.Row >
+                    {/* <Grid.Row>
                             <Grid.Column width={2}></Grid.Column>
                             <Grid.Column width={12}>
                                 <Statistics/>
+                            </Grid.Column>
+                            <Grid.Column width={2}></Grid.Column>
+                    </Grid.Row> */}
+                    <Grid.Row >
+                            <Grid.Column width={2}></Grid.Column>
+                            <Grid.Column width={12} id='queuestyle'>
+                                <Grid>
+                                    <Grid.Row>
+
+                                    </Grid.Row>
+                                    <Grid.Row>
+                                        <Dropdown placeholder='请选择队列' search selection options={this.state.queue} onChange={this.getQueueIds.bind(this)}></Dropdown>
+                                    </Grid.Row>
+                                    {/* <Grid.Row>
+                                        {this.state.queue.map((content,index)=>{
+                                            return(
+                                                <Grid.Column stretched>
+                                                    <Button inverted color='green'>{content}</Button>
+                                                </Grid.Column>
+                                            )
+                                        })}
+                                    </Grid.Row> */}
+                                    <Grid.Row>
+                                        
+                                    </Grid.Row>
+                                </Grid>
+                                
                             </Grid.Column>
                             <Grid.Column width={2}></Grid.Column>
                     </Grid.Row>

@@ -13,6 +13,7 @@ import { isType } from '@babel/types'
 const config = require('../config.json')
 const recordConfig = config.record
 const draftConfig = config.draft
+const subsetConfig = config.subset
 
 
 let  nums={'危险':null,'毛刺征':null,'分叶征':null,'钙化':null,'密度':null,'胸膜凹陷征':null,'空洞征':null,'血管集束征':null,
@@ -587,6 +588,62 @@ export class SearchNodulePanel extends Component {
             activePage:'1'
         }))
     }
+    handleAddQueues(e){
+        let text=document.getElementById('inputQueue').value
+        console.log('text',text)
+        if(text!=='' && this.state.totalResults>0){
+            const params = {
+                malignancy: this.state.malignancy,
+                calcification: this.state.calcification,
+                spiculation: this.state.spiculation,
+                lobulation:this.state.lobulation,
+                texture:this.state.texture,
+                page:'all',
+                // volumeStart:this.state.volumeStart,
+                // volumeEnd:this.state.volumeEnd,
+                diameters:this.state.diameterContainer,
+                pin:this.state.pin,
+                cav:this.state.cav,
+                vss:this.state.vss,
+                bea:this.state.bea,
+                bro:this.state.bro
+            }
+            
+            axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
+                const data = response.data
+                let patients=''
+                console.log('params', params)
+                
+                for (let i=0;i<data.length;i++){
+                    if(i===0 && patients.indexOf(data[i]['patienId'])===-1){
+                        patients=''+data[i]['patienId']
+                    }
+                    else if(i>0 && patients.indexOf(data[i]['patienId'])===-1){
+                        patients=patients+'_'+data[i]['patienId']
+                    }
+                    else{
+                        continue
+                    }
+                }
+                const queueParams={
+                    username:localStorage.getItem('username'),
+                    patientIds:patients,
+                    subsetName:text
+                }
+                axios.post(subsetConfig.createQueue, qs.stringify(queueParams)).then(res => {
+                    console.log(queueParams)
+                    console.log(res.data.status)
+                    if(res.data.status==='ok'){
+                        alert("创建队列'"+text+"'成功!")
+                    }
+                }).catch(err => {
+                    console.log(err)
+                })
+            }).catch(err => {
+                console.log(err)
+            })
+        }
+    }
 
     componentWillUnmount() {
         console.log('searchNodule')
@@ -810,11 +867,17 @@ export class SearchNodulePanel extends Component {
                     </Header>
                     <Button inverted color='blue' onClick={this.savetoExcel} id='excelBtn' icon><Icon name='download' size='small'/></Button>   
                     <Grid.Row className="conlabel">
-                        <Grid.Column width={2}>
+                        <Grid.Column width={2} verticalAlign='middle' textAlign='left'>
                             <Header as='h3' inverted >结节数目:{this.state.totalResults}</Header>
                         </Grid.Column>
-                        <Grid.Column>
-                            
+                        <Grid.Column verticalAlign='middle'  width={4} textAlign='left'>
+                            <Input id='inputQueue' placeholder='请输入队列名称'></Input>
+                            <em>&nbsp;&nbsp;&nbsp;&nbsp;</em>
+                            <Button 
+                                icon='add'
+                                className='ui green inverted button' 
+                                size='mini'
+                                onClick={this.handleAddQueues.bind(this)}></Button>
                         </Grid.Column>
                      
                     </Grid.Row>

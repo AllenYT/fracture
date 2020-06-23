@@ -8,7 +8,7 @@ import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu } from 'semantic-ui-react'
+import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu,Label } from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
@@ -19,6 +19,7 @@ import MiniReport from './MiniReport'
 import { Chart } from '@antv/g2'
 import DataSet from '@antv/data-set'
 import src1 from '../images/scu-logo.jpg'
+import $ from  'jquery'
 
 
 cornerstoneTools.external.cornerstone = cornerstone
@@ -807,7 +808,20 @@ class CornerstoneElement extends Component {
             })
     }
 
+    addSign(slice_idx,e){
+        document.getElementById('slice-slider').value=slice_idx
+        // $('#slice-slider::-webkit-slider-runnable-track').css('background','linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)')
+        // $('input[type=range]').css('background','linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)')
+        // document.querySelector('input[type=range]').style.background='linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)'
+        // $('head').append("<style>.input[type='range']::-webkit-slider-runnable-track{ background:linear-gradient(90deg,#0033FF 0%,#000033 "+ slice_idx*100/this.state.imageIds.length+"%)"+ "}</style>");
+        // $('#slice-slider').append("<style>.input[type='range']::-webkit-slider-runnable-track{ background:red}</style>");
+        let style = $("<style>", {type:"text/css"}).appendTo("head");
+        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (slice_idx+1)*100/this.state.imageIds.length+'%)}');
+        this.refreshImage(false, this.state.imageIds[slice_idx - 1], slice_idx - 1)
+    }
+
     render() {
+        
         const panes = [
             { menuItem: '影像所见', render: () => 
                 <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
@@ -981,6 +995,7 @@ class CornerstoneElement extends Component {
             )
 
         if (!this.state.immersive) {
+            
             // if (this.state.readonly) {
             //     // console.log(this.state.boxes)
                 
@@ -1867,7 +1882,7 @@ class CornerstoneElement extends Component {
                                     </div>
                                     {/* {canvas} */}
                                 </div>
-                                <div className='canvas-style'>
+                                <div id='pointContainer'>
                                     <input
                                         id="slice-slider"
                                         onChange={this.handleRangeChange}
@@ -1876,7 +1891,19 @@ class CornerstoneElement extends Component {
                                         name="volume"
                                         step="1"
                                         min="1"
-                                        max={this.state.stack.imageIds.length}></input>
+                                        max={this.state.stack.imageIds.length}>
+                                            
+                                        </input>
+                                    {
+                                        this.state.boxes.map((content,index)=>{
+                                            let tempId ='sign'+index
+                                            return(
+                                            <Label circular id={tempId} style={{position:'absolute',top:12+(content.slice_idx)*768/this.state.imageIds.length+'px',
+                                        minWidth:'0.5em',minHeight:'0.5em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
+                                            )
+                                        })
+                                    }
+                                </div>
                                     <div id="button-container">
                                         {/* <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div> */}
                                         {/* <p id="page-indicator">{this.state.currentIdx + 1}
@@ -1888,7 +1915,6 @@ class CornerstoneElement extends Component {
                                         }}>沉浸模式</a>
                                     </div>
 
-                                </div>
                                 </Grid.Column>
                                 <Grid.Column width={6} > 
                                     {/* <h3 id="annotator-header">标注人：{window
@@ -2184,7 +2210,7 @@ class CornerstoneElement extends Component {
 
                                     </Grid.Column>
                                     <Grid.Column width={8} textAlign='center'>
-                                    <div className='canvas-style'>
+                                        <div className='canvas-style'>
 
                                             <div
                                                 id="origin-canvas"
@@ -2217,7 +2243,7 @@ class CornerstoneElement extends Component {
                                             {/* {canvas} */}
 
                                         </div>
-                                    <div className='canvas-style'>
+                                        <div id='pointContainer'>
                                         <input
                                             id="slice-slider"
                                             onChange={this.handleRangeChange}
@@ -2226,7 +2252,21 @@ class CornerstoneElement extends Component {
                                             name="volume"
                                             step="1"
                                             min="1"
-                                            max={this.state.stack.imageIds.length}></input>
+                                            max={this.state.stack.imageIds.length}>
+                                                
+                                            </input>
+                                        {
+                                            this.state.boxes.map((content,index)=>{
+                                                let tempId ='sign'+index
+                                                return(
+                                                <Label circular id={tempId} style={{position:'absolute',top:12+(content.slice_idx)*768/this.state.imageIds.length+'px',
+                                            minWidth:'0.5em',minHeight:'0.5em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
+                                                )
+                                            })
+                                        }
+                                        </div>
+                                        
+                                    <div className='canvas-style'>
                                         <div id="button-container">
                                             {/* <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div> */}
                                             {/* <p id="page-indicator">{this.state.currentIdx + 1}
@@ -2472,6 +2512,8 @@ class CornerstoneElement extends Component {
     handleRangeChange(event) {
         // this.setState({currentIdx: event.target.value - 1, imageId:
         // this.state.imageIds[event.target.value - 1]})
+        let style = $("<style>", {type:"text/css"}).appendTo("head");
+        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
         this.refreshImage(false, this.state.imageIds[event.target.value - 1], event.target.value - 1)
     }
 
@@ -3258,6 +3300,16 @@ class CornerstoneElement extends Component {
         }
         if(document.getElementById('hideInfo') != null){
             document.getElementById('hideInfo').style.display='none'
+        }
+        let style = $("<style>", {type:"text/css"}).appendTo("head");
+        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (document.getElementById('slice-slider').value)*100/this.state.imageIds.length+'%)}');
+        for(let i=0;i<this.state.boxes.length;i++){
+            let point=document.getElementById('sign'+i)
+            // let leftMargin=parseFloat($('#slice-slider').width())*50/parseFloat($('#pointContainer').width())+parseFloat($('input[type=range]').css('left').split('%')[0])+'%'
+            point.style.top=11+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
+            // point.style.left='400px'
+            point.style.left='95%'
+            // console.log('slice',parseFloat($('#slice-slider') )
         }
     }
 

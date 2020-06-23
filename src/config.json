@@ -68,5 +68,12 @@
         "calcificationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/calcificationMalDist",
         "lobulationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/lobulationMalDist",
         "textureMalDist":"http://data.deepln.deepx.machineilab.org/nodule/textureMalDist"
+    },
+
+    "subset":{
+        "createQueue":"http://data.deepln.deepx.machineilab.org/subset/create",
+        "getQueue":"http://data.deepln.deepx.machineilab.org/subset/get",
+        "getQueuePatientIds":"http://data.deepln.deepx.machineilab.org/subset/getPatienIds",
+        "deleteQueue":"http://data.deepln.deepx.machineilab.org/subset/delete"
     }
 }

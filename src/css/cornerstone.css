@@ -1,10 +1,12 @@
 input[type='range'] {
   background: transparent;
+  -webkit-appearance: none;
   transform: rotate(90deg);
   position: absolute;
-  top: 47%;/* 230px */
-  left: 54%;/* 465px */
-  width: 850px;/* 400px */
+  top: 44%;
+  left: 54%;
+  /* left: 400px; */
+  width: 850px;
   height: 30px;
   overflow: hidden;
   cursor: pointer;
@@ -16,16 +18,21 @@ input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
 }
 input[type='range']::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
   width: 200px;
   height: 10px;
-  background: #AAA;
+  /* background: #AAA; */
+  /* background:linear-gradient(90deg,#0033FF  0%,#000033  50%); */
+  background: #000033;
 }
 input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
   position: relative;
   height: 30px;
   width: 30px;
   margin-top: -10px;
-  background: steelblue;
+  /* background: steelblue; */
+  background: white;
   border-radius: 50%;
   border: 2px solid white;
 }
@@ -37,6 +44,10 @@ input[type='range']::-webkit-slider-thumb::before {
   left: -502px; /* this should be -2px - width */
   top: 8px; /* don't change this */
   background: #777;
+  color:#777;
+}
+input[type=range]:focus {
+  outline: none;
 }
 
 #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
@@ -427,7 +438,8 @@ option {
     transform: rotate(90deg);
     position: absolute;
     top: 230px;/* 230px */
-    left: 400px;/* 465px */
+    /* left: 400px; */
+    left: 54%;
     width: 400px;/* 400px */
     height: 30px;
     overflow: hidden;
@@ -442,14 +454,18 @@ option {
   input[type='range']::-webkit-slider-runnable-track {
     width: 200px;
     height: 10px;
-    background: #AAA;
+    /* background: #AAA; */
+    background: #2F4F4F;
+    /* background: -webkit-linear-gradient(blue, blue) no-repeat, #2F4F4F;
+    background-size: 50% 50%; */
   }
   input[type='range']::-webkit-slider-thumb {
     position: relative;
     height: 30px;
     width: 30px;
     margin-top: -10px;
-    background: steelblue;
+    /* background: steelblue; */
+    background: white;
     border-radius: 50%;
     border: 2px solid white;
   }
@@ -462,6 +478,10 @@ option {
     top: 8px; /* don't change this */
     background: #777;
   }
+  input[type=range]:focus {
+    outline: none;
+}
+
   
   #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
     transform: rotate(0deg);
@@ -805,8 +825,10 @@ option {
     background: transparent;
     transform: rotate(90deg);
     position: absolute;
-    top: 340px;/* 230px */
-    left: 500px;/* 465px */
+    top: 340px;
+    left: 54%;
+    /* left: 500px; */
+    /* left: 1200px; */
     width: 600px;/* 400px */
     height: 30px;
     overflow: hidden;
@@ -821,14 +843,18 @@ option {
   input[type='range']::-webkit-slider-runnable-track {
     width: 200px;
     height: 10px;
-    background: #AAA;
+    /* background: #AAA; */
+    background: #2F4F4F;
+    /* background: -webkit-linear-gradient(blue, blue) no-repeat, #2F4F4F;
+    background-size: 50% 50%; */
   }
   input[type='range']::-webkit-slider-thumb {
     position: relative;
     height: 30px;
     width: 30px;
     margin-top: -10px;
-    background: steelblue;
+    /* background: steelblue; */
+    background: white;
     border-radius: 50%;
     border: 2px solid white;
   }
@@ -841,6 +867,10 @@ option {
     top: 8px; /* don't change this */
     background: #777;
   }
+  input[type=range]:focus {
+    outline: none;
+}
+
   
   #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
     transform: rotate(0deg);
@@ -1172,7 +1202,8 @@ option {
       transform: rotate(90deg);
       position: absolute;
       top: 280px;/* 230px */
-      left: 400px;/* 465px */
+      left: 54%;
+      /* left: 400px; */
       width: 550px;/* 400px */
       height: 30px;
       overflow: hidden;
@@ -1187,14 +1218,18 @@ option {
     input[type='range']::-webkit-slider-runnable-track {
       width: 200px;
       height: 10px;
-      background: #AAA;
+      /* background: #AAA; */
+      background:#2F4F4F;
+      /* background: -webkit-linear-gradient(blue, blue) no-repeat, #2F4F4F;
+      background-size: 50% 50%; */
     }
     input[type='range']::-webkit-slider-thumb {
       position: relative;
       height: 30px;
       width: 30px;
       margin-top: -10px;
-      background: steelblue;
+      /* background: steelblue; */
+      background: white;
       border-radius: 50%;
       border: 2px solid white;
     }
@@ -1207,6 +1242,10 @@ option {
       top: 8px; /* don't change this */
       background: #777;
     }
+    input[type=range]:focus {
+      outline: none;
+  }
+  
     
     #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
       transform: rotate(0deg);

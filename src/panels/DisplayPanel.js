@@ -51,16 +51,25 @@ class DisplayPanel extends Component {
     if (this.state.username === 'origin') {
 
       axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
-        const stack = {
+        cornerstone
+        .loadAndCacheImage(dataResponse.data[0])
+        .then(image => {
+          // const readonly = readonlyResponse.data.readonly === 'true'
+          console.log('image info',image.data)
+          // console.log('parse',dicomParser.parseDicom(image))
+          const dicomtag = image.data
+           const stack = {
           imageIds: dataResponse.data,
           caseId: this.state.caseId,
           boxes: [],
           readonly: true,
           draftStatus: -1,
           noduleNo: noduleNo,
-          
+          dicomTag:dicomtag
         }
         this.setState({stack: stack, show: true})
+          })
+       
       }).catch(error => {
         console.log(error)
       })
