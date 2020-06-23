@@ -4,7 +4,8 @@
         "getDataListForCov19CaseId":"http://data.deepln.deepx.machineilab.org/data/getCovidMaskListForCaseId",
         "getSingleJpg":"http://data.deepln.deepx.machineilab.org/data/covidMask",
         "getHist":"http://data.deepln.deepx.machineilab.org/covid/getHist",
-        "uploadMutiply":"http://data.deepln.deepx.machineilab.org/data/uploadMutiply"
+        "uploadMutiply":"http://data.deepln.deepx.machineilab.org/data/uploadMutiply",
+        "preprocess":"http://data.deepln.deepx.machineilab.org/preprocess/exec"
     },
 
     "user": {

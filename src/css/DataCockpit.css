@@ -1,6 +1,6 @@
 .VisualCanvas{
     height: 1200px;
-    background-image: url(../images/bg.png);
+    /* background-image: url(../images/bg.png); */
     /* background-size: 100% 100%; */
 }
 .tit2{
@@ -63,3 +63,8 @@
     margin: auto;
     width: 100%;
 } */
+
+.statistics {
+    text-align: center;
+    margin-top: 40px;
+}

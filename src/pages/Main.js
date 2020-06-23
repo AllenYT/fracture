@@ -18,6 +18,7 @@ import src3 from '../images/scu-logo.png'
 import Cov19ListPanel from '../panels/Cov19ListPanel';
 import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
 import HomepagePanel from '../panels/HomepagePanel'
+import preprocess from '../panels/preprocess'
 
 const config = require('../config.json')
 const userConfig = config.user
@@ -144,7 +145,7 @@ class Main extends Component {
                     结节检索
                 </Menu.Item>
 
-                <Menu.Item
+                {/* <Menu.Item
                     active={activeItem === 'myAnnos'}
                     onClick={this.handleItemClick}
                     as={Link}
@@ -172,15 +173,15 @@ class Main extends Component {
                     to='/download'
                     name='download'>
                     数据列表
-                </Menu.Item>
-                <Menu.Item
+                </Menu.Item> */}
+                {/* <Menu.Item
                     active={activeItem === 'patientInfo'}
                     onClick={this.handleItemClick}
                     as={Link}
                     to='/patientInfo'
                     name='patientInfo'>
                     病人详情
-                </Menu.Item>
+                </Menu.Item> */}
                 <Menu.Item
                     active={activeItem === 'cov19List'}
                     onClick={this.handleItemClick}
@@ -188,6 +189,14 @@ class Main extends Component {
                     to='/cov19List'
                     name='cov19List'>
                     新冠肺炎专题
+                </Menu.Item>
+                <Menu.Item
+                    active={activeItem === 'preprocess'}
+                    onClick={this.handleItemClick}
+                    as={Link}
+                    to='/preprocess'
+                    name='preprocess'>
+                    预处理
                 </Menu.Item>
             </>
         )
@@ -290,11 +299,12 @@ class Main extends Component {
                         <Route path="/cov19List/" component={Cov19ListPanel} />
                         <Route path='/cov19Case/' component={Cov19DisplayPanel}/>
                         <Route path='/homepage/' component={HomepagePanel}/>
+                        <Route path='/preprocess/' component={preprocess}/>
                     </div>
                 </div>
 
                 <div className="ui inverted vertical footer segment">
-                    <div className="inline">
+                    <div className="inline" style={{verticalAlign:'middle'}}>
                         {/* © 2019 MILab. All rights reserved */}
                         © 2019 Sichuan University. All rights reserved
                     </div>

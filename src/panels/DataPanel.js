@@ -119,8 +119,26 @@ class DataPanel extends Component {
         }
 
         return (
-            <div>
-                <DataCockpit/>
+            <div className='banner'>
+                <Grid>
+                    <Grid.Row >
+                        <Grid.Column width={2}></Grid.Column>
+                        <Grid.Column width={12}>
+                            <Statistics/>
+                        </Grid.Column>
+                        <Grid.Column width={2}></Grid.Column>
+                    </Grid.Row>
+                    <Grid.Row >
+                        {/* <Grid.Column width={2}></Grid.Column> */}
+                        <Grid.Column width={16}>
+                            <DataCockpit/>
+                        </Grid.Column>
+                        {/* <Grid.Column width={2}></Grid.Column> */}
+                    </Grid.Row>
+                </Grid>
+                
+
+                {/* <DataCockpit/> */}
                 {/* <Grid>
                     <Grid.Row className="banner">
                         <Grid.Column width={2}></Grid.Column>

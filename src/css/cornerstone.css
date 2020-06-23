@@ -3,14 +3,20 @@ input[type='range'] {
   -webkit-appearance: none;
   transform: rotate(90deg);
   position: absolute;
-  top: 44%;
+
+  /* top: 44%;
   left: 54%;
-  /* left: 400px; */
   width: 850px;
-  height: 30px;
+  height: 30px; */
+
+  top: 49.4%;/* 230px */
+  left: 51.2%;/* 465px */
+  width: 1621px;/* 400px */
+  height: 20px;
+
   overflow: hidden;
   cursor: pointer;
-  zoom: 0.9;
+  zoom: 0.6;
 }
 input[type='range'],
 input[type='range']::-webkit-slider-runnable-track,
@@ -28,11 +34,18 @@ input[type='range']::-webkit-slider-runnable-track {
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   position: relative;
+<<<<<<< HEAD
   height: 30px;
   width: 30px;
   margin-top: -10px;
   /* background: steelblue; */
   background: white;
+=======
+  height: 20px;
+  width: 20px;
+  margin-top: -5px;
+  background: steelblue;
+>>>>>>> b4347d9c173efb30ac848c13d6a1655ca856f002
   border-radius: 50%;
   border: 2px solid white;
 }
@@ -76,6 +89,10 @@ table#nodule-table {
   background: #021c38;
 }
 
+.ui.celled.grid>.row>.column{
+  box-shadow: -1px 0 0 0 transparent !important;
+}
+
 #button-container {
   width: 816px;
   text-align: center;
@@ -86,6 +103,8 @@ table#nodule-table {
   text-align: center;
   width:100px;
 }
+
+
 
 #showNodules{
   text-align: left;
@@ -242,7 +261,7 @@ table#nodule-table {
 }
 
 .accordation > .title{
-  color:#2af270 !important;
+  color: #66CFEC !important;
 }
 
 .accordation > .content{
@@ -270,6 +289,11 @@ option {
 .ui.celled.grid.corner-contnt{
   width:96%;
   margin: auto;
+  box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192);
+}
+
+.ui.celled.grid.corner-contnt>.row.corner-row>.column{
+  border: 0.1px solid #313131 !important;
 }
 
 .accord{
@@ -277,15 +301,15 @@ option {
 }
 
 #accord-left{
-  left: 55%;
+  left: 54%;
 }
 
 #accord-mid{
-  margin-left: 67%;
+  margin-left: 66%;
 }
 
 #accord-right{
-  margin-left: 79%;
+  margin-left: 78%;
 }
 
 #report{
@@ -379,8 +403,8 @@ option {
 }
 
 .funcolumn .ui.button, .ui.buttons .button .funcbtn{
-  width: 50px;
-  height: 50px;
+  width: 45px;
+  height: 45px;
   font-size: large;
   background-color: #010c29;
   color: rgb(212, 212, 212);
@@ -413,8 +437,10 @@ option {
 }
 
 .ui.celled.grid.corner-contnt .canvas-style #origin-canvas{
-  width: 768px;
-  height: 768px;
+  /* width: 768px;
+  height: 768px; */
+  width:973px;
+  height: 973px;
   position: relative;
   margin:auto;
   color: white;
@@ -649,7 +675,7 @@ option {
   }
   
   .accordation > .title{
-    color:#2af270 !important;
+    color:#66CFEC !important;
   }
   
   .accordation > .content{
@@ -677,6 +703,11 @@ option {
   .ui.celled.grid.corner-contnt{
     width:96%;
     margin: auto;
+    box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192);
+  }
+
+  .ui.celled.grid.corner-contnt>.row.corner-row>.column{
+    border: 0.1px solid #313131 !important;
   }
   
   .accord{
@@ -768,8 +799,8 @@ option {
   }
   
   .funcolumn .ui.button, .ui.buttons .button .funcbtn{
-    width: 60px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     font-size: large;
     padding: 0;
   }
@@ -1037,7 +1068,7 @@ option {
   }
   
   .accordation > .title{
-    color:#2af270 !important;
+    color:#66CFEC !important;
   }
   
   .accordation > .content{
@@ -1065,6 +1096,11 @@ option {
   .ui.celled.grid.corner-contnt{
     width:96%;
     margin: auto;
+    box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192);
+  }
+
+  .ui.celled.grid.corner-contnt>.row.corner-row>.column{
+    border: 0.1px solid #313131 !important;
   }
   
   .accord{
@@ -1156,8 +1192,8 @@ option {
   }
   
   .funcolumn .ui.button, .ui.buttons .button .funcbtn{
-    width: 60px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     font-size: large;
     padding: 0;
   }
@@ -1411,7 +1447,7 @@ option {
     }
     
     .accordation > .title{
-      color:#2af270 !important;
+      color:#66CFEC !important;
     }
     
     .accordation > .content{
@@ -1439,6 +1475,11 @@ option {
     .ui.celled.grid.corner-contnt{
       width:96%;
       margin: auto;
+      box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192);
+    }
+
+    .ui.celled.grid.corner-contnt>.row.corner-row>.column{
+      border: 0.1px solid #313131 !important;
     }
     
     .accord{
@@ -1531,8 +1572,8 @@ option {
     }
     
     .funcolumn .ui.button, .ui.buttons .button .funcbtn{
-      width: 40px;
-      height: 40px;
+      width: 35px;
+      height: 35px;
       font-size: medium;
       padding: 0;
       

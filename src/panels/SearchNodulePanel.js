@@ -26,7 +26,6 @@ export class SearchNodulePanel extends Component {
         super(props)
         this.state={
             checked: false,
-            totalPage: 1,
             // diameterLeftKeyword: '',
             // diameterRightKeyword:'',
             // labels:[],//标签显示
