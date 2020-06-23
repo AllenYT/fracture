@@ -1,0 +1,55 @@
+.select-component{
+    width: 400px;
+    height: 500px;
+    margin: 0 auto;
+
+}
+
+#loading{
+    width: 400px;
+    height: 500px;
+    margin-left: 45px;
+}
+
+#selectModal{
+    width: 1500px;
+    /* height: 800px; */
+}
+
+.queue-popup{
+    position: fixed;
+    left: 0px;
+    top: 0px;
+    background: #000;
+    width: 100%;
+    height: 100%;
+    opacity: 0.9;
+}
+.queue-name{
+    position: relative;
+    background:#fff;
+    width: 25%;
+    height: 25%;
+    border-radius: 5px;
+    margin: 10% auto;
+}
+#header-right{
+    position: absolute;
+    /* width: 25px;
+    height: 25px; */
+    border-radius: 5px;
+    background: red;
+    color: #fff;
+    /* right: 5px;
+    top: 5px; */
+    text-align: center;
+}
+
+#queueTable{
+    width: 60%;
+}
+
+#selectGrid{
+    background-color: #03031b8c;
+    
+}

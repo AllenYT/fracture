@@ -1,3 +1,12 @@
+/* #homepagePanel{
+    width: 80%;
+    margin: 0 auto;
+} */
+
+#homepageMenu{
+    height: 1400px;
+}
+
 #filelist-tab{
     width: 800px;
     height: 600px;

@@ -208,7 +208,7 @@ export class SearchPanel extends Component {
                     <Grid.Row >
                             <Grid.Column width={2}></Grid.Column>
                             <Grid.Column width={12}>
-                                <Statistics/>
+                                {/* <Statistics/> */}
                             </Grid.Column>
                             <Grid.Column width={2}></Grid.Column>
                     </Grid.Row>
