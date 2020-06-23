@@ -1840,7 +1840,7 @@ class CornerstoneElement extends Component {
                                                         icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
                                                     </Grid.Column>
                                                 </Button.Group>
-                                                <Grid.Column>
+                                                {/* <Grid.Column>
                                                 <Dropdown
                                                     // icon='filter'
                                                     // floating
@@ -1857,7 +1857,7 @@ class CornerstoneElement extends Component {
                                                     <Dropdown.Item></Dropdown.Item>
                                                     </Dropdown.Menu>
                                                 </Dropdown>
-                                                </Grid.Column>
+                                                </Grid.Column> */}
                                             </Grid.Row>
                                         </Grid>
                                     </Grid.Column>    
