@@ -83,6 +83,23 @@
     margin-top: 10px;
     margin-bottom: 50px;
 }
+#queueDropdown{
+    background: transparent;
+    color:whitesmoke;
+    border-color: aliceblue;
+}
+#queueDropdown>.ui.label{
+    background-color: transparent ;
+    color: whitesmoke;
+    border: 0.5px solid whitesmoke;
+  }
+  
+#queueDropdown> div > .item{
+    /* color: #2af270; */
+    color:whitesmoke;
+    background: rgba(1, 23, 46, 0.997);
+    border: 0.5px solid whitesmoke;
+  }
 
 #patient-search {
     width: 250px;

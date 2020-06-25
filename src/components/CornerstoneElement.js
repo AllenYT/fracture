@@ -1943,7 +1943,7 @@ class CornerstoneElement extends Component {
                         {/* <div className='corner-contnt'> */}
                             <Grid celled className='corner-contnt'>
                                 <Grid.Row className='corner-row' columns={3}>
-                                    <Grid.Column width={2}>
+                                    <Grid.Column width={1}>
 
                                     </Grid.Column>
                                     <Grid.Column width={9} textAlign='center'>
@@ -1988,6 +1988,15 @@ class CornerstoneElement extends Component {
                                             step="1"
                                             min="1"
                                             max={this.state.stack.imageIds.length}></input>
+                                            {
+                                            this.state.boxes.map((content,index)=>{
+                                                let tempId ='sign'+index
+                                                return(
+                                                <Label circular id={tempId} style={{position:'absolute',minWidth:'0.2em',
+                                                minHeight:'0.2em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
+                                                )
+                                            })
+                                        }
                                         {/* <div id="button-container">
                                             <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
                                             <p id="page-indicator">{this.state.currentIdx + 1}
@@ -2001,7 +2010,7 @@ class CornerstoneElement extends Component {
 
                                     </div>
                                     </Grid.Column>
-                                    <Grid.Column width={5} > 
+                                    <Grid.Column width={6} > 
                                         {/* <h3 id="annotator-header">标注人：{window
                                                     .location
                                                     .pathname
@@ -2298,7 +2307,7 @@ class CornerstoneElement extends Component {
                         {/* <div class='corner-contnt'> */}
                             <Grid celled className='corner-contnt' >
                                 <Grid.Row className='corner-row' columns={3}>
-                                    <Grid.Column width={2}>
+                                    <Grid.Column width={1}>
 
                                     </Grid.Column>
                                     <Grid.Column width={9} textAlign='center'>
@@ -2335,21 +2344,29 @@ class CornerstoneElement extends Component {
                                             {/* {canvas} */}
 
                                         </div>
-                                        <div id='pointContainer'>
-                                        <input
-                                            id="slice-slider"
-                                            onChange={this.handleRangeChange}
-                                            type="range"
-                                            value={this.state.currentIdx + 1}
-                                            name="volume"
-                                            step="1"
-                                            min="1"
+                                        <div className='canvas-style'>
+                                            <input
+                                                id="slice-slider"
+                                                onChange={this.handleRangeChange}
+                                                type="range"
+                                                value={this.state.currentIdx + 1}
+                                                name="volume"
+                                                step="1"
+                                                min="1"
 
-                                            max={this.state.stack.imageIds.length}></input>
-
-                                    </div>
+                                                max={this.state.stack.imageIds.length}></input>
+                                            {
+                                                this.state.boxes.map((content,index)=>{
+                                                    let tempId ='sign'+index
+                                                    return(
+                                                    <Label circular id={tempId} style={{position:'absolute',minWidth:'0.2em',
+                                                    minHeight:'0.2em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
+                                                    )
+                                                })
+                                            }
+                                        </div>
                                     </Grid.Column>
-                                    <Grid.Column width={5}> 
+                                    <Grid.Column width={6}> 
                                         <div id='listTitle'>
                                             <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
                                             {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
@@ -3394,9 +3411,9 @@ class CornerstoneElement extends Component {
         for(let i=0;i<this.state.boxes.length;i++){
             let point=document.getElementById('sign'+i)
             // let leftMargin=parseFloat($('#slice-slider').width())*50/parseFloat($('#pointContainer').width())+parseFloat($('input[type=range]').css('left').split('%')[0])+'%'
-            point.style.top=11+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
+            point.style.top=25+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
             // point.style.left='400px'
-            point.style.left='95%'
+            point.style.left='98%'
             // console.log('slice',parseFloat($('#slice-slider') )
         }
     }

@@ -35,31 +35,54 @@ class MainList extends Component {
     }
 
     loadMainList() {
-
-        const token = localStorage.getItem('token')
-        const headers = {
-            'Authorization': 'Bearer '.concat(token)
-        }
-
-        const params = {
-            page: this.props.currentPage,
-            type: this.props.type,
-            pidKeyword: this.props.pidKeyword,
-            dateKeyword: this.props.dateKeyword
-        }
-
-        axios.post(recordConfig.getMainList, qs.stringify(params), {headers}).then((response) => {
-            const data = response.data
-            if (data.status !== 'okay') {
-                // window.location.href = '/'
+        if(this.props.subsetName==='all'){
+            const token = localStorage.getItem('token')
+            const headers = {
+                'Authorization': 'Bearer '.concat(token)
             }
-            // console.log('data:',data)
-
-            const mainList = data.mainList
-            this.setState({mainList: mainList,show: true})
-        }).catch((error) => {
-            console.log(error)
-        })
+    
+            const params = {
+                page: this.props.currentPage,
+                type: this.props.type,
+                pidKeyword: this.props.pidKeyword,
+                dateKeyword: this.props.dateKeyword
+            }
+    
+            axios.post(recordConfig.getMainList, qs.stringify(params), {headers}).then((response) => {
+                const data = response.data
+                if (data.status !== 'okay') {
+                    // window.location.href = '/'
+                }
+                // console.log('data:',data)
+    
+                const mainList = data.mainList
+                this.setState({mainList: mainList,show: true})
+            }).catch((error) => {
+                console.log(error)
+            })
+        }
+        else{
+            const params = {
+                page: this.props.currentPage,
+                type: this.props.type,
+                pidKeyword: this.props.pidKeyword,
+                dateKeyword: this.props.dateKeyword,
+                username:localStorage.getItem('username'),
+                subsetName:this.props.subsetName
+            }
+            axios.post(recordConfig.getMainListForSubset, qs.stringify(params)).then((response) => {
+                const data = response.data
+                if (data.status !== 'okay') {
+                    // window.location.href = '/'
+                }
+                // console.log('data:',data)
+    
+                const mainList = data.mainList
+                this.setState({mainList: mainList,show: true})
+            }).catch((error) => {
+                console.log(error)
+            })
+        }
     }
 
     static getDerivedStateFromProps(props, state) {
@@ -91,6 +114,10 @@ class MainList extends Component {
             
         }
         else if(prevProps.type !== this.props.type){
+            this.setState({selectMainItem: '',show: false})
+            this.loadMainList()
+        }
+        else if(prevProps.subsetName !== this.props.subsetName){
             this.setState({selectMainItem: '',show: false})
             this.loadMainList()
         }

@@ -26,7 +26,9 @@
         "getNodulesAtPage":"http://data.deepln.deepx.machineilab.org/nodule/getNodulesAtPage",
         "filterNodulesMulti":"http://data.deepln.deepx.machineilab.org/nodule/filterNodulesMulti",
         "getNodulesAtPageMulti":"http://data.deepln.deepx.machineilab.org/nodule/getNodulesAtPageMulti",
-        "getCov19List":"http://data.deepln.deepx.machineilab.org/covid/getCovidlist"
+        "getCov19List":"http://data.deepln.deepx.machineilab.org/covid/getCovidlist",
+        "getMainListForSubset":"http://data.deepln.deepx.machineilab.org/record/getMainListForSubset",
+        "getTotalPagesForSubset":"http://data.deepln.deepx.machineilab.org/record/getTotalPagesForSubset"
 
     },
 

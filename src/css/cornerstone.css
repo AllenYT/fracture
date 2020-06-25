@@ -12,7 +12,7 @@ input[type='range'] {
   top: 49.4%;/* 230px */
   left: 51.2%;/* 465px */
   width: 1621px;/* 400px */
-  height: 20px;
+  height: 30px;
 
   overflow: hidden;
   cursor: pointer;
@@ -34,18 +34,17 @@ input[type='range']::-webkit-slider-runnable-track {
 input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   position: relative;
-<<<<<<< HEAD
+
   height: 30px;
   width: 30px;
   margin-top: -10px;
-  /* background: steelblue; */
   background: white;
-=======
-  height: 20px;
+
+  /* height: 20px;
   width: 20px;
   margin-top: -5px;
-  background: steelblue;
->>>>>>> b4347d9c173efb30ac848c13d6a1655ca856f002
+  background: white; */
+
   border-radius: 50%;
   border: 2px solid white;
 }
@@ -189,7 +188,7 @@ table#nodule-table {
 
 #elec-table{
   /* position: relative; */
-  height: 550px;
+  height: 650px;
   /* table-layout: fixed; */
   margin-top: 0px;
   overflow-y: auto;
@@ -317,8 +316,8 @@ option {
     border-radius: 0.1rem !important;
     border-color: white;
     color: white;
-    max-height:250px;
-    min-height:250px;
+    max-height:300px;
+    min-height:300px;
     overflow-y:auto;
     /* overflow-y: visible;     */
 }
@@ -630,7 +629,7 @@ option {
   
   #elec-table{
     /* position: relative; */
-    height: 550px;
+    height: 700px;
     /* table-layout: fixed; */
     margin-top: 0px;
     overflow-y: auto;
