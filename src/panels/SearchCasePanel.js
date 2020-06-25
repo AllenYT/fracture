@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Pagination, Input, Grid, Checkbox, Button, Icon, Header} from 'semantic-ui-react'
+import {Pagination, Input, Grid, Checkbox, Button, Icon, Header, Dropdown} from 'semantic-ui-react'
 import MainList from '../components/MainList'
 import '../css/dataPanel.css'
 import axios from 'axios';
@@ -11,10 +11,12 @@ import Info from '../components/Info'
 const config = require('../config.json')
 const recordConfig = config.record
 const cartConfig = config.cart
+const subsetConfig=config.subset
 const style = {
     textAlign: 'center',
     marginTop: '300px'
-  }
+}
+
 export class SearchPanel extends Component {
 
 
@@ -26,7 +28,9 @@ export class SearchPanel extends Component {
             totalPage: 1,
             pidKeyword: '',
             dateKeyword: '',
-            searchResults: true
+            searchResults: true,
+            queue:[],
+            chooseQueue:'all'
         }
         this.handlePaginationChange = this
             .handlePaginationChange
@@ -41,10 +45,14 @@ export class SearchPanel extends Component {
         this.startDownload = this  
             .startDownload
             .bind(this)
+        this.getQueue = this
+            .getQueue
+            .bind(this)
     }
 
     componentDidMount() {
         this.getTotalPages()
+        this.getQueue()
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -68,12 +76,30 @@ export class SearchPanel extends Component {
                 this.setState({searchResults: false})
             }
         }
-        
+        if(prevState.chooseQueue !== this.state.chooseQueue){
+            this.getTotalPages()
+        }
+
         if(prevState.checked !== this.state.checked){
             // console.log('true')
             this.setState({searchResults: true})
             this.getTotalPages()
         }
+    }
+    getQueue(){
+        const params={
+            username:localStorage.getItem('username')
+        }
+        axios.post(subsetConfig.getQueue, qs.stringify(params)).then(res => {
+            let queue=[{key:'all',value:'all',text:'不限队列'}]
+            for(let i=0;i<res.data.length;i++){
+                let item ={key:res.data[i],value:res.data[i],text:res.data[i]}
+                queue.push(item)
+            }
+            this.setState({queue:queue})
+        }).catch(err => {
+            console.log(err)
+        })
     }
 
     nextPath(path) {
@@ -81,31 +107,53 @@ export class SearchPanel extends Component {
     }
 
     getTotalPages() {
-        const token = localStorage.getItem('token')
-        const headers = {
-            'Authorization': 'Bearer '.concat(token)
-        }
-        let type = 'pid'
-        if (this.state.checked) {
-            type = 'date'
-        }
-        const params = {
-            type: type,
-            pidKeyword: this.state.pidKeyword,
-            dateKeyword: this.state.dateKeyword
-        }
-
-        axios.post(recordConfig.getTotalPages, qs.stringify(params), {headers}).then((response) => {
-            const data = response.data
-            if (data.status !== 'okay') {
-                alert("错误，请联系管理员")
-                window.location.href = '/'
-            } else {
-                const totalPage = data.count
-                console.log(totalPage)
-                this.setState({totalPage: totalPage})
+        if(this.state.chooseQueue==='all'){
+            const token = localStorage.getItem('token')
+            const headers = {
+                'Authorization': 'Bearer '.concat(token)
             }
-        }).catch((error) => console.log(error))
+            let type = 'pid'
+            if (this.state.checked) {
+                type = 'date'
+            }
+            const params = {
+                type: type,
+                pidKeyword: this.state.pidKeyword,
+                dateKeyword: this.state.dateKeyword
+            }
+    
+            axios.post(recordConfig.getTotalPages, qs.stringify(params), {headers}).then((response) => {
+                const data = response.data
+                if (data.status !== 'okay') {
+                    alert("错误，请联系管理员")
+                    window.location.href = '/'
+                } else {
+                    const totalPage = data.count
+                    // console.log(totalPage)
+                    this.setState({totalPage: totalPage})
+                }
+            }).catch((error) => console.log(error))
+        }
+        else{
+            let type = 'pid'
+            if (this.state.checked) {
+                type = 'date'
+            }
+            const params = {
+                type: type,
+                pidKeyword: this.state.pidKeyword,
+                dateKeyword: this.state.dateKeyword,
+                username:localStorage.getItem('username'),
+                subsetName:this.state.chooseQueue
+            }
+            axios.post(recordConfig.getTotalPagesForSubset, qs.stringify(params)).then((response) => {
+                const data = response.data
+                const totalPage = data.count
+                console.log('totalPage',totalPage)
+                this.setState({totalPage: totalPage})
+                
+            }).catch((error) => console.log(error))
+        }
 
     }
 
@@ -152,7 +200,18 @@ export class SearchPanel extends Component {
           console.log(err)
         })
   
-      }
+    }
+
+    getQueueIds(e){
+        let text=e.currentTarget.innerHTML.split('>')[1].split('<')[0]
+        console.log('text',text)
+        if(text==='不限队列'){
+            this.setState({chooseQueue:'all'})
+        }
+        else{
+            this.setState({chooseQueue:text})
+        }   
+    }
 
     render() {
 
@@ -172,7 +231,8 @@ export class SearchPanel extends Component {
                             type={type}
                             currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
                             pidKeyword={this.state.pidKeyword}
-                            dateKeyword={this.state.dateKeyword}/>
+                            dateKeyword={this.state.dateKeyword}
+                            subsetName={this.state.chooseQueue}/>
                             <div className='exportButton'>
                                 <Button inverted color='blue' onClick={this.startDownload}>导出</Button>
                             </div>
@@ -205,10 +265,37 @@ export class SearchPanel extends Component {
                 <div>
 
                 <Grid className="banner">
-                    <Grid.Row >
+                    {/* <Grid.Row>
                             <Grid.Column width={2}></Grid.Column>
                             <Grid.Column width={12}>
                                 <Statistics/>
+                            </Grid.Column>
+                            <Grid.Column width={2}></Grid.Column>
+                    </Grid.Row> */}
+                    <Grid.Row >
+                            <Grid.Column width={2}></Grid.Column>
+                            <Grid.Column width={12} id='queuestyle'>
+                                <Grid>
+                                    <Grid.Row>
+
+                                    </Grid.Row>
+                                    <Grid.Row>
+                                        <Dropdown id='queueDropdown' placeholder='请选择队列' search  selection options={this.state.queue} onChange={this.getQueueIds.bind(this)}></Dropdown>
+                                    </Grid.Row>
+                                    {/* <Grid.Row>
+                                        {this.state.queue.map((content,index)=>{
+                                            return(
+                                                <Grid.Column stretched>
+                                                    <Button inverted color='green'>{content}</Button>
+                                                </Grid.Column>
+                                            )
+                                        })}
+                                    </Grid.Row> */}
+                                    <Grid.Row>
+                                        
+                                    </Grid.Row>
+                                </Grid>
+                                
                             </Grid.Column>
                             <Grid.Column width={2}></Grid.Column>
                     </Grid.Row>

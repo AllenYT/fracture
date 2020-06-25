@@ -145,7 +145,7 @@ class Main extends Component {
                     结节检索
                 </Menu.Item>
 
-                <Menu.Item
+                {/* <Menu.Item
                     active={activeItem === 'myAnnos'}
                     onClick={this.handleItemClick}
                     as={Link}
@@ -173,15 +173,15 @@ class Main extends Component {
                     to='/download'
                     name='download'>
                     数据列表
-                </Menu.Item>
-                <Menu.Item
+                </Menu.Item> */}
+                {/* <Menu.Item
                     active={activeItem === 'patientInfo'}
                     onClick={this.handleItemClick}
                     as={Link}
                     to='/patientInfo'
                     name='patientInfo'>
                     病人详情
-                </Menu.Item>
+                </Menu.Item> */}
                 <Menu.Item
                     active={activeItem === 'cov19List'}
                     onClick={this.handleItemClick}
@@ -304,7 +304,7 @@ class Main extends Component {
                 </div>
 
                 <div className="ui inverted vertical footer segment">
-                    <div className="inline">
+                    <div className="inline" style={{verticalAlign:'middle'}}>
                         {/* © 2019 MILab. All rights reserved */}
                         © 2019 Sichuan University. All rights reserved
                     </div>

@@ -8,7 +8,7 @@ import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu } from 'semantic-ui-react'
+import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu,Label } from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
@@ -19,6 +19,7 @@ import MiniReport from './MiniReport'
 import { Chart } from '@antv/g2'
 import DataSet from '@antv/data-set'
 import src1 from '../images/scu-logo.jpg'
+import $ from  'jquery'
 
 
 cornerstoneTools.external.cornerstone = cornerstone
@@ -38,6 +39,7 @@ const bidirectional = cornerstoneTools.BidirectionalTool
 const ellipticalRoi = cornerstoneTools.ellipticalRoi
 const LengthTool = cornerstoneTools.LengthTool
 const ZoomTouchPinchTool = cornerstoneTools.ZoomTouchPinchTool
+const eraser = cornerstoneTools.EraserTool
 const {Column, HeaderCell, Cell, Pagination} = Table
 
 // const divStyle = {
@@ -136,8 +138,15 @@ const highRiskStyle = {
     '-moz-appearance':'none',
     'apperance': 'none',
     'margin-left':'15px',
-    'color':'red'
+    'color':'#CC3300'
 }
+
+const toolstrigger = (
+    <span>
+        <Icon name='user' />
+    </span>
+)
+    
 
 class CornerstoneElement extends Component {
     constructor(props) {
@@ -337,6 +346,7 @@ class CornerstoneElement extends Component {
             .bind(this)
         this.lengthMeasure = this.lengthMeasure.bind(this)
         this.featureAnalysis = this.featureAnalysis.bind(this)
+        this.eraseLabel = this.eraseLabel.bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -359,89 +369,137 @@ class CornerstoneElement extends Component {
         // console.log("to media", viewport)
     }
 
-    visualize(hist_data,idx){
+    visualize(hist_data,idx,isNewBox){
         const visId = 'visual-' + idx
         document.getElementById(visId).innerHTML=''
-        let bins=hist_data.bins
-        let ns=hist_data.n
-        console.log('bins',bins)
-        console.log('ns',ns)
-        var histogram = []
-        var line=[]
-        for (var i = 0; i < bins.length-1; i++) {
-            var obj = {}
-            obj.value = [bins[i],bins[i+1]]
-            obj.count=ns[i]
-            histogram.push(obj)
-            
-            var obj2={}
-            obj2.value=bins[i]
-            obj2.count=ns[i]
-            line.push(obj2)
-        }
-        console.log('histogram',histogram)
-        console.log('line',line)
-        const ds = new DataSet();
-        const dv = ds.createView().source(histogram)
-        // const dv2=ds.createView().source(line)
-
-        // dv.transform({
-        //     type: 'bin.histogram',
-        //     field: 'value',
-        //     binWidth: 5000,
-        //     as: ['value', 'count'],
-        // })
-        const chart = new Chart({
-            container: visId,
-            // forceFit: true,
-            forceFit:true,
-            height: 300,
-            width:400,
-            // padding: [30,30,'auto',30]
-        });
-        // chart.tooltip({
-        //     crosshairs: false,
-        //     inPlot: false,
-        //     position: 'top'
-        //   })
-        let view1=chart.view()
-        // view1.axis(false)
-        view1.source(dv, {
-            value: {
-            //   nice: true,
-              minLimit: bins[0]-50,
-              maxLimit:bins[bins.length-1]+50,
-            //   tickCount:20
-            },
-            count: {
-            //   max: 350000,
-            //   tickInterval:50000
-              tickCount:10
+        if(!isNewBox){
+            let bins=hist_data.bins
+            let ns=hist_data.n
+            console.log('bins',bins)
+            console.log('ns',ns)
+            var histogram = []
+            var line=[]
+            for (var i = 0; i < bins.length-1; i++) {
+                var obj = {}
+                obj.value = [bins[i],bins[i+1]]
+                obj.count=ns[i]
+                histogram.push(obj)
+                
+                var obj2={}
+                obj2.value=bins[i]
+                obj2.count=ns[i]
+                line.push(obj2)
             }
-          })
-        // view1.source(dv)
-        view1.interval().position('value*count')
+            console.log('histogram',histogram)
+            console.log('line',line)
+            const ds = new DataSet();
+            const dv = ds.createView().source(histogram)
+            // const dv2=ds.createView().source(line)
 
-        var view2 = chart.view()
-        view2.axis(false)
-        // view2.source(line)
-        view2.source(line,{
-            value: {
-                // nice: true,
+            // dv.transform({
+            //     type: 'bin.histogram',
+            //     field: 'value',
+            //     binWidth: 5000,
+            //     as: ['value', 'count'],
+            // })
+            const chart = new Chart({
+                container: visId,
+                // forceFit: true,
+                forceFit:true,
+                height: 300,
+                width:400,
+                // padding: [30,30,'auto',30]
+            });
+            // chart.tooltip({
+            //     crosshairs: false,
+            //     inPlot: false,
+            //     position: 'top'
+            //   })
+            let view1=chart.view()
+            // view1.axis(false)
+            view1.source(dv, {
+                value: {
+                //   nice: true,
                 minLimit: bins[0]-50,
-              maxLimit:bins[bins.length-1]+50,
-                // tickCount:10
-              },
-              count: {
-                // max: 350000,
+                maxLimit:bins[bins.length-1]+50,
+                //   tickCount:20
+                },
+                count: {
+                //   max: 350000,
+                //   tickInterval:50000
                 tickCount:10
-              }
-        })
-        view2.line().position('value*count').style({
-            stroke: 'white',
-            
-            }).shape('smooth')
-        chart.render()
+                }
+            })
+            // view1.source(dv)
+            view1.interval().position('value*count')
+
+            var view2 = chart.view()
+            view2.axis(false)
+            // view2.source(line)
+            view2.source(line,{
+                value: {
+                    // nice: true,
+                    minLimit: bins[0]-50,
+                maxLimit:bins[bins.length-1]+50,
+                    // tickCount:10
+                },
+                count: {
+                    // max: 350000,
+                    tickCount:10
+                }
+            })
+            view2.line().position('value*count').style({
+                stroke: 'white',
+                
+                }).shape('smooth')
+            chart.render()
+        }
+        else{
+            const data = hist_data.map((value) => {
+                return {
+                  value,
+                };
+              });
+              const ds = new DataSet();
+              const dv = ds.createView().source(data);
+              dv.transform({
+                type: 'bin.histogram',
+                field: 'value',
+                binWidth: 100,
+                as: ['value', 'count'],
+              });
+              
+              const newchart = new Chart({
+                container: visId,
+                // autoFit: true,
+                height: 300,
+              });
+              newchart.source(dv);
+            //   chart.data(dv.rows);
+            newchart.scale({
+                value: {
+                  min: Math.min.apply(null, hist_data),
+                  max: Math.max.apply(null, hist_data),
+                  tickInterval: 100,
+                },
+                count: {
+                  max: 200,
+                  nice: true,
+                },
+              });
+              
+              newchart.tooltip({
+                showMarkers: false,
+                position: 'top',
+              });
+              
+              newchart.interval().position('value*count');
+              
+            //   chart.interaction('element-highlight');
+              
+            newchart.render();
+        }
+        
     }
 
     wcSlider =  (e, { name, value }) => {//窗位
@@ -754,11 +812,18 @@ class CornerstoneElement extends Component {
 
     featureAnalysis(e){
         const idx = e.target.value
+        console.log("特征分析")
         const boxes = this.state.boxes
         if(boxes[idx].nodule_hist !== undefined){
             var hist_data = boxes[idx].nodule_hist
             console.log('hist_data',hist_data)
-            this.visualize(hist_data,idx)
+            this.visualize(hist_data,idx,false)
+        }
+
+        if(boxes[idx].new_nodule_hist !== undefined){
+            var new_nodule_hist = boxes[idx].new_nodule_hist
+            console.log('hist_data',new_nodule_hist)
+            this.visualize(new_nodule_hist,idx, true)
         }
         
         
@@ -771,6 +836,13 @@ class CornerstoneElement extends Component {
         // data = JSON.parse(data)
         
         // this.visualize(hist)
+    }
+
+    eraseLabel(){
+        const element = document.querySelector('#origin-canvas')
+        this.disableAllTools(element)
+        cornerstoneTools.addToolForElement(element,eraser)
+        cornerstoneTools.setToolActiveForElement(element, 'Eraser',{mouseButtonMask:1},['Mouse'])
     }
 
     toHomepage(){
@@ -807,7 +879,20 @@ class CornerstoneElement extends Component {
             })
     }
 
+    addSign(slice_idx,e){
+        document.getElementById('slice-slider').value=slice_idx
+        // $('#slice-slider::-webkit-slider-runnable-track').css('background','linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)')
+        // $('input[type=range]').css('background','linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)')
+        // document.querySelector('input[type=range]').style.background='linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)'
+        // $('head').append("<style>.input[type='range']::-webkit-slider-runnable-track{ background:linear-gradient(90deg,#0033FF 0%,#000033 "+ slice_idx*100/this.state.imageIds.length+"%)"+ "}</style>");
+        // $('#slice-slider').append("<style>.input[type='range']::-webkit-slider-runnable-track{ background:red}</style>");
+        let style = $("<style>", {type:"text/css"}).appendTo("head");
+        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (slice_idx+1)*100/this.state.imageIds.length+'%)}');
+        this.refreshImage(false, this.state.imageIds[slice_idx - 1], slice_idx - 1)
+    }
+
     render() {
+        
         const panes = [
             { menuItem: '影像所见', render: () => 
                 <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
@@ -981,6 +1066,7 @@ class CornerstoneElement extends Component {
             )
 
         if (!this.state.immersive) {
+            
             // if (this.state.readonly) {
             //     // console.log(this.state.boxes)
                 
@@ -1123,7 +1209,7 @@ class CornerstoneElement extends Component {
                                 )
                                 probContnt=(
                                     <Grid.Column width={3} textAlign='center'>
-                                        <div style={{color:'red'}}>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
+                                        <div style={{color:'#CC3300'}}>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
                                     </Grid.Column>
                                 )
                             }
@@ -1576,14 +1662,14 @@ class CornerstoneElement extends Component {
                                         
                                     </div>
                                     {
-                                        this.state.readonly?
+                                        // this.state.readonly?
                                         // <div style={{width:'100%',marginTop:'2%'}}>
                                          <div style={{display:'inline-block',width:'50%'}}>
                                             <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
                                             icon='chart bar' content='特征分析' value={idx} onClick={this.featureAnalysis}>
                                             </Button>
                                         </div>
-                                        :null
+                                        // :null
                                         // <div style={{display:'inline-block',width:'50%'}}>
                                         //     <Button style={{background:'transparent',color:'white',fontSize:'medium',border:'1px solid white',width:'100%'}}
                                         //     content='测量' icon='edit' id="immersive-hover" onClick={this.lengthMeasure}>
@@ -1705,9 +1791,9 @@ class CornerstoneElement extends Component {
                                             </Grid.Row>
                                         </Grid>
                                         
-                                    </Grid.Column>
-                                    <span id='line-left'></span>
-                                    <Grid.Column className='funcolumn' width={4}>
+                                    </Grid.Column>{' '}
+                                    {/* <span id='line-left'></span> */}
+                                    <Grid.Column className='funcolumn' width={5}>
                                         <Grid>
                                         <Grid.Row columns='equal'>
                                                 <Button.Group>
@@ -1761,7 +1847,32 @@ class CornerstoneElement extends Component {
                                                     <Grid.Column>
                                                         <Button icon onClick={this.lengthMeasure} className='funcbtn' title='测量'><Icon name='edit' size='large'></Icon></Button>
                                                     </Grid.Column>
+                                                    <Grid.Column>
+                                                        <Button className='funcbtn'
+                                                        onClick={() => {
+                                                            this.setState({immersive: true})
+                                                        }}
+                                                        icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
+                                                    </Grid.Column>
                                                 </Button.Group>
+                                                {/* <Grid.Column>
+                                                <Dropdown
+                                                    // icon='filter'
+                                                    // floating
+                                                    // labeled
+                                                    button
+                                                    trigger={
+                                                        <Button icon><Icon name='filter'></Icon></Button>
+                                                    }
+                                                    className='toolsbtn'
+                                                >
+                                                    <Dropdown.Menu>
+                                                    <Dropdown.Item icon='eraser' onClick={this.eraseLabel}></Dropdown.Item>
+                                                    <Dropdown.Item icon='filter'></Dropdown.Item>
+                                                    <Dropdown.Item></Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                                </Grid.Column> */}
                                             </Grid.Row>
                                         </Grid>
                                     </Grid.Column>    
@@ -1831,116 +1942,125 @@ class CornerstoneElement extends Component {
                         
                         {/* <div className='corner-contnt'> */}
                             <Grid celled className='corner-contnt'>
-                                <Grid.Row columns={3}>
-                                <Grid.Column width={2}>
+                                <Grid.Row className='corner-row' columns={3}>
+                                    <Grid.Column width={1}>
 
-                                </Grid.Column>
-                                <Grid.Column width={8} textAlign='center'>
-                                <div className='canvas-style'>
-                                    <div
-                                        id="origin-canvas"
-                                        // style={divStyle}
-                                        ref={input => {
-                                        this.element = input
-                                    }}>
-                                        <canvas className="cornerstone-canvas" id="canvas"/>
-                                        <div id='dicomTag'>
-                                            <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                                            <div style={{position:'absolute',color:'white',top:'20px',left:'5px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                                            <div style={{position:'absolute',color:'white',top:'35px',left:'5px'}}>{dicomTag.string('x00100020')}</div>
-                                            <div style={{position:'absolute',color:'white',top:'50px',left:'5px'}}>{dicomTag.string('x00185100')}</div>
-                                            <div style={{position:'absolute',color:'white',top:'65px',left:'5px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-                                            <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                                            <div style={{position:'absolute',color:'white',top:'20px',right:'5px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                                            <div style={{position:'absolute',color:'white',top:'35px',right:'5px'}}>{dicomTag.string('x00090010')}</div>
-                                            <div style={{position:'absolute',color:'white',top:'50px',right:'5px'}}>{dicomTag.string('x0008103e')}</div>
-                                            <div style={{position:'absolute',color:'white',top:'65px',right:'5px'}}>{dicomTag.string('x00080020')}</div>
-                                            <div style={{position:'absolute',color:'white',top:'80px',right:'5px'}}>T: {dicomTag.string('x00180050')}</div>
-                                        </div>
-                                        <div style={{position:'absolute',color:'white',bottom:'20px',left:'5px'}}>Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
-                                        </div>
-                                        <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
-                                        <div style={bottomRightStyle}>
-                                            WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                                            /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                                        </div>
-                                    </div>
-                                    {/* {canvas} */}
-                                </div>
-                                <div className='canvas-style'>
-                                    <input
-                                        id="slice-slider"
-                                        onChange={this.handleRangeChange}
-                                        type="range"
-                                        value={this.state.currentIdx + 1}
-                                        name="volume"
-                                        step="1"
-                                        min="1"
-                                        max={this.state.stack.imageIds.length}></input>
-                                    <div id="button-container">
-                                        {/* <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div> */}
-                                        {/* <p id="page-indicator">{this.state.currentIdx + 1}
-                                            / {this.state.imageIds.length}</p> */}
-                                        <a
-                                            id="immersive-hover"
-                                            onClick={() => {
-                                            this.setState({immersive: true})
-                                        }}>沉浸模式</a>
-                                    </div>
-
-                                </div>
-                                </Grid.Column>
-                                <Grid.Column width={6} > 
-                                    {/* <h3 id="annotator-header">标注人：{window
-                                                .location
-                                                .pathname
-                                                .split('/')[3]}{StartReviewButton}</h3> */}
-                                    <div id='listTitle'>
-                                            <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
-                                            {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
-                                            <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px',verticalAlign:'top'}}>
-                                                <Button
-                                                    inverted
-                                                    color='blue'
-                                                    onClick={this.temporaryStorage}
-                                                    // id='tempStore'
-                                                >暂存</Button>
-                                                {submitButton}
+                                    </Grid.Column>
+                                    <Grid.Column width={9} textAlign='center'>
+                                    <div className='canvas-style'>
+                                        <div
+                                            id="origin-canvas"
+                                            // style={divStyle}
+                                            ref={input => {
+                                            this.element = input
+                                        }}>
+                                            <canvas className="cornerstone-canvas" id="canvas"/>
+                                            <div id='dicomTag'>
+                                                <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'20px',left:'5px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'35px',left:'5px'}}>{dicomTag.string('x00100020')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'50px',left:'5px'}}>{dicomTag.string('x00185100')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'65px',left:'5px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                                                <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'20px',right:'5px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'35px',right:'5px'}}>{dicomTag.string('x00090010')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'50px',right:'5px'}}>{dicomTag.string('x0008103e')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'65px',right:'5px'}}>{dicomTag.string('x00080020')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'80px',right:'5px'}}>T: {dicomTag.string('x00180050')}</div>
                                             </div>
-                                            
+                                            <div style={{position:'absolute',color:'white',bottom:'20px',left:'5px'}}>Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
+                                            </div>
+                                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
+                                            <div style={bottomRightStyle}>
+                                                WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                                /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                            </div>
+                                        </div>
+                                        {/* {canvas} */}
                                     </div>
-                                    <div id='elec-table'>
-                                        {/* <div className='table-head'>
-                                            <Table inverted singleLine id="nodule-table" fixed celled > 
-                                                <Table.Header>
-                                                    <Table.Row>
-                                                        <Table.HeaderCell>切片号</Table.HeaderCell>
-                                                        <Table.HeaderCell>结节编号</Table.HeaderCell>
-                                                        <Table.HeaderCell>定位</Table.HeaderCell>
-                                                        <Table.HeaderCell>直径</Table.HeaderCell>
-                                                        <Table.HeaderCell>性质</Table.HeaderCell>
-                                                        <Table.HeaderCell>危险程度</Table.HeaderCell>
-                                                        <Table.HeaderCell>操作</Table.HeaderCell>
-                                                    </Table.Row>
-                                                </Table.Header>
-                                            </Table>
+                                    <div className='canvas-style'>
+                                        <input
+                                            id="slice-slider"
+                                            onChange={this.handleRangeChange}
+                                            type="range"
+                                            value={this.state.currentIdx + 1}
+                                            name="volume"
+                                            step="1"
+                                            min="1"
+                                            max={this.state.stack.imageIds.length}></input>
+                                            {
+                                            this.state.boxes.map((content,index)=>{
+                                                let tempId ='sign'+index
+                                                return(
+                                                <Label circular id={tempId} style={{position:'absolute',minWidth:'0.2em',
+                                                minHeight:'0.2em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
+                                                )
+                                            })
+                                        }
+                                        {/* <div id="button-container">
+                                            <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
+                                            <p id="page-indicator">{this.state.currentIdx + 1}
+                                                / {this.state.imageIds.length}</p>
+                                            <a
+                                                id="immersive-hover"
+                                                onClick={() => {
+                                                this.setState({immersive: true})
+                                            }}>沉浸模式</a>
                                         </div> */}
-                                        {/* <div className='table-body'>
-                                            <Table id='table-color' fixed >
-                                                <Table.Body id='body-color'> 
-                                                    {tableContent}
-                                                </Table.Body>
-                                            </Table>
-                                        </div> */}
-                                        <Accordion styled id="cornerstone-accordion" fluid>
-                                            {tableContent}
-                                        </Accordion>
+
                                     </div>
-                                    <div id='report'>
-                                        <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
-                                            panes={panes} />
-                                    </div>
-                                </Grid.Column>
+                                    </Grid.Column>
+                                    <Grid.Column width={6} > 
+                                        {/* <h3 id="annotator-header">标注人：{window
+                                                    .location
+                                                    .pathname
+                                                    .split('/')[3]}{StartReviewButton}</h3> */}
+                                        <div id='listTitle'>
+                                                <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
+                                                {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
+                                                <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px',verticalAlign:'top'}}>
+                                                    <Button
+                                                        inverted
+                                                        color='blue'
+                                                        onClick={this.temporaryStorage}
+                                                        // id='tempStore'
+                                                    >暂存</Button>
+                                                    {submitButton}
+                                                </div>
+                                                
+                                        </div>
+                                        <div id='elec-table'>
+                                            {/* <div className='table-head'>
+                                                <Table inverted singleLine id="nodule-table" fixed celled > 
+                                                    <Table.Header>
+                                                        <Table.Row>
+                                                            <Table.HeaderCell>切片号</Table.HeaderCell>
+                                                            <Table.HeaderCell>结节编号</Table.HeaderCell>
+                                                            <Table.HeaderCell>定位</Table.HeaderCell>
+                                                            <Table.HeaderCell>直径</Table.HeaderCell>
+                                                            <Table.HeaderCell>性质</Table.HeaderCell>
+                                                            <Table.HeaderCell>危险程度</Table.HeaderCell>
+                                                            <Table.HeaderCell>操作</Table.HeaderCell>
+                                                        </Table.Row>
+                                                    </Table.Header>
+                                                </Table>
+                                            </div> */}
+                                            {/* <div className='table-body'>
+                                                <Table id='table-color' fixed >
+                                                    <Table.Body id='body-color'> 
+                                                        {tableContent}
+                                                    </Table.Body>
+                                                </Table>
+                                            </div> */}
+                                            <Accordion styled id="cornerstone-accordion" fluid>
+                                                {tableContent}
+                                            </Accordion>
+                                        </div>
+                                        <div id='report'>
+                                            <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
+                                                panes={panes} />
+                                        </div>
+                                    </Grid.Column>
                                 </Grid.Row>
                                 
                             </Grid>
@@ -2049,8 +2169,8 @@ class CornerstoneElement extends Component {
                                                 </Button.Group>
                                             </Grid.Row>
                                         </Grid>  
-                                    </Grid.Column>
-                                    <span id='line-left'></span>
+                                    </Grid.Column>{' '}
+                                    {/* <span id='line-left'></span> */}
                                     <Grid.Column className='funcolumn' width={4}>
                                         <Grid>
                                             <Grid.Row columns='equal'>
@@ -2104,6 +2224,13 @@ class CornerstoneElement extends Component {
                                                     </Grid.Column>
                                                     <Grid.Column>
                                                         <Button icon onClick={this.lengthMeasure} className='funcbtn' title='测量'><Icon name='edit' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        <Button
+                                                        onClick={() => {
+                                                            this.setState({immersive: true})
+                                                        }}
+                                                        icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
                                                     </Grid.Column>
                                                 </Button.Group>
                                             </Grid.Row>
@@ -2179,11 +2306,11 @@ class CornerstoneElement extends Component {
                         {/* </div> */}
                         {/* <div class='corner-contnt'> */}
                             <Grid celled className='corner-contnt' >
-                                <Grid.Row columns={3}>
-                                    <Grid.Column width={2}>
+                                <Grid.Row className='corner-row' columns={3}>
+                                    <Grid.Column width={1}>
 
                                     </Grid.Column>
-                                    <Grid.Column width={8} textAlign='center'>
+                                    <Grid.Column width={9} textAlign='center'>
                                     <div className='canvas-style'>
 
                                             <div
@@ -2217,28 +2344,27 @@ class CornerstoneElement extends Component {
                                             {/* {canvas} */}
 
                                         </div>
-                                    <div className='canvas-style'>
-                                        <input
-                                            id="slice-slider"
-                                            onChange={this.handleRangeChange}
-                                            type="range"
-                                            value={this.state.currentIdx + 1}
-                                            name="volume"
-                                            step="1"
-                                            min="1"
-                                            max={this.state.stack.imageIds.length}></input>
-                                        <div id="button-container">
-                                            {/* <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div> */}
-                                            {/* <p id="page-indicator">{this.state.currentIdx + 1}
-                                                / {this.state.imageIds.length}</p> */}
-                                            <a
-                                                id="immersive-hover"
-                                                onClick={() => {
-                                                this.setState({immersive: true})
-                                            }}>沉浸模式</a>
-                                        </div>
+                                        <div className='canvas-style'>
+                                            <input
+                                                id="slice-slider"
+                                                onChange={this.handleRangeChange}
+                                                type="range"
+                                                value={this.state.currentIdx + 1}
+                                                name="volume"
+                                                step="1"
+                                                min="1"
 
-                                    </div>
+                                                max={this.state.stack.imageIds.length}></input>
+                                            {
+                                                this.state.boxes.map((content,index)=>{
+                                                    let tempId ='sign'+index
+                                                    return(
+                                                    <Label circular id={tempId} style={{position:'absolute',minWidth:'0.2em',
+                                                    minHeight:'0.2em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
+                                                    )
+                                                })
+                                            }
+                                        </div>
                                     </Grid.Column>
                                     <Grid.Column width={6}> 
                                         <div id='listTitle'>
@@ -2472,10 +2598,29 @@ class CornerstoneElement extends Component {
     handleRangeChange(event) {
         // this.setState({currentIdx: event.target.value - 1, imageId:
         // this.state.imageIds[event.target.value - 1]})
+        let style = $("<style>", {type:"text/css"}).appendTo("head");
+        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
         this.refreshImage(false, this.state.imageIds[event.target.value - 1], event.target.value - 1)
     }
 
     createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
+        let pixelArray = []
+        const imageId = this.state.imageIds[slice_idx]
+        console.log('image',imageId)
+        cornerstone
+        .loadAndCacheImage(imageId)
+        .then(image => {
+            const pixeldata = image.getPixelData()
+            console.log('pixeldata',pixeldata)
+            for(var i=~~x1;i<=x2;i++){
+                for(var j=~~y1;j<=y2;j++){
+                    pixelArray.push(pixeldata[512*j+i] - 1024)
+                }
+
+            }
+            console.log('array',pixelArray)
+
+        })
         const newBox = {
             // "calcification": [], "lobulation": [],
             "malignancy": -1,
@@ -2484,6 +2629,7 @@ class CornerstoneElement extends Component {
             "place": "",
             "probability": 1,
             "slice_idx": slice_idx,
+            "new_nodule_hist":pixelArray,
             // "spiculation": [], "texture": [],
             "x1": x1,
             "x2": x2,
@@ -2496,6 +2642,7 @@ class CornerstoneElement extends Component {
         console.log("newBox", newBox)
         boxes.push(newBox)
         this.setState({boxes: boxes})
+        console.log("Boxes", this.state.boxes)
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
@@ -3041,7 +3188,6 @@ class CornerstoneElement extends Component {
                 //     console.log('image info',image.data)
                 //     this.setState({dicomTag:image.data,TagFlag:true})
                 // }
-                
                 if (initial) {
                     console.log(this.state.viewport.voi)
                     if (this.state.viewport.voi.windowWidth === undefined || this.state.viewport.voi.windowCenter === undefined) {
@@ -3127,6 +3273,7 @@ class CornerstoneElement extends Component {
                         //     .activate(element)
                 }
                 else{
+                    // console.log(image.getPixelData())
                     cornerstoneTools.addToolForElement(element, bidirectional)
                     cornerstoneTools.setToolActiveForElement(
                         element,
@@ -3258,6 +3405,16 @@ class CornerstoneElement extends Component {
         }
         if(document.getElementById('hideInfo') != null){
             document.getElementById('hideInfo').style.display='none'
+        }
+        let style = $("<style>", {type:"text/css"}).appendTo("head");
+        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (document.getElementById('slice-slider').value)*100/this.state.imageIds.length+'%)}');
+        for(let i=0;i<this.state.boxes.length;i++){
+            let point=document.getElementById('sign'+i)
+            // let leftMargin=parseFloat($('#slice-slider').width())*50/parseFloat($('#pointContainer').width())+parseFloat($('input[type=range]').css('left').split('%')[0])+'%'
+            point.style.top=25+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
+            // point.style.left='400px'
+            point.style.left='98%'
+            // console.log('slice',parseFloat($('#slice-slider') )
         }
     }
 

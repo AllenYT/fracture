@@ -1,14 +1,22 @@
 input[type='range'] {
   background: transparent;
+  -webkit-appearance: none;
   transform: rotate(90deg);
   position: absolute;
-  top: 47%;/* 230px */
-  left: 54%;/* 465px */
-  width: 850px;/* 400px */
+
+  /* top: 44%;
+  left: 54%;
+  width: 850px;
+  height: 30px; */
+
+  top: 49.4%;/* 230px */
+  left: 51.2%;/* 465px */
+  width: 1621px;/* 400px */
   height: 30px;
+
   overflow: hidden;
   cursor: pointer;
-  zoom: 0.9;
+  zoom: 0.6;
 }
 input[type='range'],
 input[type='range']::-webkit-slider-runnable-track,
@@ -16,16 +24,27 @@ input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
 }
 input[type='range']::-webkit-slider-runnable-track {
+  -webkit-appearance: none;
   width: 200px;
   height: 10px;
-  background: #AAA;
+  /* background: #AAA; */
+  /* background:linear-gradient(90deg,#0033FF  0%,#000033  50%); */
+  background: #000033;
 }
 input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
   position: relative;
+
   height: 30px;
   width: 30px;
   margin-top: -10px;
-  background: steelblue;
+  background: white;
+
+  /* height: 20px;
+  width: 20px;
+  margin-top: -5px;
+  background: white; */
+
   border-radius: 50%;
   border: 2px solid white;
 }
@@ -37,6 +56,10 @@ input[type='range']::-webkit-slider-thumb::before {
   left: -502px; /* this should be -2px - width */
   top: 8px; /* don't change this */
   background: #777;
+  color:#777;
+}
+input[type=range]:focus {
+  outline: none;
 }
 
 #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
@@ -65,6 +88,10 @@ table#nodule-table {
   background: #021c38;
 }
 
+.ui.celled.grid>.row>.column{
+  box-shadow: -1px 0 0 0 transparent !important;
+}
+
 #button-container {
   width: 816px;
   text-align: center;
@@ -75,6 +102,8 @@ table#nodule-table {
   text-align: center;
   width:100px;
 }
+
+
 
 #showNodules{
   text-align: left;
@@ -159,7 +188,7 @@ table#nodule-table {
 
 #elec-table{
   /* position: relative; */
-  height: 550px;
+  height: 650px;
   /* table-layout: fixed; */
   margin-top: 0px;
   overflow-y: auto;
@@ -231,7 +260,7 @@ table#nodule-table {
 }
 
 .accordation > .title{
-  color:#2af270 !important;
+  color: #66CFEC !important;
 }
 
 .accordation > .content{
@@ -259,6 +288,11 @@ option {
 .ui.celled.grid.corner-contnt{
   width:96%;
   margin: auto;
+  box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192);
+}
+
+.ui.celled.grid.corner-contnt>.row.corner-row>.column{
+  border: 0.1px solid #313131 !important;
 }
 
 .accord{
@@ -266,15 +300,15 @@ option {
 }
 
 #accord-left{
-  left: 55%;
+  left: 54%;
 }
 
 #accord-mid{
-  margin-left: 67%;
+  margin-left: 66%;
 }
 
 #accord-right{
-  margin-left: 79%;
+  margin-left: 78%;
 }
 
 #report{
@@ -282,8 +316,8 @@ option {
     border-radius: 0.1rem !important;
     border-color: white;
     color: white;
-    max-height:250px;
-    min-height:250px;
+    max-height:300px;
+    min-height:300px;
     overflow-y:auto;
     /* overflow-y: visible;     */
 }
@@ -368,8 +402,8 @@ option {
 }
 
 .funcolumn .ui.button, .ui.buttons .button .funcbtn{
-  width: 50px;
-  height: 50px;
+  width: 45px;
+  height: 45px;
   font-size: large;
   background-color: #010c29;
   color: rgb(212, 212, 212);
@@ -402,8 +436,10 @@ option {
 }
 
 .ui.celled.grid.corner-contnt .canvas-style #origin-canvas{
-  width: 768px;
-  height: 768px;
+  /* width: 768px;
+  height: 768px; */
+  width:973px;
+  height: 973px;
   position: relative;
   margin:auto;
   color: white;
@@ -427,7 +463,8 @@ option {
     transform: rotate(90deg);
     position: absolute;
     top: 230px;/* 230px */
-    left: 400px;/* 465px */
+    /* left: 400px; */
+    left: 54%;
     width: 400px;/* 400px */
     height: 30px;
     overflow: hidden;
@@ -442,14 +479,18 @@ option {
   input[type='range']::-webkit-slider-runnable-track {
     width: 200px;
     height: 10px;
-    background: #AAA;
+    /* background: #AAA; */
+    background: #2F4F4F;
+    /* background: -webkit-linear-gradient(blue, blue) no-repeat, #2F4F4F;
+    background-size: 50% 50%; */
   }
   input[type='range']::-webkit-slider-thumb {
     position: relative;
     height: 30px;
     width: 30px;
     margin-top: -10px;
-    background: steelblue;
+    /* background: steelblue; */
+    background: white;
     border-radius: 50%;
     border: 2px solid white;
   }
@@ -462,6 +503,10 @@ option {
     top: 8px; /* don't change this */
     background: #777;
   }
+  input[type=range]:focus {
+    outline: none;
+}
+
   
   #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
     transform: rotate(0deg);
@@ -584,7 +629,7 @@ option {
   
   #elec-table{
     /* position: relative; */
-    height: 550px;
+    height: 700px;
     /* table-layout: fixed; */
     margin-top: 0px;
     overflow-y: auto;
@@ -629,7 +674,7 @@ option {
   }
   
   .accordation > .title{
-    color:#2af270 !important;
+    color:#66CFEC !important;
   }
   
   .accordation > .content{
@@ -657,6 +702,11 @@ option {
   .ui.celled.grid.corner-contnt{
     width:96%;
     margin: auto;
+    box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192);
+  }
+
+  .ui.celled.grid.corner-contnt>.row.corner-row>.column{
+    border: 0.1px solid #313131 !important;
   }
   
   .accord{
@@ -748,8 +798,8 @@ option {
   }
   
   .funcolumn .ui.button, .ui.buttons .button .funcbtn{
-    width: 60px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     font-size: large;
     padding: 0;
   }
@@ -805,8 +855,10 @@ option {
     background: transparent;
     transform: rotate(90deg);
     position: absolute;
-    top: 340px;/* 230px */
-    left: 500px;/* 465px */
+    top: 340px;
+    left: 54%;
+    /* left: 500px; */
+    /* left: 1200px; */
     width: 600px;/* 400px */
     height: 30px;
     overflow: hidden;
@@ -821,14 +873,18 @@ option {
   input[type='range']::-webkit-slider-runnable-track {
     width: 200px;
     height: 10px;
-    background: #AAA;
+    /* background: #AAA; */
+    background: #2F4F4F;
+    /* background: -webkit-linear-gradient(blue, blue) no-repeat, #2F4F4F;
+    background-size: 50% 50%; */
   }
   input[type='range']::-webkit-slider-thumb {
     position: relative;
     height: 30px;
     width: 30px;
     margin-top: -10px;
-    background: steelblue;
+    /* background: steelblue; */
+    background: white;
     border-radius: 50%;
     border: 2px solid white;
   }
@@ -841,6 +897,10 @@ option {
     top: 8px; /* don't change this */
     background: #777;
   }
+  input[type=range]:focus {
+    outline: none;
+}
+
   
   #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
     transform: rotate(0deg);
@@ -1007,7 +1067,7 @@ option {
   }
   
   .accordation > .title{
-    color:#2af270 !important;
+    color:#66CFEC !important;
   }
   
   .accordation > .content{
@@ -1035,6 +1095,11 @@ option {
   .ui.celled.grid.corner-contnt{
     width:96%;
     margin: auto;
+    box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192);
+  }
+
+  .ui.celled.grid.corner-contnt>.row.corner-row>.column{
+    border: 0.1px solid #313131 !important;
   }
   
   .accord{
@@ -1126,8 +1191,8 @@ option {
   }
   
   .funcolumn .ui.button, .ui.buttons .button .funcbtn{
-    width: 60px;
-    height: 50px;
+    width: 45px;
+    height: 45px;
     font-size: large;
     padding: 0;
   }
@@ -1172,7 +1237,8 @@ option {
       transform: rotate(90deg);
       position: absolute;
       top: 280px;/* 230px */
-      left: 400px;/* 465px */
+      left: 54%;
+      /* left: 400px; */
       width: 550px;/* 400px */
       height: 30px;
       overflow: hidden;
@@ -1187,14 +1253,18 @@ option {
     input[type='range']::-webkit-slider-runnable-track {
       width: 200px;
       height: 10px;
-      background: #AAA;
+      /* background: #AAA; */
+      background:#2F4F4F;
+      /* background: -webkit-linear-gradient(blue, blue) no-repeat, #2F4F4F;
+      background-size: 50% 50%; */
     }
     input[type='range']::-webkit-slider-thumb {
       position: relative;
       height: 30px;
       width: 30px;
       margin-top: -10px;
-      background: steelblue;
+      /* background: steelblue; */
+      background: white;
       border-radius: 50%;
       border: 2px solid white;
     }
@@ -1207,6 +1277,10 @@ option {
       top: 8px; /* don't change this */
       background: #777;
     }
+    input[type=range]:focus {
+      outline: none;
+  }
+  
     
     #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
       transform: rotate(0deg);
@@ -1372,7 +1446,7 @@ option {
     }
     
     .accordation > .title{
-      color:#2af270 !important;
+      color:#66CFEC !important;
     }
     
     .accordation > .content{
@@ -1400,6 +1474,11 @@ option {
     .ui.celled.grid.corner-contnt{
       width:96%;
       margin: auto;
+      box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192);
+    }
+
+    .ui.celled.grid.corner-contnt>.row.corner-row>.column{
+      border: 0.1px solid #313131 !important;
     }
     
     .accord{
@@ -1492,8 +1571,8 @@ option {
     }
     
     .funcolumn .ui.button, .ui.buttons .button .funcbtn{
-      width: 40px;
-      height: 40px;
+      width: 35px;
+      height: 35px;
       font-size: medium;
       padding: 0;
       

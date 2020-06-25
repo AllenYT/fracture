@@ -49,6 +49,13 @@
     width:100px;
     height:30px;
 }
+#inputQueue{
+    background: transparent !important;
+    color:whitesmoke !important;
+    border: 0.5px solid aliceblue;
+    border-radius: 4px;
+    
+}
 
 em {
     /* width: 60px; */
