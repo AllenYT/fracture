@@ -30,7 +30,8 @@ export class SearchPanel extends Component {
             dateKeyword: '',
             searchResults: true,
             queue:[],
-            chooseQueue:'all'
+            chooseQueue:'all',
+            searchQueue:[]
         }
         this.handlePaginationChange = this
             .handlePaginationChange
@@ -91,12 +92,13 @@ export class SearchPanel extends Component {
             username:localStorage.getItem('username')
         }
         axios.post(subsetConfig.getQueue, qs.stringify(params)).then(res => {
-            let queue=[{key:'all',value:'all',text:'不限队列'}]
+            let queue=['不限队列']
+            let searchQueue=[{key:'不限队列',value:'不限队列',text:'不限队列'}]
             for(let i=0;i<res.data.length;i++){
-                let item ={key:res.data[i],value:res.data[i],text:res.data[i]}
-                queue.push(item)
+                queue.push(res.data[i])
+                searchQueue.push({key:res.data[i],value:res.data[i],text:res.data[i]})
             }
-            this.setState({queue:queue})
+            this.setState({queue:queue,searchQueue:searchQueue})
         }).catch(err => {
             console.log(err)
         })
@@ -205,7 +207,7 @@ export class SearchPanel extends Component {
     getQueueIds(e){
         let text=e.currentTarget.innerHTML.split('>')[1].split('<')[0]
         console.log('text',text)
-        if(text==='不限队列'){
+        if(text==='不限队列'||text===''){
             this.setState({chooseQueue:'all'})
         }
         else{
@@ -280,17 +282,24 @@ export class SearchPanel extends Component {
 
                                     </Grid.Row>
                                     <Grid.Row>
-                                        <Dropdown id='queueDropdown' placeholder='请选择队列' search  selection options={this.state.queue} onChange={this.getQueueIds.bind(this)}></Dropdown>
+                                        <Dropdown id='queueDropdown' placeholder='搜索队列' search icon='search'
+                                        selection options={this.state.searchQueue} onChange={this.getQueueIds.bind(this)}></Dropdown>
                                     </Grid.Row>
-                                    {/* <Grid.Row>
+                                    <Grid.Row columns={7}>
+                                        <Grid.Column floated='left'>
+                                        <Button inverted color='green' size='small' icon='caret left' floated='left'></Button>
+                                        </Grid.Column>
                                         {this.state.queue.map((content,index)=>{
                                             return(
-                                                <Grid.Column stretched>
-                                                    <Button inverted color='green'>{content}</Button>
+                                                <Grid.Column textAlign='center'>
+                                                    <Button fluid inverted color='green' size='large'>{content}</Button>
                                                 </Grid.Column>
                                             )
                                         })}
-                                    </Grid.Row> */}
+                                        <Grid.Column floated='right'>
+                                        <Button inverted color='green' size='small' icon='caret right' floated='right'></Button>
+                                        </Grid.Column>
+                                    </Grid.Row>
                                     <Grid.Row>
                                         
                                     </Grid.Row>

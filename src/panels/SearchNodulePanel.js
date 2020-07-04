@@ -25,7 +25,6 @@ export class SearchNodulePanel extends Component {
     constructor(props){
         super(props)
         this.state={
-            checked: false,
             // diameterLeftKeyword: '',
             // diameterRightKeyword:'',
             // labels:[],//标签显示
@@ -48,8 +47,9 @@ export class SearchNodulePanel extends Component {
             // diameterStart:0,
             // diameterEnd:5,
             totalResults:0,
-            diameterContainer:'0_5'
-            
+            diameterContainer:'0_5',
+            show:false,
+            load:false
         }
         this.handleLabels = this
             .handleLabels
@@ -84,17 +84,22 @@ export class SearchNodulePanel extends Component {
     componentDidUpdate(prevProps, prevState) {
         console.log('diameterContainer',prevState.diameterContainer,this.state.diameterContainer)
         if (prevState.diameterContainer!==this.state.diameterContainer) {
+            this.setState({show:false})
             this.getTotalPages()
         }
+        
         if(prevState.malignancy !== this.state.malignancy || prevState.calcification !== this.state.calcification ||prevState.spiculation != this.state.spiculation
             ||prevState.lobulation !== this.state.lobulation||prevState.texture !== this.state.texture||prevState.pin !== this.state.pin
             ||prevState.cav !== this.state.cav||prevState.vss !== this.state.vss||prevState.bea !== this.state.bea
             ||prevState.bro !== this.state.bro){
+                this.setState({show:false})
                 this.getTotalPages()
         }
         if(prevState.activePage!==this.state.activePage){
+            this.setState({show:false})
             this.getAtPageIfo()
         }
+        
     }
 
     getTotalPages() {
@@ -176,7 +181,7 @@ export class SearchNodulePanel extends Component {
                 lists.push(sequence)
             }
             console.log('lists1:',lists)
-            this.setState({lists:lists})
+            this.setState({lists:lists,show:true})
             // this.setState({totalPage:data.pages,totalResults:data.nodules})
         }).catch((error) => console.log(error))
         // console.log('lists2:',lists)
@@ -588,6 +593,7 @@ export class SearchNodulePanel extends Component {
         }))
     }
     handleAddQueues(e){
+        this.setState({load:true})
         let text=document.getElementById('inputQueue').value
         console.log('text',text)
         if(text!=='' && this.state.totalResults>0){
@@ -634,6 +640,7 @@ export class SearchNodulePanel extends Component {
                     console.log(res.data.status)
                     if(res.data.status==='ok'){
                         alert("创建队列'"+text+"'成功!")
+                        this.setState({load:false})
                     }
                 }).catch(err => {
                     console.log(err)
@@ -872,18 +879,30 @@ export class SearchNodulePanel extends Component {
                         <Grid.Column verticalAlign='middle'  width={4} textAlign='left'>
                             <Input id='inputQueue' placeholder='请输入队列名称'></Input>
                             <em>&nbsp;&nbsp;&nbsp;&nbsp;</em>
-                            <Button 
-                                icon='add'
-                                className='ui green inverted button' 
-                                size='mini'
-                                onClick={this.handleAddQueues.bind(this)}></Button>
+                            {
+                                this.state.load===true?
+                                <Button 
+                                    icon='upload'
+                                    className='ui green inverted button' 
+                                    size='mini'
+                                    onClick={this.handleAddQueues.bind(this)} disabled></Button>
+                                :
+                                <Button 
+                                    icon='add'
+                                    className='ui green inverted button' 
+                                    size='mini'
+                                    onClick={this.handleAddQueues.bind(this)}></Button>
+                            }
+                            
                         </Grid.Column>
                      
                     </Grid.Row>
                     <Grid.Row >
                         <Grid.Column width={2}></Grid.Column>
                         <Grid.Column width={12} id="container">
-                            <div style={{minHeight:590}}>
+                            {
+                                this.state.show===true?
+                                <div style={{minHeight:590}}>
                             <Table celled inverted textAlign='center'  id="table" >
                                 <Table.Header id='table-header'>
                                     <Table.Row>
@@ -944,7 +963,6 @@ export class SearchNodulePanel extends Component {
                                     
                                 </Table.Body>
                             </Table>
-                            </div>
                             <div className="pagination-component">
                                 <Pagination
                                     id="pagination"
@@ -952,6 +970,21 @@ export class SearchNodulePanel extends Component {
                                     activePage={this.state.activePage}
                                     totalPages={this.state.totalPage}/>
                             </div>
+                            </div>
+                            
+                                :
+                                <div style={{paddingTop: "60px"}}>
+                                    <div class="sk-chase">
+                                        <div class="sk-chase-dot"></div>
+                                        <div class="sk-chase-dot"></div>
+                                        <div class="sk-chase-dot"></div>
+                                        <div class="sk-chase-dot"></div>
+                                        <div class="sk-chase-dot"></div>
+                                        <div class="sk-chase-dot"></div>
+                                    </div>
+                                </div>
+                            }
+                            
                             </Grid.Column>
                             <Grid.Column width={2}></Grid.Column>
                         </Grid.Row>

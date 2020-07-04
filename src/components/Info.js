@@ -1,7 +1,5 @@
 import React, {Component, createRef} from 'react'
 
-
-
 class Info extends Component {
     constructor(props) {
         super(props)

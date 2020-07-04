@@ -114,7 +114,7 @@ const selectStyle = {
     'font-size':'medium',
     '-moz-appearance':'none',
     'apperance': 'none',
-    'margin-left':'15px'
+    
 }
 
 const lowRiskStyle = {
@@ -125,7 +125,6 @@ const lowRiskStyle = {
     'font-size':'medium',
     '-moz-appearance':'none',
     'apperance': 'none',
-    'margin-left':'15px',
     'color':'green'
 }
 
@@ -137,7 +136,6 @@ const highRiskStyle = {
     'font-size':'medium',
     '-moz-appearance':'none',
     'apperance': 'none',
-    'margin-left':'15px',
     'color':'#CC3300'
 }
 
@@ -181,7 +179,7 @@ class CornerstoneElement extends Component {
             wcDefine:500,
             dicomTag:props.stack.dicomTag,
             showInfo:true,
-
+            newAnno:true
             // list:[],
             // malignancy: -1,
             // calcification: -1,
@@ -1126,11 +1124,12 @@ class CornerstoneElement extends Component {
                         }
                         if(1){
                             if(inside.segment!==undefined
-                            && inside.segment!==""){
+                            && inside.segment!==null && inside.segment!=="None" && inside.segment!==""){
                                 dropdownText=segments[inside.segment]
                             }
-                            else if(inside.segment===undefined||inside.segment===''){
-                                if(inside.place!==''){
+                            else{
+                                if(inside.place!==undefined
+                                    && inside.place!==null && inside.place!=="None" && inside.place!==""){
                                     dropdownText=places[inside.place]
                                 }
                                 else{
@@ -1150,7 +1149,7 @@ class CornerstoneElement extends Component {
                                     </Grid.Column>
                                 )
                                 probContnt=(
-                                    <Grid.Column width={3} textAlign='center'>
+                                    <Grid.Column width={4} textAlign='center'>
                                         <div>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
                                     </Grid.Column>
                                 )
@@ -1179,7 +1178,7 @@ class CornerstoneElement extends Component {
                                     </Grid.Column>
                                 )
                                 probContnt=(
-                                    <Grid.Column width={3} textAlign='center'>
+                                    <Grid.Column width={4} textAlign='center'>
                                         <div style={{color:'green'}}>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
                                     </Grid.Column>
                                 )
@@ -1199,7 +1198,7 @@ class CornerstoneElement extends Component {
                         else{
                             if(this.state.readonly){
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='center'>
+                                    <Grid.Column width={2} textAlign='left'>
                                         <select id={malId} style={highRiskStyle} onChange={this.onSelectMal} disabled>
                                             <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
                                             <option value="1" selected={inside.malignancy === 1}>低危</option>
@@ -1208,14 +1207,14 @@ class CornerstoneElement extends Component {
                                     </Grid.Column>
                                 )
                                 probContnt=(
-                                    <Grid.Column width={3} textAlign='center'>
+                                    <Grid.Column width={4} textAlign='center'>
                                         <div style={{color:'#CC3300'}}>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
                                     </Grid.Column>
                                 )
                             }
                             else{
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='center'>
+                                    <Grid.Column width={2} textAlign='left'>
                                         <select id={malId} style={highRiskStyle} onChange={this.onSelectMal}>
                                             <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
                                             <option value="1" selected={inside.malignancy === 1}>低危</option>
@@ -1231,11 +1230,11 @@ class CornerstoneElement extends Component {
                                 active={listsActiveIndex===idx} index={idx} >
                                     {/* <div style={{minWidth:600}}> */}
                                     <Grid>
-                                        <Grid.Row columns={6}>
+                                        <Grid.Row >
                                             <Grid.Column width={1}>
                                                 <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                             </Grid.Column>
-                                            <Grid.Column width={5} textAlign='center'>
+                                            <Grid.Column width={6} textAlign='center'>
                                             {
                                         this.state.readonly?<Dropdown  style={selectStyle} text={dropdownText} disabled/>:
                                         idx<8?
@@ -1368,78 +1367,6 @@ class CornerstoneElement extends Component {
                                         </Dropdown>
                                             }
                                             </Grid.Column>
-                                        
-                                {/* <div style={{display:'inline-block',width:5}}>
-                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
-                                </div>
-                                    
-                                <div style={{display:'inline-block',marginLeft:20,width:180}}>
-                                    {
-                                        this.state.readonly?<Dropdown  style={selectStyle} text={dropdownText} disabled/>:
-                                        <Dropdown  style={selectStyle} text={dropdownText}>
-                                            <Dropdown.Menu>
-                                                <Dropdown.Header>肺叶</Dropdown.Header>
-                                                <Dropdown.Item>
-                                                <Dropdown text='右肺中叶'>
-                                                    <Dropdown.Menu>
-                                                        <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>外侧段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>内侧段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item>
-                                                <Dropdown text='右肺上叶'>
-                                                    <Dropdown.Menu>
-                                                    <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>尖段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>后段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>前段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item>
-                                                <Dropdown text='右肺下叶'>
-                                                    <Dropdown.Menu>
-                                                    <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>上段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>内底段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>前底段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>外侧底段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>后底段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item>
-                                                <Dropdown text='左肺上叶'>
-                                                    <Dropdown.Menu>
-                                                    <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>尖后段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>前段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>上舌段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>下舌段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
-                                                </Dropdown.Item>
-                                                <Dropdown.Item>
-                                                <Dropdown text='左肺下叶'>
-                                                    <Dropdown.Menu>
-                                                    <Dropdown.Header>肺段</Dropdown.Header>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>上段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>前底段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>外侧底段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>后底段</Dropdown.Item>
-                                                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Dropdown.Item>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    } */}
                                     
                                     {/* {this.state.readonly?
                                      <select id={placeId} style={selectStyle} onChange={this.onSelectPlace} disabled> 
@@ -1510,41 +1437,7 @@ class CornerstoneElement extends Component {
                                     }
                                     
                                 </div> */}
-                                <Grid.Column width={2} textAlign='center'>
-                                    {this.state.readonly?
-                                    <select id={texId} style={selectStyle} onChange={this.onSelectTex} disabled>
-                                        <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
-                                        <option value="1" selected={inside.texture === 1}>磨玻璃</option>
-                                        <option value="2" selected={inside.texture === 2}>实性</option>
-                                        <option value="3" selected={inside.texture === 3}>半实性</option>
-                                    </select>
-                                    :
-                                    <select id={texId} style={selectStyle} onChange={this.onSelectTex}>
-                                        <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
-                                        <option value="1" selected={inside.texture === 1}>磨玻璃</option>
-                                        <option value="2" selected={inside.texture === 2}>实性</option>
-                                        <option value="3" selected={inside.texture === 3}>半实性</option>
-                                    </select>
-                                    }
-                                </Grid.Column>
-                                {/* <div style={{display:'inline-block',marginLeft:5}}>
-                                    {this.state.readonly?
-                                    <select id={texId} style={selectStyle} onChange={this.onSelectTex} disabled>
-                                        <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
-                                        <option value="1" selected={inside.texture === 1}>磨玻璃</option>
-                                        <option value="2" selected={inside.texture === 2}>实性</option>
-                                        <option value="3" selected={inside.texture === 3}>半实性</option>
-                                    </select>
-                                    :
-                                    <select id={texId} style={selectStyle} onChange={this.onSelectTex}>
-                                        <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
-                                        <option value="1" selected={inside.texture === 1}>磨玻璃</option>
-                                        <option value="2" selected={inside.texture === 2}>实性</option>
-                                        <option value="3" selected={inside.texture === 3}>半实性</option>
-                                    </select>
-                                    }
-                                    
-                                </div> */}
+                                
                                 {/* <Grid.Column width={2} textAlign='center'>
                                     {this.state.readonly?
                                     <select id={malId} style={selectStyle} onChange={this.onSelectMal} disabled>
@@ -1619,7 +1512,7 @@ class CornerstoneElement extends Component {
                                 </div> */}
                                 {
                                     this.state.readonly?null:
-                                    <Grid.Column width={3} textAlign='center'>
+                                    <Grid.Column width={4} textAlign='right'>
                                         <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
                                     </Grid.Column>
                                     // <div style={{display:'inline-block',marginLeft:50}}>
@@ -1653,7 +1546,24 @@ class CornerstoneElement extends Component {
                                         
                                     </div>
                                     <div style={{width:'100%',marginTop:'2%',borderBottom:'1px solid white'}}>
+                                        {this.state.readonly?
+                                            <select id={texId} style={selectStyle} onChange={this.onSelectTex} disabled>
+                                                <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
+                                                <option value="1" selected={inside.texture === 1}>磨玻璃</option>
+                                                <option value="2" selected={inside.texture === 2}>实性</option>
+                                                <option value="3" selected={inside.texture === 3}>半实性</option>
+                                            </select>
+                                            :
+                                            <select id={texId} style={selectStyle} onChange={this.onSelectTex}>
+                                                <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
+                                                <option value="1" selected={inside.texture === 1}>磨玻璃</option>
+                                                <option value="2" selected={inside.texture === 2}>实性</option>
+                                                <option value="3" selected={inside.texture === 3}>半实性</option>
+                                            </select>
+                                        }
                                         <div style={{fontSize:'medium',display:'inline-block',textAlign:'right'}}>表征</div>
+                                        
+                                        
                                         {this.state.readonly?
                                         <Dropdown multiple selection options={options} id='dropdown' icon='null' pointing='left' disabled
                                         defaultValue={representArray} style={{display:'inline-block',height:'15%',marginLeft:'10px'}}/>:
@@ -1854,6 +1764,14 @@ class CornerstoneElement extends Component {
                                                         }}
                                                         icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
                                                     </Grid.Column>
+                                                    {
+                                                        this.state.newAnno?
+                                                        <Grid.Column>
+                                                            <Button icon onClick={this.clearthenFork} className='funcbtn' id='showNodule' title='新建标注'><Icon name='plus' size='large'></Icon></Button>
+                                                        </Grid.Column>
+                                                        :
+                                                        null
+                                                    }
                                                 </Button.Group>
                                                 {/* <Grid.Column>
                                                 <Dropdown
@@ -1877,7 +1795,7 @@ class CornerstoneElement extends Component {
                                         </Grid>
                                     </Grid.Column>    
                                     {/* <span id='line-right'></span> */}
-                                    <Grid.Column className='draftColumn' width={5}>
+                                    <Grid.Column className='draftColumn' width={4}>
                                         {/* {createDraftModal}  */}
                                     </Grid.Column>
                                 
@@ -1943,7 +1861,7 @@ class CornerstoneElement extends Component {
                         {/* <div className='corner-contnt'> */}
                             <Grid celled className='corner-contnt'>
                                 <Grid.Row className='corner-row' columns={3}>
-                                    <Grid.Column width={1}>
+                                    <Grid.Column width={2}>
 
                                     </Grid.Column>
                                     <Grid.Column width={9} textAlign='center'>
@@ -2010,7 +1928,7 @@ class CornerstoneElement extends Component {
 
                                     </div>
                                     </Grid.Column>
-                                    <Grid.Column width={6} > 
+                                    <Grid.Column width={5} > 
                                         {/* <h3 id="annotator-header">标注人：{window
                                                     .location
                                                     .pathname
@@ -2307,7 +2225,7 @@ class CornerstoneElement extends Component {
                         {/* <div class='corner-contnt'> */}
                             <Grid celled className='corner-contnt' >
                                 <Grid.Row className='corner-row' columns={3}>
-                                    <Grid.Column width={1}>
+                                    <Grid.Column width={2}>
 
                                     </Grid.Column>
                                     <Grid.Column width={9} textAlign='center'>
@@ -2366,7 +2284,7 @@ class CornerstoneElement extends Component {
                                             }
                                         </div>
                                     </Grid.Column>
-                                    <Grid.Column width={6}> 
+                                    <Grid.Column width={5}> 
                                         <div id='listTitle'>
                                             <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
                                             {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
@@ -3385,7 +3303,7 @@ class CornerstoneElement extends Component {
                     annoStr += '</div></a>'
                     annoStr += '</br></br>'
                 }
-                this.setState({annoResults: annoStr})
+                this.setState({annoResults: annoStr,newAnno:false})
             }
 
             if (reviewList.length > 0) {
@@ -3410,10 +3328,11 @@ class CornerstoneElement extends Component {
         style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (document.getElementById('slice-slider').value)*100/this.state.imageIds.length+'%)}');
         for(let i=0;i<this.state.boxes.length;i++){
             let point=document.getElementById('sign'+i)
-            // let leftMargin=parseFloat($('#slice-slider').width())*50/parseFloat($('#pointContainer').width())+parseFloat($('input[type=range]').css('left').split('%')[0])+'%'
-            point.style.top=25+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
-            // point.style.left='400px'
-            point.style.left='98%'
+            let leftMargin=parseFloat($('#slice-slider').width())/2+parseFloat($('input[type=range]').css('left').split('px')[0])-8+'px'
+            // console.log('leftmargin',parseFloat($('#slice-slider').width())/2,parseFloat($('input[type=range]').css('left')))
+            point.style.top=10+(this.state.imageIds.length-this.state.boxes[i].slice_idx)*0.05+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
+            // point.style.left='95.6%'
+            point.style.left=leftMargin
             // console.log('slice',parseFloat($('#slice-slider') )
         }
     }

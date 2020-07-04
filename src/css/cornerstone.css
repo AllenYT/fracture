@@ -9,14 +9,19 @@ input[type='range'] {
   width: 850px;
   height: 30px; */
 
-  top: 49.4%;/* 230px */
-  left: 51.2%;/* 465px */
-  width: 1621px;/* 400px */
-  height: 30px;
+  /* top: 49.4%;
+  left: 51.2%;
+  width: 1621px;
+  height: 30px; */
+  top: 48%;
+  /* left: 54%; */
+  left: 553.828px;
+  width: 870px;
+  height: 40px;
 
   overflow: hidden;
   cursor: pointer;
-  zoom: 0.6;
+  /* zoom: 0.6; */
 }
 input[type='range'],
 input[type='range']::-webkit-slider-runnable-track,
@@ -25,7 +30,7 @@ input[type='range']::-webkit-slider-thumb {
 }
 input[type='range']::-webkit-slider-runnable-track {
   -webkit-appearance: none;
-  width: 200px;
+  /* width: 200px; */
   height: 10px;
   /* background: #AAA; */
   /* background:linear-gradient(90deg,#0033FF  0%,#000033  50%); */
@@ -188,7 +193,7 @@ table#nodule-table {
 
 #elec-table{
   /* position: relative; */
-  height: 650px;
+  height: 520px;
   /* table-layout: fixed; */
   margin-top: 0px;
   overflow-y: auto;
@@ -300,7 +305,7 @@ option {
 }
 
 #accord-left{
-  left: 54%;
+  left: 55%;
 }
 
 #accord-mid{
@@ -318,7 +323,7 @@ option {
     color: white;
     max-height:300px;
     min-height:300px;
-    overflow-y:auto;
+    
     /* overflow-y: visible;     */
 }
 
@@ -438,11 +443,13 @@ option {
 .ui.celled.grid.corner-contnt .canvas-style #origin-canvas{
   /* width: 768px;
   height: 768px; */
-  width:973px;
-  height: 973px;
+  width:870px;
+  height: 870px;
   position: relative;
   margin:auto;
   color: white;
+  /* border: 2px solid whitesmoke;
+  border-radius: 0.3rem; */
 }
 
 #submitbtn{

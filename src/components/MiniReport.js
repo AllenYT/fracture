@@ -9,6 +9,7 @@ import * as cornerstoneTools from "cornerstone-tools"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import { Chart } from '@antv/g2'
 import DataSet from '@antv/data-set'
+import '../css/cornerstone.css'
 
 const config = require('../config.json')
 const draftConfig=config.draft
@@ -38,11 +39,13 @@ class MiniReport extends Component{
             imageIds:props.imageIds,
             viewport: cornerstone.getDefaultViewport(null, undefined),
             temp:0,
-            boxes:props.boxes
+            boxes:props.boxes,
+            dealchoose:'中华共识'
         }
         this.showImages = this.showImages.bind(this)
         this.exportPDF = this.exportPDF.bind(this)
         this.template = this.template.bind(this)
+        this.dealChoose = this.dealChoose.bind(this)
     }
 
     componentDidMount(){
@@ -59,6 +62,11 @@ class MiniReport extends Component{
            
         }).catch((error) => console.log(error))
         
+    }
+
+    dealChoose(e){
+        console.log('list',e.currentTarget.innerHTML)
+        this.setState({dealchoose:e.currentTarget.innerHTML})
     }
 
     exportPDF(){
@@ -342,11 +350,11 @@ class MiniReport extends Component{
                 {
                     this.props.type==='影像所见'?
                 <Grid.Row verticalAlign='middle' columns={4} style={{height:40}}>
-                    <Grid.Column textAlign='left' width={5}>
+                    <Grid.Column textAlign='left' width={4}>
                         <div style={{fontSize:18}}></div>
                     </Grid.Column>
                     <Grid.Column width={4} textAlign='right'>
-                        <Dropdown style={{background:'none',fontSize:18}} text='结节排序'></Dropdown>
+                        {/* <Dropdown style={{background:'none',fontSize:18}} text='结节排序'></Dropdown> */}
                     </Grid.Column>
                     <Grid.Column textAlign='center' width={4}>
                     <Modal trigger={<Button icon='expand arrows alternate' content='放大' className='inverted blue button'  onClick={this.showImages}></Button>}>
@@ -549,19 +557,24 @@ class MiniReport extends Component{
                         
                     </Modal>
                     </Grid.Column>
-                    <Grid.Column textAlign='left' width={3}>
+                    <Grid.Column textAlign='left' width={4}>
                         <Button content='复制' className='inverted blue button'></Button>
                     </Grid.Column>
                 </Grid.Row>
                 :
                 <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}>
-                    <Grid.Column width={9}>
+                    <Grid.Column width={8}>
 
                     </Grid.Column>
                     <Grid.Column width={4} textAlign='right'>
-                        <Dropdown style={{background:'none',fontSize:18}} text='Fleischner'></Dropdown>
+                        <Dropdown style={{background:'none',fontSize:18}} text={this.state.dealchoose} id='dealchoose'>
+                            <Dropdown.Menu>
+                                <Dropdown.Item onClick={this.dealChoose}>中华共识</Dropdown.Item>
+                                <Dropdown.Item onClick={this.dealChoose}>Fleischner</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>
                     </Grid.Column>
-                    <Grid.Column textAlign='center' width={3}>
+                    <Grid.Column textAlign='center' width={4}>
                         <Button content='复制' className='inverted blue button'></Button>
                     </Grid.Column>
                 </Grid.Row>
@@ -571,7 +584,7 @@ class MiniReport extends Component{
                     this.props.type==='影像所见'?
                     <Grid.Row >
                         <Grid.Column>
-                        <div style={{fontSize:'large'}}>
+                        <div style={{fontSize:'medium',overflowY:'auto',height:'150px'}}>
                             {this.template().split('*').map((content,index)=>{
                                 return(
                                     <p key={index}>
