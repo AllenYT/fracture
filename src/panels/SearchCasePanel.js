@@ -30,7 +30,10 @@ export class SearchPanel extends Component {
             dateKeyword: '',
             searchResults: true,
             queue:[],
-            chooseQueue:'all',
+            chooseQueue:'不限队列',
+            activeQueue:[],
+            activePageQueue:1,
+            totalPageQueue:1,
             searchQueue:[]
         }
         this.handlePaginationChange = this
@@ -49,6 +52,8 @@ export class SearchPanel extends Component {
         this.getQueue = this
             .getQueue
             .bind(this)
+        this.left = this.left.bind(this)
+        this.right = this.right.bind(this)
     }
 
     componentDidMount() {
@@ -86,6 +91,13 @@ export class SearchPanel extends Component {
             this.setState({searchResults: true})
             this.getTotalPages()
         }
+        if(prevState.activePageQueue != this.state.activePageQueue){
+            let activeQueue=[]
+            for(let i=0;i<5;i++){
+                activeQueue.push(this.state.queue[i+(this.state.activePageQueue-1)*5])
+            }
+            this.setState({activeQueue:activeQueue})
+        }
     }
     getQueue(){
         const params={
@@ -94,11 +106,17 @@ export class SearchPanel extends Component {
         axios.post(subsetConfig.getQueue, qs.stringify(params)).then(res => {
             let queue=['不限队列']
             let searchQueue=[{key:'不限队列',value:'不限队列',text:'不限队列'}]
+            let activeQueue=['不限队列']
+            let totalPageQueue=1
             for(let i=0;i<res.data.length;i++){
                 queue.push(res.data[i])
                 searchQueue.push({key:res.data[i],value:res.data[i],text:res.data[i]})
+                if(i<4){
+                    activeQueue.push(res.data[i])
+                }
             }
-            this.setState({queue:queue,searchQueue:searchQueue})
+            totalPageQueue=parseInt(res.data.length/5)+1
+            this.setState({queue:queue,searchQueue:searchQueue,activeQueue:activeQueue,totalPageQueue:totalPageQueue})
         }).catch(err => {
             console.log(err)
         })
@@ -109,7 +127,7 @@ export class SearchPanel extends Component {
     }
 
     getTotalPages() {
-        if(this.state.chooseQueue==='all'){
+        if(this.state.chooseQueue==='不限队列'){
             const token = localStorage.getItem('token')
             const headers = {
                 'Authorization': 'Bearer '.concat(token)
@@ -208,7 +226,31 @@ export class SearchPanel extends Component {
         let text=e.currentTarget.innerHTML.split('>')[1].split('<')[0]
         console.log('text',text)
         if(text==='不限队列'||text===''){
-            this.setState({chooseQueue:'all'})
+            this.setState({chooseQueue:'不限队列'})
+        }
+        else{
+            this.setState({chooseQueue:text})
+        }   
+    }
+    left(e){
+        if(this.state.activePageQueue>1){
+            this.setState((state, props) => ({
+                activePageQueue: state.activePageQueue-1
+              }));
+        }
+    }
+    right(e){
+        if(this.state.activePageQueue<this.state.totalPageQueue){
+            this.setState((state, props) => ({
+                activePageQueue: state.activePageQueue+1
+              }));
+        }
+    }
+    buttonQueue(e){
+        let text=e.currentTarget.innerHTML
+        // console.log('button',e.currentTarget.innerHTML)
+        if(text==='不限队列'||text===''){
+            this.setState({chooseQueue:'不限队列'})
         }
         else{
             this.setState({chooseQueue:text})
@@ -282,22 +324,22 @@ export class SearchPanel extends Component {
 
                                     </Grid.Row>
                                     <Grid.Row>
-                                        <Dropdown id='queueDropdown' placeholder='搜索队列' search icon='search'
+                                        <Dropdown id='queueDropdown' placeholder='搜索队列' search icon='search' text={this.state.chooseQueue} 
                                         selection options={this.state.searchQueue} onChange={this.getQueueIds.bind(this)}></Dropdown>
                                     </Grid.Row>
                                     <Grid.Row columns={7}>
                                         <Grid.Column floated='left'>
-                                        <Button inverted color='green' size='small' icon='caret left' floated='left'></Button>
+                                        <Button inverted color='green' size='small' icon='caret left' floated='left' onClick={this.left}></Button>
                                         </Grid.Column>
-                                        {this.state.queue.map((content,index)=>{
+                                        {this.state.activeQueue.map((content,index)=>{
                                             return(
                                                 <Grid.Column textAlign='center'>
-                                                    <Button fluid inverted color='green' size='large'>{content}</Button>
+                                                    <Button fluid inverted color='green' size='large' onClick={this.buttonQueue.bind(this)}>{content}</Button>
                                                 </Grid.Column>
                                             )
                                         })}
                                         <Grid.Column floated='right'>
-                                        <Button inverted color='green' size='small' icon='caret right' floated='right'></Button>
+                                        <Button inverted color='green' size='small' icon='caret right' floated='right' onClick={this.right}></Button>
                                         </Grid.Column>
                                     </Grid.Row>
                                     <Grid.Row>
