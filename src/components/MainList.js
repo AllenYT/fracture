@@ -35,7 +35,7 @@ class MainList extends Component {
     }
 
     loadMainList() {
-        if(this.props.subsetName==='all'){
+        if(this.props.subsetName==='不限队列'){
             const token = localStorage.getItem('token')
             const headers = {
                 'Authorization': 'Bearer '.concat(token)
