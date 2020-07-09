@@ -1150,7 +1150,7 @@ class CornerstoneElement extends Component {
                                 )
                                 probContnt=(
                                     <Grid.Column width={4} textAlign='center'>
-                                        <div>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
+                                        <div>(概率:{inside.malProb>=0.5?Math.floor(inside.malProb*10000)/100:Math.floor((1-inside.malProb)*10000)/100}%)</div>
                                     </Grid.Column>
                                 )
                             }
@@ -1179,7 +1179,7 @@ class CornerstoneElement extends Component {
                                 )
                                 probContnt=(
                                     <Grid.Column width={4} textAlign='center'>
-                                        <div style={{color:'green'}}>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
+                                        <div style={{color:'green'}}>(概率:{inside.malProb>=0.5?Math.floor(inside.malProb*10000)/100:Math.floor((1-inside.malProb)*10000)/100}%)</div>
                                     </Grid.Column>
                                 )
                             }
@@ -1208,7 +1208,7 @@ class CornerstoneElement extends Component {
                                 )
                                 probContnt=(
                                     <Grid.Column width={4} textAlign='center'>
-                                        <div style={{color:'#CC3300'}}>{"("+"概率:"+Math.floor(inside.malProb*10000)/100+'%'+")"}</div>
+                                        <div style={{color:'#CC3300'}}>(概率:{inside.malProb>=0.5?Math.floor(inside.malProb*10000)/100:Math.floor((1-inside.malProb)*10000)/100}%)</div>
                                     </Grid.Column>
                                 )
                             }
