@@ -927,6 +927,10 @@ class CornerstoneElement extends Component {
             { key: '分叶', text: '分叶', value: '分叶' },
             { key: '毛刺', text: '毛刺', value: '毛刺' },
             { key: '钙化', text: '钙化', value: '钙化' },
+            { key: '胸膜凹陷', text: '胸膜凹陷', value: '胸膜凹陷' },
+            { key: '血管集束', text: '血管集束', value: '血管集束' },
+            { key: '空泡', text: '空泡', value: '空泡' },
+            { key: '支气管充气', text: '支气管充气', value: '支气管充气' },
         ]
 
         const locationOptions=[
@@ -1121,6 +1125,21 @@ class CornerstoneElement extends Component {
                         }
                         if(inside.calcification===2){
                             calCount+=1
+                        }
+                        if(inside.pin===2){
+                            representArray.push('胸膜凹陷')
+                        }
+                        if(inside.cav===2){
+                            representArray.push('空洞')
+                        }
+                        if(inside.vss===2){
+                            representArray.push('血管集束')
+                        }
+                        if(inside.bea===2){
+                            representArray.push('空泡')
+                        }
+                        if(inside.bro===2){
+                            representArray.push('支气管充气')
                         }
                         if(1){
                             if(inside.segment!==undefined
@@ -1561,7 +1580,7 @@ class CornerstoneElement extends Component {
                                                 <option value="3" selected={inside.texture === 3}>半实性</option>
                                             </select>
                                         }
-                                        <div style={{fontSize:'medium',display:'inline-block',textAlign:'right'}}>表征</div>
+                                        <div style={{fontSize:'medium',display:'inline-block',textAlign:'right',marginLeft:'15px'}}>表征</div>
                                         
                                         
                                         {this.state.readonly?
