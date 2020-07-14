@@ -360,37 +360,60 @@ class DataCockpit extends Component {
           axios.get(noduleConfig.spiculationMalDist),
           axios.get(noduleConfig.calcificationMalDist),
           axios.get(noduleConfig.lobulationMalDist),
-          axios.get(noduleConfig.textureMalDist)
+          axios.get(noduleConfig.textureMalDist),
+          axios.get(noduleConfig.pinMalDist),
+          axios.get(noduleConfig.cavMalDist),
+          axios.get(noduleConfig.vssMalDist),
+          axios.get(noduleConfig.beaMalDist),
+          axios.get(noduleConfig.broMalDist)
           
       ])
-      .then(([restm,restd,rescd,resns,resnc,resta,resld,resntd,ressm,reslm,resttm]) => {
+      .then(([restm,restd,rescd,resns,resnc,resta,resld,resntd,ressm,rescm,reslm,resttm,respin,rescav,resvss,resbea,resbro]) => {
         const total_mal = JSON.stringify(restm.data['data'])
         const total_dia = JSON.stringify(restd.data['data'])
         const total_character = JSON.stringify(rescd.data['data'])
+        const total_age = JSON.stringify(resta.data['data'])
+
         const nonSpiDia = JSON.stringify(resns.data['data'])
         const nonCalDia = JSON.stringify(resnc.data['data'])
-        const total_age = JSON.stringify(resta.data['data'])
         const nonLubDia = JSON.stringify(resld.data['data'])
         const nonGGODia = JSON.stringify(resntd.data['data'])
+
         const spiMali = JSON.stringify(ressm.data['data'])
-        const calMali = JSON.stringify(ressm.data['data'])
+        const calMali = JSON.stringify(rescm.data['data'])
         const lubeMali = JSON.stringify(reslm.data['data'])
         const textMal = JSON.stringify(resttm.data['data'])
+
+        const pinMal = JSON.stringify(respin.data['data'])
+        const cavMal = JSON.stringify(rescav.data['data'])
+        const vssMal = JSON.stringify(resvss.data['data'])
+        const beaMal = JSON.stringify(resbea.data['data'])
+        const broMal = JSON.stringify(resbro.data['data'])
+        console.log('beaMal',beaMal)
         localStorage.setItem('totalMalDist',total_mal)
         localStorage.setItem('totalDiameterDist',total_dia)
         localStorage.setItem('characterDiameterDist',total_character)
+        localStorage.setItem('totalAgeDist',total_age)
+
         localStorage.setItem('nonSpiculationDiameterDist',nonSpiDia)
         localStorage.setItem('nonCalcificationDiameterDist',nonCalDia)
-        localStorage.setItem('totalAgeDist',total_age)
         localStorage.setItem('nonLobulationDiameterDist',nonLubDia)
         localStorage.setItem('nonTextureDiameterDist',nonGGODia)
+
         localStorage.setItem('spiculationMalDist',spiMali)
         localStorage.setItem('calcificationMalDist',calMali)
         localStorage.setItem('lobulationMalDist',lubeMali)
         localStorage.setItem('textureMalDist',textMal)
+
+        localStorage.setItem('pleuralDist',pinMal)
+        localStorage.setItem('cavityDist',cavMal)
+        localStorage.setItem('vcsDist',vssMal)
+        localStorage.setItem('vacuoleDist',beaMal)
+        localStorage.setItem('airbronchogramDist',broMal)
         this.setState({totalMalDist:total_mal,totalDiameterDist:total_dia,characterDiameterDist:total_character,
           nonSpiculationDiameterDist:nonSpiDia,nonCalcificationDiameterDist:nonCalDia,totalAgeDist:total_age,nonLobulationDiameterDist:nonLubDia,
-          nonTextureDiameterDist:nonGGODia,spiculationMalDist:spiMali,calcificationMalDist:calMali,lobulationMalDist:lubeMali,textureMalDist:textMal})
+          nonTextureDiameterDist:nonGGODia,spiculationMalDist:spiMali,calcificationMalDist:calMali,lobulationMalDist:lubeMali,textureMalDist:textMal,
+        pleuralDist:pinMal,cavityDist:cavMal,vcsDist:vssMal,vacuoleDist:beaMal,airbronchogramDist:broMal})
       })
       .catch((error) => {
         console.log("ERRRRROR", error);
@@ -401,7 +424,9 @@ class DataCockpit extends Component {
         //总体年龄分布可视化
         document.getElementById('ageTotal').innerHTML=''
         const ageD = this.state.totalAgeDist
-        if(ageD !== undefined){
+        console.log("ageD",ageD && ageD.length !== 0)
+        // if(ageD !== undefined && ageD !== null){
+        if(ageD && ageD.length !== 0){
           const ageTotalData1 = JSON.parse(ageD)
           const ageTotalchart = new G2.Chart({
               container: 'ageTotal',
@@ -496,7 +521,8 @@ class DataCockpit extends Component {
         //总体结节直径分布
         document.getElementById('diaTotal').innerHTML=''
         const DiaD = this.state.totalDiameterDist
-        if(DiaD !== undefined){
+        // if(DiaD !== undefined){
+          if(DiaD && DiaD.length !== 0){
           const diaTotalData1 = JSON.parse(DiaD)
           const diaTotalchart = new G2.Chart({
             container: 'diaTotal',
@@ -582,7 +608,8 @@ class DataCockpit extends Component {
         //良恶性分布情况
         document.getElementById('benmali').innerHTML=''
         const benmaliD = this.state.totalMalDist
-        if(benmaliD !==undefined){
+        // if(benmaliD !==undefined){
+          if(benmaliD && benmaliD.length !== 0){
           const benmaliData1 = JSON.parse(benmaliD)
           const dv4 = new DataView();
           dv4.source(benmaliData1).transform({
@@ -639,7 +666,8 @@ class DataCockpit extends Component {
     //形态学分叶直径分布
     document.getElementById('diaSublobe').innerHTML=''
     const characterD = this.state.characterDiameterDist
-    if(characterD !== undefined){
+    // if(characterD !== undefined){
+      if(characterD && characterD.length !== 0){
       const diaDistributionData1 = JSON.parse(characterD)
       const diaSublobechart = new G2.Chart({
         container: 'diaSublobe',
@@ -1300,7 +1328,8 @@ class DataCockpit extends Component {
   //形态学实性直径分布
   document.getElementById('diaNonGGO').innerHTML=''
   const nonGGOD = this.state.nonTextureDiameterDist
-  if(nonGGOD !== undefined){
+  // if(nonGGOD !== undefined){
+    if(nonGGOD && nonGGOD.length !== 0){
     const diaNonGGOData1 = JSON.parse(nonGGOD)
     const diaNonGGOchart = new G2.Chart({
       container: 'diaNonGGO',
@@ -1394,7 +1423,8 @@ class DataCockpit extends Component {
   //毛刺良恶性分布
   document.getElementById('maliGlitch').innerHTML=''
   const spiMaliD = this.state.spiculationMalDist
-  if(spiMaliD !== undefined){
+  // if(spiMaliD !== undefined){
+    if(spiMaliD && spiMaliD.length !== 0){
     const maliGlitchData1 = JSON.parse(spiMaliD)
     const dv1 = new DataView();
     dv1.source(maliGlitchData1).transform({
@@ -1453,7 +1483,8 @@ class DataCockpit extends Component {
   //分叶良恶性分布
   document.getElementById('maliSublobe').innerHTML=''
   const lobeMaliD = this.state.lobulationMalDist
-  if(lobeMaliD !== undefined){
+  // if(lobeMaliD !== undefined)
+  if(lobeMaliD && lobeMaliD.length !== 0){
     const maliSublobeData1 = JSON.parse(lobeMaliD)
     const dv7 = new DataView();
     dv7.source(maliSublobeData1).transform({
@@ -1462,7 +1493,7 @@ class DataCockpit extends Component {
         dimension: 'type',
         as: 'percent'
     });
-    const maliSublobeChart = new G2.Chart({ //性别可视化
+    const maliSublobeChart = new G2.Chart({ 
         container: 'maliSublobe',
         forceFit: true,
         height: 200,
@@ -1512,7 +1543,8 @@ class DataCockpit extends Component {
   //钙化良恶性分布
   document.getElementById('maliCalcify').innerHTML=''
   const maliCalD = this.state.calcificationMalDist
-  if(maliCalD !== undefined){
+  // if(maliCalD !== undefined){
+    if(maliCalD && maliCalD.length !== 0){
     const maliCalcifyData1 = JSON.parse(maliCalD)
     const dv3 = new DataView();
     dv3.source(maliCalcifyData1).transform({
@@ -1521,7 +1553,7 @@ class DataCockpit extends Component {
         dimension: 'type',
         as: 'percent'
     });
-    const maliCalcifyChart = new G2.Chart({ //性别可视化
+    const maliCalcifyChart = new G2.Chart({ 
         container: 'maliCalcify',
         forceFit: true,
         height: 200,
@@ -1572,7 +1604,8 @@ class DataCockpit extends Component {
   //GGO良恶性分布
   document.getElementById('maliGGO').innerHTML=''
   const textMaliD = this.state.textureMalDist
-  if(textMaliD !== undefined){
+  // if(textMaliD !== undefined){
+    if(textMaliD && textMaliD.length !== 0){
     const maliGGOData1 = JSON.parse(textMaliD)
     const dv5 = new DataView();
     dv5.source(maliGGOData1).transform({
@@ -1627,7 +1660,299 @@ class DataCockpit extends Component {
     maliGGOChart.render();
   }
   
+  //胸膜凹陷良恶性分布
+  document.getElementById('pleural').innerHTML=''
+  const pinMalD = this.state.pleuralDist
+  // if(pinMalD !== undefined){
+    if(pinMalD && pinMalD.length !== 0){
+    const pinMalData = JSON.parse(pinMalD)
+    const dvPinMal = new DataView();
+    dvPinMal.source(pinMalData).transform({
+        type: 'percent',
+        field: 'value',
+        dimension: 'type',
+        as: 'percent'
+    });
+    const pinMalChart = new G2.Chart({ 
+        container: 'pleural',
+        forceFit: true,
+        height: 200,
+        padding: 0,
+        animate:true
+    });
+    pinMalChart.coord('theta', {
+        radius: 0.75,
+        innerRadius: 0.5
+      });
+      pinMalChart.source(dvPinMal,{
+        percent: {
+        formatter: function formatter(val) {
+            val = (val * 100).toFixed(1) + '%';
+            return val;
+        }
     }
+    });
+    pinMalChart.legend(false);
+    pinMalChart.tooltip({
+        showTitle: false,
+        itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+    });
+    pinMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+        offset: -20,
+        autoRotate: false,
+        textStyle: {
+        textAlign: 'center',
+        shadowBlur: 2,
+        shadowColor: 'rgba(0, 0, 0, .45)',
+        fill:'#fff'
+        },
+        formatter: function formatter(val, item) {
+            return item.point.type +':\n' + val;
+        }
+    }).tooltip('type*value', function(item, value) {
+        // percent = (percent * 100).toFixed(1)+ '%';
+        return {
+        name: item,
+        value: value
+        };
+    });
+    pinMalChart.render();
+  }
+
+  //空洞正良恶性分布
+  document.getElementById('cavity').innerHTML=''
+  const cavMalD = this.state.cavityDist
+  // if(cavMalD !== undefined){
+    if(cavMalD && cavMalD.length !== 0){
+    const cavMalData = JSON.parse(cavMalD)
+    const dvCavMal = new DataView();
+    dvCavMal.source(cavMalData).transform({
+        type: 'percent',
+        field: 'value',
+        dimension: 'type',
+        as: 'percent'
+    });
+    const cavMalChart = new G2.Chart({ 
+        container: 'cavity',
+        forceFit: true,
+        height: 200,
+        padding: 0,
+        animate:true
+    });
+    cavMalChart.coord('theta', {
+        radius: 0.75,
+        innerRadius: 0.5
+      });
+    cavMalChart.source(dvCavMal,{
+      percent: {
+      formatter: function formatter(val) {
+          val = (val * 100).toFixed(1) + '%';
+          return val;
+      }
+    }
+    });
+    cavMalChart.legend(false);
+    cavMalChart.tooltip({
+        showTitle: false,
+        itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+    });
+    cavMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+        offset: -20,
+        autoRotate: false,
+        textStyle: {
+        textAlign: 'center',
+        shadowBlur: 2,
+        shadowColor: 'rgba(0, 0, 0, .45)',
+        fill:'#fff'
+        },
+        formatter: function formatter(val, item) {
+            return item.point.type +':\n' + val;
+        }
+    }).tooltip('type*value', function(item, value) {
+        // percent = (percent * 100).toFixed(1)+ '%';
+        return {
+        name: item,
+        value: value
+        };
+    });
+    cavMalChart.render();
+  }
+
+  //血管集束征良恶性分布
+  document.getElementById('vcs').innerHTML=''
+  const vssMalD = this.state.vcsDist
+  // if(vssMalD !== undefined){
+    if(vssMalD && vssMalD.length !== 0){
+    const vssMalData = JSON.parse(vssMalD)
+    const dvVssMal = new DataView();
+    dvVssMal.source(vssMalData).transform({
+        type: 'percent',
+        field: 'value',
+        dimension: 'type',
+        as: 'percent'
+    });
+    const vssMalChart = new G2.Chart({ 
+        container: 'vcs',
+        forceFit: true,
+        height: 200,
+        padding: 0,
+        animate:true
+    });
+    vssMalChart.coord('theta', {
+        radius: 0.75,
+        innerRadius: 0.5
+      });
+    vssMalChart.source(dvVssMal,{
+      percent: {
+      formatter: function formatter(val) {
+          val = (val * 100).toFixed(1) + '%';
+          return val;
+      }
+    }
+    });
+    vssMalChart.legend(false);
+    vssMalChart.tooltip({
+        showTitle: false,
+        itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+    });
+    vssMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+        offset: -20,
+        autoRotate: false,
+        textStyle: {
+        textAlign: 'center',
+        shadowBlur: 2,
+        shadowColor: 'rgba(0, 0, 0, .45)',
+        fill:'#fff'
+        },
+        formatter: function formatter(val, item) {
+            return item.point.type +':\n' + val;
+        }
+    }).tooltip('type*value', function(item, value) {
+        // percent = (percent * 100).toFixed(1)+ '%';
+        return {
+        name: item,
+        value: value
+        };
+    });
+    vssMalChart.render();
+  }
+  //空泡征良恶性分布 vacuole
+  document.getElementById('vacuole').innerHTML=''
+  const beaMalD = this.state.vacuoleDist
+  // if(beaMalD !== undefined){
+    if(beaMalD && beaMalD.length !== 0){
+    const beaMalData = JSON.parse(beaMalD)
+    const dvBeaMal = new DataView();
+    dvBeaMal.source(beaMalData).transform({
+        type: 'percent',
+        field: 'value',
+        dimension: 'type',
+        as: 'percent'
+    });
+    const beaMalChart = new G2.Chart({ 
+        container: 'vacuole',
+        forceFit: true,
+        height: 200,
+        padding: 0,
+        animate:true
+    });
+    beaMalChart.coord('theta', {
+        radius: 0.75,
+        innerRadius: 0.5
+      });
+    beaMalChart.source(dvBeaMal,{
+      percent: {
+      formatter: function formatter(val) {
+          val = (val * 100).toFixed(1) + '%';
+          return val;
+      }
+    }
+    });
+    beaMalChart.legend(false);
+    beaMalChart.tooltip({
+        showTitle: false,
+        itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+    });
+    beaMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+        offset: -20,
+        autoRotate: false,
+        textStyle: {
+        textAlign: 'center',
+        shadowBlur: 2,
+        shadowColor: 'rgba(0, 0, 0, .45)',
+        fill:'#fff'
+        },
+        formatter: function formatter(val, item) {
+            return item.point.type +':\n' + val;
+        }
+    }).tooltip('type*value', function(item, value) {
+        // percent = (percent * 100).toFixed(1)+ '%';
+        return {
+        name: item,
+        value: value
+        };
+    });
+    beaMalChart.render();
+  }
+  //支气管充气征分布
+  document.getElementById('airbronchogram').innerHTML=''
+  const broMalD = this.state.airbronchogramDist
+  // if(broMalD !== undefined){
+    if(broMalD && broMalD.length !== 0){
+    const broMalData = JSON.parse(broMalD)
+    const dvBroMal = new DataView();
+    dvBroMal.source(broMalData).transform({
+        type: 'percent',
+        field: 'value',
+        dimension: 'type',
+        as: 'percent'
+    });
+    const broMalChart = new G2.Chart({ 
+        container: 'airbronchogram',
+        forceFit: true,
+        height: 200,
+        padding: 0,
+        animate:true
+    });
+    broMalChart.coord('theta', {
+        radius: 0.75,
+        innerRadius: 0.5
+      });
+    broMalChart.source(dvBroMal,{
+      percent: {
+      formatter: function formatter(val) {
+          val = (val * 100).toFixed(1) + '%';
+          return val;
+      }
+    }
+    });
+    broMalChart.legend(false);
+    broMalChart.tooltip({
+        showTitle: false,
+        itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+    });
+    broMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+        offset: -20,
+        autoRotate: false,
+        textStyle: {
+        textAlign: 'center',
+        shadowBlur: 2,
+        shadowColor: 'rgba(0, 0, 0, .45)',
+        fill:'#fff'
+        },
+        formatter: function formatter(val, item) {
+            return item.point.type +':\n' + val;
+        }
+    }).tooltip('type*value', function(item, value) {
+        // percent = (percent * 100).toFixed(1)+ '%';
+        return {
+        name: item,
+        value: value
+        };
+    });
+    broMalChart.render();
+  }
+}
     
     componentDidUpdate(prevProps, prevState) {
       if (prevState.totalMalDist !== this.state.totalMalDist) {
@@ -1826,26 +2151,26 @@ class DataCockpit extends Component {
                         </Grid.Column>
                       </Grid.Row>
                       <Grid.Row>
-                        <Grid.Column width={4}>
+                        <Grid.Column width={3}>
                           <h2 class='tit2'>胸膜凹陷征分布</h2>
                           <div id='pleural'></div>
                         </Grid.Column>
-                        <Grid.Column width={4}>
+                        <Grid.Column width={3}>
                           <h2 class='tit2'>空洞征分布</h2>
                           <div id='cavity'></div>
                         </Grid.Column>
-                        <Grid.Column width={4}>
+                        <Grid.Column width={3}>
                           <h2 class='tit2'>血管集束征分布</h2>
                           <div id='vcs'></div>
                         </Grid.Column>
-                        <Grid.Column width={4}>
-                          <h2 class='tit2'>支气管充气征分布</h2>
-                          <div id='airbronchogram'></div>
-                        </Grid.Column>
-                        {/* <Grid.Column width={4}>
+                        <Grid.Column width={3}>
                           <h2 class='tit2'>空泡征分布</h2>
                           <div id='vacuole'></div>
-                        </Grid.Column> */}
+                        </Grid.Column>
+                        <Grid.Column width={3}>
+                          <h2 class='tit2'>支气管充气征</h2>
+                          <div id='airbronchogram'></div>
+                        </Grid.Column>
                       </Grid.Row>
                     </Grid>
                   </div>
