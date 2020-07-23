@@ -93,8 +93,12 @@ export class SearchPanel extends Component {
         }
         if(prevState.activePageQueue != this.state.activePageQueue){
             let activeQueue=[]
-            for(let i=0;i<5;i++){
+            let i=0
+            for(;i<5 && i+(this.state.activePageQueue-1)*5<this.state.queue.length;i++){
                 activeQueue.push(this.state.queue[i+(this.state.activePageQueue-1)*5])
+            }
+            for(;i<5;i++){
+                activeQueue.push('')
             }
             this.setState({activeQueue:activeQueue})
         }
@@ -108,12 +112,16 @@ export class SearchPanel extends Component {
             let searchQueue=[{key:'不限队列',value:'不限队列',text:'不限队列'}]
             let activeQueue=['不限队列']
             let totalPageQueue=1
-            for(let i=0;i<res.data.length;i++){
+            let i=0
+            for(;i<res.data.length;i++){
                 queue.push(res.data[i])
                 searchQueue.push({key:res.data[i],value:res.data[i],text:res.data[i]})
                 if(i<4){
                     activeQueue.push(res.data[i])
                 }
+            }
+            for(;i<4;i++){
+                activeQueue.push('')
             }
             totalPageQueue=parseInt(res.data.length/5)+1
             this.setState({queue:queue,searchQueue:searchQueue,activeQueue:activeQueue,totalPageQueue:totalPageQueue})
@@ -333,8 +341,14 @@ export class SearchPanel extends Component {
                                         </Grid.Column>
                                         {this.state.activeQueue.map((content,index)=>{
                                             return(
-                                                <Grid.Column textAlign='center'>
-                                                    <Button fluid inverted color='green' size='large' onClick={this.buttonQueue.bind(this)}>{content}</Button>
+                                                <Grid.Column >
+                                                    {
+                                                        content===''?
+                                                        <Button fluid inverted color='green' size='large' onClick={this.buttonQueue.bind(this)} style={{visibility:'hidden'}}>{content}</Button>
+                                                        :
+                                                        <Button fluid inverted color='green' size='large' onClick={this.buttonQueue.bind(this)}>{content}</Button>
+                                                    }
+                        
                                                 </Grid.Column>
                                             )
                                         })}
