@@ -85,6 +85,7 @@ class SubList extends Component {
 
     handlePidClick(){
         window.location.href = '/patientInfo/' + this.props.mainItem
+
         // window.location.href='/infoCenter'
     }
 
@@ -120,6 +121,8 @@ class SubList extends Component {
             this.saveCart()
         }
     }
+
+    
 
     //导出caseid传入下载界面
     exportCaseId(){

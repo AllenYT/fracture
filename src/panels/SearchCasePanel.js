@@ -122,10 +122,6 @@ export class SearchPanel extends Component {
         })
     }
 
-    nextPath(path) {
-        this.props.history.push(path)
-    }
-
     getTotalPages() {
         if(this.state.chooseQueue==='不限队列'){
             const token = localStorage.getItem('token')

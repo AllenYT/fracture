@@ -6,7 +6,7 @@ import '../css/MyQueuePanel.css'
 
 const config = require('../config.json')
 const recordConfig = config.record
-const draftConfig = config.draft
+const subsetConfig = config.subset
 let  nums={'危险':null,'毛刺征':null,'分叶征':null,'钙化':null,'密度':null,'胸膜凹陷征':null,'空洞征':null,'血管集束征':null,
 '空泡征':null,'支气管充气征':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,'1cm-1.3cm':null,'1.3cm-3cm':null,
 '>=3cm':null}//限制labels数量
@@ -35,7 +35,7 @@ class MyQueuePanel extends Component {
             diameterContainer:'0_5',
             open:false,
             queueName:'',
-
+            patientList:[]
         }
     this.handlePaginationChange = this
         .handlePaginationChange
@@ -70,6 +70,9 @@ class MyQueuePanel extends Component {
     this.handleInputChange=this
         .handleInputChange
         .bind(this)
+    this.handleDiaChange = this
+        .handleDiaChange
+        .bind(this)
     this.handleImageLabels=this
         .handleImageLabels
         .bind(this)
@@ -88,10 +91,23 @@ class MyQueuePanel extends Component {
     this.hidder = this
         .hidder
         .bind(this)
+    this.handleNameChange = this
+        .handleNameChange
+        .bind(this)
+    this.loadQueueList = this
+        .loadQueueList
+        .bind(this)
+    this.queueStateChange = this
+        .queueStateChange
+        .bind(this)
+    this.delQueue = this
+        .delQueue
+        .bind(this)
     }
 
     componentDidMount() {
         //请求第一页队列
+        this.loadQueueList()
         document.getElementById('queue-popup').style.display = 'none'
     }
 
@@ -111,10 +127,51 @@ class MyQueuePanel extends Component {
         this.setState({activePage})
     }
 
+    loadQueueList(){
+        const params = {
+            username: localStorage.getItem('username')
+        }
+        axios.post(subsetConfig.getQueue,qs.stringify(params)).then(res =>{
+            console.log('queue',res)
+            this.setState({queueList:res.data})
+        }).catch(err =>{
+            console.log(err)
+        })
+    }
+
     getPid(){
         //mainlist,page=all
+        document.getElementById('loading').style.display = ''
         let leftpidList = []
         console.log('getPid')
+        const token = localStorage.getItem('token')
+        const headers = {
+            'Authorization': 'Bearer '.concat(token)
+        }
+
+        const params = {
+            page:'all',
+            type: 'pid',
+            pidKeyword: this.state.pidKeyword,
+            dateKeyword: ''
+        }
+
+        axios.post(recordConfig.getMainList, qs.stringify(params), {headers}).then((response) => {
+            const data = response.data
+            if (data.status !== 'okay') {
+                // window.location.href = '/'
+            }
+            // console.log('data:',data)
+            console.log('mainList',data.mainList[0])
+            const mainList = data.mainList
+            for(var i=0;i<mainList.length;i++){
+                leftpidList.push(mainList[i].split('_')[0])
+            }
+            document.getElementById('loading').style.display = 'none'
+            this.setState({leftpidList: leftpidList})
+        }).catch((error) => {
+            console.log(error)
+        })
         //axios
         // this.setState({leftpidList:leftpidList})
     }
@@ -146,6 +203,8 @@ class MyQueuePanel extends Component {
 
     hidder(){
         console.log('hider')
+        document.getElementById('nameinput').value = ''
+        this.setState({leftpidList:[],rightpidList:[],queueName:''})
         document.getElementById('queue-popup').style.display = 'none'
     }
 
@@ -167,17 +226,55 @@ class MyQueuePanel extends Component {
     }
 
     setQueueName(){
-        //axios user
         document.getElementById('queue-popup').style.display = ''
         this.close()
     }
 
     submitQueue(){
         //axios.createnewqueue,queuename
-        document.getElementById('queue-popup').style.display='none'
-        console.log("submit")
-        //调用queue query,update queue list
-        this.setState({leftpidList:[],rightpidList:[],queueName:''})
+        let patientIds =''
+        const rightpidList = this.state.rightpidList
+        console.log('right',rightpidList)
+        let queueList = this.state.queueList
+        for(var i=0;i<rightpidList.length;i++){
+            if(i===0 && patientIds.indexOf(rightpidList[i])===-1){
+                patientIds=''+rightpidList[i]
+            }
+            else if(i>0 && patientIds.indexOf(rightpidList[i])===-1){
+                patientIds=patientIds+'_'+rightpidList[i]
+            }
+            else{
+                continue
+            }
+        }
+        console.log("patrients",patientIds)
+        const username = localStorage.getItem('username')
+        const params = {
+            username: username,
+            patientIds: patientIds,
+            subsetName: this.state.queueName
+        }
+        axios.post(subsetConfig.createQueue,qs.stringify(params)).then(res =>{
+            if(res.data.status==='ok'){
+                document.getElementById('queue-popup').style.display='none'
+                console.log("submit")
+                //调用queue query,update queue list
+                queueList.push(this.state.queueName)
+                
+                alert("创建队列'"+this.state.queueName+"'成功!")
+                // this.loadQueueList()
+                document.getElementById('nameinput').value = ''
+                nums={'危险':null,'毛刺征':null,'分叶征':null,'钙化':null,'密度':null,'胸膜凹陷征':null,'空洞征':null,'血管集束征':null,
+                    '空泡征':null,'支气管充气征':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,'1cm-1.3cm':null,'1.3cm-3cm':null,
+                    '>=3cm':null}
+                this.setState({leftpidList:[],rightpidList:[],queueName:'',queueList:queueList})
+                this.setState({malignancy: -1,calcification: -1,spiculation: -1,lobulation:-1,texture:-1,pin:-1,
+                    cav:-1,vss:-1,bea:-1,bro:-1,diameterContainer:'0_5'})
+            }
+        }).catch(err =>{
+            console.log(err)
+        })
+        
     }
 
     removeRight(){
@@ -442,8 +539,74 @@ class MyQueuePanel extends Component {
         }))
     }
 
+    handleDiaChange(e){
+        const value = e.currentTarget.value
+        const name = e.currentTarget.name
+        if (name === 'left') {
+            this.left=value
+        } 
+        else if (name === 'right') {
+            this.right=value
+        }
+    }
+
     toPatientList(e){
+        const queueName = e.currentTarget.dataset.id
+        console.log(queueName)
+        const params = {
+            username:localStorage.getItem('username'),
+            subsetName:queueName
+        }
+        axios.post(subsetConfig.getQueuePatientIds,qs.stringify(params)).then(res =>{
+            // console.log("patients",res)
+
+            this.setState({patientList:res.data})
+        }).catch(err =>{
+            console.log(err)
+        })
         //以队列名请求该队列的所有pid
+        this.setState(({isQueue}) => ({
+            isQueue: !isQueue
+        }))
+
+        console.log('func')
+    }
+
+    queueStateChange(e){
+        this.setState(({isQueue}) => ({
+            isQueue: !isQueue
+        }))
+    }
+
+    delQueue(e){
+        // const delId = e.target.id
+        const delName = e.target.id
+        let queueList = this.state.queueList
+        const params={
+            username:localStorage.getItem('username'),
+            subsetName:delName
+        }
+        axios.post(subsetConfig.deleteQueue,qs.stringify(params)).then(res =>{
+            if(res.data.status === 'ok'){
+                for (var i = 0; i < queueList.length; i++) {
+                    console.log(queueList[i])
+                    if (queueList[i] === delName) {
+                        queueList.splice(i, 1)
+                    }
+                }
+                this.setState({queueList:queueList})
+            }
+            else{
+                alert("队列删除失败...")
+            }
+        }).catch(err =>{
+            console.log(err)
+        })
+    }
+
+    handleNameChange(e){
+        const value = e.currentTarget.value
+        this.setState({queueName: value})
     }
 
     handleInputChange(e) {
@@ -496,7 +659,7 @@ class MyQueuePanel extends Component {
 }
 
     render() {
-            const {leftpidList,rightpidList,queueList,open} = this.state
+            const {leftpidList,rightpidList,queueList,open,patientList} = this.state
             return (
                 <div>
                    
@@ -514,8 +677,8 @@ class MyQueuePanel extends Component {
                                 <Modal.Content scrolling id='selectGrid'>
                                         <Grid>
                                         <Grid.Row>
-                                            <Grid.Column width={3} style={{display:'flex'}}>
-                                                <Header as='h3' >筛选条件:</Header>{' '}<Icon name='search' color='blue' onClick={this.getpidByFeature}></Icon>
+                                            <Grid.Column width={2} style={{display:'flex'}}>
+                                                <Header as='h3' >筛选条件:</Header>{' '}
                                             </Grid.Column>
                                             {/* <Grid.Column width={7}><Icon name='search' onClick={this.getpidByFeature}></Icon></Grid.Column> */}
                                             <Grid.Column width={13}>
@@ -530,6 +693,9 @@ class MyQueuePanel extends Component {
                                                     )
                                                 })}
                                             </Grid.Column>
+                                            <Grid.Column width={1}>
+                                                <Icon name='search' color='blue' title='搜索' onClick={this.getpidByFeature} size='large'></Icon>   
+                                            </Grid.Column>
                                             
                                         </Grid.Row>
                                         <Grid.Row>
@@ -541,10 +707,10 @@ class MyQueuePanel extends Component {
                                                             <strong>风险程度</strong>
                                                         </Grid.Column>
                                                         <Grid.Column width={2}>
-                                                            <a style={{color:'#66cfec'}} onClick={this.handleLabels}>低危</a>
+                                                            <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>低危</a>
                                                         </Grid.Column>
                                                         <Grid.Column width={2}>
-                                                        <a style={{color:'#66cfec'}} onClick={this.handleLabels}>高危</a>
+                                                        <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>高危</a>
                                                         </Grid.Column>
                                                     </Grid.Row>
                                                     <Grid.Row>
@@ -555,27 +721,27 @@ class MyQueuePanel extends Component {
                                                             <Grid inverted divided>
                                                                 <Grid.Row columns={6}>
                                                                     <Grid.Column width={2}>
-                                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&lt;=0.3cm</a>
+                                                                    <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>&lt;=0.3cm</a>
                                                                         
                                                                     </Grid.Column>
                                                                     <Grid.Column width={2}>
-                                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>0.3cm-0.5cm</a>
+                                                                    <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>0.3cm-0.5cm</a>
                                                                         
                                                                     </Grid.Column>
                                                                     <Grid.Column width={2}>
-                                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>0.5cm-1cm</a>
+                                                                    <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>0.5cm-1cm</a>
                                                                         
                                                                     </Grid.Column>
                                                                     <Grid.Column width={2}>
-                                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>1cm-1.3cm</a>
+                                                                    <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>1cm-1.3cm</a>
                                                                         
                                                                     </Grid.Column>
                                                                     <Grid.Column width={2}>
-                                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>1.3cm-3cm</a>
+                                                                    <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>1.3cm-3cm</a>
                                                                         
                                                                     </Grid.Column>
                                                                     <Grid.Column width={2}>
-                                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&gt;=3cm</a>
+                                                                    <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>&gt;=3cm</a>
                                                                         
                                                                     </Grid.Column>
                                                                     
@@ -583,10 +749,10 @@ class MyQueuePanel extends Component {
                                                                 </Grid.Row>
                                                                 <Grid.Row>
                                                                     <Grid.Column width={8} style={{display:'flex'}}>
-                                                                        <a style={{color:'#66cfec'}}>自定义：</a>
-                                                                        <Input id="searchBox" placeholder="cm" onChange={this.handleInputChange} name='left'/>
+                                                                        <a style={{color:'#66cfec'}} id='feaDropdown'>自定义：</a>
+                                                                        <Input className="searchBox" placeholder="cm" onChange={this.handleDiaChange} name='left'/>
                                                                         <em>&nbsp;&nbsp;-&nbsp;&nbsp;</em>
-                                                                        <Input id="searchBox" placeholder="cm" onChange={this.handleInputChange} name='right'/>
+                                                                        <Input className="searchBox" placeholder="cm" onChange={this.handleDiaChange} name='right'/>
                                                                         <a style={{marginLeft:15,color:'#66cfec',fontSize:20}}>cm</a>
                                                                         <em>&nbsp;&nbsp;&nbsp;&nbsp;</em>
                                                                         <Button 
@@ -608,8 +774,8 @@ class MyQueuePanel extends Component {
                                                         <Grid.Column width={13}>
                                                         <Grid inverted divided>
                                                             <Grid.Row >
-                                                                <Grid.Column style={{width:'9%'}} >    
-                                                                    <Dropdown text='毛刺征' style={{color:'#66cfec'}}>
+                                                                <Grid.Column style={{width:'9%'}}>    
+                                                                    <Dropdown text='毛刺征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                                         <Dropdown.Menu style={{background:'black'}}>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>毛刺</Dropdown.Item>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>非毛刺</Dropdown.Item>
@@ -619,8 +785,8 @@ class MyQueuePanel extends Component {
                                                                     
                                                                 </Grid.Column>
                                                                 <Grid.Column style={{width:'9%'}} >
-                                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
-                                                                <Dropdown text='分叶征' style={{color:'#66cfec'}}>
+                                                                {/* <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>分叶</a> */}
+                                                                <Dropdown text='分叶征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                                         <Dropdown.Menu style={{background:'black'}}>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>分叶</Dropdown.Item>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>非分叶</Dropdown.Item>
@@ -629,12 +795,12 @@ class MyQueuePanel extends Component {
                                                                     </Dropdown>
                                                                 </Grid.Column>
                                                                 {/* <Grid.Column width={2}>
-                                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>胸膜内陷</a>
+                                                                <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>胸膜内陷</a>
                                                                     
                                                                 </Grid.Column> */}
                                                                 <Grid.Column style={{width:'8%'}} >
-                                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>钙化</a> */}
-                                                                <Dropdown text='钙化' style={{color:'#66cfec'}}>
+                                                                {/* <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>钙化</a> */}
+                                                                <Dropdown text='钙化' style={{color:'#66cfec'}} id='feaDropdown'>
                                                                         <Dropdown.Menu style={{background:'black'}}>
                                                                         <Dropdown.Item onClick={this.handleImageLabels}>钙化</Dropdown.Item>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>非钙化</Dropdown.Item>
@@ -644,12 +810,12 @@ class MyQueuePanel extends Component {
                                                                     
                                                                 </Grid.Column>
                                                                 {/* <Grid.Column width={2}>
-                                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>半实性</a>
+                                                                <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>半实性</a>
                                                                     
                                                                 </Grid.Column> */}
                                                                 <Grid.Column style={{width:'8%'}} >
-                                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>实性</a> */}
-                                                                <Dropdown text='密度' style={{color:'#66cfec'}}>
+                                                                {/* <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>实性</a> */}
+                                                                <Dropdown text='密度' style={{color:'#66cfec'}} id='feaDropdown'>
                                                                         <Dropdown.Menu style={{background:'black'}}>
                                                                         <Dropdown.Item onClick={this.handleImageLabels}>实性</Dropdown.Item>
                                                                             <Dropdown.Item >半实性</Dropdown.Item>
@@ -658,8 +824,8 @@ class MyQueuePanel extends Component {
                                                                     </Dropdown>
                                                                 </Grid.Column>
                                                                 <Grid.Column style={{width:'12%'}} >
-                                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
-                                                                <Dropdown text='胸膜凹陷征' style={{color:'#66cfec'}}>
+                                                                {/* <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>分叶</a> */}
+                                                                <Dropdown text='胸膜凹陷征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                                         <Dropdown.Menu style={{background:'black'}}>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>胸膜凹陷</Dropdown.Item>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>非胸膜凹陷</Dropdown.Item>
@@ -668,8 +834,8 @@ class MyQueuePanel extends Component {
                                                                 </Dropdown>
                                                                 </Grid.Column>
                                                                 <Grid.Column style={{width:'9%'}} >
-                                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
-                                                                <Dropdown text='空洞征' style={{color:'#66cfec'}}>
+                                                                {/* <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>分叶</a> */}
+                                                                <Dropdown text='空洞征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                                         <Dropdown.Menu style={{background:'black'}}>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>空洞</Dropdown.Item>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>非空洞</Dropdown.Item>
@@ -678,8 +844,8 @@ class MyQueuePanel extends Component {
                                                                 </Dropdown>
                                                                 </Grid.Column>
                                                                 <Grid.Column style={{width:'12%'}} >
-                                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
-                                                                <Dropdown text='血管集束征' style={{color:'#66cfec'}}>
+                                                                {/* <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>分叶</a> */}
+                                                                <Dropdown text='血管集束征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                                         <Dropdown.Menu style={{background:'black'}}>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>血管集束</Dropdown.Item>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>非血管集束</Dropdown.Item>
@@ -688,8 +854,8 @@ class MyQueuePanel extends Component {
                                                                 </Dropdown>
                                                                 </Grid.Column>
                                                                 <Grid.Column style={{width:'9%'}} >
-                                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
-                                                                <Dropdown text='空泡征' style={{color:'#66cfec'}}>
+                                                                {/* <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>分叶</a> */}
+                                                                <Dropdown text='空泡征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                                         <Dropdown.Menu style={{background:'black'}}>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>空泡</Dropdown.Item>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>非空泡</Dropdown.Item>
@@ -698,8 +864,8 @@ class MyQueuePanel extends Component {
                                                                 </Dropdown>
                                                                 </Grid.Column>
                                                                 <Grid.Column style={{width:'13%'}} >
-                                                                {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
-                                                                <Dropdown text='支气管充气征' style={{color:'#66cfec'}}>
+                                                                {/* <a style={{color:'#66cfec'}} id='feaDropdown' onClick={this.handleLabels}>分叶</a> */}
+                                                                <Dropdown text='支气管充气征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                                         <Dropdown.Menu style={{background:'black'}}>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>支气管充气</Dropdown.Item>
                                                                             <Dropdown.Item onClick={this.handleImageLabels}>非支气管充气</Dropdown.Item>
@@ -763,8 +929,12 @@ class MyQueuePanel extends Component {
                                                     </select>
                                                 </Grid.Column>
                                             </Grid.Row>
-                                            <Grid.Row textAlign='right'>
-                                                <Button onClick={this.setQueueName}>新建队列</Button>
+                                            <Grid.Row>
+                                                <Grid.Column width={13}></Grid.Column>
+                                                <Grid.Column width={3}>
+                                                    <Button onClick={this.setQueueName} inverted color='blue'>新建队列</Button>
+                                                </Grid.Column>
+                                                
                                             </Grid.Row>
                                         </Grid>
                                     
@@ -777,54 +947,82 @@ class MyQueuePanel extends Component {
                            </Grid.Column>
                             
                        </Grid.Row>
-                       <Grid.Row centered>
-                           <div id='queueTable'>
-                            <Table inverted >
+                       {this.state.isQueue?
+                           <Grid.Row centered>
+                           {/* <div id='queueTable'> */}
+                            <Table inverted singleLine id="queueTable">
                                 <Table.Header>
                                     <Table.Row>
                                         <Table.HeaderCell>队列名称</Table.HeaderCell>
                                         {/* <Table.HeaderCell>所含患者数量</Table.HeaderCell> */}
-                                        <Table.HeaderCell></Table.HeaderCell>
+                                        <Table.HeaderCell>&nbsp;</Table.HeaderCell>
+                                        <Table.HeaderCell>&nbsp;</Table.HeaderCell>
                                     </Table.Row>
                                     </Table.Header>
 
                                     <Table.Body>
                                 
                                         {queueList.map((value,index)=>{
+                                            let delId = 'del-' + index
                                             return(
                                                 <Table.Row>
-                                                    <Table.Cell>
-                                                    <Header as='h4' image>
+                                                    <Table.Cell width={8}>
+                                                    {/* <Header as='h4' image>
                                                         <Header.Content>
                                                         {value}
                                                         <Header.Subheader>{value}</Header.Subheader>
                                                         </Header.Content>
-                                                    </Header>
+                                                    </Header> */}
+                                                    {value}
                                                     </Table.Cell>
-                                                    <Table.Cell>22</Table.Cell>
-                                                    <Table.Cell><Icon name='caret right' pid={value} onClick={this.toPatientList}></Icon></Table.Cell>
+                                                    <Table.Cell width={4}><Icon name='trash alternate' onClick={this.delQueue} id={value} delName={value}></Icon></Table.Cell>
+                                                    <Table.Cell width={4}><Icon name='caret right' data-id={value} onClick={this.toPatientList}></Icon></Table.Cell>
                                                 </Table.Row>
                                                 )
                                             })
                                         }
                                     </Table.Body>
                                 </Table>
-                           </div>
-                           {/* <div id='patientTable'>
-                                <Table inverted>
+                           {/* </div>  */}
+                       </Grid.Row>
+                       :
+                       <Grid.Row centered>
+                           {/* <div> */}
+                                <Table inverted singleLine id='patientTable'>
                                     <Table.Header>
                                         <Table.Row>
-                                            <Table.HeaderCell><Icon name='align left'></Icon></Table.HeaderCell>
-                                            <Table.HeaderCell>队列名称</Table.HeaderCell>
-                                            <Table.HeaderCell>所含患者数量</Table.HeaderCell>
-                                            
+                                            <Table.HeaderCell><Button icon onClick={this.queueStateChange} color='blue' inverted><Icon name='angle left'></Icon></Button></Table.HeaderCell>
+                                            <Table.HeaderCell>病人ID</Table.HeaderCell>
+                                            {/* <Table.HeaderCell>性别</Table.HeaderCell>
+                                            <Table.HeaderCell>年龄</Table.HeaderCell> */}
                                         </Table.Row>
                                     </Table.Header>
+                                    <Table.Body>
+                                        {patientList.map((value,index)=>{
+                                                return(
+                                                    <Table.Row>
+                                                        <Table.Cell width={2}>&nbsp;</Table.Cell>
+                                                        <Table.Cell>
+                                                        {/* <Header as='h4' image>
+                                                            <Header.Content>
+                                                            {value}
+                                                            </Header.Content>
+                                                        </Header> */}
+                                                        {value}
+                                                        </Table.Cell>
+                                                        {/* <Table.Cell></Table.Cell> */}
+                                                    </Table.Row>
+                                                    )
+                                                })
+                                            }
+                                    </Table.Body>
+
                                 </Table>
-                           </div> */}
-                            
+                           {/* </div>  */}
                        </Grid.Row>
-                       <Grid.Row centered>
+                       }
+                       
+                       {/* <Grid.Row centered>
                         <div className="pagination-component">
                                 <Pagination
                                     id="pagination"
@@ -832,7 +1030,7 @@ class MyQueuePanel extends Component {
                                     activePage={this.state.activePage}
                                     totalPages={this.state.totalPage}/>
                             </div>
-                       </Grid.Row>
+                       </Grid.Row> */}
                         
                    </Grid>
 
@@ -850,7 +1048,7 @@ class MyQueuePanel extends Component {
                                 </Grid.Row>
                                 <br/>
                                 <Grid.Row centered textAlign='center' style={{height:50}}>
-                                        <Input placeholder='队列名' value={this.state.queueName}></Input>
+                                        <Input placeholder='队列名' id='nameinput' onChange={this.handleNameChange}></Input>
                                   
                                         <Button onClick={this.submitQueue}>提交</Button>
                                     

@@ -83,9 +83,13 @@ input[type=range]:focus {
   color: black;
 }
 
-.ui.grid {
+/* .ui.grid {
   margin-top: 50px;
   margin-left: 30px;
+} */
+
+.canvas {
+  position: absolute;
 }
 
 table#nodule-table {
@@ -313,7 +317,7 @@ option {
 }
 
 #accord-right{
-  margin-left: 78%;
+  margin-left: 77%;
 }
 
 #report{
@@ -452,6 +456,22 @@ option {
   border-radius: 0.3rem; */
 }
 
+.ui.celled.grid.corner-contnt .canvas-style #canvas{
+  width:870px;
+  height: 870px;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+}
+
+.ui.celled.grid.corner-contnt .canvas-style #length-canvas{
+  width:870px;
+  height: 870px;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+}
+
 #submitbtn{
   /* margin-top: 30px; */
   margin-top: 0px;
@@ -531,10 +551,10 @@ option {
     color: black;
   }
   
-  .ui.grid {
+  /* .ui.grid {
     margin-top: 50px;
     margin-left: 30px;
-  }
+  } */
   
   table#nodule-table {
     /* width: 520px; */
@@ -844,6 +864,22 @@ option {
     color: white;
   }
 
+  .ui.celled.grid.corner-contnt .canvas-style #canvas{
+    width:450px;
+    height: 450px;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+  }
+
+  .ui.celled.grid.corner-contnt .canvas-style #length-canvas{
+    width:450px;
+    height: 450px;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+  }
+  
   #submitbtn{
     /* margin-top: -50px; */
     margin-top: 0px;
@@ -925,10 +961,10 @@ option {
     color: black;
   }
   
-  .ui.grid {
+  /* .ui.grid {
     margin-top: 50px;
     margin-left: 30px;
-  }
+  } */
   
   table#nodule-table {
     /* width: 520px; */
@@ -1236,6 +1272,23 @@ option {
     margin:auto;
     color: white;
   }
+
+  .ui.celled.grid.corner-contnt .canvas-style #canvas{
+    width:600px;
+    height: 600px;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+  }
+
+  .ui.celled.grid.corner-contnt .canvas-style #length-canvas{
+    width:600px;
+    height: 600px;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+  }
+
   }
 
   @media screen and (min-width: 1281px)  and (max-width:1599px){
@@ -1305,10 +1358,10 @@ option {
       color: black;
     }
     
-    .ui.grid {
+    /* .ui.grid {
       margin-top: 50px;
       margin-left: 30px;
-    }
+    } */
     
     table#nodule-table {
       /* width: 520px; */
@@ -1616,6 +1669,22 @@ option {
       position: relative;
       margin:auto;
       color: white;
+    }
+
+    .ui.celled.grid.corner-contnt .canvas-style #canvas{
+      width:512px;
+      height: 512px;
+      position: absolute;
+      bottom: 0px;
+      left: 0px;
+    }
+
+    .ui.celled.grid.corner-contnt .canvas-style #length-canvas{
+      width:512px;
+      height: 512px;
+      position: absolute;
+      bottom: 0px;
+      left: 0px;
     }
 
     #submitbtn{

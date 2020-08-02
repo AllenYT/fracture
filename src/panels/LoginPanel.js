@@ -3,6 +3,7 @@ import { Grid, Button, Checkbox, Message, Form } from 'semantic-ui-react'
 import '../css/loginPanel.css'
 import axios from 'axios'
 import qs from 'qs'
+import {withRouter} from 'react-router-dom'
 const config = require('../config.json')
 const userConfig = config.user
 
@@ -15,7 +16,7 @@ class LoginPanel extends Component {
         this.state = {
             messageVisible: false,
             username: '',
-            password: ''
+            password: '',
         }
         this.handleDismiss = this.handleDismiss.bind(this)
         this.handleClick = this.handleClick.bind(this)
@@ -64,9 +65,11 @@ class LoginPanel extends Component {
                 localStorage.setItem('modelProgress', response.data.modelProgress)
                 if(sessionStorage.getItem('location')!=undefined){
                     window.location.href=sessionStorage.getItem('location')+'deepln'
+                    // this.props.history.push(sessionStorage.getItem('location')+'deepln')
                 }
                 else{
                     window.location.href = '/dataCockpit'
+                    // this.props.history.push('/dataCockpit')
                 }
             }
         })
@@ -150,4 +153,4 @@ class LoginPanel extends Component {
     }
 }
 
-export default LoginPanel
+export default withRouter(LoginPanel)
