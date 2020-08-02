@@ -189,7 +189,7 @@ class Statistics extends Component {
             value: percent
             };
         }).style({
-            lineWidth: 1,
+            lineWidth: 0,
             stroke: '#fff'
         });
         sexChart.render();
@@ -232,7 +232,7 @@ class Statistics extends Component {
             value: percent
             };
         }).select(false).style({
-            lineWidth: 1,
+            lineWidth: 0,
             stroke: '#fff'
         });
 
@@ -269,7 +269,7 @@ class Statistics extends Component {
             value: percent
             };
         }).select(false).style({
-            lineWidth: 1,
+            lineWidth: 0,
             stroke: '#fff'
         });
 

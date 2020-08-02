@@ -29,19 +29,24 @@ cornerstoneWadoImageLoader.external.cornerstone = cornerstone
 cornerstoneWadoImageLoader.external.dicomParser = dicomParser
 cornerstoneTools.external.Hammer = Hammer
 cornerstoneTools.init()
+cornerstoneTools.toolColors.setActiveColor('rgb(0, 255, 0)')
+cornerstoneTools.toolColors.setToolColor('rgb(255, 255, 0)')
 // const csTools = cornerstoneTools.init();
 // const mouseInput = cornerstoneTools.mouseInput;
 // const mouseWheelInput  =cornerstoneTools.mouseWheelInput
+const globalImageIdSpecificToolStateManager = cornerstoneTools.newImageIdSpecificToolStateManager();
 const wwwc = cornerstoneTools.WwwcTool
 const pan = cornerstoneTools.PanTool
 const zoomwheel = cornerstoneTools.ZoomMouseWheelTool
 const bidirectional = cornerstoneTools.BidirectionalTool
-const ellipticalRoi = cornerstoneTools.ellipticalRoi
+const ellipticalRoi = cornerstoneTools.EllipticalRoiTool
 const LengthTool = cornerstoneTools.LengthTool
 const ZoomTouchPinchTool = cornerstoneTools.ZoomTouchPinchTool
 const eraser = cornerstoneTools.EraserTool
 const {Column, HeaderCell, Cell, Pagination} = Table
-
+let allROIToolData = {};
+let toolROITypes = ['EllipticalRoi','Bidirectional']; 
+// , 'RectangleRoi', 'ArrowAnnotate', 'Length', 'CobbAngle', 'Angle', 'FreehandRoi', 'Calibration'
 // const divStyle = {
 //     width: "512px",//768px
 //     height: "512px",
@@ -110,9 +115,9 @@ const selectStyle = {
     'background': 'none',
     'border': 'none',
     // 'fontFamily': 'SimHei',
-    '-webkit-appearance':'none',
-    'font-size':'medium',
-    '-moz-appearance':'none',
+    'WebkitAppearance':'none',
+    'fontSize':'medium',
+    'MozAppearance':'none',
     'apperance': 'none',
     
 }
@@ -121,9 +126,9 @@ const lowRiskStyle = {
     'background': 'none',
     'border': 'none',
     // 'fontFamily': 'SimHei',
-    '-webkit-appearance':'none',
-    'font-size':'medium',
-    '-moz-appearance':'none',
+    'WebkitAppearance':'none',
+    'fontSize':'medium',
+    'MozAppearance':'none',
     'apperance': 'none',
     'color':'green'
 }
@@ -132,9 +137,9 @@ const highRiskStyle = {
     'background': 'none',
     'border': 'none',
     // 'fontFamily': 'SimHei',
-    '-webkit-appearance':'none',
-    'font-size':'medium',
-    '-moz-appearance':'none',
+    'WebkitAppearance':'none',
+    'fontSize':'medium',
+    'MozAppearance':'none',
     'apperance': 'none',
     'color':'#CC3300'
 }
@@ -179,7 +184,10 @@ class CornerstoneElement extends Component {
             wcDefine:500,
             dicomTag:props.stack.dicomTag,
             showInfo:true,
-            newAnno:true
+            newAnno:true,
+            isbidirectionnal:false,
+            measureList:[],
+            toolState:'',
             // list:[],
             // malignancy: -1,
             // calcification: -1,
@@ -345,6 +353,8 @@ class CornerstoneElement extends Component {
         this.lengthMeasure = this.lengthMeasure.bind(this)
         this.featureAnalysis = this.featureAnalysis.bind(this)
         this.eraseLabel = this.eraseLabel.bind(this)
+        this.startAnnos = this.startAnnos.bind(this)
+        this.saveTest = this.saveTest.bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -367,10 +377,10 @@ class CornerstoneElement extends Component {
         // console.log("to media", viewport)
     }
 
-    visualize(hist_data,idx,isNewBox){
+    visualize(hist_data,idx){
         const visId = 'visual-' + idx
         document.getElementById(visId).innerHTML=''
-        if(!isNewBox){
+        // if(!isNewBox){
             let bins=hist_data.bins
             let ns=hist_data.n
             console.log('bins',bins)
@@ -451,52 +461,83 @@ class CornerstoneElement extends Component {
                 
                 }).shape('smooth')
             chart.render()
-        }
-        else{
-            const data = hist_data.map((value) => {
-                return {
-                  value,
-                };
-              });
-              const ds = new DataSet();
-              const dv = ds.createView().source(data);
-              dv.transform({
-                type: 'bin.histogram',
-                field: 'value',
-                binWidth: 100,
-                as: ['value', 'count'],
-              });
-              
-              const newchart = new Chart({
-                container: visId,
-                // autoFit: true,
-                height: 300,
-              });
-              newchart.source(dv);
-            //   chart.data(dv.rows);
-            newchart.scale({
-                value: {
-                  min: Math.min.apply(null, hist_data),
-                  max: Math.max.apply(null, hist_data),
-                  tickInterval: 100,
-                },
-                count: {
-                  max: 200,
-                  nice: true,
-                },
-              });
-              
-              newchart.tooltip({
-                showMarkers: false,
-                position: 'top',
-              });
-              
-              newchart.interval().position('value*count');
-              
-            //   chart.interaction('element-highlight');
-              
-            newchart.render();
-        }
+        // }
+        // else{
+        //     // const data = hist_data.map((value) => {
+        //     //     return {
+        //     //       value,
+        //     //     };
+        //     //   });
+           
+        //     var histogram = []
+        //     var line=[]
+        //     for (var i = 0; i < bins.length-1; i++) {
+        //         var obj = {}
+        //         obj.value = [bins[i],bins[i+1]]
+        //         obj.count=ns[i]
+        //         histogram.push(obj)
+                
+        //         var obj2={}
+        //         obj2.value=bins[i]
+        //         obj2.count=ns[i]
+        //         line.push(obj2)
+        //     }
+        //     console.log('histogram',histogram)
+        //     console.log('line',line)
+        //     const ds = new DataSet();
+        //     const dv = ds.createView().source(histogram)
+        //     const newchart = new Chart({
+        //         container: visId,
+        //         // forceFit: true,
+        //         forceFit:true,
+        //         height: 300,
+        //         width:400,
+        //         // padding: [30,30,'auto',30]
+        //     });
+        //     // chart.tooltip({
+        //     //     crosshairs: false,
+        //     //     inPlot: false,
+        //     //     position: 'top'
+        //     //   })
+        //     let view1=newchart.view()
+        //     // view1.axis(false)
+        //     view1.source(dv, {
+        //         value: {
+        //         //   nice: true,
+        //         minLimit: bins[0]-50,
+        //         maxLimit:bins[bins.length-1]+50,
+        //         //   tickCount:20
+        //         },
+        //         count: {
+        //         //   max: 350000,
+        //         //   tickInterval:50000
+        //         tickCount:10
+        //         }
+        //     })
+        //     // view1.source(dv)
+        //     view1.interval().position('value*count')
+
+        //     var view2 = newchart.view()
+        //     view2.axis(false)
+        //     // view2.source(line)
+        //     view2.source(line,{
+        //         value: {
+        //             // nice: true,
+        //             minLimit: bins[0]-50,
+        //             maxLimit:bins[bins.length-1]+50,
+        //             // tickCount:10
+        //         },
+        //         count: {
+        //             // max: 350000,
+        //             tickCount:10
+        //         }
+        //     })
+        //     view2.line().position('value*count').style({
+        //         stroke: 'white',
+                
+        //         }).shape('smooth')
+        //     newchart.render()
+        // }
         
     }
 
@@ -799,30 +840,58 @@ class CornerstoneElement extends Component {
         // cornerstoneTools.setToolDisabledForElement(element, 'Bidirectional')
     }
 
-    lengthMeasure(){
-        console.log('测量')
+    startAnnos(){
+        this.setState({isbidirectionnal:true,toolState:'EllipticalRoi'})
         const element = document.querySelector('#origin-canvas')
         this.disableAllTools(element)
-        cornerstoneTools.addToolForElement(element, bidirectional)
-        cornerstoneTools.setToolActiveForElement(element, 'Bidirectional',{mouseButtonMask:1},['Mouse'])
+        cornerstoneTools.addToolForElement(element,ellipticalRoi)
+        cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
+    }
+
+    saveTest(){
+        let myJSONStingData = localStorage.getItem('ROI')
+        let allROIToolData = JSON.parse(myJSONStingData);
+        console.log('恢复数据')
+         const element = document.querySelector('#origin-canvas')
+         for (let toolROIType in allROIToolData) {
+            if (allROIToolData.hasOwnProperty(toolROIType)) {
+                for (let i = 0; i < allROIToolData[toolROIType].data.length; i++) {
+                    let toolROIData = allROIToolData[toolROIType].data[i];
+                    console.log('tool',toolROIType,toolROIData)
+                    // cornerstoneTools.addImageIdToolState(this.state.imageIds[5], toolROIType, toolROIData);//save在同一个imageId
+                    cornerstoneTools.addToolState(element,toolROIType, toolROIData)
+                }
+            }
+        }
+        cornerstone.updateImage(element);
+    }
+
+    lengthMeasure(box){
+        this.setState({isbidirectionnal:true,toolState:'Bidirectional'})
+        // console.log('测量')
+        // const element = document.querySelector('#origin-canvas')
+        // this.disableAllTools(element)
+        // cornerstoneTools.addToolForElement(element, bidirectional)
+        // cornerstoneTools.setToolActiveForElement(element, 'Bidirectional',{mouseButtonMask:1},['Mouse'])
         // cornerstoneTools.length.activate(element,4);
+
     }
 
     featureAnalysis(e){
         const idx = e.target.value
         console.log("特征分析")
         const boxes = this.state.boxes
-        if(boxes[idx].nodule_hist !== undefined){
-            var hist_data = boxes[idx].nodule_hist
-            console.log('hist_data',hist_data)
-            this.visualize(hist_data,idx,false)
-        }
+        // if(boxes[idx].nodule_hist !== undefined){
+        //     var hist_data = boxes[idx].nodule_hist
+        //     console.log('hist_data',hist_data)
+        //     this.visualize(hist_data,idx,false)
+        // }
 
-        if(boxes[idx].new_nodule_hist !== undefined){
-            var new_nodule_hist = boxes[idx].new_nodule_hist
-            console.log('hist_data',new_nodule_hist)
-            this.visualize(new_nodule_hist,idx, true)
-        }
+        // if(boxes[idx].new_nodule_hist !== undefined){
+        //     var new_nodule_hist = boxes[idx].new_nodule_hist
+        //     console.log('hist_data',new_nodule_hist)
+        //     this.visualize(new_nodule_hist,idx, true)
+        // }
         
         
         // if(hist_data!==undefined){
@@ -832,8 +901,8 @@ class CornerstoneElement extends Component {
         // var data = e.target.value
         // data = JSON.stringify(data)
         // data = JSON.parse(data)
-        
-        // this.visualize(hist)
+        var hist = boxes[idx].nodule_hist
+        this.visualize(hist,idx)
     }
 
     eraseLabel(){
@@ -841,6 +910,8 @@ class CornerstoneElement extends Component {
         this.disableAllTools(element)
         cornerstoneTools.addToolForElement(element,eraser)
         cornerstoneTools.setToolActiveForElement(element, 'Eraser',{mouseButtonMask:1},['Mouse'])
+        
+       
     }
 
     toHomepage(){
@@ -949,7 +1020,6 @@ class CornerstoneElement extends Component {
                 }}>审核此例</Button>
             )
         }
-
         // if(window.screen.width <=1280){
         //     canvas=(
         //         <div
@@ -1160,10 +1230,10 @@ class CornerstoneElement extends Component {
                             if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='center'>
-                                        <select id={malId} style={selectStyle} onChange={this.onSelectMal} disabled>
-                                            <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
-                                            <option value="1" selected={inside.malignancy === 1}>低危</option>
-                                            <option value="2" selected={inside.malignancy === 2}>高危</option>
+                                        <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal} disabled>
+                                            <option value="-1" disabled="disabled">选择性质</option>
+                                            <option value="1">低危</option>
+                                            <option value="2">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1176,10 +1246,10 @@ class CornerstoneElement extends Component {
                             else{
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='center'>
-                                        <select id={malId} style={selectStyle} onChange={this.onSelectMal}>
-                                            <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
-                                            <option value="1" selected={inside.malignancy === 1}>低危</option>
-                                            <option value="2" selected={inside.malignancy === 2}>高危</option>
+                                        <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                                            <option value="-1" disabled="disabled">选择性质</option>
+                                            <option value="1">低危</option>
+                                            <option value="2">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1189,10 +1259,10 @@ class CornerstoneElement extends Component {
                             if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='center'>
-                                        <select id={malId} style={lowRiskStyle} onChange={this.onSelectMal} disabled>
-                                            <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
-                                            <option value="1" selected={inside.malignancy === 1}>低危</option>
-                                            <option value="2" selected={inside.malignancy === 2}>高危</option>
+                                        <select id={malId} style={lowRiskStyle} value={inside.malignancy} onChange={this.onSelectMal} disabled>
+                                            <option value="-1" disabled="disabled">选择性质</option>
+                                            <option value="1">低危</option>
+                                            <option value="2">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1205,10 +1275,10 @@ class CornerstoneElement extends Component {
                             else{
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='center'>
-                                        <select id={malId} style={lowRiskStyle} onChange={this.onSelectMal}>
-                                            <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
-                                            <option value="1" selected={inside.malignancy === 1}>低危</option>
-                                            <option value="2" selected={inside.malignancy === 2}>高危</option>
+                                        <select id={malId} style={lowRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                                            <option value="-1" disabled="disabled">选择性质</option>
+                                            <option value="1">低危</option>
+                                            <option value="2">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1218,8 +1288,8 @@ class CornerstoneElement extends Component {
                             if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='left'>
-                                        <select id={malId} style={highRiskStyle} onChange={this.onSelectMal} disabled>
-                                            <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
+                                        <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal} disabled>
+                                            <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1" selected={inside.malignancy === 1}>低危</option>
                                             <option value="2" selected={inside.malignancy === 2}>高危</option>
                                         </select>
@@ -1234,8 +1304,8 @@ class CornerstoneElement extends Component {
                             else{
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='left'>
-                                        <select id={malId} style={highRiskStyle} onChange={this.onSelectMal}>
-                                            <option value="" disabled="disabled" selected={inside.malignancy === -1}>选择性质</option>
+                                        <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                                            <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1" selected={inside.malignancy === 1}>低危</option>
                                             <option value="2" selected={inside.malignancy === 2}>高危</option>
                                         </select>
@@ -1504,14 +1574,14 @@ class CornerstoneElement extends Component {
                                 {
                                     this.state.readonly?
                                     <Grid.Column width={2} textAlign='center'>
-                                        <select id={texId} style={selectStyle} disabled>
-                                        <option value="" disabled="disabled" selected>亚型未选</option>
+                                        <select id={texId} style={selectStyle} defaultValue="" disabled>
+                                        <option value="" disabled="disabled">亚型未选</option>
                                         </select>
                                     </Grid.Column>
                                     :
                                     <Grid.Column width={2} textAlign='center'>
-                                        <select id={texId} style={selectStyle} disabled>
-                                        <option value="" disabled="disabled" selected>选择亚型</option>
+                                        <select id={texId} style={selectStyle} defaultValue="" disabled>
+                                        <option value="" disabled="disabled">选择亚型</option>
                                         </select>
                                     </Grid.Column>
                                 }
@@ -1566,18 +1636,18 @@ class CornerstoneElement extends Component {
                                     </div>
                                     <div style={{width:'100%',marginTop:'2%',borderBottom:'1px solid white'}}>
                                         {this.state.readonly?
-                                            <select id={texId} style={selectStyle} onChange={this.onSelectTex} disabled>
-                                                <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
-                                                <option value="1" selected={inside.texture === 1}>磨玻璃</option>
-                                                <option value="2" selected={inside.texture === 2}>实性</option>
-                                                <option value="3" selected={inside.texture === 3}>半实性</option>
+                                            <select id={texId} style={selectStyle} value={inside.texture} onChange={this.onSelectTex} disabled>
+                                                <option value="-1" disabled="disabled">选择性质</option>
+                                                <option value="1">磨玻璃</option>
+                                                <option value="2">实性</option>
+                                                <option value="3">半实性</option>
                                             </select>
                                             :
-                                            <select id={texId} style={selectStyle} onChange={this.onSelectTex}>
-                                                <option value="" disabled="disabled" selected={inside.texture === -1}>选择性质</option>
-                                                <option value="1" selected={inside.texture === 1}>磨玻璃</option>
-                                                <option value="2" selected={inside.texture === 2}>实性</option>
-                                                <option value="3" selected={inside.texture === 3}>半实性</option>
+                                            <select id={texId} style={selectStyle} value={inside.texture} onChange={this.onSelectTex}>
+                                                <option value="-1" disabled="disabled">选择性质</option>
+                                                <option value="1">磨玻璃</option>
+                                                <option value="2">实性</option>
+                                                <option value="3">半实性</option>
                                             </select>
                                         }
                                         <div style={{fontSize:'medium',display:'inline-block',textAlign:'right',marginLeft:'15px'}}>表征</div>
@@ -1608,6 +1678,7 @@ class CornerstoneElement extends Component {
                                         // </div>
                                        
                                     }
+
                                      <Container>
                                         <div id={visualId}></div>
                                     </Container>
@@ -1712,7 +1783,7 @@ class CornerstoneElement extends Component {
                                                         </Form>
                                                     }
                                                     on='click'
-                                                    position='bottem center'
+                                                    position='bottom center'
                                                     id='defWindow'
                                                 />
                                                 </Grid.Column>                                                 
@@ -1773,9 +1844,9 @@ class CornerstoneElement extends Component {
                                                         <Button icon onClick={this.toHideInfo} className='funcbtn' id='showInfo' title='显示信息'><Icon id="cache-button" name='content' size='large'></Icon></Button>
                                                         <Button icon onClick={this.toHideInfo} className='funcbtn' id='hideInfo' title='隐藏信息'><Icon id="cache-button" name='delete calendar' size='large'></Icon></Button>
                                                     </Grid.Column>
-                                                    <Grid.Column>
+                                                    {/* <Grid.Column>
                                                         <Button icon onClick={this.lengthMeasure} className='funcbtn' title='测量'><Icon name='edit' size='large'></Icon></Button>
-                                                    </Grid.Column>
+                                                    </Grid.Column> */}
                                                     <Grid.Column>
                                                         <Button className='funcbtn'
                                                         onClick={() => {
@@ -1892,6 +1963,7 @@ class CornerstoneElement extends Component {
                                             this.element = input
                                         }}>
                                             <canvas className="cornerstone-canvas" id="canvas"/>
+                                            {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                                             <div id='dicomTag'>
                                                 <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
                                                 <div style={{position:'absolute',color:'white',top:'20px',left:'5px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
@@ -2098,7 +2170,7 @@ class CornerstoneElement extends Component {
                                                         </Form>
                                                     }
                                                     on='click'
-                                                    position='bottem center'
+                                                    position='bottom center'
                                                     id='defWindow'
                                                 />
                                                 </Grid.Column>
@@ -2159,9 +2231,9 @@ class CornerstoneElement extends Component {
                                                         <Button icon onClick={this.toHideInfo} className='funcbtn' id='showInfo' title='显示信息'><Icon id="cache-button" name='content' size='large'></Icon></Button>
                                                         <Button icon onClick={this.toHideInfo} className='funcbtn' id='hideInfo' title='隐藏信息'><Icon id="cache-button" name='delete calendar' size='large'></Icon></Button>
                                                     </Grid.Column>
-                                                    <Grid.Column>
+                                                    {/* <Grid.Column>
                                                         <Button icon onClick={this.lengthMeasure} className='funcbtn' title='测量'><Icon name='edit' size='large'></Icon></Button>
-                                                    </Grid.Column>
+                                                    </Grid.Column> */}
                                                     <Grid.Column>
                                                         <Button
                                                         onClick={() => {
@@ -2170,6 +2242,25 @@ class CornerstoneElement extends Component {
                                                         icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
                                                     </Grid.Column>
                                                 </Button.Group>
+                                                {/* <Grid.Column>
+                                                    <Dropdown
+                                                        // icon='filter'
+                                                        // floating
+                                                        // labeled
+                                                        button
+                                                        trigger={
+                                                            <Button icon><Icon name='filter'></Icon></Button>
+                                                        }
+                                                        className='toolsbtn'>
+                                                        <Dropdown.Menu>
+                                                        <Dropdown.Item icon='eraser' onClick={this.eraseLabel} title='清除测量'></Dropdown.Item>
+                                                        <Dropdown.Item icon='filter'></Dropdown.Item>
+                                                        <Dropdown.Item icon='edit' onClick={this.startAnnos} title='标注'></Dropdown.Item>
+                                                        <Dropdown.Item icon='save' onClick={this.saveTest} title='标注'></Dropdown.Item>
+                                                        <Dropdown.Item></Dropdown.Item>
+                                                        </Dropdown.Menu>
+                                                    </Dropdown>
+                                                </Grid.Column> */}
                                             </Grid.Row>
                                         </Grid>    
                                     </Grid.Column>
@@ -2257,6 +2348,7 @@ class CornerstoneElement extends Component {
                                                 this.element = input
                                             }}>
                                                 <canvas className="cornerstone-canvas" id="canvas"/>
+                                                {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                                                 <div id='dicomTag'>
                                                     <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
                                                     <div style={{position:'absolute',color:'white',top:'20px',left:'5px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
@@ -2394,6 +2486,7 @@ class CornerstoneElement extends Component {
                             this.element = input
                         }}>
                             <canvas className="cornerstone-canvas" id="canvas"/>
+                            {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                             <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
                             <div style={{position:'absolute',color:'white',top:'20px',left:'5px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
                             <div style={{position:'absolute',color:'white',top:'35px',left:'5px'}}>{dicomTag.string('x00100020')}</div>
@@ -2553,34 +2646,59 @@ class CornerstoneElement extends Component {
                 for(var j=~~y1;j<=y2;j++){
                     pixelArray.push(pixeldata[512*j+i] - 1024)
                 }
-
             }
+            var asc = function(a,b){return a-b}
             console.log('array',pixelArray)
-
+            const data = pixelArray
+            data.sort(asc)
+            console.log('data',data)
+            var dis = (data[data.length-1] - data[0]) / 30
+            var bins = new Array(31).fill(0)
+            var ns = new Array(30).fill(0)
+            bins[0] = data[0]
+            for(var i=1;i<31;i++){
+                if(i === 30){
+                    bins[30] = data[data.length-1]
+                }
+                else{
+                    bins[i] = bins[i-1] + dis
+                }
+                for(var j=0;j<data.length;j++){
+                    if(data[j]>=bins[i-1] && data[j] <=bins[i]){
+                        ns[i-1]+=1
+                    }
+                }
+            }
+            console.log('bins',bins,ns)
+            var obj = {}
+            obj.bins = bins
+            obj.n = ns
+            var nodule_hist = []
+            nodule_hist.push(obj)
+            const newBox = {
+                // "calcification": [], "lobulation": [],
+                "malignancy": -1,
+                "nodule_no": nodule_idx,
+                "patho": "",
+                "place": "",
+                "probability": 1,
+                "slice_idx": slice_idx,
+                "nodule_hist":obj,
+                // "spiculation": [], "texture": [],
+                "x1": x1,
+                "x2": x2,
+                "y1": y1,
+                "y2": y2,
+                "highlight": false,
+                "diameter":0.00
+            }
+            let boxes = this.state.boxes
+            console.log("newBox", newBox)
+            boxes.push(newBox)
+            this.setState({boxes: boxes})
+            console.log("Boxes", this.state.boxes)
+            this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)    
         })
-        const newBox = {
-            // "calcification": [], "lobulation": [],
-            "malignancy": -1,
-            "nodule_no": nodule_idx,
-            "patho": "",
-            "place": "",
-            "probability": 1,
-            "slice_idx": slice_idx,
-            "new_nodule_hist":pixelArray,
-            // "spiculation": [], "texture": [],
-            "x1": x1,
-            "x2": x2,
-            "y1": y1,
-            "y2": y2,
-            "highlight": false,
-            "diameter":0.00
-        }
-        let boxes = this.state.boxes
-        console.log("newBox", newBox)
-        boxes.push(newBox)
-        this.setState({boxes: boxes})
-        console.log("Boxes", this.state.boxes)
-        this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
     onMouseMove(event) {
@@ -2756,7 +2874,10 @@ class CornerstoneElement extends Component {
 
     onMouseUp(event) {
         console.log('up', this.state.clickedArea)
-        if (this.state.clickedArea.box === -1) {
+        const element = document.querySelector('#origin-canvas')
+        const currentToolType = this.state.toolState
+        let measureList = this.state.measureList
+        if (this.state.clickedArea.box === -1 && this.state.isbidirectionnal === false) {
             const x1 = this.state.tmpBox.x1
             const y1 = this.state.tmpBox.y1
             const x2 = this.state.tmpBox.x2
@@ -2771,17 +2892,55 @@ class CornerstoneElement extends Component {
             }
             this.createBox(x1, x2, y1, y2, this.state.currentIdx, (1+newNodule_no).toString())
         }
+        
+        // if(this.state.toolState !== ''){
+            
+        //     console.log('origin',measureList,measureList.length === 0)
+        //     if(measureList.length === 0 ){
+        //         measureList['EllipticalRoi'] = []
+        //         measureList['Bidirectional'] = []
+        //         // 'EllipticalRoi','Bidirectional'
+        //     }
+        //     console.log('measure',measureList,measureList.length === 0)
+        //     for (let i = 0; i < toolROITypes.length; i++) {
+        //         let toolROIType = toolROITypes[i];
+        //         // let toolROIData = globalImageIdSpecificToolStateManager.getImageIdToolState(this.state.imageIds[this.state.currentIdx], toolROIType);
+        //         // console.log('tool',toolROIData)++
+        //         let toolROIData = cornerstoneTools.getToolState(element,toolROIType)
+        //         // console.log('toolROIData',toolROIData)
+        //         // if(toolROIType === currentToolType){
+        //         //     toolROIData.data[toolROIData.data.length-1]['imageId'] = this.state.currentIdx
+        //         // }
+        //         if (toolROIData !== undefined) {
+        //             allROIToolData[toolROITypes[i]] = toolROIData;
+        //         }
+        //     }
+        //     console.log('toolROIData',allROIToolData)
+        //     let toolROIData = cornerstoneTools.getToolState(element,currentToolType)
+        //     toolROIData.data[toolROIData.data.length-1]['imageId'] = this.state.currentIdx
+        //     console.log(toolROIData)
+        //     const index = measureList[currentToolType].length
+        //     console.log('index',index)
+        //     measureList[currentToolType].push(toolROIData.data[toolROIData.data.length-1])
+        //     // let toolROIDataString = JSON.stringify(allROIToolData);
+        //     // console.log('ROIData',allROIToolData)
+        //     // localStorage.setItem('ROI',toolROIDataString)
+        //     // this.setState({measureList:measureList})
+        //     console.log('list',this.state.measureList)
+        // }
         this.setState({
             clicked: false,
             clickedArea: {},
             tmpBox: {},
             tmpCoord:{},
+            // measureList:measureList
             // random: Math.random()
         })
         document
             .getElementById("canvas")
             .style
             .cursor = "auto"
+        
     }
 
     onRightClick(event) {
@@ -3080,14 +3239,19 @@ class CornerstoneElement extends Component {
         const viewport = cornerstone.getViewport(element)
         if (this.state.showNodules === true && this.state.caseId === window.location.pathname.split('/')[2]) {
             for (let i = 0; i < this.state.boxes.length; i++) {
-                if (this.state.boxes[i].slice_idx == this.state.currentIdx && this.state.immersive == false) 
+                // if (this.state.boxes[i].slice_idx == this.state.currentIdx && this.state.immersive == false) 
+                if (this.state.boxes[i].slice_idx == this.state.currentIdx) 
                     this.drawBoxes(this.state.boxes[i])
             }
 
         }
 
-        if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.immersive == false) {
+        // if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.immersive == false) {
+        if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.isbidirectionnal === false) {
             this.drawBoxes(this.state.tmpBox)
+        }
+        else if(this.state.clicked && this.state.clickedArea.box == -1 && this.state.isbidirectionnal === true){
+            this.lengthMeasure(this.state.tmpBox)
         }
 
         this.setState({viewport})
@@ -3138,8 +3302,9 @@ class CornerstoneElement extends Component {
                 }
                 
                 cornerstone.displayImage(element, image)
-
-              
+                // var manager = globalImageIdSpecificToolStateManager.getImageIdToolState(image,'Bidirectional')
+                // console.log('manager',manager)
+               
                 // cornerstoneTools
                 //     .mouseInput
                 //     .enable(element)
@@ -3209,18 +3374,18 @@ class CornerstoneElement extends Component {
                         //     .zoomTouchPinch
                         //     .activate(element)
                 }
-                else{
-                    // console.log(image.getPixelData())
-                    cornerstoneTools.addToolForElement(element, bidirectional)
-                    cornerstoneTools.setToolActiveForElement(
-                        element,
-                        'Bidirectional',
-                        {
-                            mouseButtonMask:1,
-                        },
-                        ['Mouse']
-                    )
-                }
+                // else{
+                //     // console.log(image.getPixelData())
+                //     cornerstoneTools.addToolForElement(element, bidirectional)
+                //     cornerstoneTools.setToolActiveForElement(
+                //         element,
+                //         'Bidirectional',
+                //         {
+                //             mouseButtonMask:1,
+                //         },
+                //         ['Mouse']
+                //     )
+                // }
                 }
                 
 
@@ -3266,7 +3431,6 @@ class CornerstoneElement extends Component {
         // this.visualize()
         document.getElementById('header').style.display = 'none'
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
-
         const token = localStorage.getItem('token')
         const headers = {
             'Authorization': 'Bearer '.concat(token)
@@ -3389,7 +3553,12 @@ class CornerstoneElement extends Component {
         }
         if(prevState.listsActiveIndex!==-1 && prevState.listsActiveIndex !== this.state.listsActiveIndex){
             const visId = 'visual-' + prevState.listsActiveIndex
-            document.getElementById(visId).innerHTML=''
+            if(document.getElementById(visId) !== undefined){
+                document.getElementById(visId).innerHTML=''
+            }
+            else{
+                console.log('visId is not exist!')
+            }
             console.log('listsActiveIndex',prevState.listsActiveIndex,this.state.listsActiveIndex)
             // document.
         }
