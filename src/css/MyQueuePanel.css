@@ -1,8 +1,25 @@
 .select-component{
+    background-color: lightgray;
     width: 400px;
     height: 500px;
     margin: 0 auto;
+}
 
+.select-component option{
+    background: lightgray;
+    color: black;
+}
+
+#feaDropdown{
+    background:transparent !important;
+    /* border:1px solid whitesmoke !important; */
+    color:#66cfec !important
+  }
+#feaDropdown> div > .item{
+    /* color: #2af270; */
+    color:#66cfec;
+    background: rgba(1, 23, 46, 0.997);
+    border: 0.1px unset;
 }
 
 #loading{
@@ -23,7 +40,7 @@
     background: #000;
     width: 100%;
     height: 100%;
-    opacity: 0.9;
+    opacity: 0.95;
 }
 .queue-name{
     position: relative;
@@ -45,8 +62,21 @@
     text-align: center;
 }
 
-#queueTable{
+/* #queueTable{
     width: 60%;
+} */
+
+table#queueTable {
+    /* width: 520px; */
+    width: 60%;
+    background: #021c38;
+    color: white;
+  }
+
+table#patientTable{
+    width: 60%;
+    background: #021c38;
+    color: white;
 }
 
 #selectGrid{
