@@ -254,7 +254,8 @@ class MiniReport extends Component{
                     place='未知位置'
                 }
                 else{
-                    if(this.state.boxes[i]['segment']===undefined || this.state.boxes[i]['segment']===""){
+                    if(this.state.boxes[i]['segment']===undefined || this.state.boxes[i]['segment']===""|| 
+                    this.state.boxes[i]['segment']==='None'){
                         place=places[this.state.boxes[i]['place']]
                     }
                     else{

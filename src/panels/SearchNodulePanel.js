@@ -734,9 +734,9 @@ export class SearchNodulePanel extends Component {
                                             <Grid.Row>
                                                 <Grid.Column width={6} className="gridLabel inputContainer">
                                                     <a style={{color:'#66cfec'}}>自定义：</a>
-                                                    <Input className="searchBox" placeholder="cm" onChange={this.handleInputChange} name='left'/>
+                                                    <Input id="searchBoxleft" placeholder="cm" onChange={this.handleInputChange} name='left'/>
                                                     <em>&nbsp;&nbsp;-&nbsp;&nbsp;</em>
-                                                    <Input className="searchBox" placeholder="cm" onChange={this.handleInputChange} name='right'/>
+                                                    <Input id="searchBoxright" placeholder="cm" onChange={this.handleInputChange} name='right'/>
                                                     <a style={{marginLeft:15,color:'#66cfec',fontSize:20}}>cm</a>
                                                     <em>&nbsp;&nbsp;&nbsp;&nbsp;</em>
                                                     <Button 
