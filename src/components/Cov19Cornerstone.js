@@ -778,10 +778,10 @@ class CornerstoneElement extends Component {
                     {/* <div class='corner-contnt'> */}
                         <Grid celled className='corner-contnt'>
                             <Grid.Row>
-                                <Grid.Column width={2}>
+                                <Grid.Column width={1}>
 
                                 </Grid.Column>
-                                <Grid.Column width={8} textAlign='center'>
+                                <Grid.Column width={9} textAlign='center'>
                                 <div className='canvas-style'>
 
                                         <div
