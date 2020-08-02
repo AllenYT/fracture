@@ -142,7 +142,7 @@ class SubList extends Component {
             otherKeyword: this.props.otherKeyword
         }
 
-        axios.post(recordConfig.getSubList, qs.stringify(params), {headers}).then((response) => {
+        axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(params), {headers}).then((response) => {
             const data = response.data
             if (data.status !== 'okay') {
                 console.log("Not okay")

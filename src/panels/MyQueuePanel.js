@@ -678,7 +678,7 @@ class MyQueuePanel extends Component {
                                         <Grid>
                                         <Grid.Row>
                                             <Grid.Column width={2} style={{display:'flex'}}>
-                                                <Header as='h3' >筛选条件:</Header>{' '}
+                                                <Header as='h3'>筛选条件:</Header>{' '}
                                             </Grid.Column>
                                             {/* <Grid.Column width={7}><Icon name='search' onClick={this.getpidByFeature}></Icon></Grid.Column> */}
                                             <Grid.Column width={13}>
@@ -703,7 +703,7 @@ class MyQueuePanel extends Component {
                                             {/* <Grid.Column width={14}> */}
                                                 <Grid inverted divided>
                                                     <Grid.Row columns={3}>
-                                                        <Grid.Column width={2}>
+                                                        <Grid.Column width={2} style={{color:'#2af270'}}>
                                                             <strong>风险程度</strong>
                                                         </Grid.Column>
                                                         <Grid.Column width={2}>
@@ -714,7 +714,7 @@ class MyQueuePanel extends Component {
                                                         </Grid.Column>
                                                     </Grid.Row>
                                                     <Grid.Row>
-                                                        <Grid.Column width={2}>
+                                                        <Grid.Column width={2} style={{color:'#2af270'}}>
                                                             <strong>直径</strong>
                                                         </Grid.Column>
                                                         <Grid.Column width={14}>
@@ -768,7 +768,7 @@ class MyQueuePanel extends Component {
                                                         
                                                     </Grid.Row>
                                                     <Grid.Row>
-                                                        <Grid.Column width={2}>
+                                                        <Grid.Column width={2} style={{color:'#2af270'}}>
                                                             <strong>影像学特征</strong>
                                                         </Grid.Column>
                                                         <Grid.Column width={13}>

@@ -167,7 +167,8 @@ class SeriesIdList extends Component {
                                 <Checkbox id={idName} onChange={this.storeCaseId} value={value} checked={this.validValue(value)} style={CheckboxDis}></Checkbox>
                             </div>
                             <p className='sid'>{value.split('#')[1]}</p>
-                            <Popup trigger={<Button size='mini' inverted color='green' data-id={value.split('#')[0]} icon='chevron right' onClick={this.displayStudy} />}
+                            <Popup trigger={<Button size='mini' inverted color='green' data-id={value.split('#')[0]} icon='chevron right' onClick={this.displayStudy} 
+                            floated='right'/>}
                             context={this.state.contextRef}>
                                 <Popup.Content>
                                     <CurrentDraftsDisplay caseId={value.split('#')[0]} />

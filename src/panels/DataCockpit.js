@@ -450,6 +450,9 @@ class DataCockpit extends Component {
         console.log("ageD",this.isEmpty(ageD))
         // if(ageD !== undefined && ageD !== null){
         if(!this.isEmpty(ageD)){
+        // console.log("ageD",ageD && ageD.length !== 0)
+        // // if(ageD !== undefined && ageD !== null){
+        // if(ageD && ageD.length !== 0){
           const ageTotalData1 = JSON.parse(ageD)
           const ageTotalchart = new G2.Chart({
               container: 'ageTotal',
@@ -546,6 +549,7 @@ class DataCockpit extends Component {
         const DiaD = this.state.totalDiameterDist
         // if(DiaD !== undefined){
           if(!this.isEmpty(DiaD)){
+          // if(DiaD && DiaD.length !== 0){
           const diaTotalData1 = JSON.parse(DiaD)
           const diaTotalchart = new G2.Chart({
             container: 'diaTotal',
@@ -634,6 +638,7 @@ class DataCockpit extends Component {
         // if(benmaliD !==undefined){
           console.log("benmaliD",benmaliD)
           if(!this.isEmpty(benmaliD)){
+          // if(benmaliD && benmaliD.length !== 0){
           const benmaliData1 = JSON.parse(benmaliD)
           const dv4 = new DataView();
           dv4.source(benmaliData1).transform({
@@ -692,6 +697,7 @@ class DataCockpit extends Component {
     const characterD = this.state.characterDiameterDist
     // if(characterD !== undefined){
       if(!this.isEmpty(characterD)){
+      // if(characterD && characterD.length !== 0){
       const diaDistributionData1 = JSON.parse(characterD)
       const diaSublobechart = new G2.Chart({
         container: 'diaSublobe',
@@ -1354,6 +1360,7 @@ class DataCockpit extends Component {
   const nonGGOD = this.state.nonTextureDiameterDist
   // if(nonGGOD !== undefined){
     if(!this.isEmpty(nonGGOD)){
+    // if(nonGGOD && nonGGOD.length !== 0){
     const diaNonGGOData1 = JSON.parse(nonGGOD)
     const diaNonGGOchart = new G2.Chart({
       container: 'diaNonGGO',
@@ -1449,6 +1456,7 @@ class DataCockpit extends Component {
   const spiMaliD = this.state.spiculationMalDist
   // if(spiMaliD !== undefined){
     if(!this.isEmpty(spiMaliD)){
+    // if(spiMaliD && spiMaliD.length !== 0){
     const maliGlitchData1 = JSON.parse(spiMaliD)
     const dv1 = new DataView();
     dv1.source(maliGlitchData1).transform({
@@ -1509,6 +1517,7 @@ class DataCockpit extends Component {
   const lobeMaliD = this.state.lobulationMalDist
   // if(lobeMaliD !== undefined)
   if(!this.isEmpty(lobeMaliD)){
+  // if(lobeMaliD && lobeMaliD.length !== 0){
     const maliSublobeData1 = JSON.parse(lobeMaliD)
     const dv7 = new DataView();
     dv7.source(maliSublobeData1).transform({
@@ -1569,6 +1578,7 @@ class DataCockpit extends Component {
   const maliCalD = this.state.calcificationMalDist
   // if(maliCalD !== undefined){
     if(!this.isEmpty(maliCalD)){
+    // if(maliCalD && maliCalD.length !== 0){
     const maliCalcifyData1 = JSON.parse(maliCalD)
     const dv3 = new DataView();
     dv3.source(maliCalcifyData1).transform({
@@ -1630,6 +1640,7 @@ class DataCockpit extends Component {
   const textMaliD = this.state.textureMalDist
   // if(textMaliD !== undefined){
     if(!this.isEmpty(textMaliD)){
+    // if(textMaliD && textMaliD.length !== 0){
     const maliGGOData1 = JSON.parse(textMaliD)
     const dv5 = new DataView();
     dv5.source(maliGGOData1).transform({
@@ -1689,6 +1700,7 @@ class DataCockpit extends Component {
   const pinMalD = this.state.pleuralDist
   // if(pinMalD !== undefined){
     if(!this.isEmpty(pinMalD)){
+    // if(pinMalD && pinMalD.length !== 0){
     const pinMalData = JSON.parse(pinMalD)
     const dvPinMal = new DataView();
     dvPinMal.source(pinMalData).transform({
@@ -1748,6 +1760,7 @@ class DataCockpit extends Component {
   const cavMalD = this.state.cavityDist
   // if(cavMalD !== undefined){
     if(!this.isEmpty(cavMalD)){
+    // if(cavMalD && cavMalD.length !== 0){
     const cavMalData = JSON.parse(cavMalD)
     const dvCavMal = new DataView();
     dvCavMal.source(cavMalData).transform({
@@ -1807,6 +1820,7 @@ class DataCockpit extends Component {
   const vssMalD = this.state.vcsDist
   // if(vssMalD !== undefined){
     if(!this.isEmpty(vssMalD)){
+    // if(vssMalD && vssMalD.length !== 0){
     const vssMalData = JSON.parse(vssMalD)
     const dvVssMal = new DataView();
     dvVssMal.source(vssMalData).transform({

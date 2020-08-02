@@ -19,6 +19,7 @@
     "record": {
         "getMainList": "http://data.deepln.deepx.machineilab.org/record/getMainListForPage",
         "getSubList": "http://data.deepln.deepx.machineilab.org/record/getSubListForMainItem",
+        "getSubListForMainItem_front": "http://data.deepln.deepx.machineilab.org/record/getSubListForMainItem_front",
         "getPatientListForCond": "http://data.deepln.deepx.machineilab.org/record/getPatientListForCond",
         "getTotalPages": "http://data.deepln.deepx.machineilab.org/record/getTotalPages",
         "getPatientInfo": "http://data.deepln.deepx.machineilab.org/record/getPatientInfo",
