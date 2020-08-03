@@ -71,13 +71,19 @@
         "spiculationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/spiculationMalDist",
         "calcificationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/calcificationMalDist",
         "lobulationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/lobulationMalDist",
-        "textureMalDist":"http://data.deepln.deepx.machineilab.org/nodule/textureMalDist"
+        "textureMalDist":"http://data.deepln.deepx.machineilab.org/nodule/textureMalDist",
+        "pinMalDist":"http://data.deepln.deepx.machineilab.org/nodule/pinMalDist",
+        "cavMalDist":"http://data.deepln.deepx.machineilab.org/nodule/cavMalDist",
+        "vssMalDist":"http://data.deepln.deepx.machineilab.org/nodule/vssMalDist",
+        "beaMalDist":"http://data.deepln.deepx.machineilab.org/nodule/beaMalDist",
+        "broMalDist":"http://data.deepln.deepx.machineilab.org/nodule/broMalDist"
     },
 
     "subset":{
         "createQueue":"http://data.deepln.deepx.machineilab.org/subset/create",
         "getQueue":"http://data.deepln.deepx.machineilab.org/subset/get",
         "getQueuePatientIds":"http://data.deepln.deepx.machineilab.org/subset/getPatienIds",
-        "deleteQueue":"http://data.deepln.deepx.machineilab.org/subset/delete"
+        "deleteQueue":"http://data.deepln.deepx.machineilab.org/subset/delete",
+        "updateQueue":"http://data.deepln.deepx.machineilab.org/subset/update"
     }
 }

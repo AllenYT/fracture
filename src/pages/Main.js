@@ -84,6 +84,7 @@ class Main extends Component {
 
     componentWillMount() {
         const token = localStorage.getItem('token');
+        console.log('token',token)
         if (token !== null) {
             console.log('token:', token);
             const headers = {

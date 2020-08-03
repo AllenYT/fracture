@@ -49,12 +49,15 @@ class SeriesIdList extends Component {
         .then(res => {
             console.log('result from server', res.data)
             console.log('params',params)
+            // window.open('/case/' + params.caseId + '/' + res.data,'target','')
+            // this.props.history.push('/case/' + params.caseId + '/' + res.data)
             const oa = document.createElement('a');
             oa.href = '/case/' + params.caseId + '/' + res.data;
             oa.setAttribute('target', '_blank');
             oa.setAttribute('rel',"nofollow noreferrer")
             document.body.appendChild(oa);
             oa.click();
+            
             // console.log('data',res.data)
             // this.nextPath('/case/' + params.caseId + '/' + res.data)
             // window.open('/case/' + params.caseId + '/' + res.data, '_blank')
