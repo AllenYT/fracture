@@ -3429,6 +3429,12 @@ class CornerstoneElement extends Component {
     componentDidMount() {
         // this.getNoduleIfos()
         // this.visualize()
+        if (localStorage.getItem('token')==null) {
+            sessionStorage.setItem('location',window.location.pathname.split('/')[0]+
+                '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/'+
+                window.location.pathname.split('/')[3])
+                window.location.href = '/'
+        }
         document.getElementById('header').style.display = 'none'
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
         const token = localStorage.getItem('token')
