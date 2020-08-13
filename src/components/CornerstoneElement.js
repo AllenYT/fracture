@@ -3519,7 +3519,7 @@ class CornerstoneElement extends Component {
             let point=document.getElementById('sign'+i)
             let leftMargin=parseFloat($('#slice-slider').width())/2+parseFloat($('input[type=range]').css('left').split('px')[0])-8+'px'
             // console.log('leftmargin',parseFloat($('#slice-slider').width())/2,parseFloat($('input[type=range]').css('left')))
-            point.style.top=10+(this.state.imageIds.length-this.state.boxes[i].slice_idx)*0.05+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
+            point.style.top=9+(this.state.imageIds.length-this.state.boxes[i].slice_idx)*0.05+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
             // point.style.left='95.6%'
             point.style.left=leftMargin
             // console.log('slice',parseFloat($('#slice-slider') )
