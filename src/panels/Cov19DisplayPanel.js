@@ -32,23 +32,23 @@ class Cov19DisplayPanel extends Component{
     
         // axios.post(dataConfig.getDataListForCov19CaseId, qs.stringify(dataParams)).then(dataResponse => {
         //   console.log('response',dataResponse)
-        //     // Promise.all(dataResponse.data.map(doc => {
-        //     //   return axios.get(doc)
-        //     // }  
-        //     // )).then(jpgResponses=>{
-        //     //   console.log('jpgResponses',jpgResponses)
-        //     //   let list=[]
-        //     //   for(let i in jpgResponses){
-        //     //     list.push(jpgResponses[i].data)
-        //     //   }
-        //     //   // console.log('list',list)
-        //     //   const stack = {
-        //     //     imageIds: dataResponse.data,
-        //     //     caseId: this.state.caseId
-        //     //   }
-        //     //   this.setState({stack: stack, show: true})
-        //     // }
-        //     // )
+            // Promise.all(dataResponse.data.map(doc => {
+            //   return axios.get(doc)
+            // }  
+            // )).then(jpgResponses=>{
+            //   console.log('jpgResponses',jpgResponses)
+            //   let list=[]
+            //   for(let i in jpgResponses){
+            //     list.push(jpgResponses[i].data)
+            //   }
+            //   // console.log('list',list)
+            //   const stack = {
+            //     imageIds: dataResponse.data,
+            //     caseId: this.state.caseId
+            //   }
+            //   this.setState({stack: stack, show: true})
+            // }
+            // )
         //     const stack = {
         //       imageIds: dataResponse.data,
         //       caseId: this.state.caseId

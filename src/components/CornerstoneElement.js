@@ -143,6 +143,16 @@ const highRiskStyle = {
     'apperance': 'none',
     'color':'#CC3300'
 }
+const middleRiskStyle = {
+    'background': 'none',
+    'border': 'none',
+    // 'fontFamily': 'SimHei',
+    'WebkitAppearance':'none',
+    'fontSize':'medium',
+    'MozAppearance':'none',
+    'apperance': 'none',
+    'color':'#fcaf17'
+}
 
 const toolstrigger = (
     <span>
@@ -703,6 +713,7 @@ class CornerstoneElement extends Component {
                 boxes[i].malignancy = parseInt(value)
             }
         }
+        console.log('boxes',boxes,noduleId)
         this.setState({
             boxes: boxes,
             // random: Math.random()
@@ -1174,6 +1185,9 @@ class CornerstoneElement extends Component {
                     .state
                     .boxes
                     .map((inside, idx) => {
+                        if(inside.malProb>=0.3 && inside.malProb<=0.8 && this.state.readonly){
+                            inside.malignancy=3
+                        }
                         // console.log('inside',inside)
                         let representArray=[]
                         let dropdownText=''
@@ -1234,6 +1248,7 @@ class CornerstoneElement extends Component {
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
                                             <option value="2">高危</option>
+                                            <option value="3">中危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1255,20 +1270,21 @@ class CornerstoneElement extends Component {
                                 )
                             }
                         }
-                        else if(inside.malignancy === 1){
+                        else if(inside.malignancy===1){
                             if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='center'>
-                                        <select id={malId} style={lowRiskStyle} value={inside.malignancy} onChange={this.onSelectMal} disabled>
+                                        <select id={malId} style={lowRiskStyle} value={"1"} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
                                             <option value="2">高危</option>
+                                            <option value="3">中危</option>
                                         </select>
                                     </Grid.Column>
                                 )
                                 probContnt=(
                                     <Grid.Column width={4} textAlign='center'>
-                                        <div style={{color:'green'}}>(概率:{inside.malProb<=0.5?Math.floor(inside.malProb*10000)/100:Math.floor((1-inside.malProb)*10000)/100}%)</div>
+                                        <div style={{color:'green'}}>(概率:{Math.floor(inside.malProb*10000)/100}%)</div>
                                     </Grid.Column>
                                 )
                             }
@@ -1284,20 +1300,21 @@ class CornerstoneElement extends Component {
                                 )
                             }
                         }
-                        else{
+                        else if(inside.malignancy===2){
                             if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='left'>
-                                        <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal} disabled>
+                                        <select id={malId} style={highRiskStyle} value={"2"} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
-                                            <option value="1" selected={inside.malignancy === 1}>低危</option>
-                                            <option value="2" selected={inside.malignancy === 2}>高危</option>
+                                            <option value="1">低危</option>
+                                            <option value="2">高危</option>
+                                            <option value="3">中危</option>
                                         </select>
                                     </Grid.Column>
                                 )
                                 probContnt=(
                                     <Grid.Column width={4} textAlign='center'>
-                                        <div style={{color:'#CC3300'}}>(概率:{inside.malProb>=0.5?Math.floor(inside.malProb*10000)/100:Math.floor((1-inside.malProb)*10000)/100}%)</div>
+                                        <div style={{color:'#CC3300'}}>(概率:{Math.floor(inside.malProb*10000)/100}%)</div>
                                     </Grid.Column>
                                 )
                             }
@@ -1306,8 +1323,38 @@ class CornerstoneElement extends Component {
                                     <Grid.Column width={2} textAlign='left'>
                                         <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
-                                            <option value="1" selected={inside.malignancy === 1}>低危</option>
-                                            <option value="2" selected={inside.malignancy === 2}>高危</option>
+                                            <option value="1" >低危</option>
+                                            <option value="2" >高危</option>
+                                        </select>
+                                    </Grid.Column>
+                                )
+                            }
+                        }
+                        else if(inside.malignancy===3){
+                            if(this.state.readonly){
+                                malignancyContnt = (
+                                    <Grid.Column width={2} textAlign='left'>
+                                        <select id={malId} style={middleRiskStyle} value={"3"} onChange={this.onSelectMal} disabled>
+                                            <option value="-1" disabled="disabled">选择性质</option>
+                                            <option value="1">低危</option>
+                                            <option value="2">高危</option>
+                                            <option value="3">中危</option>
+                                        </select>
+                                    </Grid.Column>
+                                )
+                                probContnt=(
+                                    <Grid.Column width={4} textAlign='center'>
+                                        <div style={{color:'#fcaf17'}}>(概率:{Math.floor(inside.malProb*10000)/100}%)</div>
+                                    </Grid.Column>
+                                )
+                            }
+                            else{
+                                malignancyContnt = (
+                                    <Grid.Column width={2} textAlign='left'>
+                                        <select id={malId} style={middleRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                                            <option value="-1" disabled="disabled">选择性质</option>
+                                            <option value="1" >低危</option>
+                                            <option value="2" >高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -3519,7 +3566,7 @@ class CornerstoneElement extends Component {
             let point=document.getElementById('sign'+i)
             let leftMargin=parseFloat($('#slice-slider').width())/2+parseFloat($('input[type=range]').css('left').split('px')[0])-8+'px'
             // console.log('leftmargin',parseFloat($('#slice-slider').width())/2,parseFloat($('input[type=range]').css('left')))
-            point.style.top=9+(this.state.imageIds.length-this.state.boxes[i].slice_idx)*0.05+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
+            point.style.top=(15-this.state.imageIds.length/20)+(this.state.imageIds.length-this.state.boxes[i].slice_idx)*0.07+(this.state.boxes[i].slice_idx)*document.getElementById("canvas").style.width.split('px')[0]/this.state.imageIds.length+'px'
             // point.style.left='95.6%'
             point.style.left=leftMargin
             // console.log('slice',parseFloat($('#slice-slider') )
