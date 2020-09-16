@@ -180,8 +180,8 @@ class CornerstoneElement extends Component {
             showNodules: true,
             immersive: false,
             readonly: props.stack.readonly,
-            activeIndex: -1,
-            listsActiveIndex:-1,
+            activeIndex: -1,//右上方results活动item
+            listsActiveIndex:-1,//右方list活动item
             modelResults: '<p style="color:white;">暂无结果</p>',
             annoResults: '<p style="color:white;">暂无结果</p>',
             reviewResults: '<p style="color:white;">暂无结果</p>',
@@ -198,6 +198,7 @@ class CornerstoneElement extends Component {
             isbidirectionnal:false,
             measureList:[],
             toolState:'',
+            doubleClick:false,
             // list:[],
             // malignancy: -1,
             // calcification: -1,
@@ -571,7 +572,9 @@ class CornerstoneElement extends Component {
     // }
     handleListClick = (currentIdx,index,e) => {//点击list-item
         console.log('id',e.target.id)
-        
+        let style = $("<style>", {type:"text/css"}).appendTo("head");
+        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ 
+        (currentIdx -1)*100/this.state.imageIds.length+'%)}');
         // const {index} = titleProps
         // console.log('index',index)
         const id=e.target.id
@@ -584,7 +587,9 @@ class CornerstoneElement extends Component {
             this.setState({
                 listsActiveIndex: newIndex,
                 currentIdx: currentIdx-1,
-                autoRefresh: true})
+                autoRefresh: true,
+                doubleClick:false
+            })
         }
         
     }
@@ -912,8 +917,10 @@ class CornerstoneElement extends Component {
         // var data = e.target.value
         // data = JSON.stringify(data)
         // data = JSON.parse(data)
-        var hist = boxes[idx].nodule_hist
-        this.visualize(hist,idx)
+        if (boxes[idx]!==undefined){
+            var hist = boxes[idx].nodule_hist
+            this.visualize(hist,idx)
+        }
     }
 
     eraseLabel(){
@@ -975,7 +982,8 @@ class CornerstoneElement extends Component {
         
         const panes = [
             { menuItem: '影像所见', render: () => 
-                <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
+                <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} 
+                imageIds={this.state.imageIds} boxes={this.state.boxes} activeItem={this.state.doubleClick===true?'all':this.state.listsActiveIndex}/></Tab.Pane> },
             { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
           ]
         // sessionStorage.clear()
@@ -2994,6 +3002,10 @@ class CornerstoneElement extends Component {
         event.preventDefault()
     }
 
+    doubleClickListItems(e){
+        this.setState({doubleClick:true})
+    }
+
     reset() {//重置
         let viewport = cornerstone.getViewport(this.element)
         viewport.translation = {
@@ -3571,6 +3583,9 @@ class CornerstoneElement extends Component {
             point.style.left=leftMargin
             // console.log('slice',parseFloat($('#slice-slider') )
         }
+
+        let listitems=document.getElementById('cornerstone-accordion')
+        listitems.addEventListener('dblclick',this.doubleClickListItems.bind(this))
     }
 
     componentWillUnmount() {

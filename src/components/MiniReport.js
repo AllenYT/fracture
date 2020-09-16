@@ -1,8 +1,9 @@
 import React, {Component,createRef} from 'react'
-import {Button, Grid, Modal,Header, Divider, Table, Dropdown, Image} from 'semantic-ui-react'
+import {Button, Grid, Modal,Header, Divider, Table, Dropdown, Form} from 'semantic-ui-react'
 import axios from 'axios'
 import qs from 'qs'
 import html2pdf from 'html2pdf.js'
+import copy from  'copy-to-clipboard'
 import * as cornerstone from "cornerstone-core"
 import * as cornerstoneMath from "cornerstone-math"
 import * as cornerstoneTools from "cornerstone-tools"
@@ -39,6 +40,7 @@ class MiniReport extends Component{
             imageIds:props.imageIds,
             viewport: cornerstone.getDefaultViewport(null, undefined),
             temp:0,
+            templateText:'',
             boxes:props.boxes,
             dealchoose:'中华共识'
         }
@@ -46,6 +48,8 @@ class MiniReport extends Component{
         this.exportPDF = this.exportPDF.bind(this)
         this.template = this.template.bind(this)
         this.dealChoose = this.dealChoose.bind(this)
+        this.handleTextareaChange = this.handleTextareaChange.bind(this)
+        this.handleCopyClick = this.handleCopyClick.bind(this)
     }
 
     componentDidMount(){
@@ -62,6 +66,12 @@ class MiniReport extends Component{
            
         }).catch((error) => console.log(error))
         
+    }
+
+    componentDidUpdate(prevProps){
+        if(prevProps.activeItem != this.props.activeItem){
+            this.template()
+        }
     }
 
     dealChoose(e){
@@ -84,6 +94,9 @@ class MiniReport extends Component{
           }
     }
 
+    handleCopyClick(e){
+        copy(this.state.templateText)
+    }
     
     showImages(){
         const nodules = this.state.nodules
@@ -243,52 +256,104 @@ class MiniReport extends Component{
         'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
         if(this.props.type==='影像所见'){
             let texts=''
-            for(let i=0;i<this.state.boxes.length;i++){
+            if (this.props.activeItem===-1){
+                this.setState({templateText:''})
+            }
+            else if(this.props.activeItem==='all'){
+                for(let i=0;i<this.state.boxes.length;i++){
+                    let place=''
+                    let diameter=''
+                    let texture=''
+                    let calcification=''
+                    let malignancy=''
+                    if(this.state.boxes[i]['place']===0 || this.state.boxes[i]['place']===undefined || 
+                    this.state.boxes[i]['place']===""){
+                        place='未知位置'
+                    }
+                    else{
+                        if(this.state.boxes[i]['segment']===undefined || this.state.boxes[i]['segment']===""|| 
+                        this.state.boxes[i]['segment']==='None'){
+                            place=places[this.state.boxes[i]['place']]
+                        }
+                        else{
+                            place=segments[this.state.boxes[i]['segment']]
+                        }
+                    }
+                    if(this.state.boxes[i]['diameter']!==undefined){
+                        diameter='有一'+Math.floor(this.state.boxes[i]['diameter']*10)/100+'cm' 
+                    }
+                    else{
+                        diameter='有一未知大小'
+                    }
+                    if(this.state.boxes[i]['texture']===2){
+                        texture='的实性结节，'
+                    }
+                    else{
+                        texture='的磨玻璃结节，'
+                    }
+                    if(this.state.boxes[i]['calcification']===2){
+                        calcification='有钙化成分，'
+                    }
+                    else{
+                        calcification='无钙化成分，'
+                    }
+                    if(this.state.boxes[i]['malignancy']===2){
+                        malignancy='风险较高。'
+                    }
+                    else{
+                        malignancy='风险较低。'
+                    }
+                    texts=texts+place+diameter+texture+calcification+malignancy+'\n\n'
+                }
+                this.setState({templateText:texts})
+            }   
+            else{
+                
                 let place=''
                 let diameter=''
                 let texture=''
                 let calcification=''
                 let malignancy=''
-                if(this.state.boxes[i]['place']===0 || this.state.boxes[i]['place']===undefined || 
-                this.state.boxes[i]['place']===""){
+                if(this.state.boxes[this.props.activeItem]['place']===0 || this.state.boxes[this.props.activeItem]['place']===undefined || 
+                this.state.boxes[this.props.activeItem]['place']===""){
                     place='未知位置'
                 }
                 else{
-                    if(this.state.boxes[i]['segment']===undefined || this.state.boxes[i]['segment']===""|| 
-                    this.state.boxes[i]['segment']==='None'){
-                        place=places[this.state.boxes[i]['place']]
+                    if(this.state.boxes[this.props.activeItem]['segment']===undefined || this.state.boxes[this.props.activeItem]['segment']===""|| 
+                    this.state.boxes[this.props.activeItem]['segment']==='None'){
+                        place=places[this.state.boxes[this.props.activeItem]['place']]
                     }
                     else{
-                        place=segments[this.state.boxes[i]['segment']]
+                        place=segments[this.state.boxes[this.props.activeItem]['segment']]
                     }
                 }
-                if(this.state.boxes[i]['diameter']!==undefined){
-                    diameter='有一'+Math.floor(this.state.boxes[i]['diameter']*10)/100+'cm' 
+                if(this.state.boxes[this.props.activeItem]['diameter']!==undefined){
+                    diameter='有一'+Math.floor(this.state.boxes[this.props.activeItem]['diameter']*10)/100+'cm' 
                 }
                 else{
                     diameter='有一未知大小'
                 }
-                if(this.state.boxes[i]['texture']===2){
+                if(this.state.boxes[this.props.activeItem]['texture']===2){
                     texture='的实性结节，'
                 }
                 else{
                     texture='的磨玻璃结节，'
                 }
-                if(this.state.boxes[i]['calcification']===2){
+                if(this.state.boxes[this.props.activeItem]['calcification']===2){
                     calcification='有钙化成分，'
                 }
                 else{
                     calcification='无钙化成分，'
                 }
-                if(this.state.boxes[i]['malignancy']===2){
+                if(this.state.boxes[this.props.activeItem]['malignancy']===2){
                     malignancy='风险较高。'
                 }
                 else{
                     malignancy='风险较低。'
                 }
-                texts=texts+place+diameter+texture+calcification+malignancy+'*'
+                texts=texts+place+diameter+texture+calcification+malignancy
+                this.setState({templateText:texts})
             }
-            return texts
         }
         else{
             let malignancy=[]
@@ -305,36 +370,46 @@ class MiniReport extends Component{
                     }
                 }
                 if(maxDiameter>=8){
-                    return '根据PET评估结节结果判断手术切除或非手术活检'
+                    // return '根据PET评估结节结果判断手术切除或非手术活检'
+                    this.setState({templateText:'根据PET评估结节结果判断手术切除或非手术活检'})
                 }
                 if(maxDiameter>=6 &&maxDiameter<8){
-                    return '6~12、18~24个月，如稳定，年度随访'
+                    this.setState({templateText:'6~12、18~24个月，如稳定，年度随访'})
+                    // return '6~12、18~24个月，如稳定，年度随访'
                 }
                 else if(maxDiameter>=4 &&maxDiameter<6){
-                    return '12个月，如稳定，年度随访'
+                    this.setState({templateText:'12个月，如稳定，年度随访'})
+                    // return '12个月，如稳定，年度随访'
                 }
                 else if(maxDiameter<4){
-                    return '选择性随访'
+                    this.setState({templateText:'选择性随访'})
+                    // return '选择性随访'
                 }
             }
             else{//恶性概率高
                 let maxDiameter=Math.max(...malignancy)
                 if(maxDiameter>=8){
-                    return '根据标准分析评估结果判断放化疗或手术切除'
+                    this.setState({templateText:'根据标准分析评估结果判断放化疗或手术切除'})
+                    // return '根据标准分析评估结果判断放化疗或手术切除'
                 }
                 if(maxDiameter>=6 &&maxDiameter<8){
-                    return '3~6、9~12及24个月，如稳定，年度随访'
+                    this.setState({templateText:'3~6、9~12及24个月，如稳定，年度随访'})
+                    // return '3~6、9~12及24个月，如稳定，年度随访'
                 }
                 else if(maxDiameter>=4 &&maxDiameter<6){
-                    return '6~12、18~24个月，如稳定，年度随访'
+                    this.setState({templateText:'6~12、18~24个月，如稳定，年度随访'})
+                    // return '6~12、18~24个月，如稳定，年度随访'
                 }
                 else if(maxDiameter<4){
-                    return '12个月，如稳定，年度随访'
+                    this.setState({templateText:'12个月，如稳定，年度随访'})
+                    // return '12个月，如稳定，年度随访'
                 }
             }
         }
     }
-
+    handleTextareaChange(e){
+        this.setState({templateText:e.target.value})
+    }
     render(){
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
         let segments={
@@ -559,7 +634,7 @@ class MiniReport extends Component{
                     </Modal>
                     </Grid.Column>
                     <Grid.Column textAlign='left' width={4}>
-                        <Button content='复制' className='inverted blue button'></Button>
+                        <Button content='复制' className='inverted blue button' onClick={this.handleCopyClick}></Button>
                     </Grid.Column>
                 </Grid.Row>
                 :
@@ -576,7 +651,7 @@ class MiniReport extends Component{
                         </Dropdown>
                     </Grid.Column>
                     <Grid.Column textAlign='center' width={4}>
-                        <Button content='复制' className='inverted blue button'></Button>
+                        <Button content='复制' className='inverted blue button' onClick={this.handleCopyClick}></Button>
                     </Grid.Column>
                 </Grid.Row>
                 }
@@ -585,25 +660,29 @@ class MiniReport extends Component{
                     this.props.type==='影像所见'?
                     <Grid.Row >
                         <Grid.Column>
-                        <div style={{fontSize:'medium',overflowY:'auto',height:'150px'}}>
-                            {this.template().split('*').map((content,index)=>{
+                        <textarea style={{fontSize:'medium',overflowY:'auto',height:'150px',width:'100%',
+                        background:'transparent',border:'0rem'}} id='textarea' 
+                        placeholder='在此填写诊断报告' onChange={this.handleTextareaChange} value={this.state.templateText}>
+                            
+                            {/* {this.template().split('*').map((content,index)=>{
                                 return(
                                     <p key={index}>
                                         {content}
                                     </p>
                                 )
                                 
-                            })}
-                        </div>
+                            })} */}
+                        </textarea>
                                             
                         </Grid.Column>
                     </Grid.Row>
                     :
                     <Grid.Row >
                         <Grid.Column>
-                        <div style={{fontSize:'large'}}>
-                            {this.template()}
-                        </div>
+                        <Form.TextArea style={{fontSize:'large',overflowY:'auto',height:'150px',width:'100%',
+                        background:'transparent',border:'0rem'}} id='textarea' placeholder='在此填写处理建议'
+                        value={this.state.templateText} onChange={this.handleTextareaChange}>
+                        </Form.TextArea>
                                             
                         </Grid.Column>
                     </Grid.Row>

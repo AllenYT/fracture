@@ -189,7 +189,7 @@ class Main extends Component {
                     as={Link}
                     to='/cov19List'
                     name='cov19List'>
-                    新冠肺炎专题
+                    新冠肺炎
                 </Menu.Item>
                 <Menu.Item
                     active={activeItem === 'preprocess'}
