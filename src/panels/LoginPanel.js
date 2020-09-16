@@ -106,7 +106,7 @@ class LoginPanel extends Component {
                             DEEPLN
                         </div>
                         <div id='left-align1' >
-                            DeepLN肺癌全周期智能管理影像数据平台
+                            肺癌全周期智能管理影像数据平台
                         </div>
                     </Grid.Column>
                     <Grid.Column width={8}>
@@ -129,10 +129,10 @@ class LoginPanel extends Component {
                         <Grid divided='vertically'>
                             <Grid.Row columns={2} >
                                 <Grid.Column textAlign='left'>
-                                    <Checkbox label='记住账号信息' color='blue'/>
+                                    {/* <Checkbox label='记住账号信息' color='blue'/> */}
                                 </Grid.Column>
                                 <Grid.Column textAlign='right'>
-                                    <a href='#'>忘记密码？</a>
+                                    {/* <a href='#'>忘记密码？</a> */}
                                 </Grid.Column>
                             </Grid.Row>
                         </Grid>
