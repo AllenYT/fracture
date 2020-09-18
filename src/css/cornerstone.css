@@ -325,8 +325,8 @@ option {
 
 #report{
     background-color:rgba(1, 23, 46, 0.997) !important;
-    border-radius: 0.1rem !important;
-    border-color: white;
+    /* border-radius: 0.1rem !important; */
+    /* border-color: white; */
     color: white;
     max-height:300px;
     min-height:300px;
@@ -348,6 +348,9 @@ option {
   /* background-color:rgba(1, 23, 46, 0.997) !important; */
   color:gray !important;
   font-size: medium;
+}
+textarea:focus, input:focus{
+  outline: none;
 }
 
 #cornerstone-accordion{
