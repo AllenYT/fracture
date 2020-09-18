@@ -1,7 +1,8 @@
 import React, {Component} from "react"
+import StudyBrowserList from '../components/StudyBrowserList'
 import ReactHtmlParser from 'react-html-parser'
 import dicomParser from 'dicom-parser'
-import {render} from "react-dom"
+import reactDom, {render} from "react-dom"
 import * as cornerstone from "cornerstone-core"
 import * as cornerstoneMath from "cornerstone-math"
 import * as cornerstoneTools from "cornerstone-tools"
@@ -22,6 +23,7 @@ import src1 from '../images/scu-logo.jpg'
 import $ from  'jquery'
 
 
+
 cornerstoneTools.external.cornerstone = cornerstone
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 // cornerstoneWebImageLoader.external.cornerstone = cornerstone
@@ -37,7 +39,8 @@ cornerstoneTools.toolColors.setToolColor('rgb(255, 255, 0)')
 const globalImageIdSpecificToolStateManager = cornerstoneTools.newImageIdSpecificToolStateManager();
 const wwwc = cornerstoneTools.WwwcTool
 const pan = cornerstoneTools.PanTool
-const zoomwheel = cornerstoneTools.ZoomMouseWheelTool
+const zoomMouseWheel = cornerstoneTools.ZoomMouseWheelTool
+const zoomWheel = cornerstoneTools.ZoomTool
 const bidirectional = cornerstoneTools.BidirectionalTool
 const ellipticalRoi = cornerstoneTools.EllipticalRoiTool
 const LengthTool = cornerstoneTools.LengthTool
@@ -198,6 +201,13 @@ class CornerstoneElement extends Component {
             isbidirectionnal:false,
             measureList:[],
             toolState:'',
+            leftButtonTools:1, //0-标注，1-切片切换，2-wwwc
+            mouseCurPos:{},
+            mouseClickPos:{},
+            mousePrePos:{},
+            leftBtnSpeed:0,
+            prePosition:0,
+            curPosition:0,
             doubleClick:false,
             // list:[],
             // malignancy: -1,
@@ -366,6 +376,11 @@ class CornerstoneElement extends Component {
         this.eraseLabel = this.eraseLabel.bind(this)
         this.startAnnos = this.startAnnos.bind(this)
         this.saveTest = this.saveTest.bind(this)
+        this.slide = this.slide.bind(this)
+        this.wwwcCustom = this.wwwcCustom.bind(this)
+        this.onWheel = this.onWheel.bind(this)
+        this.wheelHandle = this.wheelHandle.bind(this)
+        this.onMouseOver = this.onMouseOver.bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -853,15 +868,45 @@ class CornerstoneElement extends Component {
             mouseButtonMask: 4, //middle mouse button
         },
         ['Mouse'])
+        cornerstoneTools.setToolDisabledForElement(
+            element,
+            'Wwwc',
+            {
+                mouseButtonMask: 1, //middle mouse button
+            },
+            ['Mouse']
+        )
         // cornerstoneTools.setToolDisabledForElement(element, 'Bidirectional')
     }
 
     startAnnos(){
-        this.setState({isbidirectionnal:true,toolState:'EllipticalRoi'})
+        // this.setState({isbidirectionnal:true,toolState:'EllipticalRoi'})
         const element = document.querySelector('#origin-canvas')
         this.disableAllTools(element)
-        cornerstoneTools.addToolForElement(element,ellipticalRoi)
-        cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
+        // cornerstoneTools.addToolForElement(element,ellipticalRoi)
+        // cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
+        this.setState({leftButtonTools:0})
+    }
+
+    slide(){
+        const element = document.querySelector('#origin-canvas')
+        this.disableAllTools(element)
+        this.setState({leftButtonTools:1})
+        //切换切片
+    }
+
+    wwwcCustom(){
+        this.setState({leftButtonTools:2})
+        const element = document.querySelector('#origin-canvas')
+        cornerstoneTools.addToolForElement(element, wwwc)
+                cornerstoneTools.setToolActiveForElement(
+                    element,
+                    'Wwwc',
+                    {
+                        mouseButtonMask: 1, //middle mouse button
+                    },
+                    ['Mouse']
+                )
     }
 
     saveTest(){
@@ -1080,22 +1125,11 @@ class CornerstoneElement extends Component {
 
         if (this.state.draftStatus === '0') 
             submitButton = (
-                <Button
-                    inverted
-                    color='blue'
-                    onClick={this.submit}
-                    // id='submitbtn'
-                    >提交</Button>
+                <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
             )
         else 
             submitButton = (
-                <Button
-                    inverted
-                    color='blue'
-                    onClick={this.deSubmit}
-                    style={{
-                    // marginTop: 60 + 'px'
-                }}>撤销</Button>
+                <Button icon title='撤销' onClick={this.deSubmit} className='funcbtn'><Icon name='reply' size='large'></Icon></Button>
             )
         if (window.location.pathname.split('/')[3] === 'origin') 
             createDraftModal = (
@@ -1753,7 +1787,7 @@ class CornerstoneElement extends Component {
                                     <Grid.Column width={2} textAlign='center' verticalAlign='middle'>
                                     <div>
                                         <Image src={src1} avatar size='mini'/>
-                                        <a id='sys-name' href='/dataCockpit'>DeepLN肺结节全周期管理数据平台</a>
+                                        <a id='sys-name' href='/searchCase'>DeepLN肺结节全周期管理数据平台</a>
                                     </div>
                                     </Grid.Column>
                                     <Grid.Column className='hucolumn' width={3}>
@@ -1944,7 +1978,7 @@ class CornerstoneElement extends Component {
                                         {/* {createDraftModal}  */}
                                     </Grid.Column>
                                 
-                                    <Accordion styled className='accordation' id='accord-left'>
+                                    {/* <Accordion styled className='accordation' id='accord-left'>
                                         <Accordion.Title
                                             active={activeIndex === 0}
                                             index={0}
@@ -1985,7 +2019,7 @@ class CornerstoneElement extends Component {
                                                 {ReactHtmlParser(this.state.reviewResults)}
 
                                         </Accordion.Content>
-                                    </Accordion>
+                                    </Accordion> */}
                                     <Grid.Column>
                                         <Menu id="header" pointing secondary>
                                             <Menu.Item position='right'>
@@ -2002,14 +2036,13 @@ class CornerstoneElement extends Component {
                                 </Grid.Row>
                             </Grid>
                         {/* </div> */}
-                        
                         {/* <div className='corner-contnt'> */}
                             <Grid celled className='corner-contnt'>
                                 <Grid.Row className='corner-row' columns={3}>
                                     <Grid.Column width={2}>
-
+                                        <StudyBrowserList />
                                     </Grid.Column>
-                                    <Grid.Column width={9} textAlign='center'>
+                                    <Grid.Column width={9} textAlign='center' id='canvas-column'>
                                     <div className='canvas-style'>
                                         <div
                                             id="origin-canvas"
@@ -2017,6 +2050,7 @@ class CornerstoneElement extends Component {
                                             ref={input => {
                                             this.element = input
                                         }}>
+                                            
                                             <canvas className="cornerstone-canvas" id="canvas"/>
                                             {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                                             <div id='dicomTag'>
@@ -2034,7 +2068,7 @@ class CornerstoneElement extends Component {
                                             </div>
                                             <div style={{position:'absolute',color:'white',bottom:'20px',left:'5px'}}>Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
                                             </div>
-                                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
+                                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
                                             <div style={bottomRightStyle}>
                                                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
                                                 /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
@@ -2082,7 +2116,7 @@ class CornerstoneElement extends Component {
                                         <div id='listTitle'>
                                                 <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
                                                 {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
-                                                <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px',verticalAlign:'top'}}>
+                                                {/* <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px',verticalAlign:'top'}}>
                                                     <Button
                                                         inverted
                                                         color='blue'
@@ -2090,7 +2124,7 @@ class CornerstoneElement extends Component {
                                                         // id='tempStore'
                                                     >暂存</Button>
                                                     {submitButton}
-                                                </div>
+                                                </div> */}
                                                 
                                         </div>
                                         <div id='elec-table'>
@@ -2140,10 +2174,10 @@ class CornerstoneElement extends Component {
                                     <Grid.Column width={2} textAlign='center' verticalAlign='middle'>
                                         <div>
                                             <Image src={src1} avatar size='mini'/>
-                                            <a id='sys-name' href='/dataCockpit'>DeepLN肺结节全周期管理数据平台</a>
+                                            <a id='sys-name' href='/searchCase'>DeepLN肺结节全周期管理数据平台</a>
                                         </div>
                                     </Grid.Column>
-                                    <Grid.Column  className='hucolumn' width={3}>
+                                    <Grid.Column  className='hucolumn' width={4}>
                                         <Grid>
                                             <Grid.Row columns='equal' >
                                                 <Button.Group>
@@ -2244,11 +2278,11 @@ class CornerstoneElement extends Component {
                                                             // inverted
                                                             // color='blue'
                                                             icon
-                                                            title='影像翻转'
+                                                            title='灰度反转'
                                                             // style={{width:55,height:60,fontSize:14,fontSize:14}}
                                                             onClick={this.imagesFilp}
                                                             className='funcbtn'
-                                                            ><Icon name='retweet' size='large'></Icon></Button>
+                                                            ><Icon name='adjust' size='large'></Icon></Button>
                                                     </Grid.Column>
                                                     <Grid.Column> 
                                                         <Button
@@ -2297,34 +2331,60 @@ class CornerstoneElement extends Component {
                                                         icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
                                                     </Grid.Column>
                                                 </Button.Group>
-                                                {/* <Grid.Column>
-                                                    <Dropdown
-                                                        // icon='filter'
-                                                        // floating
-                                                        // labeled
-                                                        button
-                                                        trigger={
-                                                            <Button icon><Icon name='filter'></Icon></Button>
-                                                        }
-                                                        className='toolsbtn'>
-                                                        <Dropdown.Menu>
-                                                        <Dropdown.Item icon='eraser' onClick={this.eraseLabel} title='清除测量'></Dropdown.Item>
-                                                        <Dropdown.Item icon='filter'></Dropdown.Item>
-                                                        <Dropdown.Item icon='edit' onClick={this.startAnnos} title='标注'></Dropdown.Item>
-                                                        <Dropdown.Item icon='save' onClick={this.saveTest} title='标注'></Dropdown.Item>
-                                                        <Dropdown.Item></Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
-                                                </Grid.Column> */}
+                                                
                                             </Grid.Row>
                                         </Grid>    
-                                    </Grid.Column>
+                                    </Grid.Column>{' '}
                                     {/* <span id='line-right'></span> */}
-                                    <Grid.Column className='draftColumn' width={5}>
+                                    <Grid.Column className='funcolumn' width={3}>
+                                        <Grid>
+                                            <Grid.Row columns='equal'>
+                                                {/* <Dropdown
+                                                    // icon='filter'
+                                                    // floating
+                                                    // labeled
+                                                    button
+                                                    trigger={
+                                                        <Button icon><Icon name='filter'></Icon></Button>
+                                                    }
+                                                    className='toolsbtn'>
+                                                    <Dropdown.Menu>
+                                                    <Dropdown.Item icon='eraser' onClick={this.eraseLabel} title='清除测量'></Dropdown.Item>
+                                                    <Dropdown.Item icon='filter'></Dropdown.Item>
+                                                    <Dropdown.Item icon='edit' onClick={this.startAnnos} title='标注'></Dropdown.Item>
+                                                    <Dropdown.Item icon='save' onClick={this.saveTest} title='标注'></Dropdown.Item>
+                                                    ///
+                                                    <Dropdown.Item icon='edit' onClick={this.startAnnos} title='标注'></Dropdown.Item>
+                                                    <Dropdown.Item icon='sort' title='切换切片' onClick={this.slide}></Dropdown.Item>
+                                                    <Dropdown.Item icon='sliders horizontal' title='窗宽窗位' onClick={this.wwwcCustom}></Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown> */}
+                                                <Button.Group>
+                                                    <Grid.Column>
+                                                        <Button icon onClick={this.startAnnos} title='标注' className='funcbtn'><Icon name='edit' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        <Button icon title='切换切片' onClick={this.slide} className='funcbtn'><Icon name='sort' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        <Button icon title='窗宽窗位' onClick={this.wwwcCustom} className='funcbtn'><Icon name='sliders' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        {submitButton}
+                                                    </Grid.Column>
+                                                    <Grid.Column>
+                                                        <Button title='3D' className='funcbtn'>3D</Button>
+                                                    </Grid.Column>
+                                                </Button.Group>
+                                            </Grid.Row>
+                                        </Grid>
                                         {/* {createDraftModal}  */}
                                         {/* <Button inverted color = 'blue' className='hubtn' onClick={this.toMyAnno}>我的标注</Button> */}
                                     </Grid.Column>
-                                    <Accordion styled className='accordation' id='accord-left'>
+                                    {/* <Accordion styled className='accordation' id='accord-left'>
                                         <Accordion.Title
                                             active={activeIndex === 0}
                                             index={0}
@@ -2338,9 +2398,7 @@ class CornerstoneElement extends Component {
                                             
                                         </Accordion.Content>
                                     </Accordion>
-                                    
-                                    {/* </Grid.Column>
-                                    <Grid.Column> */}
+
                                     <Accordion styled className='accordation' id='accord-mid'>
                                         <Accordion.Title
                                             active={activeIndex === 1}
@@ -2356,7 +2414,6 @@ class CornerstoneElement extends Component {
                                         </Accordion.Content>
                                     </Accordion>
                                         
-                                    {/* </Grid.Column> */}
                                     <Accordion styled className='accordation' id='accord-right'>
                                     <Accordion.Title
                                         active={activeIndex === 2}
@@ -2370,7 +2427,7 @@ class CornerstoneElement extends Component {
                                             {ReactHtmlParser(this.state.reviewResults)}
                                         
                                     </Accordion.Content>
-                                </Accordion>
+                                </Accordion> */}
                                 <Grid.Column>
                                 <Menu id="header" pointing secondary>
                                     <Menu.Item position='right'>
@@ -2391,7 +2448,7 @@ class CornerstoneElement extends Component {
                             <Grid celled className='corner-contnt' >
                                 <Grid.Row className='corner-row' columns={3}>
                                     <Grid.Column width={2}>
-
+                                        <StudyBrowserList />
                                     </Grid.Column>
                                     <Grid.Column width={9} textAlign='center'>
                                     <div className='canvas-style'>
@@ -2419,7 +2476,7 @@ class CornerstoneElement extends Component {
                                                 </div>
                                                 <div className='dicomTag' style={{position:'absolute',color:'white',bottom:'20px',left:'5px'}}>Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
                                                 </div>
-                                                <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
+                                                <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
                                                 <div style={bottomRightStyle}>
                                                     WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
                                                     /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
@@ -2454,7 +2511,7 @@ class CornerstoneElement extends Component {
                                         <div id='listTitle'>
                                             <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
                                             {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
-                                            <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px',verticalAlign:'top'}}>
+                                            {/* <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px',verticalAlign:'top'}}>
                                                 <Button
                                                     inverted
                                                     color='blue'
@@ -2462,7 +2519,7 @@ class CornerstoneElement extends Component {
                                                     // id='tempStore'
                                                 >暂存</Button>
                                                 {submitButton}
-                                            </div>
+                                            </div> */}
                                         </div>
                                     
                                         {/* <h3 id="annotator-header">标注人：{window
@@ -2555,7 +2612,7 @@ class CornerstoneElement extends Component {
                             <div style={{position:'absolute',color:'white',top:'80px',right:'5px'}}>T: {dicomTag.string('x00180050')}</div>
                             <div style={{position:'absolute',color:'white',bottom:'20px',left:'5px'}}>Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
                             </div>
-                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
+                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
                             <div style={bottomRightStyle}>
                                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
                                 /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
@@ -2756,11 +2813,121 @@ class CornerstoneElement extends Component {
         })
     }
 
+    // preventMouseWheel(event){
+    //     const e = event || window.event
+    //     if(e.stopPropagation) e.stopPropagation()
+    //     else e.cancelBubble = true
+    //     if(e.preventDefault) e.preventDefault()
+    //     else e.returnValue = false
+    // }
+
+    onWheel(event){
+        // this.preventMouseWheel(event)
+        var delta = 0;
+        if(!event){
+            event = window.event;
+        }
+        if(event.wheelDelta){
+            delta = event.wheelDelta/120; 
+            if(window.opera){
+                delta = -delta;
+            }
+        }
+        else if(event.detail){
+            delta = -event.detail/3;
+        }
+        // console.log('delta',delta)
+        if(delta){
+            this.wheelHandle(delta)
+        }   
+    }
+
+    onMouseOver(event){
+        // console.log("mouseover")
+        try{
+            window.addEventListener("mousewheel",this.onWheel)||window.addEventListener("DOMMouseScroll",this.onWheel);
+        }catch(e){
+            window.attachEvent("mousewheel",this.onWheel);
+        }
+    }
+
+    wheelHandle(delta){
+        if (delta <0){//向下滚动
+        let newCurrentIdx = this.state.currentIdx + 1
+        if (newCurrentIdx < this.state.imageIds.length) {
+            this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+        }
+        }else{//向上滚动
+            let newCurrentIdx = this.state.currentIdx - 1
+            if (newCurrentIdx >= 0) {
+                this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+            }
+        }
+    }
+
     onMouseMove(event) {
         const clickX = event.offsetX
         const clickY = event.offsetY
         let x = 0
         let y = 0
+        if(this.state.leftButtonTools === 1){
+            if(JSON.stringify(this.state.mouseClickPos) !== '{}'){
+            // console.log('clicked')
+                if(JSON.stringify(this.state.mousePrePos) === '{}'){
+                    this.setState({mousePrePos:this.state.mouseClickPos})
+                }
+                this.setState({mouseCurPos:{
+                    'x':clickX,
+                    'y':clickY
+                }})
+                // console.log('pos',this.state.mousePrePos)
+                const mouseCurPos = this.state.mouseCurPos
+                const mousePrePos = this.state.mousePrePos
+                const mouseClickPos = this.state.mouseClickPos
+                const prePosition = mousePrePos.y - mouseClickPos.y
+                const curPosition = mouseCurPos.y - mouseClickPos.y
+                if(mouseCurPos.y !== mousePrePos.y){
+                    let y_dia = mouseCurPos.y - mousePrePos.y
+                    
+                    if(this.state.leftBtnSpeed !== 0){
+                        var slice_len = Math.round(y_dia/this.state.leftBtnSpeed)
+                        // console.log('divation',this.state.mouseCurPos,this.state.mousePrePos,this.state.mouseClickPos,y_dia,this.state.leftBtnSpeed,slice_len)
+                        // for(var i = 0;i < Math.abs(slice_len); i++){
+                    if(y_dia > 0){
+                        let newCurrentIdx = this.state.currentIdx + slice_len
+                        if (newCurrentIdx < this.state.imageIds.length) {
+                            this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+                        }
+                        else{
+                            this.refreshImage(false, this.state.imageIds[this.state.imageIds.length-1], this.state.imageIds.length-1)
+                        }
+                    }
+                    else{
+                        let newCurrentIdx = this.state.currentIdx + slice_len
+                        if (newCurrentIdx >= 0) {
+                            this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+                        }
+                        else{
+                            this.refreshImage(false, this.state.imageIds[0], 0)
+                        }
+                    }
+                        // }
+                    }
+                    
+                }
+                this.setState({mousePrePos:mouseCurPos})
+            }
+        }
+        
+        
+        // const el = event.target
+        // const clientX = event.clientX
+        // const clientY = event.clientY
+        // const canvasLeft = document.getElementById('canvas').offsetLeft
+        // const canvasTop = document.getElementById('canvas').offsetTop
+        // const canvasWidth = document.getElementById('canvas').clientWidth
+        // const canvasHeight = document.getElementById('canvas').clientHeight
+        // console.log(clientX,clientY,canvasLeft,canvasTop,canvasWidth)
         if (!this.state.immersive) {
             const transX = this.state.viewport.translation.x
             const transY = this.state.viewport.translation.y
@@ -2774,6 +2941,7 @@ class CornerstoneElement extends Component {
             x = clickX / 2.5
             y = clickY / 2.5
         }
+
 
         let content = this.findCurrentArea(x, y)
         if (!this.state.clicked) {
@@ -2878,6 +3046,11 @@ class CornerstoneElement extends Component {
         if (event.button == 0) {
             const clickX = event.offsetX
             const clickY = event.offsetY
+            this.setState({mouseClickPos:{
+                'x':clickX,
+                'y':clickY
+            }})
+            console.log(this.state.mouseClickPos)
             let x = 0
             let y = 0
 
@@ -2909,18 +3082,32 @@ class CornerstoneElement extends Component {
             //     y:y
             // }
             let content = this.findCurrentArea(x, y)
-            if (content.pos == 'o') {
+            if (content.pos == 'o' && this.state.leftButtonTools === 0) {
                 document
                     .getElementById("canvas")
                     .style
                     .cursor = "crosshair"
             }
+            else{
+                document
+                    .getElementById("canvas")
+                    .style
+                    .cursor = "auto"
+            }
             // this.setState({clicked: true, clickedArea: content, tmpBox: coords})
             this.setState({clicked: true, clickedArea: content, tmpCoord: coords})
+        }
+        else if(event.button == 1){
+            event.preventDefault()
         }
     }
 
     onMouseOut(event) {
+        try{
+            window.removeEventListener("mousewheel",this.onWheel)||window.removeEventListener("DOMMouseScroll",this.onWheel);
+        }catch(e){
+            window.detachEvent("mousewheel",this.onWheel);
+        }
         if (this.state.clicked) {
             this.setState({clicked: false, tmpBox: {}, tmpCoord:{}, clickedArea: {}})
         }
@@ -2932,7 +3119,8 @@ class CornerstoneElement extends Component {
         const element = document.querySelector('#origin-canvas')
         const currentToolType = this.state.toolState
         let measureList = this.state.measureList
-        if (this.state.clickedArea.box === -1 && this.state.isbidirectionnal === false) {
+        this.setState({mouseClickPos:{},mousePrePos:{},mouseCurPos:{}})
+        if (this.state.clickedArea.box === -1 && this.state.leftButtonTools === 0) {
             const x1 = this.state.tmpBox.x1
             const y1 = this.state.tmpBox.y1
             const x2 = this.state.tmpBox.x2
@@ -3306,7 +3494,8 @@ class CornerstoneElement extends Component {
         }
 
         // if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.immersive == false) {
-        if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.isbidirectionnal === false) {
+        // if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.isbidirectionnal === false) {
+        if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.leftButtonTools == 0) { 
             this.drawBoxes(this.state.tmpBox)
         }
         else if(this.state.clicked && this.state.clickedArea.box == -1 && this.state.isbidirectionnal === true){
@@ -3323,7 +3512,7 @@ class CornerstoneElement extends Component {
     }
 
     refreshImage(initial, imageId, newIdx) {
-        console.log('refreshImage',initial)
+        // console.log('refreshImage',initial)
         this.setState({autoRefresh: false})
 
         if (!initial) {
@@ -3378,15 +3567,16 @@ class CornerstoneElement extends Component {
                 //     .wwwc
                 //     .activate(element, 2) // ww/wc is the default tool for middle mouse button
                 if(initial){
-                    cornerstoneTools.addToolForElement(element, wwwc)
-                    cornerstoneTools.setToolActiveForElement(
-                        element,
-                        'Wwwc',
-                        {
-                            mouseButtonMask: 4, //middle mouse button
-                        },
-                        ['Mouse']
-                    )
+                    //mousebuttonmask:4-middle,2-right,1-left
+                    // cornerstoneTools.addToolForElement(element, wwwc)
+                    // cornerstoneTools.setToolActiveForElement(
+                    //     element,
+                    //     'Wwwc',
+                    //     {
+                    //         mouseButtonMask: 2, //middle mouse button
+                    //     },
+                    //     ['Mouse']
+                    // )
 
                     if (!this.state.immersive) {
                         cornerstoneTools.addToolForElement(element, pan)
@@ -3394,25 +3584,25 @@ class CornerstoneElement extends Component {
                             element,
                             'Pan',
                             {
-                                mouseButtonMask:2, //right mouse button
+                                mouseButtonMask:4, //middle mouse button
                             },
                             ['Mouse']
 
                         )
-                        cornerstoneTools.addToolForElement(element, zoomwheel)
+                        // cornerstoneTools.addToolForElement(element, zoomMouseWheel)
+                        // cornerstoneTools.setToolActiveForElement(
+                        //     element,
+                        //     'ZoomMouseWheel',
+                        //     { 
+                        //         mouseButtonMask: 2,
+                        //     }
+                        // )
+                        cornerstoneTools.addToolForElement(element, zoomWheel)
                         cornerstoneTools.setToolActiveForElement(
                             element,
-                            'ZoomMouseWheel',
+                            'Zoom',
                             { 
-                                mouseButtonMask: 1,
-                            }
-                        )
-                        cornerstoneTools.addToolForElement(element, ZoomTouchPinchTool)
-                        cornerstoneTools.setToolActiveForElement(
-                            element,
-                            'ZoomTouchPinch',
-                            { 
-                                mouseButtonMask: 1,
+                                mouseButtonMask: 2,
                             }
                         )
 
@@ -3451,12 +3641,12 @@ class CornerstoneElement extends Component {
                 element.addEventListener("cornerstoneimagerendered", this.onImageRendered)
                 element.addEventListener("cornerstonenewimage", this.onNewImage)
                 element.addEventListener("contextmenu", this.onRightClick)
-
                 if (!this.state.readonly) {
                     element.addEventListener("mousedown", this.onMouseDown)
                     element.addEventListener("mousemove", this.onMouseMove)
                     element.addEventListener("mouseup", this.onMouseUp)
                     element.addEventListener("mouseout", this.onMouseOut)
+                    element.addEventListener("mouseover",this.onMouseOver)
                 }
 
                 document.addEventListener("keydown", this.onKeydown)
@@ -3519,53 +3709,53 @@ class CornerstoneElement extends Component {
             console.log(err)
         })
         
-        Promise.all([
-            axios.post(draftConfig.getModelResults, qs.stringify(params), {headers}),
-            axios.post(draftConfig.getAnnoResults, qs.stringify(params), {headers}),
-            axios.post(reviewConfig.getReviewResults, qs.stringify(params), {headers})
-        ]).then(([res1, res2, res3]) => {
-            const modelList = res1.data.dataList
-            const annoList = res2.data.dataList
-            const reviewList = res3.data.dataList
+        // Promise.all([
+        //     axios.post(draftConfig.getModelResults, qs.stringify(params), {headers}),
+        //     axios.post(draftConfig.getAnnoResults, qs.stringify(params), {headers}),
+        //     axios.post(reviewConfig.getReviewResults, qs.stringify(params), {headers})
+        // ]).then(([res1, res2, res3]) => {
+        //     const modelList = res1.data.dataList
+        //     const annoList = res2.data.dataList
+        //     const reviewList = res3.data.dataList
 
-            let modelStr = ''
-            let annoStr = ''
-            let reviewStr = ''
+        //     let modelStr = ''
+        //     let annoStr = ''
+        //     let reviewStr = ''
 
-            if (modelList.length > 0) {
-                // console.log(modelList)
-                for (var i = 0; i < modelList.length; i++) {
-                    modelStr += '<a href="/case/' + this.state.caseId + '/' + modelList[i] + '"><div class="ui blue label">'
-                    modelStr += modelList[i]
-                    modelStr += '</div></a>'
-                    modelStr += '</br></br>'
-                }
-                this.setState({modelResults: modelStr})
-                // console.log('模型结果',modelStr)
-            }
+        //     if (modelList.length > 0) {
+        //         // console.log(modelList)
+        //         for (var i = 0; i < modelList.length; i++) {
+        //             modelStr += '<a href="/case/' + this.state.caseId + '/' + modelList[i] + '"><div class="ui blue label">'
+        //             modelStr += modelList[i]
+        //             modelStr += '</div></a>'
+        //             modelStr += '</br></br>'
+        //         }
+        //         this.setState({modelResults: modelStr})
+        //         // console.log('模型结果',modelStr)
+        //     }
 
-            if (annoList.length > 0) {
-                for (var i = 0; i < annoList.length; i++) {
-                    annoStr += '<a href="/case/' + this.state.caseId + '/' + annoList[i] + '"><div class="ui label">'
-                    annoStr += annoList[i]
-                    annoStr += '</div></a>'
-                    annoStr += '</br></br>'
-                }
-                this.setState({annoResults: annoStr,newAnno:false})
-            }
+        //     if (annoList.length > 0) {
+        //         for (var i = 0; i < annoList.length; i++) {
+        //             annoStr += '<a href="/case/' + this.state.caseId + '/' + annoList[i] + '"><div class="ui label">'
+        //             annoStr += annoList[i]
+        //             annoStr += '</div></a>'
+        //             annoStr += '</br></br>'
+        //         }
+        //         this.setState({annoResults: annoStr,newAnno:false})
+        //     }
 
-            if (reviewList.length > 0) {
-                for (var i = 0; i < reviewList.length; i++) {
-                    reviewStr += '<a href="/review/' + this.state.caseId + '/' + reviewList[i] + '"><div class="ui teal label">'
-                    reviewStr += reviewList[i]
-                    reviewStr += '</div></a>'
-                    reviewStr += '</br></br>'
-                }
-                this.setState({reviewResults: reviewStr})
-            }
-        }).catch((error) => {
-            console.log(error)
-        })
+        //     if (reviewList.length > 0) {
+        //         for (var i = 0; i < reviewList.length; i++) {
+        //             reviewStr += '<a href="/review/' + this.state.caseId + '/' + reviewList[i] + '"><div class="ui teal label">'
+        //             reviewStr += reviewList[i]
+        //             reviewStr += '</div></a>'
+        //             reviewStr += '</br></br>'
+        //         }
+        //         this.setState({reviewResults: reviewStr})
+        //     }
+        // }).catch((error) => {
+        //     console.log(error)
+        // })
         if(document.getElementById('hideNodule') != null){
             document.getElementById('hideNodule').style.display='none'
         }
@@ -3583,6 +3773,12 @@ class CornerstoneElement extends Component {
             point.style.left=leftMargin
             // console.log('slice',parseFloat($('#slice-slider') )
         }
+        if(this.state.imageIds.length !==0){
+            const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
+            this.setState({leftBtnSpeed:leftBtnSpeed})
+        }
+        
+
 
         let listitems=document.getElementById('cornerstone-accordion')
         listitems.addEventListener('dblclick',this.doubleClickListItems.bind(this))
