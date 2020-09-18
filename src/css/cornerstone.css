@@ -68,8 +68,11 @@ input[type=range]:focus {
 }
 
 #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
+  position: absolute;
   transform: rotate(0deg);
-  margin-left: -80px;
+  height: 10px; /* equal to height of runnable track */
+  width: 500px; /* make this bigger than the widest range input element */
+  margin-left: -550px;
   margin-top: -20px;
 }
 
