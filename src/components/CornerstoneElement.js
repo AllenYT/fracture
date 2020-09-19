@@ -587,9 +587,9 @@ class CornerstoneElement extends Component {
     // }
     handleListClick = (currentIdx,index,e) => {//点击list-item
         console.log('id',e.target.id)
-        let style = $("<style>", {type:"text/css"}).appendTo("head");
-        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ 
-        (currentIdx -1)*100/this.state.imageIds.length+'%)}');
+        // let style = $("<style>", {type:"text/css"}).appendTo("head");
+        // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ 
+        // (currentIdx -1)*100/this.state.imageIds.length+'%)}');
         // const {index} = titleProps
         // console.log('index',index)
         const id=e.target.id
@@ -1018,8 +1018,8 @@ class CornerstoneElement extends Component {
         // document.querySelector('input[type=range]').style.background='linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)'
         // $('head').append("<style>.input[type='range']::-webkit-slider-runnable-track{ background:linear-gradient(90deg,#0033FF 0%,#000033 "+ slice_idx*100/this.state.imageIds.length+"%)"+ "}</style>");
         // $('#slice-slider').append("<style>.input[type='range']::-webkit-slider-runnable-track{ background:red}</style>");
-        let style = $("<style>", {type:"text/css"}).appendTo("head");
-        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (slice_idx+1)*100/this.state.imageIds.length+'%)}');
+        // let style = $("<style>", {type:"text/css"}).appendTo("head");
+        // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (slice_idx+1)*100/this.state.imageIds.length+'%)}');
         this.refreshImage(false, this.state.imageIds[slice_idx - 1], slice_idx - 1)
     }
 
@@ -2428,7 +2428,7 @@ class CornerstoneElement extends Component {
                                         
                                     </Accordion.Content>
                                 </Accordion> */}
-                                <Grid.Column>
+                                <Grid.Column width={2}>
                                 <Menu id="header" pointing secondary>
                                     <Menu.Item position='right'>
                                         <Dropdown text={welcome}>
@@ -2740,8 +2740,8 @@ class CornerstoneElement extends Component {
     handleRangeChange(event) {
         // this.setState({currentIdx: event.target.value - 1, imageId:
         // this.state.imageIds[event.target.value - 1]})
-        let style = $("<style>", {type:"text/css"}).appendTo("head");
-        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
+        // let style = $("<style>", {type:"text/css"}).appendTo("head");
+        // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
         this.refreshImage(false, this.state.imageIds[event.target.value - 1], event.target.value - 1)
     }
 
@@ -3512,7 +3512,8 @@ class CornerstoneElement extends Component {
     }
 
     refreshImage(initial, imageId, newIdx) {
-        // console.log('refreshImage',initial)
+        let style = $("<style>", {type:"text/css"}).appendTo("head");
+        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (newIdx -1)*100/this.state.imageIds.length+'%)}');
         this.setState({autoRefresh: false})
 
         if (!initial) {
