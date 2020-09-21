@@ -1409,7 +1409,7 @@ class CornerstoneElement extends Component {
                                     {/* <div style={{minWidth:600}}> */}
                                     <Grid>
                                         <Grid.Row >
-                                            <Grid.Column width={1}>
+                                            <Grid.Column width={1} textAlign='center'>
                                                 <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                             </Grid.Column>
                                             <Grid.Column width={6} textAlign='center'>
