@@ -669,9 +669,9 @@ class MiniReport extends Component{
                 {
                     this.props.type==='影像所见'?
                     <Grid.Row >
-                        <Grid.Column>
+                        <Grid.Column textAlign='center'>
                         <textarea style={{fontSize:'medium',overflowY:'auto',height:'150px',width:'100%',
-                        background:'transparent',border:'0rem'}} id='textarea' 
+                        background:'transparent',border:'0rem',marginLeft:'20px'}} id='textarea' 
                         placeholder='在此填写诊断报告' onChange={this.handleTextareaChange} value={this.state.templateText}>
                             
                             {/* {this.template().split('*').map((content,index)=>{
@@ -688,9 +688,9 @@ class MiniReport extends Component{
                     </Grid.Row>
                     :
                     <Grid.Row >
-                        <Grid.Column>
+                        <Grid.Column textAlign='center'>
                         <Form.TextArea style={{fontSize:'large',overflowY:'auto',height:'150px',width:'100%',
-                        background:'transparent',border:'0rem'}} id='textarea' placeholder='在此填写处理建议'
+                        background:'transparent',border:'0rem',marginLeft:'20px'}} id='textarea' placeholder='在此填写处理建议'
                         value={this.state.templateText} onChange={this.handleTextareaChange}>
                         </Form.TextArea>
                                             
