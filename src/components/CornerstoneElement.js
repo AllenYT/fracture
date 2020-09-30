@@ -1,15 +1,21 @@
 import React, {Component} from "react"
 import StudyBrowserList from '../components/StudyBrowserList'
+import {CineDialog} from 'react-viewerbase'
+// import { WrappedStudyBrowser } from '../components/wrappedStudyBrowser'
 import ReactHtmlParser from 'react-html-parser'
 import dicomParser from 'dicom-parser'
 import reactDom, {render} from "react-dom"
+// import DndProcider from 'react-dnd'
+// import {HTML5Backend} from 'react-dnd-html5-backend'
+import { DragDropContextProvider } from 'react-dnd'
+import { HTML5Backend } from 'react-dnd-html5-backend'
 import * as cornerstone from "cornerstone-core"
 import * as cornerstoneMath from "cornerstone-math"
 import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu,Label } from 'semantic-ui-react'
+import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu,Label, Card, Header,Progress } from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
@@ -21,6 +27,7 @@ import { Chart } from '@antv/g2'
 import DataSet from '@antv/data-set'
 import src1 from '../images/scu-logo.jpg'
 import $ from  'jquery'
+// import { WrappedStudyBrowser } from "./wrappedStudyBrowser"
 
 
 
@@ -47,8 +54,9 @@ const LengthTool = cornerstoneTools.LengthTool
 const ZoomTouchPinchTool = cornerstoneTools.ZoomTouchPinchTool
 const eraser = cornerstoneTools.EraserTool
 const {Column, HeaderCell, Cell, Pagination} = Table
-let allROIToolData = {};
-let toolROITypes = ['EllipticalRoi','Bidirectional']; 
+let allROIToolData = {}
+let toolROITypes = ['EllipticalRoi','Bidirectional']
+let playTimer = undefined
 // , 'RectangleRoi', 'ArrowAnnotate', 'Length', 'CobbAngle', 'Angle', 'FreehandRoi', 'Calibration'
 // const divStyle = {
 //     width: "512px",//768px
@@ -69,28 +77,28 @@ const immersiveStyle = {
 
 const bottomLeftStyle = {
     bottom: "5px",
-    left: "5px",
+    left: "-95px",
     position: "absolute",
     color: "white"
 }
 
 const bottomRightStyle = {
     bottom: "5px",
-    right: "5px",
+    right: "-95px",
     position: "absolute",
     color: "white"
 }
 
 const topLeftStyle = {
     top: "5px",
-    left: "5px",
+    left: "-95px", // 5px
     position: "absolute",
     color: "white"
 }
 
 const topRightStyle = {
     top: "5px",
-    right: "5px",
+    right: "-95px", //5px
     position: "absolute",
     color: "white"
 }
@@ -119,10 +127,9 @@ const selectStyle = {
     'border': 'none',
     // 'fontFamily': 'SimHei',
     'WebkitAppearance':'none',
-    'fontSize':'medium',
+    // 'fontSize':'medium',
     'MozAppearance':'none',
     'apperance': 'none',
-    
 }
 
 const lowRiskStyle = {
@@ -130,7 +137,7 @@ const lowRiskStyle = {
     'border': 'none',
     // 'fontFamily': 'SimHei',
     'WebkitAppearance':'none',
-    'fontSize':'medium',
+    'fontSize':'small',
     'MozAppearance':'none',
     'apperance': 'none',
     'color':'green'
@@ -141,7 +148,7 @@ const highRiskStyle = {
     'border': 'none',
     // 'fontFamily': 'SimHei',
     'WebkitAppearance':'none',
-    'fontSize':'medium',
+    'fontSize':'small',
     'MozAppearance':'none',
     'apperance': 'none',
     'color':'#CC3300'
@@ -151,7 +158,7 @@ const middleRiskStyle = {
     'border': 'none',
     // 'fontFamily': 'SimHei',
     'WebkitAppearance':'none',
-    'fontSize':'medium',
+    'fontSize':'small',
     'MozAppearance':'none',
     'apperance': 'none',
     'color':'#fcaf17'
@@ -209,6 +216,12 @@ class CornerstoneElement extends Component {
             prePosition:0,
             curPosition:0,
             doubleClick:false,
+            studyList:props.studyList,
+            menuTools:'',
+            isPlaying: false,
+            // cineFrameRate: 24,
+            // isLoopEnabled: true,
+            // lastChange: '',
             // list:[],
             // malignancy: -1,
             // calcification: -1,
@@ -323,8 +336,14 @@ class CornerstoneElement extends Component {
         this.delNodule = this
             .delNodule
             .bind(this)
-        this.cache = this
-            .cache
+        this.playAnimation = this
+            .playAnimation
+            .bind(this)
+        this.pauseAnimation = this
+            .pauseAnimation
+            .bind(this)
+        this.Animation = this
+            .Animation
             .bind(this)
         this.closeModalNew = this
             .closeModalNew
@@ -371,16 +390,39 @@ class CornerstoneElement extends Component {
         this.disableAllTools = this
             .disableAllTools
             .bind(this)
-        this.lengthMeasure = this.lengthMeasure.bind(this)
-        this.featureAnalysis = this.featureAnalysis.bind(this)
-        this.eraseLabel = this.eraseLabel.bind(this)
-        this.startAnnos = this.startAnnos.bind(this)
-        this.saveTest = this.saveTest.bind(this)
-        this.slide = this.slide.bind(this)
-        this.wwwcCustom = this.wwwcCustom.bind(this)
-        this.onWheel = this.onWheel.bind(this)
-        this.wheelHandle = this.wheelHandle.bind(this)
-        this.onMouseOver = this.onMouseOver.bind(this)
+        this.lengthMeasure = this
+            .lengthMeasure
+            .bind(this)
+        this.featureAnalysis = this
+            .featureAnalysis
+            .bind(this)
+        this.eraseLabel = this
+            .eraseLabel
+            .bind(this)
+        this.startAnnos = this
+            .startAnnos
+            .bind(this)
+        this.saveTest = this
+            .saveTest
+            .bind(this)
+        this.slide = this
+            .slide
+            .bind(this)
+        this.wwwcCustom = this
+            .wwwcCustom
+            .bind(this)
+        this.onWheel = this
+            .onWheel
+            .bind(this)
+        this.wheelHandle = this
+            .wheelHandle
+            .bind(this)
+        this.onMouseOver = this
+            .onMouseOver
+            .bind(this)
+        // this.cacheImage = this
+        //     .cacheImage
+        //     .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -609,10 +651,53 @@ class CornerstoneElement extends Component {
         
     }
 
-    cache() {//coffee button
-        for (var i = this.state.imageIds.length - 1; i >= 0; i--) {
-            this.refreshImage(false, this.state.imageIds[i], i)
+    playAnimation() {//coffee button
+        // this.setState({cacheModal:true})
+        // for (var i = this.state.imageIds.length - 1; i >= 0; i--) {
+        //     this.refreshImage(false, this.state.imageIds[i], i)
+        // }
+
+        // for (var i = 0; i < this.state.imageIds.length; i++) {
+        //     this.refreshImage(false, this.state.imageIds[i], i)
+        // }
+        this.setState(({isPlaying}) => ({
+            isPlaying: !isPlaying
+        }))
+        playTimer = setInterval(() => this.Animation(), 1000)
+        // if(this.state.isPlaying){ //true
+        //     var playTimer = setTimeout(function(){
+        //         //your codes
+
+        //         var curIdx = this.state.currentIdx
+        //         if(curIdx < imageIdsLength - 1){
+        //             this.refreshImage(false, this.state.imageIds[curIdx+1], curIdx+1)
+        //         }
+        //         else{
+        //             this.refreshImage(false, this.state.imageIds[0], 0)
+        //         }         
+        //     },1000);
+        // }
+        // else{
+        //     clearInterval(playTimer)
+        // }
+    }
+
+    pauseAnimation(){
+        this.setState(({isPlaying}) => ({
+            isPlaying: !isPlaying
+        }))
+        clearInterval(playTimer)
+    }
+
+    Animation(){
+        const imageIdsLength  = this.state.imageIds.length
+        var curIdx = this.state.currentIdx
+        if(curIdx < imageIdsLength - 1){
+            this.refreshImage(false, this.state.imageIds[curIdx+1], curIdx+1)
         }
+        else{
+            this.refreshImage(false, this.state.imageIds[0], 0)
+        }  
     }
 
     nextPath(path) {
@@ -817,15 +902,6 @@ class CornerstoneElement extends Component {
         })
     }
 
-    // getMal(val) {
-    //     if (val === 1) {
-    //         return "良性"
-    //     } else if (val === 2) {
-    //         return "恶性"
-    //     } else 
-    //         return "不存在的性质"
-    // }
-
     toMyAnno() {
         window.location.href = '/case/' + this.state.caseId + '/' + localStorage.getItem('username')
     }
@@ -848,19 +924,6 @@ class CornerstoneElement extends Component {
             console.log('err: ' + err)
         })
     }
-
-    // forEachViewport(callback) {
-    //     var elements = $('.viewport');
-    //     $.each(elements, function(index, value) {
-    //         var element = value;
-    //         try {
-    //             callback(element);
-    //         }
-    //         catch(e) {
-    
-    //         }
-    //     });
-    // }
 
     disableAllTools(element){
         cornerstoneTools.setToolDisabledForElement(element, 'Pan',
@@ -885,18 +948,18 @@ class CornerstoneElement extends Component {
         this.disableAllTools(element)
         // cornerstoneTools.addToolForElement(element,ellipticalRoi)
         // cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
-        this.setState({leftButtonTools:0})
+        this.setState({leftButtonTools:0,menuTools:'anno'})
     }
 
     slide(){
         const element = document.querySelector('#origin-canvas')
         this.disableAllTools(element)
-        this.setState({leftButtonTools:1})
+        this.setState({leftButtonTools:1,menuTools:'slide'})
         //切换切片
     }
 
     wwwcCustom(){
-        this.setState({leftButtonTools:2})
+        this.setState({leftButtonTools:2,menuTools:'wwwc'})
         const element = document.querySelector('#origin-canvas')
         cornerstoneTools.addToolForElement(element, wwwc)
                 cornerstoneTools.setToolActiveForElement(
@@ -1034,7 +1097,7 @@ class CornerstoneElement extends Component {
         // sessionStorage.clear()
         // console.log('boxes', this.state.boxes)
         // console.log('boxes', this.state.username)
-        const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, wcDefine, dicomTag} = this.state
+        const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, wcDefine, dicomTag, studyList, menuTools, cacheModal} = this.state
         // console.log('dicomTag',dicomTag.elements)
         // var keys = [];
         // for(var propertyName in dicomTag.elements) {
@@ -1123,6 +1186,8 @@ class CornerstoneElement extends Component {
         //     )
         // }
 
+        
+
         if (this.state.draftStatus === '0') 
             submitButton = (
                 <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
@@ -1191,7 +1256,7 @@ class CornerstoneElement extends Component {
             )
 
         if (!this.state.immersive) {
-            
+           
             // if (this.state.readonly) {
             //     // console.log(this.state.boxes)
                 
@@ -1223,6 +1288,7 @@ class CornerstoneElement extends Component {
             //         })
             // } 
             // else {
+                
                 tableContent = this
                     .state
                     .boxes
@@ -1285,7 +1351,7 @@ class CornerstoneElement extends Component {
                         if(inside.malignancy === -1){
                             if(this.state.readonly){
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
@@ -1295,14 +1361,14 @@ class CornerstoneElement extends Component {
                                     </Grid.Column>
                                 )
                                 probContnt=(
-                                    <Grid.Column width={4} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <div>(概率:{Math.floor(inside.malProb*10000)/100}%)</div>
                                     </Grid.Column>
                                 )
                             }
                             else{
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
@@ -1315,7 +1381,7 @@ class CornerstoneElement extends Component {
                         else if(inside.malignancy===1){
                             if(this.state.readonly){
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <select id={malId} style={lowRiskStyle} value={"1"} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
@@ -1325,14 +1391,14 @@ class CornerstoneElement extends Component {
                                     </Grid.Column>
                                 )
                                 probContnt=(
-                                    <Grid.Column width={4} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <div style={{color:'green'}}>(概率:{Math.floor(inside.malProb*10000)/100}%)</div>
                                     </Grid.Column>
                                 )
                             }
                             else{
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <select id={malId} style={lowRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
@@ -1345,7 +1411,7 @@ class CornerstoneElement extends Component {
                         else if(inside.malignancy===2){
                             if(this.state.readonly){
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='left'>
+                                    <Grid.Column width={3} textAlign='left'>
                                         <select id={malId} style={highRiskStyle} value={"2"} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
@@ -1355,14 +1421,14 @@ class CornerstoneElement extends Component {
                                     </Grid.Column>
                                 )
                                 probContnt=(
-                                    <Grid.Column width={4} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <div style={{color:'#CC3300'}}>(概率:{Math.floor(inside.malProb*10000)/100}%)</div>
                                     </Grid.Column>
                                 )
                             }
                             else{
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='left'>
+                                    <Grid.Column width={3} textAlign='left'>
                                         <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1" >低危</option>
@@ -1375,7 +1441,7 @@ class CornerstoneElement extends Component {
                         else if(inside.malignancy===3){
                             if(this.state.readonly){
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='left'>
+                                    <Grid.Column width={3} textAlign='left'>
                                         <select id={malId} style={middleRiskStyle} value={"3"} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
@@ -1385,14 +1451,14 @@ class CornerstoneElement extends Component {
                                     </Grid.Column>
                                 )
                                 probContnt=(
-                                    <Grid.Column width={4} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <div style={{color:'#fcaf17'}}>(概率:{Math.floor(inside.malProb*10000)/100}%)</div>
                                     </Grid.Column>
                                 )
                             }
                             else{
                                 malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='left'>
+                                    <Grid.Column width={3} textAlign='left'>
                                         <select id={malId} style={middleRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1" >低危</option>
@@ -1403,16 +1469,17 @@ class CornerstoneElement extends Component {
                             }
                         }
                         return (
-                            <div key={idx}>
+                            <div key={idx} className='highlightTbl'>
+                                
                                 <Accordion.Title onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
                                 active={listsActiveIndex===idx} index={idx} >
                                     {/* <div style={{minWidth:600}}> */}
                                     <Grid>
-                                        <Grid.Row >
+                                        <Grid.Row>
                                             <Grid.Column width={1}>
                                                 <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                             </Grid.Column>
-                                            <Grid.Column width={6} textAlign='center'>
+                                            <Grid.Column width={7} textAlign='center'>
                                             {
                                         this.state.readonly?<Dropdown  style={selectStyle} text={dropdownText} disabled/>:
                                         idx<8?
@@ -1662,13 +1729,13 @@ class CornerstoneElement extends Component {
                                 </div> */}
                                 {
                                     this.state.readonly?
-                                    <Grid.Column width={2} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <select id={texId} style={selectStyle} defaultValue="" disabled>
                                         <option value="" disabled="disabled">亚型未选</option>
                                         </select>
                                     </Grid.Column>
                                     :
-                                    <Grid.Column width={2} textAlign='center'>
+                                    <Grid.Column width={3} textAlign='center'>
                                         <select id={texId} style={selectStyle} defaultValue="" disabled>
                                         <option value="" disabled="disabled">选择亚型</option>
                                         </select>
@@ -1690,7 +1757,7 @@ class CornerstoneElement extends Component {
                                 </div> */}
                                 {
                                     this.state.readonly?null:
-                                    <Grid.Column width={4} textAlign='right'>
+                                    <Grid.Column width={1} textAlign='center'>
                                         <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
                                     </Grid.Column>
                                     // <div style={{display:'inline-block',marginLeft:50}}>
@@ -1701,8 +1768,71 @@ class CornerstoneElement extends Component {
                                     </Grid.Row>
                                     </Grid>
                                 </Accordion.Title>
-                                <Accordion.Content active={listsActiveIndex===idx}>
-                                    <div style={{width:'100%'}}>
+                                <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
+                                    <Grid>
+                                        <Grid.Row>
+                                            <Grid.Column width={3}>
+                                                IM:{inside.slice_idx + 1}
+                                            </Grid.Column>
+                                            <Grid.Column width={4}>
+                                                <Icon name='crosshairs' size='mini'></Icon>
+                                                {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
+                                            </Grid.Column>
+                                            <Grid.Column width={3}>
+                                                {
+                                                inside.volume!==undefined?
+                                                (Math.floor(inside.volume * 100) / 100).toFixed(2)+'\xa0cm³'
+                                                :
+                                                null
+                                            }
+                                            </Grid.Column>
+                                            <Grid.Column width={4}>
+                                                    {inside.huMin!==undefined?
+                                                inside.huMin +'~' + inside.huMax + 'HU'
+                                                :
+                                                null
+                                                }
+                                            </Grid.Column>
+                                            <Grid.Column width={2}>
+                                                {
+                                                    // <div style={{display:'inline-block',width:'50%'}}>
+                                                        <Button size='mini' circular inverted
+                                                        icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis}>
+                                                        </Button>
+                                                    // </div>
+                                                
+                                                }
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                        <Grid.Row textAlign='center' verticalAlign='middle' centered>
+                                            <Grid.Column width={3}>
+                                                {this.state.readonly?
+                                                <select id={texId} style={selectStyle} value={inside.texture} onChange={this.onSelectTex} disabled>
+                                                    <option value="-1" disabled="disabled">选择性质</option>
+                                                    <option value="1">磨玻璃</option>
+                                                    <option value="2">实性</option>
+                                                    <option value="3">半实性</option>
+                                                </select>
+                                                :
+                                                <select id={texId} style={selectStyle} value={inside.texture} onChange={this.onSelectTex}>
+                                                    <option value="-1" disabled="disabled">选择性质</option>
+                                                    <option value="1">磨玻璃</option>
+                                                    <option value="2">实性</option>
+                                                    <option value="3">半实性</option>
+                                                </select>
+                                            }
+                                            </Grid.Column>
+                                            <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}}>表征:</Grid.Column>
+                                            <Grid.Column width={11} style={{paddingLeft:'0px',paddingRight:'0px'}}>
+                                                {this.state.readonly?
+                                                    <Dropdown multiple selection options={options} id='dropdown' icon='null' pointing='left' disabled
+                                                    defaultValue={representArray} />:
+                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' 
+                                                    defaultValue={representArray} />}
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                    </Grid>
+                                    {/* <div style={{width:'100%'}}>
                                         <div style={{fontSize:'medium',display:'inline-block',marginLeft:20}}>IM:{inside.slice_idx + 1}</div>
                                         <div style={{fontSize:'medium',display:'inline-block',marginLeft:40}}>
                                             {'Dia.:\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0\xa0cm'}</div>
@@ -1718,10 +1848,13 @@ class CornerstoneElement extends Component {
                                         :
                                         null
                                         }
-                                        
-                                        
-                                        
-                                        
+                                        {
+                                         <div style={{display:'inline-block',width:'50%'}}>
+                                            <Button
+                                            icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis}>
+                                            </Button>
+                                        </div>
+                                        }
                                     </div>
                                     <div style={{width:'100%',marginTop:'2%',borderBottom:'1px solid white'}}>
                                         {this.state.readonly?
@@ -1748,8 +1881,8 @@ class CornerstoneElement extends Component {
                                         <Dropdown multiple selection options={options} id='dropdown' icon='add circle' 
                                         defaultValue={representArray} style={{display:'inline-block',height:'15%',marginLeft:'10px'}}/>}
                                         
-                                    </div>
-                                    {
+                                    </div> */}
+                                    {/* {
                                         // this.state.readonly?
                                         // <div style={{width:'100%',marginTop:'2%'}}>
                                          <div style={{display:'inline-block',width:'50%'}}>
@@ -1766,7 +1899,7 @@ class CornerstoneElement extends Component {
                                        
                                         // </div>
                                        
-                                    }
+                                    } */}
 
                                      <Container>
                                         <div id={visualId}></div>
@@ -1780,269 +1913,197 @@ class CornerstoneElement extends Component {
             if (this.state.readonly) {
                 return (
                     <div>
-
                         {/* <div class='corner-header'> */}
-                            <Grid className='corner-header'>
-                                <Grid.Row>
-                                    <Grid.Column width={2} textAlign='center' verticalAlign='middle'>
-                                    <div>
-                                        <Image src={src1} avatar size='mini'/>
-                                        <a id='sys-name' href='/searchCase'>DeepLN肺结节全周期管理数据平台</a>
-                                    </div>
-                                    </Grid.Column>
-                                    <Grid.Column className='hucolumn' width={3}>
-                                        <Grid>
-                                            <Grid.Row columns='equal'>
-                                            <Button.Group>
-                                            <Grid.Column>
-                                                    <Button
-                                                        // inverted
-                                                        // color='black'
-                                                        onClick={this.toPulmonary}
-                                                        content='肺窗'
-                                                        className='hubtn'
-                                                        />
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    <Button
-                                                        // inverted
-                                                        // color='blue'
-                                                        onClick={this.toBoneWindow} //骨窗窗宽窗位函数
-                                                        content='骨窗'
-                                                        className='hubtn'
-                                                        />
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    <Button
-                                                        // inverted
-                                                        // color='blue'
-                                                        onClick={this.toVentralWindow} //腹窗窗宽窗位函数
-                                                        content='腹窗'
-                                                        className='hubtn'
-                                                        />
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    <Button
-                                                        // inverted
-                                                        // color='blue'
-                                                        onClick={this.toMedia}
-                                                        content='纵隔窗'
-                                                        className='hubtn'
-                                                        />
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    {/* <Button
-                                                        inverted
-                                                        color='blue'
-                                                        onClick={this.toMedia}
-                                                        className='hubtn'
-                                                        >自定义</Button> */}
-                                                        <Popup
-                                                    trigger={
-                                                        <Button
-                                                        // inverted
-                                                        // color='blue'
-                                                        // onClick={this.toMedia}
-                                                        className='hubtn'
-                                                        >自定义</Button>
-                                                    }
-                                                    content={
-                                                        <Form>
-                                                            <Form.Input
-                                                            label={`窗宽WW: ${wwDefine}`}
-                                                            min={100}
-                                                            max={2000}
-                                                            name='wwDefine'
-                                                            onChange={this.handleSliderChange}
-                                                            step={100}
-                                                            type='range'
-                                                            value={wwDefine}
-                                                            className='wwinput'
-                                                            />
-                                                            <Form.Input
-                                                            label={`窗位WC: ${wcDefine}`}
-                                                            min={-1000}
-                                                            max={2000}
-                                                            name='wcDefine'
-                                                            onChange={this.wcSlider}
-                                                            step={100}
-                                                            type='range'
-                                                            value={wcDefine}
-                                                            />
-                                                        </Form>
-                                                    }
-                                                    on='click'
-                                                    position='bottom center'
-                                                    id='defWindow'
-                                                />
-                                                </Grid.Column>                                                 
-                                                </Button.Group>
-                                            </Grid.Row>
-                                        </Grid>
-                                        
-                                    </Grid.Column>{' '}
-                                    {/* <span id='line-left'></span> */}
-                                    <Grid.Column className='funcolumn' width={5}>
-                                        <Grid>
-                                        <Grid.Row columns='equal'>
-                                                <Button.Group>
-                                                    <Grid.Column>
-                                                        <Button
-                                                            // inverted
-                                                            // color='blue'
-                                                            icon
-                                                            title='影像翻转'
-                                                            // style={{width:55,height:60,fontSize:14,fontSize:14}}
-                                                            onClick={this.imagesFilp}
-                                                            className='funcbtn'
-                                                            ><Icon name='retweet' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column> 
-                                                        <Button
-                                                            // inverted
-                                                            // color='blue'
-                                                            icon
-                                                            title='放大'
-                                                            // style={{width:55,height:60,fontSize:14,fontSize:14}}
-                                                            onClick={this.ZoomIn}
-                                                            className='funcbtn'
-                                                            ><Icon name='search plus' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column> 
-                                                        <Button
-                                                            // inverted
-                                                            // color='blue'
-                                                            icon
-                                                            title='缩小'
-                                                            // style={{width:55,height:60,fontSize:14}}
-                                                            onClick={this.ZoomOut}
-                                                            className='funcbtn'
-                                                            ><Icon name='search minus' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon onClick={this.reset} className='funcbtn' title='刷新'><Icon name='repeat' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon onClick={this.toHidebox} className='funcbtn' id='showNodule' title='显示结节'><Icon id="cache-button" name='eye' size='large'></Icon></Button>
-                                                        <Button icon onClick={this.toHidebox} className='funcbtn' id='hideNodule' title='隐藏结节'><Icon id="cache-button" name='eye slash' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon onClick={this.toHideInfo} className='funcbtn' id='showInfo' title='显示信息'><Icon id="cache-button" name='content' size='large'></Icon></Button>
-                                                        <Button icon onClick={this.toHideInfo} className='funcbtn' id='hideInfo' title='隐藏信息'><Icon id="cache-button" name='delete calendar' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    {/* <Grid.Column>
-                                                        <Button icon onClick={this.lengthMeasure} className='funcbtn' title='测量'><Icon name='edit' size='large'></Icon></Button>
-                                                    </Grid.Column> */}
-                                                    <Grid.Column>
-                                                        <Button className='funcbtn'
-                                                        onClick={() => {
-                                                            this.setState({immersive: true})
-                                                        }}
-                                                        icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    {
-                                                        this.state.newAnno?
-                                                        <Grid.Column>
-                                                            <Button icon onClick={this.clearthenFork} className='funcbtn' id='showNodule' title='新建标注'><Icon name='plus' size='large'></Icon></Button>
-                                                        </Grid.Column>
-                                                        :
-                                                        null
-                                                    }
-                                                </Button.Group>
-                                                {/* <Grid.Column>
-                                                <Dropdown
-                                                    // icon='filter'
-                                                    // floating
-                                                    // labeled
-                                                    button
-                                                    trigger={
-                                                        <Button icon><Icon name='filter'></Icon></Button>
-                                                    }
-                                                    className='toolsbtn'
-                                                >
-                                                    <Dropdown.Menu>
-                                                    <Dropdown.Item icon='eraser' onClick={this.eraseLabel}></Dropdown.Item>
-                                                    <Dropdown.Item icon='filter'></Dropdown.Item>
-                                                    <Dropdown.Item></Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
-                                                </Grid.Column> */}
-                                            </Grid.Row>
-                                        </Grid>
-                                    </Grid.Column>    
-                                    {/* <span id='line-right'></span> */}
-                                    <Grid.Column className='draftColumn' width={4}>
-                                        {/* {createDraftModal}  */}
-                                    </Grid.Column>
-                                
-                                    {/* <Accordion styled className='accordation' id='accord-left'>
-                                        <Accordion.Title
-                                            active={activeIndex === 0}
-                                            index={0}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            模型结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 0}>
-
-                                                {ReactHtmlParser(this.state.modelResults)}
-
-                                        </Accordion.Content>
-                                    </Accordion>
-                                    <Accordion styled className='accordation' id='accord-mid'>
-                                        <Accordion.Title
-                                            active={activeIndex === 1}
-                                            index={1}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            标注结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 1}>
-
-                                                {ReactHtmlParser(this.state.annoResults)}
-
-                                        </Accordion.Content>
-                                    </Accordion>
-                                    <Accordion styled className='accordation' id='accord-right'>
-                                        <Accordion.Title
-                                            active={activeIndex === 2}
-                                            index={2}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            审核结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 2}>
-
-                                                {ReactHtmlParser(this.state.reviewResults)}
-
-                                        </Accordion.Content>
-                                    </Accordion> */}
-                                    <Grid.Column>
-                                        <Menu id="header" pointing secondary>
-                                            <Menu.Item position='right'>
-                                                <Dropdown text={welcome}>
-                                                    <Dropdown.Menu id="logout-menu">
-                                                        <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
-                                                        <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
-                                                        <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
-                                                    </Dropdown.Menu>
-                                                </Dropdown>
-                                            </Menu.Item>
-                                        </Menu>
-                                        </Grid.Column>
-                                </Grid.Row>
-                            </Grid>
-                        {/* </div> */}
-                        {/* <div className='corner-contnt'> */}
+                        <Menu className='corner-header'>
+                            <Menu.Item>
+                                <Image src={src1} avatar size='mini'/>
+                                <a id='sys-name' href='/searchCase'>DeepLN肺结节全周期<br/>管理数据平台</a>
+                            </Menu.Item>
+                            <Menu.Item className='hucolumn'>
+                            <Button.Group>
+                                    <Button
+                                        // inverted
+                                        // color='black'
+                                        onClick={this.toPulmonary}
+                                        content='肺窗'
+                                        className='hubtn'
+                                        />
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        onClick={this.toBoneWindow} //骨窗窗宽窗位函数
+                                        content='骨窗'
+                                        className='hubtn'
+                                        />
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        onClick={this.toVentralWindow} //腹窗窗宽窗位函数
+                                        content='腹窗'
+                                        className='hubtn'
+                                        />
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        onClick={this.toMedia}
+                                        content='纵隔窗'
+                                        className='hubtn'
+                                        />
+                                    {/* <Button
+                                        inverted
+                                        color='blue'
+                                        onClick={this.toMedia}
+                                        className='hubtn'
+                                        >自定义</Button> */}
+                                        <Popup
+                                    trigger={
+                                        <Button
+                                        // inverted
+                                        // color='blue'
+                                        // onClick={this.toMedia}
+                                        className='hubtn'
+                                        >自定义</Button>
+                                    }
+                                    content={
+                                        <Form>
+                                            <Form.Input
+                                            label={`窗宽WW: ${wwDefine}`}
+                                            min={100}
+                                            max={2000}
+                                            name='wwDefine'
+                                            onChange={this.handleSliderChange}
+                                            step={100}
+                                            type='range'
+                                            value={wwDefine}
+                                            className='wwinput'
+                                            />
+                                            <Form.Input
+                                            label={`窗位WC: ${wcDefine}`}
+                                            min={-1000}
+                                            max={2000}
+                                            name='wcDefine'
+                                            onChange={this.wcSlider}
+                                            step={100}
+                                            type='range'
+                                            value={wcDefine}
+                                            />
+                                        </Form>
+                                    }
+                                    on='click'
+                                    position='bottom center'
+                                    id='defWindow'
+                                />                                               
+                                </Button.Group>
+                            </Menu.Item>
+                            <span id='line-left'></span>
+                            <Menu.Item className='funcolumn'>
+                            <Button.Group>
+                                    <Button
+                                    // inverted
+                                    // color='blue'
+                                    icon
+                                    title='灰度反转'
+                                    // style={{width:55,height:60,fontSize:14,fontSize:14}}
+                                    onClick={this.imagesFilp}
+                                    className='funcbtn'
+                                    ><Icon name='adjust' size='large'></Icon></Button>              
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        icon
+                                        title='放大'
+                                        // style={{width:55,height:60,fontSize:14,fontSize:14}}
+                                        onClick={this.ZoomIn}
+                                        className='funcbtn'
+                                        ><Icon name='search plus' size='large'></Icon></Button>
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        icon
+                                        title='缩小'
+                                        // style={{width:55,height:60,fontSize:14}}
+                                        onClick={this.ZoomOut}
+                                        className='funcbtn'
+                                        ><Icon name='search minus' size='large'></Icon></Button>
+                                    <Button icon onClick={this.reset} className='funcbtn' title='刷新'><Icon name='repeat' size='large'></Icon></Button>
+                                    {/* <Modal
+                                        basic
+                                        open={cacheModal}
+                                        size='small'
+                                        trigger={<Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button>}
+                                        >
+                                        <Header icon>
+                                            <Icon name='archive' />
+                                            Archive Old Messages
+                                        </Header>
+                                        <Modal.Content>
+                                            <p>
+                                            Your inbox is getting full, would you like us to enable automatic
+                                            archiving of old messages?
+                                            </p>
+                                        </Modal.Content>
+                                        <Modal.Actions>
+                                            <Button basic color='red'>
+                                            <Icon name='remove' /> No
+                                            </Button>
+                                            <Button color='green'>
+                                            <Icon name='checkmark' /> Yes
+                                            </Button>
+                                        </Modal.Actions>
+                                        </Modal> */}
+                                    <Button icon onClick={this.toHidebox} className='funcbtn' id='showNodule' title='显示结节'><Icon name='eye' size='large'></Icon></Button>
+                                    <Button icon onClick={this.toHidebox} className='funcbtn' id='hideNodule' title='隐藏结节'><Icon name='eye slash' size='large'></Icon></Button>
+                                    <Button icon onClick={this.toHideInfo} className='funcbtn' id='showInfo' title='显示信息'><Icon name='content' size='large'></Icon></Button>
+                                    <Button icon onClick={this.toHideInfo} className='funcbtn' id='hideInfo' title='隐藏信息'><Icon name='delete calendar' size='large'></Icon></Button>
+                                    <Button className='funcbtn'
+                                    onClick={() => {
+                                        this.setState({immersive: true})
+                                    }}
+                                    icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
+                                {
+                                    this.state.newAnno?
+                                        <Button icon onClick={this.clearthenFork} className='funcbtn' id='showNodule' title='新建标注'><Icon name='plus' size='large'></Icon></Button>
+                                    :
+                                    null
+                                }
+                            </Button.Group>
+                            </Menu.Item>
+                            <Menu.Item position='right'>
+                                <Dropdown text={welcome}>
+                                    <Dropdown.Menu id="logout-menu">
+                                        <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
+                                        <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
+                                        <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
+                                    </Dropdown.Menu>
+                                </Dropdown>
+                            </Menu.Item>
+                        </Menu>
                             <Grid celled className='corner-contnt'>
                                 <Grid.Row className='corner-row' columns={3}>
                                     <Grid.Column width={2}>
-                                        <StudyBrowserList />
+                                        {/* <DragDropContextProvider backend={HTML5Backend}> */}
+                                            {/* <StudyBrowserList /> */}
+                                        {/* </DragDropContextProvider> */}
+                                        {
+                                             studyList.map((inside,idx)=>{
+                                                 return(
+                                                <Card
+                                                    image='/images/avatar/large/elliot.jpg'
+                                                    header='Elliot Baker'
+                                                    meta='Friend'
+                                                    description='Elliot is a sound engineer living in Nashville who enjoys playing guitar and hanging with his cat.'
+                                                    // extra={extra}
+                                                />
+                                                 )
+                                                
+                                            })
+                                        }
                                     </Grid.Column>
-                                    <Grid.Column width={9} textAlign='center' id='canvas-column'>
+
+                                    <Grid.Column width={10} textAlign='center' id='canvas-column'>
+                                    
+
+                                    
                                     <div className='canvas-style'>
                                         <div
                                             id="origin-canvas"
@@ -2055,18 +2116,18 @@ class CornerstoneElement extends Component {
                                             {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                                             <div id='dicomTag'>
                                                 <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'20px',left:'5px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'35px',left:'5px'}}>{dicomTag.string('x00100020')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'50px',left:'5px'}}>{dicomTag.string('x00185100')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'65px',left:'5px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                                                <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
                                                 <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'20px',right:'5px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'35px',right:'5px'}}>{dicomTag.string('x00090010')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'50px',right:'5px'}}>{dicomTag.string('x0008103e')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'65px',right:'5px'}}>{dicomTag.string('x00080020')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'80px',right:'5px'}}>T: {dicomTag.string('x00180050')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
                                             </div>
-                                            <div style={{position:'absolute',color:'white',bottom:'20px',left:'5px'}}>Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
+                                            <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
                                             </div>
                                             <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
                                             <div style={bottomRightStyle}>
@@ -2108,48 +2169,17 @@ class CornerstoneElement extends Component {
 
                                     </div>
                                     </Grid.Column>
-                                    <Grid.Column width={5} > 
+                                    
+                                    <Grid.Column width={4}> 
                                         {/* <h3 id="annotator-header">标注人：{window
                                                     .location
                                                     .pathname
                                                     .split('/')[3]}{StartReviewButton}</h3> */}
                                         <div id='listTitle'>
                                                 <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
-                                                {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
-                                                {/* <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px',verticalAlign:'top'}}>
-                                                    <Button
-                                                        inverted
-                                                        color='blue'
-                                                        onClick={this.temporaryStorage}
-                                                        // id='tempStore'
-                                                    >暂存</Button>
-                                                    {submitButton}
-                                                </div> */}
                                                 
                                         </div>
                                         <div id='elec-table'>
-                                            {/* <div className='table-head'>
-                                                <Table inverted singleLine id="nodule-table" fixed celled > 
-                                                    <Table.Header>
-                                                        <Table.Row>
-                                                            <Table.HeaderCell>切片号</Table.HeaderCell>
-                                                            <Table.HeaderCell>结节编号</Table.HeaderCell>
-                                                            <Table.HeaderCell>定位</Table.HeaderCell>
-                                                            <Table.HeaderCell>直径</Table.HeaderCell>
-                                                            <Table.HeaderCell>性质</Table.HeaderCell>
-                                                            <Table.HeaderCell>危险程度</Table.HeaderCell>
-                                                            <Table.HeaderCell>操作</Table.HeaderCell>
-                                                        </Table.Row>
-                                                    </Table.Header>
-                                                </Table>
-                                            </div> */}
-                                            {/* <div className='table-body'>
-                                                <Table id='table-color' fixed >
-                                                    <Table.Body id='body-color'> 
-                                                        {tableContent}
-                                                    </Table.Body>
-                                                </Table>
-                                            </div> */}
                                             <Accordion styled id="cornerstone-accordion" fluid>
                                                 {tableContent}
                                             </Accordion>
@@ -2168,290 +2198,228 @@ class CornerstoneElement extends Component {
             } else {
                 return (
                     <div id="cornerstone">
-                        {/* <div class='corner-header'> */}
-                            <Grid className='corner-header'>
-                                <Grid.Row>
-                                    <Grid.Column width={2} textAlign='center' verticalAlign='middle'>
+                        <Menu className='corner-header'>
+                            <Menu.Item>
+                                <Image src={src1} avatar size='mini'/>
+                                <a id='sys-name' href='/searchCase'>DeepLN肺结节全周期<br/>管理数据平台</a>
+                            </Menu.Item>
+                            <Menu.Item className='hucolumn'>
+                                <Button.Group>
+                                    <Button
+                                        // inverted
+                                        // color='black'
+                                        onClick={this.toPulmonary}
+                                        content='肺窗'
+                                        className='hubtn'
+                                        />
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        onClick={this.toBoneWindow} //骨窗窗宽窗位函数
+                                        content='骨窗'
+                                        className='hubtn'
+                                        />
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        onClick={this.toVentralWindow} //腹窗窗宽窗位函数
+                                        content='腹窗'
+                                        className='hubtn'
+                                        />
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        onClick={this.toMedia}
+                                        content='纵隔窗'
+                                        className='hubtn'
+                                        />
+                                    {/* <Button
+                                        inverted
+                                        color='blue'
+                                        onClick={this.toMedia}
+                                        className='hubtn'
+                                        >自定义</Button> */}
+                                        <Popup
+                                    trigger={
+                                        <Button
+                                        // inverted
+                                        // color='blue'
+                                        // onClick={this.toMedia}
+                                        className='hubtn'
+                                        >自定义</Button>
+                                    }
+                                    content={
+                                        <Form>
+                                            <Form.Input
+                                            label={`窗宽WW: ${wwDefine}`}
+                                            min={100}
+                                            max={2000}
+                                            name='wwDefine'
+                                            onChange={this.handleSliderChange}
+                                            step={100}
+                                            type='range'
+                                            value={wwDefine}
+                                            className='wwinput'
+                                            />
+                                            <Form.Input
+                                            label={`窗位WC: ${wcDefine}`}
+                                            min={-1000}
+                                            max={2000}
+                                            name='wcDefine'
+                                            onChange={this.wcSlider}
+                                            step={100}
+                                            type='range'
+                                            value={wcDefine}
+                                            />
+                                        </Form>
+                                    }
+                                    on='click'
+                                    position='bottom center'
+                                    id='defWindow'
+                                    />                                               
+                                </Button.Group>
+                            </Menu.Item>
+                            <span id='line-left'></span>
+                            <Menu.Item className='funcolumn'>
+                            <Button.Group>
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        icon
+                                        title='灰度反转'
+                                        // style={{width:55,height:60,fontSize:14,fontSize:14}}
+                                        onClick={this.imagesFilp}
+                                        className='funcbtn'
+                                        ><Icon name='adjust' size='large'></Icon></Button>
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        icon
+                                        title='放大'
+                                        // style={{width:55,height:60,fontSize:14,fontSize:14}}
+                                        onClick={this.ZoomIn}
+                                        className='funcbtn'
+                                        ><Icon name='search plus' size='large'></Icon></Button>
+                                    <Button
+                                        // inverted
+                                        // color='blue'
+                                        icon
+                                        title='缩小'
+                                        // style={{width:55,height:60,fontSize:14}}
+                                        onClick={this.ZoomOut}
+                                        className='funcbtn'
+                                        ><Icon name='search minus' size='large'></Icon></Button>
+                                    <Button icon onClick={this.reset} className='funcbtn' title='刷新'><Icon name='repeat' size='large'></Icon></Button>
+                                    {!this.state.isPlaying?
+                                        <Button icon onClick={this.playAnimation} className='funcbtn' title='播放动画'><Icon name='play' size='large'></Icon></Button>:
+                                        <Button icon onClick={this.pauseAnimation} className='funcbtn' title='暂停动画'><Icon name='pause' size='large'></Icon></Button>
+                                    }
+                                    
+                                    {/* <Modal
+                                        basic
+                                        open={cacheModal}
+                                        size='small'
+                                        trigger={<Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button>}
+                                        >
+                                        <Header icon>
+                                            <Icon name='archive' />
+                                            影像缓存中...
+                                        </Header>
+                                        <Modal.Content>
+                                            <Progress value={this.state.currentIdx+1} total={this.state.imageIds.length} progress='ratio'/>
+                                        </Modal.Content>
+                                        </Modal> */}
+                                    {({ state, setState }) => (
+                                        <Grid>
                                         <div>
-                                            <Image src={src1} avatar size='mini'/>
-                                            <a id='sys-name' href='/searchCase'>DeepLN肺结节全周期管理数据平台</a>
+                                            <pre>{JSON.stringify(state, null, 2)}</pre>
                                         </div>
-                                    </Grid.Column>
-                                    <Grid.Column  className='hucolumn' width={4}>
-                                        <Grid>
-                                            <Grid.Row columns='equal' >
-                                                <Button.Group>
-                                                <Grid.Column>
-                                                    <Button
-                                                        // inverted
-                                                        // color='black'
-                                                        onClick={this.toPulmonary}
-                                                        content='肺窗'
-                                                        className='hubtn'
-                                                        />
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    <Button
-                                                        // inverted
-                                                        // color='blue'
-                                                        onClick={this.toBoneWindow} //骨窗窗宽窗位函数
-                                                        content='骨窗'
-                                                        className='hubtn'
-                                                        />
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    <Button
-                                                        // inverted
-                                                        // color='blue'
-                                                        onClick={this.toVentralWindow} //腹窗窗宽窗位函数
-                                                        content='腹窗'
-                                                        className='hubtn'
-                                                        />
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    <Button
-                                                        // inverted
-                                                        // color='blue'
-                                                        onClick={this.toMedia}
-                                                        content='纵隔窗'
-                                                        className='hubtn'
-                                                        />
-                                                </Grid.Column>
-                                                <Grid.Column>
-                                                    {/* <Button
-                                                        inverted
-                                                        color='blue'
-                                                        onClick={this.toMedia}
-                                                        className='hubtn'
-                                                        >自定义</Button> */}
-                                                        <Popup
-                                                    trigger={
-                                                        <Button
-                                                        // inverted
-                                                        // color='blue'
-                                                        // onClick={this.toMedia}
-                                                        className='hubtn'
-                                                        >自定义</Button>
-                                                    }
-                                                    content={
-                                                        <Form>
-                                                            <Form.Input
-                                                            label={`窗宽WW: ${wwDefine}`}
-                                                            min={100}
-                                                            max={2000}
-                                                            name='wwDefine'
-                                                            onChange={this.handleSliderChange}
-                                                            step={100}
-                                                            type='range'
-                                                            value={wwDefine}
-                                                            className='wwinput'
-                                                            />
-                                                            <Form.Input
-                                                            label={`窗位WC: ${wcDefine}`}
-                                                            min={-1000}
-                                                            max={2000}
-                                                            name='wcDefine'
-                                                            onChange={this.wcSlider}
-                                                            step={100}
-                                                            type='range'
-                                                            value={wcDefine}
-                                                            />
-                                                        </Form>
-                                                    }
-                                                    on='click'
-                                                    position='bottom center'
-                                                    id='defWindow'
-                                                />
-                                                </Grid.Column>
-                                                    
-                                                </Button.Group>
-                                            </Grid.Row>
-                                        </Grid>  
-                                    </Grid.Column>{' '}
-                                    {/* <span id='line-left'></span> */}
-                                    <Grid.Column className='funcolumn' width={4}>
-                                        <Grid>
-                                            <Grid.Row columns='equal'>
-                                                <Button.Group>
-                                                    <Grid.Column>
-                                                        <Button
-                                                            // inverted
-                                                            // color='blue'
-                                                            icon
-                                                            title='灰度反转'
-                                                            // style={{width:55,height:60,fontSize:14,fontSize:14}}
-                                                            onClick={this.imagesFilp}
-                                                            className='funcbtn'
-                                                            ><Icon name='adjust' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column> 
-                                                        <Button
-                                                            // inverted
-                                                            // color='blue'
-                                                            icon
-                                                            title='放大'
-                                                            // style={{width:55,height:60,fontSize:14,fontSize:14}}
-                                                            onClick={this.ZoomIn}
-                                                            className='funcbtn'
-                                                            ><Icon name='search plus' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column> 
-                                                        <Button
-                                                            // inverted
-                                                            // color='blue'
-                                                            icon
-                                                            title='缩小'
-                                                            // style={{width:55,height:60,fontSize:14}}
-                                                            onClick={this.ZoomOut}
-                                                            className='funcbtn'
-                                                            ><Icon name='search minus' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon onClick={this.reset} className='funcbtn' title='刷新'><Icon name='repeat' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon onClick={this.toHidebox} className='funcbtn' id='showNodule' title='显示结节'><Icon id="cache-button" name='eye' size='large'></Icon></Button>
-                                                        <Button icon onClick={this.toHidebox} className='funcbtn' id='hideNodule' title='隐藏结节'><Icon id="cache-button" name='eye slash' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon onClick={this.toHideInfo} className='funcbtn' id='showInfo' title='显示信息'><Icon id="cache-button" name='content' size='large'></Icon></Button>
-                                                        <Button icon onClick={this.toHideInfo} className='funcbtn' id='hideInfo' title='隐藏信息'><Icon id="cache-button" name='delete calendar' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    {/* <Grid.Column>
-                                                        <Button icon onClick={this.lengthMeasure} className='funcbtn' title='测量'><Icon name='edit' size='large'></Icon></Button>
-                                                    </Grid.Column> */}
-                                                    <Grid.Column>
-                                                        <Button
-                                                        onClick={() => {
-                                                            this.setState({immersive: true})
-                                                        }}
-                                                        icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                </Button.Group>
-                                                
-                                            </Grid.Row>
-                                        </Grid>    
-                                    </Grid.Column>{' '}
-                                    {/* <span id='line-right'></span> */}
-                                    <Grid.Column className='funcolumn' width={3}>
-                                        <Grid>
-                                            <Grid.Row columns='equal'>
-                                                {/* <Dropdown
-                                                    // icon='filter'
-                                                    // floating
-                                                    // labeled
-                                                    button
-                                                    trigger={
-                                                        <Button icon><Icon name='filter'></Icon></Button>
-                                                    }
-                                                    className='toolsbtn'>
-                                                    <Dropdown.Menu>
-                                                    <Dropdown.Item icon='eraser' onClick={this.eraseLabel} title='清除测量'></Dropdown.Item>
-                                                    <Dropdown.Item icon='filter'></Dropdown.Item>
-                                                    <Dropdown.Item icon='edit' onClick={this.startAnnos} title='标注'></Dropdown.Item>
-                                                    <Dropdown.Item icon='save' onClick={this.saveTest} title='标注'></Dropdown.Item>
-                                                    ///
-                                                    <Dropdown.Item icon='edit' onClick={this.startAnnos} title='标注'></Dropdown.Item>
-                                                    <Dropdown.Item icon='sort' title='切换切片' onClick={this.slide}></Dropdown.Item>
-                                                    <Dropdown.Item icon='sliders horizontal' title='窗宽窗位' onClick={this.wwwcCustom}></Dropdown.Item>
-                                                    </Dropdown.Menu>
-                                                </Dropdown> */}
-                                                <Button.Group>
-                                                    <Grid.Column>
-                                                        <Button icon onClick={this.startAnnos} title='标注' className='funcbtn'><Icon name='edit' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon title='切换切片' onClick={this.slide} className='funcbtn'><Icon name='sort' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon title='窗宽窗位' onClick={this.wwwcCustom} className='funcbtn'><Icon name='sliders' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        {submitButton}
-                                                    </Grid.Column>
-                                                    <Grid.Column>
-                                                        <Button title='3D' className='funcbtn'>3D</Button>
-                                                    </Grid.Column>
-                                                </Button.Group>
-                                            </Grid.Row>
+                                        <div style={{ maxWidth: '300px', margin: '0 auto' }}>
+                                            <CineDialog
+                                            {...state}
+                                            onClickSkipToStart={() =>
+                                                setState({ lastChange: 'Clicked SkipToStart' })
+                                            }
+                                            onClickSkipToEnd={() =>
+                                                setState({ lastChange: 'Clicked SkipToEnd' })
+                                            }
+                                            onClickNextButton={() => setState({ lastChange: 'Clicked Next' })}
+                                            onClickBackButton={() => setState({ lastChange: 'Clicked Back' })}
+                                            onLoopChanged={value => setState({ isLoopEnabled: value })}
+                                            onFrameRateChanged={value => setState({ cineFrameRate: value })}
+                                            onPlayPauseChanged={() => setState({ isPlaying: !state.isPlaying })}
+                                            />
+                                        </div>
                                         </Grid>
-                                        {/* {createDraftModal}  */}
-                                        {/* <Button inverted color = 'blue' className='hubtn' onClick={this.toMyAnno}>我的标注</Button> */}
-                                    </Grid.Column>
-                                    {/* <Accordion styled className='accordation' id='accord-left'>
-                                        <Accordion.Title
-                                            active={activeIndex === 0}
-                                            index={0}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            模型结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 0}>
-                                            
-                                                {ReactHtmlParser(this.state.modelResults)}
-                                            
-                                        </Accordion.Content>
-                                    </Accordion>
-
-                                    <Accordion styled className='accordation' id='accord-mid'>
-                                        <Accordion.Title
-                                            active={activeIndex === 1}
-                                            index={1}
-                                            onClick={this.handleClick}>
-                                            <Icon name='dropdown'/>
-                                            标注结果
-                                        </Accordion.Title>
-                                        <Accordion.Content active={activeIndex === 1}>
-                                            
-                                                {ReactHtmlParser(this.state.annoResults)}
-                                            
-                                        </Accordion.Content>
-                                    </Accordion>
+                                    )}
+                                    <Button icon onClick={this.toHidebox} className='funcbtn' id='showNodule' title='显示结节'><Icon id="cache-button" name='eye' size='large'></Icon></Button>
+                                    <Button icon onClick={this.toHidebox} className='funcbtn' id='hideNodule' title='隐藏结节'><Icon id="cache-button" name='eye slash' size='large'></Icon></Button>
+                                    <Button icon onClick={this.toHideInfo} className='funcbtn' id='showInfo' title='显示信息'><Icon id="cache-button" name='content' size='large'></Icon></Button>
+                                    <Button icon onClick={this.toHideInfo} className='funcbtn' id='hideInfo' title='隐藏信息'><Icon id="cache-button" name='delete calendar' size='large'></Icon></Button>
+                                    <Button
+                                    onClick={() => {
+                                        this.setState({immersive: true})
+                                    }}
+                                    icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
+                            </Button.Group>
+                                </Menu.Item>
+                                <span id='line-right'></span>
+                                <Menu.Item className='funcolumn'>
+                                    <Button.Group>
+                                        {menuTools === 'anno'?
+                                            <Button icon onClick={this.startAnnos} title='标注' className='funcbtn' active><Icon name='edit' size='large'></Icon></Button>:
+                                            <Button icon onClick={this.startAnnos} title='标注' className='funcbtn'><Icon name='edit' size='large'></Icon></Button>
+                                        }    
+                                        {menuTools === 'slide'?
+                                            <Button icon title='切换切片' onClick={this.slide} className='funcbtn' active><Icon name='sort' size='large'></Icon></Button>:
+                                            <Button icon title='切换切片' onClick={this.slide} className='funcbtn'><Icon name='sort' size='large'></Icon></Button>
+                                        }
                                         
-                                    <Accordion styled className='accordation' id='accord-right'>
-                                    <Accordion.Title
-                                        active={activeIndex === 2}
-                                        index={2}
-                                        onClick={this.handleClick}>
-                                        <Icon name='dropdown'/>
-                                        审核结果
-                                    </Accordion.Title>
-                                    <Accordion.Content active={activeIndex === 2}>
-                                        
-                                            {ReactHtmlParser(this.state.reviewResults)}
-                                        
-                                    </Accordion.Content>
-                                </Accordion> */}
-                                <Grid.Column>
-                                <Menu id="header" pointing secondary>
-                                    <Menu.Item position='right'>
-                                        <Dropdown text={welcome}>
-                                            <Dropdown.Menu id="logout-menu">
-                                                <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
-                                                <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
-                                                <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
-                                            </Dropdown.Menu>
-                                        </Dropdown>
-                                    </Menu.Item>
-                                </Menu>
-                                </Grid.Column>
-                                </Grid.Row>   
-                            </Grid>
-                        {/* </div> */}
-                        {/* <div class='corner-contnt'> */}
+                                        {menuTools === 'wwwc'?
+                                            <Button icon title='窗宽窗位' onClick={this.wwwcCustom} className='funcbtn' active><Icon name='sliders' size='large'></Icon></Button>:
+                                            <Button icon title='窗宽窗位' onClick={this.wwwcCustom} className='funcbtn'><Icon name='sliders' size='large'></Icon></Button>
+                                        }
+                                        <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
+                                        {submitButton}
+                                        <Button title='3D' className='funcbtn'>3D</Button>
+                                    </Button.Group>
+                                </Menu.Item>
+                                <Menu.Item position='right'>
+                                    <Dropdown text={welcome}>
+                                        <Dropdown.Menu id="logout-menu">
+                                            <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
+                                            <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
+                                            <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
+                                        </Dropdown.Menu>
+                                    </Dropdown>
+                                </Menu.Item>
+                            </Menu>
                             <Grid celled className='corner-contnt' >
                                 <Grid.Row className='corner-row' columns={3}>
                                     <Grid.Column width={2}>
-                                        <StudyBrowserList />
+                                        {/* <DragDropContextProvider backend={HTML5Backend}> */}
+                                            {/* <StudyBrowserList /> */}
+                                        {/* </DragDropContextProvider> */}
+                                        {/* {
+                                             studyList.map((inside,idx)=>{
+                                                 return(
+                                                <Card
+                                                    image='/images/avatar/large/elliot.jpg'
+                                                    header='Elliot Baker'
+                                                    meta='Friend'
+                                                    description='Elliot is a sound engineer living in Nashville who enjoys playing guitar and hanging with his cat.'
+                                                    // extra={extra}
+                                                />
+                                                 )
+                                                
+                                            })
+                                        } */}
                                     </Grid.Column>
-                                    <Grid.Column width={9} textAlign='center'>
-                                    <div className='canvas-style'>
+                                    <Grid.Column width={10} textAlign='center' id='canvas-column'>
+                                    {/* <div id='canvas-border'>
+
+                                    </div> */}
+                                    <div className='canvas-style' id='canvas-border'>
 
                                             <div
                                                 id="origin-canvas"
@@ -2463,18 +2431,18 @@ class CornerstoneElement extends Component {
                                                 {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                                                 <div id='dicomTag'>
                                                     <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'20px',left:'5px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'35px',left:'5px'}}>{dicomTag.string('x00100020')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'50px',left:'5px'}}>{dicomTag.string('x00185100')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'65px',left:'5px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                                                    <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                    <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
+                                                    <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
+                                                    <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
                                                     <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'20px',right:'5px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'35px',right:'5px'}}>{dicomTag.string('x00090010')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'50px',right:'5px'}}>{dicomTag.string('x0008103e')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'65px',right:'5px'}}>{dicomTag.string('x00080020')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'80px',right:'5px'}}>T: {dicomTag.string('x00180050')}</div>
+                                                    <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                    <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
+                                                    <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
+                                                    <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
+                                                    <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
                                                 </div>
-                                                <div className='dicomTag' style={{position:'absolute',color:'white',bottom:'20px',left:'5px'}}>Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
+                                                <div className='dicomTag' style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
                                                 </div>
                                                 <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
                                                 <div style={bottomRightStyle}>
@@ -2507,19 +2475,9 @@ class CornerstoneElement extends Component {
                                             }
                                         </div>
                                     </Grid.Column>
-                                    <Grid.Column width={5}> 
+                                    <Grid.Column width={4}> 
                                         <div id='listTitle'>
                                             <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
-                                            {/* <div style={{display:'inline-block',marginLeft:'80px',marginTop:'15px'}}>骨质病变：{calCount}处</div> */}
-                                            {/* <div style={{display:'inline-block',marginLeft:'70px',marginTop:'5px',verticalAlign:'top'}}>
-                                                <Button
-                                                    inverted
-                                                    color='blue'
-                                                    onClick={this.temporaryStorage}
-                                                    // id='tempStore'
-                                                >暂存</Button>
-                                                {submitButton}
-                                            </div> */}
                                         </div>
                                     
                                         {/* <h3 id="annotator-header">标注人：{window
@@ -2527,33 +2485,6 @@ class CornerstoneElement extends Component {
                                             .pathname
                                             .split('/')[3]}</h3> */}
                                         <div id='elec-table'>
-                                            {/* <div className='table-head'>
-                                                <Table
-                                                    inverted
-                                                    singleLine
-                                                    id="nodule-table"
-                                                    fixed>
-                                                    <Table.Header>
-                                                        <Table.Row>
-                                                            <Table.HeaderCell>切片号</Table.HeaderCell>
-                                                            <Table.HeaderCell>结节编号</Table.HeaderCell>
-                                                            <Table.HeaderCell>操作</Table.HeaderCell>
-                                                            <Table.HeaderCell>定位</Table.HeaderCell>
-                                                            <Table.HeaderCell>定性</Table.HeaderCell>
-                                                        </Table.Row>
-                                                    </Table.Header>
-                                                </Table>
-                                            </div>
-                                            <div className='table-body'>
-                                                <Table id='table-color' fixed>
-                                                
-                                                    <Table.Body id='body-color'>
-                                                        {tableContent}
-                                                    </Table.Body>
-                                                
-                                                </Table>
-                                            </div> */}
-                                            
                                             <Accordion styled id="cornerstone-accordion" fluid>
                                                 {tableContent}
                                             </Accordion>
@@ -2600,17 +2531,17 @@ class CornerstoneElement extends Component {
                             <canvas className="cornerstone-canvas" id="canvas"/>
                             {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                             <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                            <div style={{position:'absolute',color:'white',top:'20px',left:'5px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                            <div style={{position:'absolute',color:'white',top:'35px',left:'5px'}}>{dicomTag.string('x00100020')}</div>
-                            <div style={{position:'absolute',color:'white',top:'50px',left:'5px'}}>{dicomTag.string('x00185100')}</div>
-                            <div style={{position:'absolute',color:'white',top:'65px',left:'5px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                            <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                            <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
+                            <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
+                            <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
                             <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                            <div style={{position:'absolute',color:'white',top:'20px',right:'5px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                            <div style={{position:'absolute',color:'white',top:'35px',right:'5px'}}>{dicomTag.string('x00090010')}</div>
-                            <div style={{position:'absolute',color:'white',top:'50px',right:'5px'}}>{dicomTag.string('x0008103e')}</div>
-                            <div style={{position:'absolute',color:'white',top:'65px',right:'5px'}}>{dicomTag.string('x00080020')}</div>
-                            <div style={{position:'absolute',color:'white',top:'80px',right:'5px'}}>T: {dicomTag.string('x00180050')}</div>
-                            <div style={{position:'absolute',color:'white',bottom:'20px',left:'5px'}}>Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
+                            <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                            <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
+                            <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
+                            <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
+                            <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
+                            <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
                             </div>
                             <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
                             <div style={bottomRightStyle}>
@@ -2623,7 +2554,7 @@ class CornerstoneElement extends Component {
                     </div>
 
                     <div>
-                        <input
+                        {/* <input
                             className="invisible"
                             id="slice-slider"
                             onChange={this.handleRangeChange}
@@ -2632,7 +2563,7 @@ class CornerstoneElement extends Component {
                             name="volume"
                             step="1"
                             min="1"
-                            max={this.state.stack.imageIds.length}></input>
+                            max={this.state.stack.imageIds.length}></input> */}
                         <div id="immersive-button-container">
                             {/* <p>{this.state.currentIdx + 1}
                                 / {this.state.imageIds.length}</p> */}
@@ -2919,15 +2850,6 @@ class CornerstoneElement extends Component {
             }
         }
         
-        
-        // const el = event.target
-        // const clientX = event.clientX
-        // const clientY = event.clientY
-        // const canvasLeft = document.getElementById('canvas').offsetLeft
-        // const canvasTop = document.getElementById('canvas').offsetTop
-        // const canvasWidth = document.getElementById('canvas').clientWidth
-        // const canvasHeight = document.getElementById('canvas').clientHeight
-        // console.log(clientX,clientY,canvasLeft,canvasTop,canvasWidth)
         if (!this.state.immersive) {
             const transX = this.state.viewport.translation.x
             const transY = this.state.viewport.translation.y
@@ -3027,7 +2949,24 @@ class CornerstoneElement extends Component {
             if (newCurrentIdx >= 0) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
             }
-
+            // if(newCurrentIdx - 5 < 0){
+            //     for(var i = 0;i <= newCurrentIdx + 5 ;i++){
+            //         if(i === newCurrentIdx) continue
+            //         this.cacheImage(this.state.imageIds[i])
+            //     }
+            // }
+            // else if(newCurrentIdx + 5 > this.state.imageIds.length){
+            //     for(var i = this.state.imageIds.length - 1;i >= newCurrentIdx - 5 ;i--){
+            //         if(i === newCurrentIdx) continue
+            //         this.cacheImage(this.state.imageIds[i])
+            //     }
+            // }
+            // else{
+            //     for(var i = newCurrentIdx - 5;i <= newCurrentIdx + 5 ;i){
+            //         if(i === newCurrentIdx) continue
+            //         this.cacheImage(this.state.imageIds[i])
+            //     }
+            // }
         }
         if (event.which == 39 || event.which == 40) {
             event.preventDefault()
@@ -3035,6 +2974,24 @@ class CornerstoneElement extends Component {
             if (newCurrentIdx < this.state.imageIds.length) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
             }
+            // if(newCurrentIdx - 5 < 0){
+            //     for(var i = 0;i <= newCurrentIdx + 5 ;i++){
+            //         if(i === newCurrentIdx) continue
+            //         this.refreshImage(false, this.state.imageIds[i], newCurrentIdx)
+            //     }
+            // }
+            // else if(newCurrentIdx + 5 > this.state.imageIds.length){
+            //     for(var i = this.state.imageIds.length - 1;i >= newCurrentIdx - 5 ;i--){
+            //         if(i === newCurrentIdx) continue
+            //         this.refreshImage(false, this.state.imageIds[i], newCurrentIdx)
+            //     }
+            // }
+            // else{
+            //     for(var i = newCurrentIdx - 5;i <= newCurrentIdx + 5 ;i){
+            //         if(i === newCurrentIdx) continue
+            //         this.refreshImage(false, this.state.imageIds[i], newCurrentIdx)
+            //     }
+            // }
 
         }
         if (event.which == 72) {
@@ -3214,7 +3171,7 @@ class CornerstoneElement extends Component {
             viewport.invert = true;
         }
         cornerstone.setViewport(this.element, viewport)
-        this.setState({viewport})
+        this.setState({viewport, menuTools:''})
     }
 
     ZoomIn(){//放大
@@ -3256,7 +3213,7 @@ class CornerstoneElement extends Component {
         viewport.voi.windowWidth = 1600
         viewport.voi.windowCenter = -600
         cornerstone.setViewport(this.element, viewport)
-        this.setState({viewport})
+        this.setState({viewport,menuTools:''})
         console.log("to pulmonary", viewport)
     }
 
@@ -3265,7 +3222,7 @@ class CornerstoneElement extends Component {
         viewport.voi.windowWidth = 500
         viewport.voi.windowCenter = 50
         cornerstone.setViewport(this.element, viewport)
-        this.setState({viewport})
+        this.setState({viewport,menuTools:''})
         console.log("to media", viewport)
     }
 
@@ -3274,7 +3231,7 @@ class CornerstoneElement extends Component {
         viewport.voi.windowWidth = 1000
         viewport.voi.windowCenter = 300
         cornerstone.setViewport(this.element, viewport)
-        this.setState({viewport})
+        this.setState({viewport,menuTools:''})
         console.log("to media", viewport)
     }
 
@@ -3283,7 +3240,7 @@ class CornerstoneElement extends Component {
         viewport.voi.windowWidth = 400
         viewport.voi.windowCenter = 40
         cornerstone.setViewport(this.element, viewport)
-        this.setState({viewport})
+        this.setState({viewport,menuTools:''})
         console.log("to media", viewport)
     }
 
@@ -3391,12 +3348,14 @@ class CornerstoneElement extends Component {
     //暂存结节
     temporaryStorage() {
         this.setState({
-            random: Math.random()
+            random: Math.random(),
+            menuTools:''
         })
     }
 
     //提交结节
     submit() {
+        this.setState({menuTools:''})
         const token = localStorage.getItem('token')
         console.log('token', token)
         const headers = {
@@ -3418,6 +3377,7 @@ class CornerstoneElement extends Component {
 
     deSubmit() {
         const token = localStorage.getItem('token')
+        this.setState({menuTools:''})
         console.log('token', token)
         const headers = {
             'Authorization': 'Bearer '.concat(token)
@@ -3511,7 +3471,8 @@ class CornerstoneElement extends Component {
         // enabledElement.image.imageId})
     }
 
-    refreshImage(initial, imageId, newIdx) {
+    // refreshImage(initial, isDisplay, imageId, newIdx) {
+        refreshImage(initial, imageId, newIdx) {
         // console.log('refreshImage',initial)
         this.setState({autoRefresh: false})
 
@@ -3548,8 +3509,8 @@ class CornerstoneElement extends Component {
                     }
 
                 }
-                
                 cornerstone.displayImage(element, image)
+                
                 // var manager = globalImageIdSpecificToolStateManager.getImageIdToolState(image,'Bidirectional')
                 // console.log('manager',manager)
                
@@ -3635,26 +3596,28 @@ class CornerstoneElement extends Component {
                 //         ['Mouse']
                 //     )
                 // }
-                }
                 
+            element.addEventListener("cornerstoneimagerendered", this.onImageRendered)
+            element.addEventListener("cornerstonenewimage", this.onNewImage)
+            element.addEventListener("contextmenu", this.onRightClick)
+            // if (!this.state.readonly) {
+            element.addEventListener("mousedown", this.onMouseDown)
+            element.addEventListener("mousemove", this.onMouseMove)
+            element.addEventListener("mouseup", this.onMouseUp)
+            element.addEventListener("mouseout", this.onMouseOut)
+            element.addEventListener("mouseover",this.onMouseOver)
+            // }
 
-                element.addEventListener("cornerstoneimagerendered", this.onImageRendered)
-                element.addEventListener("cornerstonenewimage", this.onNewImage)
-                element.addEventListener("contextmenu", this.onRightClick)
-                if (!this.state.readonly) {
-                    element.addEventListener("mousedown", this.onMouseDown)
-                    element.addEventListener("mousemove", this.onMouseMove)
-                    element.addEventListener("mouseup", this.onMouseUp)
-                    element.addEventListener("mouseout", this.onMouseOut)
-                    element.addEventListener("mouseover",this.onMouseOver)
-                }
-
-                document.addEventListener("keydown", this.onKeydown)
-
+            document.addEventListener("keydown", this.onKeydown)
+            }
                 // window.addEventListener("resize", this.onWindowResize) if (!initial) {
                 // this.setState({currentIdx: newIdx}) }
             })
     }
+
+    // cacheImage(imageId){
+    //     cornerstone.loadAndCacheImage(imageId)
+    // }
 
     checkHash() {
         const noduleNo = this.props.stack.noduleNo
@@ -3829,4 +3792,4 @@ class CornerstoneElement extends Component {
     }
 }
 
-export default withRouter(CornerstoneElement)
+export default CornerstoneElement

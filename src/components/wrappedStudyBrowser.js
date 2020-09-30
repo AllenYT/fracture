@@ -1,13 +1,17 @@
-import React, {Component} from "react"
-import {StudyBrowser, Thumbnail} from 'react-viewerbase'
-import qs from 'qs'
-import axios from "axios"
+import React, { Component } from 'react';
+import { DragDropContext } from 'react-dnd';
+import { TouchBackend } from 'react-dnd-touch-backend';
 
+//
+// import {
+//   studies,
+//   onThumbnailClick,
+//   onThumbnailDoubleClick,
+// } from './exampleStudies.js';
+// import ExampleDropTarget from './ExampleDropTarget.js';
+import { StudyBrowser } from 'react-viewerbase';
 
-const config = require('../config.json')
-const recordConfig = config.record
-
-class StudyBrowserList extends Component{
+class StudyBrowserContainer extends Component {
     constructor(props) {
         super(props);
         this.state = {
@@ -43,21 +47,30 @@ class StudyBrowserList extends Component{
             ]
         }
     }
-    
-    componentDidMount(){
-        
-    }
-
-
-    render(){
-        const {studies} = this.state
-        return(
-             <div>
-                 <StudyBrowser studies={studies} />
-            </div>
-        )
-       
-    }
+  render() {
+    //const viewportData = [null, null, null, null];
+    const {studies} = this.state 
+    return (
+      <React.Fragment>
+        {/* <ExampleDropTarget /> */}
+        <StudyBrowser
+          studies={studies}
+        //   onThumbnailClick={onThumbnailClick}
+        //   onThumbnailDoubleClick={onThumbnailDoubleClick}
+        />
+      </React.Fragment>
+    );
+  }
 }
 
-export default StudyBrowserList
+// Note:
+// Normally, the top level APP component is wrapped with the DragDropContext
+// We wrap this component to create a simple/local example.
+const WrappedStudyBrowser = DragDropContext(
+  TouchBackend({ enableMouseEvents: true }),
+  null,
+  true
+)(StudyBrowserContainer);
+
+// http://react-dnd.github.io/react-dnd/docs/api/drag-drop-context
+export { WrappedStudyBrowser };

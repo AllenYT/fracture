@@ -737,7 +737,7 @@ export class SearchNodulePanel extends Component {
                                                     <Input id="searchBoxleft" placeholder="cm" onChange={this.handleInputChange} name='left'/>
                                                     <em>&nbsp;&nbsp;-&nbsp;&nbsp;</em>
                                                     <Input id="searchBoxright" placeholder="cm" onChange={this.handleInputChange} name='right'/>
-                                                    <a style={{marginLeft:15,color:'#66cfec',fontSize:20}}>cm</a>
+                                                    <a style={{marginLeft:15,color:'#66cfec',fontSize:16.8}}>cm</a>
                                                     <em>&nbsp;&nbsp;&nbsp;&nbsp;</em>
                                                     <Button 
                                                         icon='add'

@@ -426,14 +426,14 @@ class MiniReport extends Component{
                 {
                     this.props.type==='影像所见'?
                 <Grid.Row verticalAlign='middle' columns={4} style={{height:40}}>
-                    <Grid.Column textAlign='left' width={4}>
+                    <Grid.Column textAlign='left' width={8}>
                         <div style={{fontSize:18}}></div>
                     </Grid.Column>
                     <Grid.Column width={4} textAlign='right'>
                         {/* <Dropdown style={{background:'none',fontSize:18}} text='结节排序'></Dropdown> */}
                     </Grid.Column>
-                    <Grid.Column textAlign='center' width={4}>
-                    <Modal trigger={<Button icon='expand arrows alternate' content='放大' className='inverted blue button'  onClick={this.showImages}></Button>}>
+                    <Grid.Column textAlign='center' width={2}>
+                    <Modal trigger={<Button icon='expand arrows alternate' title='放大' className='inverted blue button'  onClick={this.showImages}></Button>}>
                         
                         <Modal.Header>
                             <Grid>
@@ -633,8 +633,8 @@ class MiniReport extends Component{
                         
                     </Modal>
                     </Grid.Column>
-                    <Grid.Column textAlign='left' width={4}>
-                        <Button content='复制' className='inverted blue button' onClick={this.handleCopyClick}></Button>
+                    <Grid.Column textAlign='left' width={2}>
+                        <Button title='复制' className='inverted blue button' icon='copy outline' onClick={this.handleCopyClick}></Button>
                     </Grid.Column>
                 </Grid.Row>
                 :
@@ -650,8 +650,8 @@ class MiniReport extends Component{
                             </Dropdown.Menu>
                         </Dropdown>
                     </Grid.Column>
-                    <Grid.Column textAlign='center' width={4}>
-                        <Button content='复制' className='inverted blue button' onClick={this.handleCopyClick}></Button>
+                    <Grid.Column textAlign='center' width={2}>
+                        <Button title='复制' className='inverted blue button' icon='copy outline' onClick={this.handleCopyClick}></Button>
                     </Grid.Column>
                 </Grid.Row>
                 }

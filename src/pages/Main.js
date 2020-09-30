@@ -223,7 +223,7 @@ class Main extends Component {
                 console.log('标注界面')
                 logButtonPlace =(
                     <Menu id="header" pointing secondary>
-                        {mainMenus}
+                        {/* {mainMenus} */}
                         <Menu.Item position='right'>
                             <Dropdown text={welcome}>
                                 <Dropdown.Menu id="logout-menu">
