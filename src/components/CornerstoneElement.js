@@ -1335,7 +1335,7 @@ class CornerstoneElement extends Component {
                             if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={3} textAlign='left'>
-                                        <select id={malId} style={highRiskStyle} value={"2"} onChange={this.onSelectMal} disabled>
+                                        <select id={malId} style={middleRiskStyle} value={"2"} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
                                             <option value="2">中危</option>
@@ -1352,7 +1352,7 @@ class CornerstoneElement extends Component {
                             else{
                                 malignancyContnt = (
                                     <Grid.Column width={3} textAlign='left'>
-                                        <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                                        <select id={malId} style={middleRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
                                             <option value="2">中危</option>
@@ -1366,7 +1366,7 @@ class CornerstoneElement extends Component {
                             if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={3} textAlign='left'>
-                                        <select id={malId} style={middleRiskStyle} value={"3"} onChange={this.onSelectMal} disabled>
+                                        <select id={malId} style={highRiskStyle} value={"3"} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
                                             <option value="2">中危</option>
@@ -1383,7 +1383,7 @@ class CornerstoneElement extends Component {
                             else{
                                 malignancyContnt = (
                                     <Grid.Column width={3} textAlign='left'>
-                                        <select id={malId} style={middleRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                                        <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
                                             <option value="2">中危</option>
