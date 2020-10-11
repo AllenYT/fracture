@@ -7,6 +7,7 @@ import dicomParser from 'dicom-parser'
 const config = require('../config.json')
 const dataConfig = config.data
 const draftConfig = config.draft
+const recordConfig = config.record
 
 class DisplayPanel extends Component {
 
@@ -15,6 +16,7 @@ class DisplayPanel extends Component {
     this.state = {
       caseId: window.location.pathname.split('/case/')[1].split('/')[0],
       username: window.location.pathname.split('/')[3],
+      studyList:[],
       stack: {},
       show: false
     }
@@ -242,6 +244,35 @@ class DisplayPanel extends Component {
 
     //     imageIds.push(filename)
     // }
+
+  //   const params = {
+  //     mainItem: window.location.pathname.split('/case/')[1].split('_')[0],
+  //     type: 'pid', //'pid'
+  //     otherKeyword: ''
+  // }
+  // console.log("param",params)
+  // axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(params), {headers}).then((response) => {
+  //     const data = response.data
+  //     if (data.status !== 'okay') {
+  //         console.log("Not okay")
+  //         // window.location.href = '/'
+  //     } else {
+  //         console.log('sublist',data.subList)
+  //         const subList = data.subList
+  //         let totalDates = 0
+  //         let totalStudies = 0
+  //         for (const subKey in subList) {
+  //             totalDates++ 
+  //             totalStudies += subList[subKey].length
+  //         }
+  //         // console.log('MAINITEM', this.props.mainItem)
+  //         subList = Object.keys(subList)
+  //         console.log("study",subList)
+  //         this.setState({studyList: subList})
+  //     }
+  // }).catch((error) => {
+  //     console.log(error)
+  // })
 
   }
 
