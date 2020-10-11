@@ -415,18 +415,20 @@ class CornerstoneElement extends Component {
             var line=[]
             for (var i = 0; i < bins.length-1; i++) {
                 var obj = {}
+                
                 obj.value = [bins[i],bins[i+1]]
                 obj.count=ns[i]
                 histogram.push(obj)
                 
-                var obj2={}
-                obj2.value=bins[i]
-                obj2.count=ns[i]
-                line.push(obj2)
+                
+                // var obj2={}
+                // obj2.value=bins[i]
+                // obj2.count=ns[i]
+                // line.push(obj2)
             }
             console.log('histogram',histogram)
-            console.log('line',line)
-            const ds = new DataSet();
+            // console.log('line',line)
+            const ds = new DataSet()
             const dv = ds.createView().source(histogram)
             // const dv2=ds.createView().source(line)
 
@@ -441,7 +443,7 @@ class CornerstoneElement extends Component {
                 // forceFit: true,
                 forceFit:true,
                 height: 300,
-                width:400,
+                width:500,
                 // padding: [30,30,'auto',30]
             });
             // chart.tooltip({
@@ -465,106 +467,28 @@ class CornerstoneElement extends Component {
                 }
             })
             // view1.source(dv)
-            view1.interval().position('value*count')
+            view1.interval().position('value*count').color('#00FFFF')
 
-            var view2 = chart.view()
-            view2.axis(false)
-            // view2.source(line)
-            view2.source(line,{
-                value: {
-                    // nice: true,
-                    minLimit: bins[0]-50,
-                maxLimit:bins[bins.length-1]+50,
-                    // tickCount:10
-                },
-                count: {
-                    // max: 350000,
-                    tickCount:10
-                }
-            })
-            view2.line().position('value*count').style({
-                stroke: 'white',
+            // var view2 = chart.view()
+            // view2.axis(false)
+            // // view2.source(line)
+            // view2.source(line,{
+            //     value: {
+            //         // nice: true,
+            //         minLimit: bins[0]-50,
+            //     maxLimit:bins[bins.length-1]+50,
+            //         // tickCount:10
+            //     },
+            //     count: {
+            //         // max: 350000,
+            //         tickCount:10
+            //     }
+            // })
+            // view2.line().position('value*count').style({
+            //     stroke: 'white',
                 
-                }).shape('smooth')
-            chart.render()
-        // }
-        // else{
-        //     // const data = hist_data.map((value) => {
-        //     //     return {
-        //     //       value,
-        //     //     };
-        //     //   });
-           
-        //     var histogram = []
-        //     var line=[]
-        //     for (var i = 0; i < bins.length-1; i++) {
-        //         var obj = {}
-        //         obj.value = [bins[i],bins[i+1]]
-        //         obj.count=ns[i]
-        //         histogram.push(obj)
-                
-        //         var obj2={}
-        //         obj2.value=bins[i]
-        //         obj2.count=ns[i]
-        //         line.push(obj2)
-        //     }
-        //     console.log('histogram',histogram)
-        //     console.log('line',line)
-        //     const ds = new DataSet();
-        //     const dv = ds.createView().source(histogram)
-        //     const newchart = new Chart({
-        //         container: visId,
-        //         // forceFit: true,
-        //         forceFit:true,
-        //         height: 300,
-        //         width:400,
-        //         // padding: [30,30,'auto',30]
-        //     });
-        //     // chart.tooltip({
-        //     //     crosshairs: false,
-        //     //     inPlot: false,
-        //     //     position: 'top'
-        //     //   })
-        //     let view1=newchart.view()
-        //     // view1.axis(false)
-        //     view1.source(dv, {
-        //         value: {
-        //         //   nice: true,
-        //         minLimit: bins[0]-50,
-        //         maxLimit:bins[bins.length-1]+50,
-        //         //   tickCount:20
-        //         },
-        //         count: {
-        //         //   max: 350000,
-        //         //   tickInterval:50000
-        //         tickCount:10
-        //         }
-        //     })
-        //     // view1.source(dv)
-        //     view1.interval().position('value*count')
-
-        //     var view2 = newchart.view()
-        //     view2.axis(false)
-        //     // view2.source(line)
-        //     view2.source(line,{
-        //         value: {
-        //             // nice: true,
-        //             minLimit: bins[0]-50,
-        //             maxLimit:bins[bins.length-1]+50,
-        //             // tickCount:10
-        //         },
-        //         count: {
-        //             // max: 350000,
-        //             tickCount:10
-        //         }
-        //     })
-        //     view2.line().position('value*count').style({
-        //         stroke: 'white',
-                
-        //         }).shape('smooth')
-        //     newchart.render()
-        // }
-        
+            //     }).shape('smooth')
+            chart.render() 
     }
 
     wcSlider =  (e, { name, value }) => {//窗位
@@ -1227,9 +1151,6 @@ class CornerstoneElement extends Component {
                     .state
                     .boxes
                     .map((inside, idx) => {
-                        if(inside.malProb>=0.3 && inside.malProb<=0.8 && this.state.readonly){
-                            inside.malignancy=3
-                        }
                         // console.log('inside',inside)
                         let representArray=[]
                         let dropdownText=''
@@ -1289,8 +1210,8 @@ class CornerstoneElement extends Component {
                                         <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
-                                            <option value="2">高危</option>
-                                            <option value="3">中危</option>
+                                            <option value="2">中危</option>
+                                            <option value="3">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1306,7 +1227,8 @@ class CornerstoneElement extends Component {
                                         <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
-                                            <option value="2">高危</option>
+                                            <option value="2">中危</option>
+                                            <option value="3">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1319,8 +1241,8 @@ class CornerstoneElement extends Component {
                                         <select id={malId} style={lowRiskStyle} value={"1"} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
-                                            <option value="2">高危</option>
-                                            <option value="3">中危</option>
+                                            <option value="2">中危</option>
+                                            <option value="3">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1336,7 +1258,8 @@ class CornerstoneElement extends Component {
                                         <select id={malId} style={lowRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
-                                            <option value="2">高危</option>
+                                            <option value="2">中危</option>
+                                            <option value="3">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1346,41 +1269,11 @@ class CornerstoneElement extends Component {
                             if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='left'>
-                                        <select id={malId} style={highRiskStyle} value={"2"} onChange={this.onSelectMal} disabled>
+                                        <select id={malId} style={middleRiskStyle} value={"2"} onChange={this.onSelectMal} disabled>
                                             <option value="-1" disabled="disabled">选择性质</option>
                                             <option value="1">低危</option>
-                                            <option value="2">高危</option>
-                                            <option value="3">中危</option>
-                                        </select>
-                                    </Grid.Column>
-                                )
-                                probContnt=(
-                                    <Grid.Column width={4} textAlign='center'>
-                                        <div style={{color:'#CC3300'}}>(概率:{Math.floor(inside.malProb*10000)/100}%)</div>
-                                    </Grid.Column>
-                                )
-                            }
-                            else{
-                                malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='left'>
-                                        <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
-                                            <option value="-1" disabled="disabled">选择性质</option>
-                                            <option value="1" >低危</option>
-                                            <option value="2" >高危</option>
-                                        </select>
-                                    </Grid.Column>
-                                )
-                            }
-                        }
-                        else if(inside.malignancy===3){
-                            if(this.state.readonly){
-                                malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='left'>
-                                        <select id={malId} style={middleRiskStyle} value={"3"} onChange={this.onSelectMal} disabled>
-                                            <option value="-1" disabled="disabled">选择性质</option>
-                                            <option value="1">低危</option>
-                                            <option value="2">高危</option>
-                                            <option value="3">中危</option>
+                                            <option value="2">中危</option>
+                                            <option value="3">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1395,8 +1288,40 @@ class CornerstoneElement extends Component {
                                     <Grid.Column width={2} textAlign='left'>
                                         <select id={malId} style={middleRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
                                             <option value="-1" disabled="disabled">选择性质</option>
-                                            <option value="1" >低危</option>
-                                            <option value="2" >高危</option>
+                                            <option value="1">低危</option>
+                                            <option value="2">中危</option>
+                                            <option value="3">高危</option>
+                                        </select>
+                                    </Grid.Column>
+                                )
+                            }
+                        }
+                        else if(inside.malignancy===3){
+                            if(this.state.readonly){
+                                malignancyContnt = (
+                                    <Grid.Column width={2} textAlign='left'>
+                                        <select id={malId} style={highRiskStyle} value={"3"} onChange={this.onSelectMal} disabled>
+                                            <option value="-1" disabled="disabled">选择性质</option>
+                                            <option value="1">低危</option>
+                                            <option value="2">中危</option>
+                                            <option value="3">高危</option>
+                                        </select>
+                                    </Grid.Column>
+                                )
+                                probContnt=(
+                                    <Grid.Column width={4} textAlign='center'>
+                                        <div style={{color:'#CC3300'}}>(概率:{Math.floor(inside.malProb*10000)/100}%)</div>
+                                    </Grid.Column>
+                                )
+                            }
+                            else{
+                                malignancyContnt = (
+                                    <Grid.Column width={2} textAlign='left'>
+                                        <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                                            <option value="-1" disabled="disabled">选择性质</option>
+                                            <option value="1">低危</option>
+                                            <option value="2">中危</option>
+                                            <option value="3">高危</option>
                                         </select>
                                     </Grid.Column>
                                 )
@@ -1767,10 +1692,8 @@ class CornerstoneElement extends Component {
                                         // </div>
                                        
                                     }
-
-                                     <Container>
-                                        <div id={visualId}></div>
-                                    </Container>
+                                    <div id={visualId} style={{width:'115%',marginLeft:'-70px'}}></div>
+                                    
                                 </Accordion.Content>
                             </div>
                         )
@@ -2040,7 +1963,7 @@ class CornerstoneElement extends Component {
                             <Grid celled className='corner-contnt'>
                                 <Grid.Row className='corner-row' columns={3}>
                                     <Grid.Column width={2}>
-                                        <StudyBrowserList />
+                                        <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
                                     </Grid.Column>
                                     <Grid.Column width={9} textAlign='center' id='canvas-column'>
                                     <div className='canvas-style'>
@@ -2448,7 +2371,7 @@ class CornerstoneElement extends Component {
                             <Grid celled className='corner-contnt' >
                                 <Grid.Row className='corner-row' columns={3}>
                                     <Grid.Column width={2}>
-                                        <StudyBrowserList />
+                                        <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
                                     </Grid.Column>
                                     <Grid.Column width={9} textAlign='center'>
                                     <div className='canvas-style'>
@@ -3642,13 +3565,11 @@ class CornerstoneElement extends Component {
                 element.addEventListener("cornerstoneimagerendered", this.onImageRendered)
                 element.addEventListener("cornerstonenewimage", this.onNewImage)
                 element.addEventListener("contextmenu", this.onRightClick)
-                if (!this.state.readonly) {
-                    element.addEventListener("mousedown", this.onMouseDown)
-                    element.addEventListener("mousemove", this.onMouseMove)
-                    element.addEventListener("mouseup", this.onMouseUp)
-                    element.addEventListener("mouseout", this.onMouseOut)
-                    element.addEventListener("mouseover",this.onMouseOver)
-                }
+                element.addEventListener("mousedown", this.onMouseDown)
+                element.addEventListener("mousemove", this.onMouseMove)
+                element.addEventListener("mouseup", this.onMouseUp)
+                element.addEventListener("mouseout", this.onMouseOut)
+                element.addEventListener("mouseover",this.onMouseOver)
 
                 document.addEventListener("keydown", this.onKeydown)
 

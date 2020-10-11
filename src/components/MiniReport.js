@@ -128,10 +128,10 @@ class MiniReport extends Component{
                     obj.count=ns[i]
                     histogram.push(obj)
                     
-                    var obj2={}
-                    obj2.value=bins[i]
-                    obj2.count=ns[i]
-                    line.push(obj2)
+                    // var obj2={}
+                    // obj2.value=bins[i]
+                    // obj2.count=ns[i]
+                    // line.push(obj2)
                 }
                 // console.log('histogram',histogram)
                 // console.log('line',line)
@@ -165,32 +165,31 @@ class MiniReport extends Component{
                 // view1.source(dv)
                 view1.interval().position('value*count')
     
-                var view2 = chart.view()
-                view2.axis(false)
-                // view2.source(line)
-                view2.source(line,{
-                    value: {
-                        // nice: true,
-                        minLimit: bins[0]-50,
-                        maxLimit:bins[bins.length-1]+50,
-                        // tickCount:10
-                        },
-                        count: {
-                        // max: 350000,
-                        tickCount:10
-                        }
-                })
-                view2.line().position('value*count').style({
-                    stroke: 'grey',
+                // var view2 = chart.view()
+                // view2.axis(false)
+                // // view2.source(line)
+                // view2.source(line,{
+                //     value: {
+                //         // nice: true,
+                //         minLimit: bins[0]-50,
+                //         maxLimit:bins[bins.length-1]+50,
+                //         // tickCount:10
+                //         },
+                //         count: {
+                //         // max: 350000,
+                //         tickCount:10
+                //         }
+                // })
+                // view2.line().position('value*count').style({
+                //     stroke: 'grey',
                     
-                    }).shape('smooth')
-                // console.log('chart',dv)
+                //     }).shape('smooth')
                 chart.render()
             }
                     nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
-                    const element = document.getElementById(nodule_id);
+                    const element = document.getElementById(nodule_id)
                     let imageId = imageIds[nodule.slice_idx]
-                    cornerstone.enable(element);
+                    cornerstone.enable(element)
                     cornerstone.loadAndCacheImage(imageId).then(function(image) { 
                         // console.log('cache') 
                         var viewport = cornerstone.getDefaultViewportForImage(element, image);
@@ -204,13 +203,13 @@ class MiniReport extends Component{
                         viewport.translation.y=250-yCenter
                         // console.log('viewport',viewport)
                         cornerstone.setViewport(element, viewport)
-                        cornerstone.displayImage(element, image);
+                        cornerstone.displayImage(element, image)
                         buttonflag+=1
                         console.log('buttonflag',buttonflag)
                         if(buttonflag===nodules.length){
                             that.setState({temp:1})
                         }
-                    });
+                    })
                 })
             //     for(var i = 0;i<nodules.length;i++){
             //     nodule_id = 'nodule-' + nodules[i].nodule_no + '-' + nodules[i].slice_idx
@@ -467,9 +466,7 @@ class MiniReport extends Component{
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                                     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    
                                     </td>
                                     <td align='right'><Header>姓名:</Header></td>
                                     <td>&nbsp;</td>
@@ -543,7 +540,7 @@ class MiniReport extends Component{
 
                                     </Table.Body>
                                 </Table>
-                                <div style={{fontSize:20,color:'#6495ED'}}>Lung</div>
+                                <div style={{fontSize:20,color:'#6495ED'}}>肺部详情</div>
                                 <Table celled>
                                     <Table.Header>
                                         <Table.Row>
@@ -571,7 +568,7 @@ class MiniReport extends Component{
                                                     <Table.Header>
                                                         <Table.Row>
                                                             <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
-                                                            <Table.HeaderCell width={10}>{this.state.date}</Table.HeaderCell>
+                                                            <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
                                                         </Table.Row>
                                                     </Table.Header>
                                                     <Table.Body>
