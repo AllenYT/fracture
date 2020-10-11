@@ -7,6 +7,7 @@ import dicomParser from 'dicom-parser'
 const config = require('../config.json')
 const dataConfig = config.data
 const draftConfig = config.draft
+const recordConfig = config.record
 
 class DisplayPanel extends Component {
 
@@ -15,8 +16,120 @@ class DisplayPanel extends Component {
     this.state = {
       caseId: window.location.pathname.split('/case/')[1].split('/')[0],
       username: window.location.pathname.split('/')[3],
+      studyList:[],
       stack: {},
       show: false
+    }
+    this.nextPath = this.nextPath.bind(this)
+  }
+  nextPath(path) {
+    this.props.history.push(path)
+  } 
+  handleClickScreen(e,href){
+    console.log('card',href)
+    if(window.location.pathname.split('/case/')[1].split('/')[0] !== href.split('/case/')[1].split('/')[0]){
+      this.setState({caseId:href.split('/case/')[1].split('/')[0],
+      username:href.split('/')[3],show:false})
+      this.nextPath(href)
+    }
+    // window.location.href=href
+  }
+
+  componentDidUpdate(prevProps,prevState){
+    if(prevState.caseId !== this.state.caseId){
+      console.log(prevState.caseId,this.state.caseId)
+      let noduleNo = -1
+      if (this.props.location.hash !== '')
+        noduleNo = parseInt(this.props.location.hash.split('#')[1])
+  
+      const dataParams = {
+        caseId: this.state.caseId
+      }
+      const draftParams = {
+        caseId: this.state.caseId,
+        username: this.state.username
+        // username:'deepln'
+      }
+      const readonlyParams = {
+        caseId: this.state.caseId,
+        username: this.state.username
+      }
+  
+      const token = localStorage.getItem('token')
+      const headers = {
+        'Authorization': 'Bearer '.concat(token) //add the fun of check
+      }
+  
+      if (this.state.username === 'origin') {
+  
+        axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
+          cornerstone
+          .loadAndCacheImage(dataResponse.data[0])
+          .then(image => {
+            // const readonly = readonlyResponse.data.readonly === 'true'
+            console.log('image info',image.data)
+            // console.log('parse',dicomParser.parseDicom(image))
+            const dicomtag = image.data
+             const stack = {
+            imageIds: dataResponse.data,
+            caseId: this.state.caseId,
+            boxes: [],
+            readonly: true,
+            draftStatus: -1,
+            noduleNo: noduleNo,
+            dicomTag:dicomtag
+          }
+          this.setState({stack: stack, show: true})
+            })
+         
+        }).catch(error => {
+          console.log(error)
+        })
+  
+      } else {
+  
+        // const token = localStorage.getItem('token')
+        // const headers = {
+        //     'Authorization': 'Bearer '.concat(token)//add the fun of check
+        // }
+        Promise.all([
+          axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)),
+          axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParams)),
+          axios.post(draftConfig.readonly, qs.stringify(readonlyParams), {headers})
+        ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
+          // console.log(dataResponse.data)
+          // console.log(draftResponse.data)
+          // console.log(readonlyResponse.data)
+          const readonly = readonlyResponse.data.readonly === 'true'
+          // const readonly = false
+          cornerstone
+          .loadAndCacheImage(dataResponse.data[0])
+          .then(image => {
+            // const readonly = readonlyResponse.data.readonly === 'true'
+            console.log('image info',image.data)
+            // console.log('parse',dicomParser.parseDicom(image))
+            const dicomtag = image.data
+            let draftStatus = -1
+            if (!readonly)
+              draftStatus = readonlyResponse.data.status
+            const stack = {
+              imageIds: dataResponse.data,
+              caseId: this.state.caseId,
+              boxes: draftResponse.data,
+              readonly: readonly,
+              draftStatus: draftStatus,
+              noduleNo: noduleNo,
+              dicomTag:dicomtag
+            }
+            console.log('test',dicomtag)
+            console.log('draftdata',draftResponse,draftParams)
+            console.log('dataResponse',dataResponse)
+            console.log('hhh2')
+            this.setState({stack: stack, show: true})
+            })
+         
+        })
+      }
     }
   }
 
@@ -46,7 +159,6 @@ class DisplayPanel extends Component {
     const headers = {
       'Authorization': 'Bearer '.concat(token) //add the fun of check
     }
-    let requestParams = []
 
     if (this.state.username === 'origin') {
 
@@ -133,6 +245,35 @@ class DisplayPanel extends Component {
     //     imageIds.push(filename)
     // }
 
+  //   const params = {
+  //     mainItem: window.location.pathname.split('/case/')[1].split('_')[0],
+  //     type: 'pid', //'pid'
+  //     otherKeyword: ''
+  // }
+  // console.log("param",params)
+  // axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(params), {headers}).then((response) => {
+  //     const data = response.data
+  //     if (data.status !== 'okay') {
+  //         console.log("Not okay")
+  //         // window.location.href = '/'
+  //     } else {
+  //         console.log('sublist',data.subList)
+  //         const subList = data.subList
+  //         let totalDates = 0
+  //         let totalStudies = 0
+  //         for (const subKey in subList) {
+  //             totalDates++ 
+  //             totalStudies += subList[subKey].length
+  //         }
+  //         // console.log('MAINITEM', this.props.mainItem)
+  //         subList = Object.keys(subList)
+  //         console.log("study",subList)
+  //         this.setState({studyList: subList})
+  //     }
+  // }).catch((error) => {
+  //     console.log(error)
+  // })
+
   }
 
   render() {
@@ -143,7 +284,8 @@ class DisplayPanel extends Component {
         {/* {this.state.caseId} */}
         <CornerstoneElement stack={{
             ...this.state.stack
-          }} caseId={this.state.caseId} username={this.state.username}/>
+          }} caseId={this.state.caseId} username={this.state.username} 
+          handleClickScreen={this.handleClickScreen.bind(this)}/>
         </div>
       )
     } else {
