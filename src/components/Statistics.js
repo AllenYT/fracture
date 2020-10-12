@@ -261,6 +261,7 @@ class Statistics extends Component {
                 shadowBlur: 2,
                 shadowColor: 'rgba(0, 0, 0, .45)',
                 fill:'#fff'
+                // fill:'black'
                 },
         }).tooltip('name*percent', function(item, percent) {
             percent = (percent * 100).toFixed(2) + '%';

@@ -128,10 +128,10 @@ class MiniReport extends Component{
                     obj.count=ns[i]
                     histogram.push(obj)
                     
-                    var obj2={}
-                    obj2.value=bins[i]
-                    obj2.count=ns[i]
-                    line.push(obj2)
+                    // var obj2={}
+                    // obj2.value=bins[i]
+                    // obj2.count=ns[i]
+                    // line.push(obj2)
                 }
                 // console.log('histogram',histogram)
                 // console.log('line',line)
@@ -165,32 +165,31 @@ class MiniReport extends Component{
                 // view1.source(dv)
                 view1.interval().position('value*count')
     
-                var view2 = chart.view()
-                view2.axis(false)
-                // view2.source(line)
-                view2.source(line,{
-                    value: {
-                        // nice: true,
-                        minLimit: bins[0]-50,
-                        maxLimit:bins[bins.length-1]+50,
-                        // tickCount:10
-                        },
-                        count: {
-                        // max: 350000,
-                        tickCount:10
-                        }
-                })
-                view2.line().position('value*count').style({
-                    stroke: 'grey',
+                // var view2 = chart.view()
+                // view2.axis(false)
+                // // view2.source(line)
+                // view2.source(line,{
+                //     value: {
+                //         // nice: true,
+                //         minLimit: bins[0]-50,
+                //         maxLimit:bins[bins.length-1]+50,
+                //         // tickCount:10
+                //         },
+                //         count: {
+                //         // max: 350000,
+                //         tickCount:10
+                //         }
+                // })
+                // view2.line().position('value*count').style({
+                //     stroke: 'grey',
                     
-                    }).shape('smooth')
-                // console.log('chart',dv)
+                //     }).shape('smooth')
                 chart.render()
             }
                     nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
-                    const element = document.getElementById(nodule_id);
+                    const element = document.getElementById(nodule_id)
                     let imageId = imageIds[nodule.slice_idx]
-                    cornerstone.enable(element);
+                    cornerstone.enable(element)
                     cornerstone.loadAndCacheImage(imageId).then(function(image) { 
                         // console.log('cache') 
                         var viewport = cornerstone.getDefaultViewportForImage(element, image);
@@ -204,13 +203,13 @@ class MiniReport extends Component{
                         viewport.translation.y=250-yCenter
                         // console.log('viewport',viewport)
                         cornerstone.setViewport(element, viewport)
-                        cornerstone.displayImage(element, image);
+                        cornerstone.displayImage(element, image)
                         buttonflag+=1
                         console.log('buttonflag',buttonflag)
                         if(buttonflag===nodules.length){
                             that.setState({temp:1})
                         }
-                    });
+                    })
                 })
             //     for(var i = 0;i<nodules.length;i++){
             //     nodule_id = 'nodule-' + nodules[i].nodule_no + '-' + nodules[i].slice_idx
@@ -459,38 +458,46 @@ class MiniReport extends Component{
                                 <table>
                                     <tbody>
                                          <tr>
-                                    <td><Header>Patient ID:</Header></td>
+                                    <td><Header>病人编号:</Header></td>
                                     <td>{this.state.patientId}</td>
-                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                                    <td align='right'><Header>Name:</Header></td>
+                                    
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                    
+                                    </td>
+                                    <td align='right'><Header>姓名:</Header></td>
                                     <td>&nbsp;</td>
                                 </tr>
                                 <tr>
-                                    <td><Header>Birth date:</Header></td>
+                                    <td><Header>出生日期:</Header></td>
                                     <td>{this.state.patientBirth}</td>
-                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                                    <td align='right'><Header>Age:</Header></td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    
+                                    <td align='right'><Header>年龄:</Header></td>
                                     <td>{this.state.age}</td>
                                 </tr>
                                 <tr>
-                                    <td><Header>Sex:</Header></td>
+                                    <td><Header>性别:</Header></td>
                                     <td>{this.state.patientSex}</td>
-                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                                    <td align='right'><Header>Exam Date:</Header></td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td align='right'><Header>检查日期:</Header></td>
                                     <td>{this.state.date}</td>
                                 </tr>
                                 <tr>
-                                    <td><Header>Exam No.:</Header></td>
+                                    <td><Header>检查编号:</Header></td>
                                     <td>12580359</td>
-                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                                    <td align='right'><Header>Accession Number:</Header></td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td align='right'><Header>入库编号:</Header></td>
                                     <td>&nbsp;</td>
                                 </tr>
                                 <tr>
-                                    <td><Header>Content Date:</Header></td>
+                                    <td><Header>报告撰写日期:</Header></td>
                                     <td>&nbsp;</td>
-                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                                    <td align='right'><Header>Requested Procedure Description:</Header></td>
+                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                    <td align='right'><Header>请求过程描述:</Header></td>
                                     <td>&nbsp;</td>
                                 </tr>
                                     </tbody>
@@ -500,12 +507,12 @@ class MiniReport extends Component{
                                 <table>
                                     <tbody>
                                       <tr>
-                                        <td width='50%'><Header>Weight:</Header></td>
+                                        <td width='50%'><Header>体重:</Header></td>
                                         <td></td>
                                     </tr>
                                     <tr>
-                                        <td><Header>Height:</Header></td>
-                                        <td align='right'><Header>Body Mass Index:</Header></td>
+                                        <td><Header>身高:</Header></td>
+                                        <td align='right'><Header>体重系数:</Header></td>
                                     </tr>  
                                     </tbody>
                                     
@@ -515,31 +522,31 @@ class MiniReport extends Component{
                                 <Divider/>
                                 
                                 
-                                <div style={{fontSize:20,color:'#6495ED'}}>Scan Parameters</div>
+                                <div style={{fontSize:20,color:'#6495ED'}}>扫描参数</div>
                                 <Table celled>
                                     <Table.Header>
                                         <Table.Row>
-                                            <Table.HeaderCell>Exam Date</Table.HeaderCell>
-                                            <Table.HeaderCell>Pixel Size(mm)</Table.HeaderCell>
-                                            <Table.HeaderCell>Thickness / Spacing(mm)</Table.HeaderCell>
+                                            <Table.HeaderCell>检查日期</Table.HeaderCell>
+                                            <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
+                                            <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
                                             <Table.HeaderCell>kV</Table.HeaderCell>
                                             <Table.HeaderCell>mA</Table.HeaderCell>
                                             <Table.HeaderCell>mAs</Table.HeaderCell>
-                                            <Table.HeaderCell>Recon Name</Table.HeaderCell>
-                                            <Table.HeaderCell>Manufacturer</Table.HeaderCell>
+                                            {/* <Table.HeaderCell>Recon Name</Table.HeaderCell> */}
+                                            <Table.HeaderCell>厂商</Table.HeaderCell>
                                         </Table.Row>
                                     </Table.Header>
                                     <Table.Body>
 
                                     </Table.Body>
                                 </Table>
-                                <div style={{fontSize:20,color:'#6495ED'}}>Lung</div>
+                                <div style={{fontSize:20,color:'#6495ED'}}>肺部详情</div>
                                 <Table celled>
                                     <Table.Header>
                                         <Table.Row>
-                                            <Table.HeaderCell>Exam Date</Table.HeaderCell>
-                                            <Table.HeaderCell>Volume</Table.HeaderCell>
-                                            <Table.HeaderCell>Total Nodule Volume</Table.HeaderCell>
+                                            <Table.HeaderCell>检查日期</Table.HeaderCell>
+                                            <Table.HeaderCell>体积</Table.HeaderCell>
+                                            <Table.HeaderCell>结节总体积</Table.HeaderCell>
                                         </Table.Row>
                                     </Table.Header>
                                     <Table.Body>
@@ -556,69 +563,69 @@ class MiniReport extends Component{
                                             <div key={index}>
                                                 <Divider/>
                                                 <div>&nbsp;</div>
-                                                <div style={{fontSize:20,color:'#6495ED'}} id='noduleDivide'>Nodule {index+1}</div>
+                                                <div style={{fontSize:20,color:'#6495ED'}} id='noduleDivide'>结节 {index+1}</div>
                                                 <Table celled>
                                                     <Table.Header>
                                                         <Table.Row>
-                                                            <Table.HeaderCell width={7}>Exam Date</Table.HeaderCell>
-                                                            <Table.HeaderCell width={10}>{this.state.date}</Table.HeaderCell>
+                                                            <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
+                                                            <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
                                                         </Table.Row>
                                                     </Table.Header>
                                                     <Table.Body>
                                                         <Table.Row>
-                                                            <Table.Cell>Slice Index</Table.Cell>
+                                                            <Table.Cell>切片号</Table.Cell>
                                                             <Table.Cell>{nodule['slice_idx']+1}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>Lung Place</Table.Cell>
+                                                            <Table.Cell>肺叶位置</Table.Cell>
                                                             <Table.Cell>{nodule['place']===undefined || nodule['place']===0?'':places[nodule['place']]}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>Lung Segment</Table.Cell>
+                                                            <Table.Cell>肺段位置</Table.Cell>
                                                             <Table.Cell>{nodule['segment']===undefined?'':segments[nodule['segment']]}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>Malignancy</Table.Cell>
+                                                            <Table.Cell>危险程度</Table.Cell>
                                                             <Table.Cell>{nodule['malignancy']===2?'高危':'低危'}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>Spiculation</Table.Cell>
+                                                            <Table.Cell>毛刺</Table.Cell>
                                                             <Table.Cell>{nodule['spiculation']===2?'毛刺':'非毛刺'}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>Lobulation</Table.Cell>
+                                                            <Table.Cell>分叶</Table.Cell>
                                                             <Table.Cell>{nodule['lobulation']===2?'分叶':'非分叶'}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>Calcification</Table.Cell>
+                                                            <Table.Cell>钙化</Table.Cell>
                                                             <Table.Cell>{nodule['calcification']===2?'钙化':'非钙化'}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>Density</Table.Cell>
+                                                            <Table.Cell>密度</Table.Cell>
                                                             <Table.Cell>{nodule['texture']===2?'实性':'磨玻璃'}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>diameter</Table.Cell>
+                                                            <Table.Cell>直径</Table.Cell>
                                                             <Table.Cell>{Math.floor(nodule['diameter']*10)/100}cm</Table.Cell>
                                                         </Table.Row>
                                                         
                                                         <Table.Row>
-                                                            <Table.Cell>volume</Table.Cell>
+                                                            <Table.Cell>体积</Table.Cell>
                                                             <Table.Cell>{nodule['volume']===undefined?null:Math.floor(nodule['volume']*100)/100+'cm³'}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
                                                             <Table.Cell>
-                                                                HU(Min/Avg/Max)
+                                                                HU(最小值/均值/最大值)
                                                                 </Table.Cell>
                                                             <Table.Cell>{nodule['huMin']===undefined?null:nodule['huMin']+' / '+nodule['huMean']+' / '+nodule['huMax']}</Table.Cell>
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>Image Capture</Table.Cell>
+                                                            <Table.Cell>结节部分</Table.Cell>
                                                             <Table.Cell><div id={nodule_id} style={{width:'300px',height:'250px'}}></div></Table.Cell>
                                                             {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
                                                         </Table.Row>
                                                         <Table.Row>
-                                                            <Table.Cell>Histogram</Table.Cell>
+                                                            <Table.Cell>直方图</Table.Cell>
                                                             <Table.Cell><div id={visualId} ></div></Table.Cell>
                                                         </Table.Row>
                                                     </Table.Body>
@@ -659,9 +666,9 @@ class MiniReport extends Component{
                 {
                     this.props.type==='影像所见'?
                     <Grid.Row >
-                        <Grid.Column>
+                        <Grid.Column textAlign='center'>
                         <textarea style={{fontSize:'medium',overflowY:'auto',height:'150px',width:'100%',
-                        background:'transparent',border:'0rem'}} id='textarea' 
+                        background:'transparent',border:'0rem',marginLeft:'20px'}} id='textarea' 
                         placeholder='在此填写诊断报告' onChange={this.handleTextareaChange} value={this.state.templateText}>
                             
                             {/* {this.template().split('*').map((content,index)=>{
@@ -678,9 +685,9 @@ class MiniReport extends Component{
                     </Grid.Row>
                     :
                     <Grid.Row >
-                        <Grid.Column>
+                        <Grid.Column textAlign='center'>
                         <Form.TextArea style={{fontSize:'large',overflowY:'auto',height:'150px',width:'100%',
-                        background:'transparent',border:'0rem'}} id='textarea' placeholder='在此填写处理建议'
+                        background:'transparent',border:'0rem',marginLeft:'20px'}} id='textarea' placeholder='在此填写处理建议'
                         value={this.state.templateText} onChange={this.handleTextareaChange}>
                         </Form.TextArea>
                                             
