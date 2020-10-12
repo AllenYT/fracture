@@ -56,6 +56,7 @@ const eraser = cornerstoneTools.EraserTool
 const {Column, HeaderCell, Cell, Pagination} = Table
 let allROIToolData = {}
 let toolROITypes = ['EllipticalRoi','Bidirectional']
+const cacheSize = 5
 let playTimer = undefined
 // , 'RectangleRoi', 'ArrowAnnotate', 'Length', 'CobbAngle', 'Angle', 'FreehandRoi', 'Calibration'
 // const divStyle = {
@@ -420,9 +421,12 @@ class CornerstoneElement extends Component {
         this.onMouseOver = this
             .onMouseOver
             .bind(this)
-        // this.cacheImage = this
-        //     .cacheImage
-        //     .bind(this)
+        this.cacheImage = this
+            .cacheImage
+            .bind(this)
+        this.cache = this
+            .cache
+            .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -955,6 +959,25 @@ class CornerstoneElement extends Component {
         const element = document.querySelector('#origin-canvas')
         this.disableAllTools(element)
         this.setState({leftButtonTools:1,menuTools:'slide'})
+        const newCurrentIdx = this.state.currentIdx
+        // if(newCurrentIdx - cacheSize < 0){
+        //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+        //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else{
+        //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
         //切换切片
     }
 
@@ -2026,6 +2049,7 @@ class CornerstoneElement extends Component {
                                         className='funcbtn'
                                         ><Icon name='search minus' size='large'></Icon></Button>
                                     <Button icon onClick={this.reset} className='funcbtn' title='刷新'><Icon name='repeat' size='large'></Icon></Button>
+                                    {/* <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button> */}
                                     {/* <Modal
                                         basic
                                         open={cacheModal}
@@ -2314,7 +2338,7 @@ class CornerstoneElement extends Component {
                                         <Button icon onClick={this.playAnimation} className='funcbtn' title='播放动画'><Icon name='play' size='large'></Icon></Button>:
                                         <Button icon onClick={this.pauseAnimation} className='funcbtn' title='暂停动画'><Icon name='pause' size='large'></Icon></Button>
                                     }
-                                    
+                                    {/* <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button> */}
                                     {/* <Modal
                                         basic
                                         open={cacheModal}
@@ -2674,6 +2698,25 @@ class CornerstoneElement extends Component {
         let style = $("<style>", {type:"text/css"}).appendTo("head");
         style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
         this.refreshImage(false, this.state.imageIds[event.target.value - 1], event.target.value - 1)
+        const newCurrentIdx = event.target.value - 1
+        // if(newCurrentIdx - cacheSize < 0){
+        //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+        //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else{
+        //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
     }
 
     createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
@@ -2788,11 +2831,47 @@ class CornerstoneElement extends Component {
         if (newCurrentIdx < this.state.imageIds.length) {
             this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
         }
+        // if(newCurrentIdx - cacheSize < 0){
+        //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+        //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else{
+        //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
         }else{//向上滚动
             let newCurrentIdx = this.state.currentIdx - 1
             if (newCurrentIdx >= 0) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
             }
+            // if(newCurrentIdx - cacheSize < 0){
+            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
+            //         if(i === newCurrentIdx) continue
+            //         this.cacheImage(this.state.imageIds[i])
+            //     }
+            // }
+            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
+            //         if(i === newCurrentIdx) continue
+            //         this.cacheImage(this.state.imageIds[i])
+            //     }
+            // }
+            // else{
+            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
+            //         if(i === newCurrentIdx) continue
+            //         this.cacheImage(this.state.imageIds[i])
+            //     }
+            // }
         }
     }
 
@@ -2949,50 +3028,51 @@ class CornerstoneElement extends Component {
             if (newCurrentIdx >= 0) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
             }
-            // if(newCurrentIdx - 5 < 0){
-            //     for(var i = 0;i <= newCurrentIdx + 5 ;i++){
+            // if(newCurrentIdx - cacheSize < 0){
+            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
             //         if(i === newCurrentIdx) continue
             //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
-            // else if(newCurrentIdx + 5 > this.state.imageIds.length){
-            //     for(var i = this.state.imageIds.length - 1;i >= newCurrentIdx - 5 ;i--){
+            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
             //         if(i === newCurrentIdx) continue
             //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
             // else{
-            //     for(var i = newCurrentIdx - 5;i <= newCurrentIdx + 5 ;i){
+            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
             //         if(i === newCurrentIdx) continue
             //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
+
         }
         if (event.which == 39 || event.which == 40) {
             event.preventDefault()
             let newCurrentIdx = this.state.currentIdx + 1
             if (newCurrentIdx < this.state.imageIds.length) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+                console.log('info',cornerstone.imageCache.getCacheInfo())
             }
-            // if(newCurrentIdx - 5 < 0){
-            //     for(var i = 0;i <= newCurrentIdx + 5 ;i++){
+            // if(newCurrentIdx - cacheSize < 0){
+            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
             //         if(i === newCurrentIdx) continue
-            //         this.refreshImage(false, this.state.imageIds[i], newCurrentIdx)
+            //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
-            // else if(newCurrentIdx + 5 > this.state.imageIds.length){
-            //     for(var i = this.state.imageIds.length - 1;i >= newCurrentIdx - 5 ;i--){
+            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
             //         if(i === newCurrentIdx) continue
-            //         this.refreshImage(false, this.state.imageIds[i], newCurrentIdx)
+            //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
             // else{
-            //     for(var i = newCurrentIdx - 5;i <= newCurrentIdx + 5 ;i){
+            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
             //         if(i === newCurrentIdx) continue
-            //         this.refreshImage(false, this.state.imageIds[i], newCurrentIdx)
+            //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
-
         }
         if (event.which == 72) {
             this.toHidebox() 
@@ -3615,9 +3695,18 @@ class CornerstoneElement extends Component {
             })
     }
 
-    // cacheImage(imageId){
-    //     cornerstone.loadAndCacheImage(imageId)
-    // }
+    cacheImage(imageId){
+        cornerstone.loadAndCacheImage(imageId)
+        console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
+        // cornerstone.ImageCache(imageId)
+    }
+
+    cache() {//coffee button
+        for (var i = this.state.imageIds.length - 1; i >= 0; i--) {
+            this.refreshImage(false, this.state.imageIds[i], i)
+            console.log('info',cornerstone.imageCache.getCacheInfo())
+        }
+    }
 
     checkHash() {
         const noduleNo = this.props.stack.noduleNo
@@ -3788,6 +3877,27 @@ class CornerstoneElement extends Component {
             }
             console.log('listsActiveIndex',prevState.listsActiveIndex,this.state.listsActiveIndex)
             // document.
+        }
+        if(prevState.currentIdx !== this.state.currentIdx){
+            const currentIdx = this.state.currentIdx + 1
+            if(currentIdx - cacheSize < 0){
+                for(var i = 0;i < currentIdx + cacheSize ;i++){
+                    if(i === currentIdx) continue
+                    this.cacheImage(this.state.imageIds[i])
+                }
+            }
+            else if(currentIdx + cacheSize > this.state.imageIds.length){
+                for(var i = this.state.imageIds.length - 1;i > currentIdx - cacheSize ;i--){
+                    if(i === currentIdx) continue
+                    this.cacheImage(this.state.imageIds[i])
+                }
+            }
+            else{
+                for(var i = currentIdx - cacheSize;i < currentIdx + cacheSize ;i++){
+                    if(i === currentIdx) continue
+                    this.cacheImage(this.state.imageIds[i])
+                }
+            }
         }
     }
 }
