@@ -31,6 +31,7 @@ import $ from  'jquery'
 
 
 
+
 cornerstoneTools.external.cornerstone = cornerstone
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 // cornerstoneWebImageLoader.external.cornerstone = cornerstone
@@ -948,14 +949,14 @@ class CornerstoneElement extends Component {
 
     }
 
-    featureAnalysis(e){
-        const idx = e.target.value
-        console.log("特征分析")
+    featureAnalysis(idx,e){
+        // const idx = e.target.value
+        console.log("特征分析",idx,e)
         const boxes = this.state.boxes
         // if(boxes[idx].nodule_hist !== undefined){
         //     var hist_data = boxes[idx].nodule_hist
         //     console.log('hist_data',hist_data)
-        //     this.visualize(hist_data,idx,false)
+        //     this.visualize(hist_data,idx,false)  
         // }
 
         // if(boxes[idx].new_nodule_hist !== undefined){
@@ -972,7 +973,9 @@ class CornerstoneElement extends Component {
         // var data = e.target.value
         // data = JSON.stringify(data)
         // data = JSON.parse(data)
-        if (boxes[idx]!==undefined){
+        console.log('boxes',boxes, e.target.value)
+        if (boxes[idx] !== undefined){
+            console.log('boxes',boxes[idx])
             var hist = boxes[idx].nodule_hist
             this.visualize(hist,idx)
         }
@@ -1045,6 +1048,10 @@ class CornerstoneElement extends Component {
         // console.log('boxes', this.state.boxes)
         // console.log('boxes', this.state.username)
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, wcDefine, dicomTag, studyList, menuTools, cacheModal} = this.state
+        const sliderMarks={}
+        for(let i=0;i<this.state.boxes.length;i++){
+                    sliderMarks[this.state.boxes[i].slice_idx+1]=this.state.boxes[i].slice_idx+1+''
+                }
         // console.log('dicomTag',dicomTag.elements)
         // var keys = [];
         // for(var propertyName in dicomTag.elements) {
@@ -1745,7 +1752,9 @@ class CornerstoneElement extends Component {
                                                 {
                                                     // <div style={{display:'inline-block',width:'50%'}}>
                                                         <Button size='mini' circular inverted
-                                                        icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis}>
+                                                        icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this,idx)}>
+                                                            {/* <Icon name='chart bar' value={idx}></Icon> */}
+                                                            {/* test */}
                                                         </Button>
                                                     // </div>
                                                 
@@ -2071,16 +2080,19 @@ class CornerstoneElement extends Component {
                                         {/* {canvas} */}
                                     </div>
                                     <div className='canvas-style'>
-                                        {/* <Slider marks={} defaultValue={this.state.currentIdx + 1} onChange={this.handleRangeChange}></Slider> */}
-                                        <input
-                                            id="slice-slider"
-                                            onChange={this.handleRangeChange}
-                                            type="range"
-                                            value={this.state.currentIdx + 1}
-                                            name="volume"
-                                            step="1"
-                                            min="1"
-                                            max={this.state.stack.imageIds.length}></input>
+                                        <div className='antd-slider'>
+                                            <Slider 
+                                                vertical reverse
+                                                marks={sliderMarks} 
+                                                value={this.state.currentIdx + 1} 
+                                                onChange={this.handleRangeChange}
+                                                // onAfterChange={this.handleRangeChange}
+                                                // onAfterChange={this.handleRangeChange.bind(this)} 
+                                                min={1}
+                                                step={1}
+                                                max={this.state.stack.imageIds.length}
+                                                ></Slider>
+                                        </div>
                                             {/* {
                                             this.state.boxes.map((content,index)=>{
                                                 let tempId ='sign'+index
@@ -2378,6 +2390,20 @@ class CornerstoneElement extends Component {
                                                 onChange={this.handleRangeChange} 
                                                 min={}
                                                 ></Slider> */}
+                                                <div className='antd-slider'>
+                                                    <Slider 
+                                                        vertical reverse
+                                                        marks={sliderMarks} 
+                                                        value={this.state.currentIdx + 1} 
+                                                        onChange={this.handleRangeChange}
+                                                        // onAfterChange={this.handleRangeChange}
+                                                        // onAfterChange={this.handleRangeChange.bind(this)} 
+                                                        min={1}
+                                                        step={1}
+                                                        max={this.state.stack.imageIds.length}
+                                                        ></Slider>
+                                                </div>
+                                        {/* </div>
                                             <input
                                                 id="slice-slider"
                                                 onChange={this.handleRangeChange}
@@ -2387,7 +2413,7 @@ class CornerstoneElement extends Component {
                                                 step="1"
                                                 min="1"
 
-                                                max={this.state.stack.imageIds.length}></input>
+                                                max={this.state.stack.imageIds.length}></input> */}
                                             {/* {
                                                 this.state.boxes.map((content,index)=>{
                                                     let tempId ='sign'+index
@@ -2592,31 +2618,19 @@ class CornerstoneElement extends Component {
         return {box: -1, pos: 'o'};
     }
 
+    test(){
+        return;
+    }
+
     handleRangeChange(event) {
+        console.log('slider',event)
         // this.setState({currentIdx: event.target.value - 1, imageId:
         // this.state.imageIds[event.target.value - 1]})
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
+
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
-        this.refreshImage(false, this.state.imageIds[event.target.value - 1], event.target.value - 1)
-        const newCurrentIdx = event.target.value - 1
-        // if(newCurrentIdx - cacheSize < 0){
-        //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
-        //         if(i === newCurrentIdx) continue
-        //         this.cacheImage(this.state.imageIds[i])
-        //     }
-        // }
-        // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
-        //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
-        //         if(i === newCurrentIdx) continue
-        //         this.cacheImage(this.state.imageIds[i])
-        //     }
-        // }
-        // else{
-        //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
-        //         if(i === newCurrentIdx) continue
-        //         this.cacheImage(this.state.imageIds[i])
-        //     }
-        // }
+        // this.refreshImage(false, this.state.imageIds[event.target.value - 1], event.target.value - 1)
+        this.refreshImage(false, this.state.imageIds[event + 1], event + 1)
     }
 
     createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
@@ -2953,7 +2967,7 @@ class CornerstoneElement extends Component {
             let newCurrentIdx = this.state.currentIdx + 1
             if (newCurrentIdx < this.state.imageIds.length) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
-                console.log('info',cornerstone.imageCache.getCacheInfo())
+                // console.log('info',cornerstone.imageCache.getCacheInfo())
             }
             // if(newCurrentIdx - cacheSize < 0){
             //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
@@ -3597,7 +3611,7 @@ class CornerstoneElement extends Component {
 
     cacheImage(imageId){
         cornerstone.loadAndCacheImage(imageId)
-        console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
+        // console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
         // cornerstone.ImageCache(imageId)
     }
 
@@ -3714,8 +3728,8 @@ class CornerstoneElement extends Component {
         if(document.getElementById('hideInfo') != null){
             document.getElementById('hideInfo').style.display='none'
         }
-        let style = $("<style>", {type:"text/css"}).appendTo("head");
-        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (document.getElementById('slice-slider').value)*100/this.state.imageIds.length+'%)}');
+        // let style = $("<style>", {type:"text/css"}).appendTo("head");
+        // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (document.getElementById('slice-slider').value)*100/this.state.imageIds.length+'%)}');
         // for(let i=0;i<this.state.boxes.length;i++){
         //     let point=document.getElementById('sign'+i)
         //     // let leftMargin=parseFloat($('#slice-slider').width())/2+parseFloat($('input[type=range]').css('left').split('px')[0])+'px'
