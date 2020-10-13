@@ -1039,6 +1039,7 @@ class CornerstoneElement extends Component {
 
     render() {
         let sliderMarks={}
+
         for(let i=0;i<this.state.boxes.length;i++){
             sliderMarks[this.state.boxes[i].slice_idx]=''
         }
@@ -1054,10 +1055,7 @@ class CornerstoneElement extends Component {
         // console.log('boxes', this.state.boxes)
         // console.log('boxes', this.state.username)
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, wcDefine, dicomTag, studyList, menuTools, cacheModal} = this.state
-        const sliderMarks={}
-        for(let i=0;i<this.state.boxes.length;i++){
-                    sliderMarks[this.state.boxes[i].slice_idx+1]=this.state.boxes[i].slice_idx+1+''
-                }
+        
         // console.log('dicomTag',dicomTag.elements)
         // var keys = [];
         // for(var propertyName in dicomTag.elements) {
@@ -1758,13 +1756,9 @@ class CornerstoneElement extends Component {
                                                 {
                                                     // <div style={{display:'inline-block',width:'50%'}}>
                                                         <Button size='mini' circular inverted
-<<<<<<< HEAD
                                                         icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this,idx)}>
                                                             {/* <Icon name='chart bar' value={idx}></Icon> */}
                                                             {/* test */}
-=======
-                                                        icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this)}>
->>>>>>> upstream/master
                                                         </Button>
                                                     // </div>
                                                 
@@ -2090,21 +2084,6 @@ class CornerstoneElement extends Component {
                                         {/* {canvas} */}
                                     </div>
                                     <div className='canvas-style'>
-<<<<<<< HEAD
-                                        <div className='antd-slider'>
-                                            <Slider 
-                                                vertical reverse
-                                                marks={sliderMarks} 
-                                                value={this.state.currentIdx + 1} 
-                                                onChange={this.handleRangeChange}
-                                                // onAfterChange={this.handleRangeChange}
-                                                // onAfterChange={this.handleRangeChange.bind(this)} 
-                                                min={1}
-                                                step={1}
-                                                max={this.state.stack.imageIds.length}
-                                                ></Slider>
-                                        </div>
-=======
                                         {/* <Slider marks={} defaultValue={this.state.currentIdx + 1} onChange={this.handleRangeChange}></Slider> */}
                                         <input
                                             id="slice-slider"
@@ -2115,7 +2094,6 @@ class CornerstoneElement extends Component {
                                             step="1"
                                             min="1"
                                             max={this.state.stack.imageIds.length}></input>
->>>>>>> upstream/master
                                             {/* {
                                             this.state.boxes.map((content,index)=>{
                                                 let tempId ='sign'+index
@@ -2137,6 +2115,7 @@ class CornerstoneElement extends Component {
                                         </div> */}
 
                                     </div>
+
                                     </Grid.Column>
                                     
                                     <Grid.Column width={4}> 
@@ -2398,52 +2377,8 @@ class CornerstoneElement extends Component {
                                                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
                                                 /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
                                             </div>
-<<<<<<< HEAD
                                             {/* {canvas} */}
 
-                                        </div>
-                                        <div className='canvas-style'>
-                                            {/* <Slider 
-                                                marks={} 
-                                                defaultValue={this.state.currentIdx + 1} 
-                                                onChange={this.handleRangeChange} 
-                                                min={}
-                                                ></Slider> */}
-                                                <div className='antd-slider'>
-                                                    <Slider 
-                                                        vertical reverse
-                                                        marks={sliderMarks} 
-                                                        value={this.state.currentIdx + 1} 
-                                                        onChange={this.handleRangeChange}
-                                                        // onAfterChange={this.handleRangeChange}
-                                                        // onAfterChange={this.handleRangeChange.bind(this)} 
-                                                        min={1}
-                                                        step={1}
-                                                        max={this.state.stack.imageIds.length}
-                                                        ></Slider>
-                                                </div>
-                                        {/* </div>
-                                            <input
-                                                id="slice-slider"
-                                                onChange={this.handleRangeChange}
-                                                type="range"
-                                                value={this.state.currentIdx + 1}
-                                                name="volume"
-                                                step="1"
-                                                min="1"
-
-                                                max={this.state.stack.imageIds.length}></input> */}
-                                            {/* {
-                                                this.state.boxes.map((content,index)=>{
-                                                    let tempId ='sign'+index
-                                                    return(
-                                                    <Label circular id={tempId} className='sign' style={{position:'absolute',minWidth:'0.2em',
-                                                    minHeight:'0.2em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
-                                                    )
-                                                })
-                                            } */}
-=======
->>>>>>> upstream/master
                                         </div>
 
                                     </div>
@@ -2460,6 +2395,7 @@ class CornerstoneElement extends Component {
                                             step={1}
                                             max={this.state.stack.imageIds.length}
                                             ></Slider>
+
                                     </div>
                                     </Grid.Column>
                                     <Grid.Column width={4}> 
@@ -2655,28 +2591,14 @@ class CornerstoneElement extends Component {
         return {box: -1, pos: 'o'};
     }
 
-<<<<<<< HEAD
-    test(){
-        return;
-    }
-
-    handleRangeChange(event) {
-        console.log('slider',event)
-=======
     handleRangeChange(e) {
         console.log('slider',e)
->>>>>>> upstream/master
         // this.setState({currentIdx: event.target.value - 1, imageId:
         // this.state.imageIds[event.target.value - 1]})
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
 
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
-<<<<<<< HEAD
-        // this.refreshImage(false, this.state.imageIds[event.target.value - 1], event.target.value - 1)
-        this.refreshImage(false, this.state.imageIds[event + 1], event + 1)
-=======
         this.refreshImage(false, this.state.imageIds[e-1], e-1)
->>>>>>> upstream/master
     }
 
     createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
