@@ -110,7 +110,7 @@ class DisplayPanel extends Component {
             // console.log('parse',dicomParser.parseDicom(image))
             const dicomtag = image.data
             let draftStatus = -1
-            if (!readonly)
+            // if (!readonly)
               draftStatus = readonlyResponse.data.status
             const stack = {
               imageIds: dataResponse.data,
@@ -124,7 +124,6 @@ class DisplayPanel extends Component {
             console.log('test',dicomtag)
             console.log('draftdata',draftResponse,draftParams)
             console.log('dataResponse',dataResponse)
-            console.log('hhh2')
             this.setState({stack: stack, show: true})
             })
          
@@ -210,7 +209,7 @@ class DisplayPanel extends Component {
           // console.log('parse',dicomParser.parseDicom(image))
           const dicomtag = image.data
           let draftStatus = -1
-          if (!readonly)
+          // if (!readonly)
             draftStatus = readonlyResponse.data.status
           const stack = {
             imageIds: dataResponse.data,
@@ -221,7 +220,7 @@ class DisplayPanel extends Component {
             noduleNo: noduleNo,
             dicomTag:dicomtag
           }
-          console.log('test',dicomtag)
+          console.log('readonly',readonlyResponse)
           console.log('draftdata',draftResponse,draftParams)
           console.log('dataResponse',dataResponse)
           this.setState({stack: stack, show: true})

@@ -161,8 +161,8 @@ class MiniReport extends Component{
                     },
                     count: {
                     //   max: 350000,
-                    //   tickInterval:50000
-                        tickCount:10
+                      tickInterval:1
+                        // tickCount:10
                     }
                     })
                 // view1.source(dv)
@@ -430,10 +430,10 @@ class MiniReport extends Component{
                 <Grid.Row verticalAlign='middle' columns={4} style={{height:40}}>
                     {
                         windowWidth < 1600?
-                        <Grid.Column textAlign='left' width={7}>
+                        <Grid.Column textAlign='left' width={5}>
                             <div style={{fontSize:18}}></div>
                         </Grid.Column>:
-                        <Grid.Column textAlign='left' width={8}>
+                        <Grid.Column textAlign='left' width={6}>
                             <div style={{fontSize:18}}></div>
                         </Grid.Column>
                     }
@@ -688,7 +688,7 @@ class MiniReport extends Component{
                     <Grid.Row >
                         <Grid.Column textAlign='center'>
                         <textarea style={{fontSize:'medium',overflowY:'auto',height:'150px',width:'100%',
-                        background:'transparent',border:'0rem',marginLeft:'20px'}} id='textarea' 
+                        background:'transparent',border:'0rem',marginLeft:'0px'}} id='textarea' 
                         placeholder='在此填写诊断报告' onChange={this.handleTextareaChange} value={this.state.templateText}>
                             
                             {/* {this.template().split('*').map((content,index)=>{

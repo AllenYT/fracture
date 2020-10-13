@@ -94,9 +94,19 @@ input[type=range]:focus {
   /* width: 870px;
   height: 40px; */
 }
+.ant-slider-rail{
+  background-color:#000033 !important;
+}
+.ant-slider-track{
+  background-color:#0033FF !important;
+}
+.ant-slider-dot{
+  background-color:#dbce12 !important;
+  border:2px solid #dbce12 !important;
+}
 
 .histogram{
-  margin-left: -10%;
+  margin-left: -15%;
   width:110%;
   max-height: 220px;
 }
