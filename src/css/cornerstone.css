@@ -2,12 +2,12 @@ input[type='range'] {
   background: transparent;
   -webkit-appearance: none;
   transform: rotate(90deg);
-  position: absolute;
+  /* position: absolute; */
 
   
-  top: 48%;
+  /* top: 48%; */
   /* left: 553.828px; */
-  left: 850px;
+  /* left: 850px; */
   /* left:100px; */
   width: 1100px;
   height: 40px;
@@ -86,6 +86,23 @@ input[type=range]:focus {
   margin-top: -20px;
 }
 
+.antd-slider{
+  position: absolute;
+  /* transform: rotate(180deg); */
+  /* top: 10%; */
+  /* left: 553.828px; */
+  left: 1100px;
+  /* left:100px; */
+  width: 40px;
+  height: 870px;
+  /* width: 870px;
+  height: 40px; */
+}
+
+.histogram{
+  margin-left: -10%;
+  width:110%;
+}
 
 .ui.bottom.center.popup#defWindow{
   width: 200px;
