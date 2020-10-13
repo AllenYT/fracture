@@ -29,12 +29,16 @@ class StudyBrowserList extends Component{
             load:true
         }
         
-
+        const token = localStorage.getItem('token')
         const params = {
             mainItem: this.state.caseId,
             type: 'pid',
             otherKeyword: ''
         }
+        const headers = {
+            'Authorization': 'Bearer '.concat(token)
+        }
+        
         axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(params)).then((response) => {
             const data = response.data
             if (data.status !== 'okay') {
@@ -50,7 +54,7 @@ class StudyBrowserList extends Component{
                     const seriesLst = subList[key]
                     seriesLst.map((serie,index)=>{
                         Promise.all([
-                            axios.post(draftConfig.getDataPath,qs.stringify({caseId:serie.split('#')[0]})),
+                            axios.post(draftConfig.getDataPath,qs.stringify({caseId:serie.split('#')[0]}), {headers}),
                             axios.post(dataConfig.getDataListForCaseId,qs.stringify({caseId:serie.split('#')[0]})),
                         ])
                         .then(([annotype,dicom])=>{
@@ -68,6 +72,7 @@ class StudyBrowserList extends Component{
                             //     cornerstone.setViewport(element, viewport)
                             //     cornerstone.displayImage(element, image)
                             // })
+                            
                             theList.push({
                                 'date':key,
                                 'caseId':serie.split('#')[0],
