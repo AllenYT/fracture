@@ -216,42 +216,24 @@ class SubList extends Component {
                         active={this.state.activeIndex === idx}
                         index={idx}
                         onClick={this.handleClick}
-                        // content={
-                        // <tr>
-                        //     <td>
-                        //         <Icon name={icon}/>
-                        //     </td>
-                        //             <td>
-                        //                 {newValue[0]}
-                        //             </td>
-                        //             <td>
-                        //                 {newValue[1]}
-                        //             </td>
-                        //             <td>
-                        //                 {newValue[2]}
-                        //             </td>
-                        //             <td style={{textAlign:'right'}}>
-                        //                 <span className="display-right">共{len}次检查</span>
-                        //             </td>
-                        //         </tr>}
                     >
                         <tr>
                             <td>
                                 <Icon name={icon}/>
                             </td>
-                                    <td>
-                                        {newValue[0]}
-                                    </td>
-                                    <td>
-                                        {newValue[1]}
-                                    </td>
-                                    <td>
-                                        {newValue[2]}
-                                    </td>
-                                    <td style={{textAlign:'right'}}>
-                                        <span className="display-right">共{len}次检查</span>
-                                    </td>
-                                </tr>
+                            <td>
+                                {newValue[0]}
+                            </td>
+                            <td>
+                                {newValue[1]}
+                            </td>
+                            <td>
+                                {newValue[2]}
+                            </td>
+                            <td style={{textAlign:'right'}}>
+                                <span className="display-right">共{len}次检查</span>
+                            </td>
+                        </tr>
                                 {/* } */}
                         {/* <Icon name={icon}/>  */}
                         

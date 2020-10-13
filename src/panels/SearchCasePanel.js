@@ -397,7 +397,7 @@ export class SearchPanel extends Component {
                                     {searchResults}
                                 </div>
                                 {/* <div className="patientList" style={{minHeight:500}}>
-                                    <MainList 
+                                    <MainList
                                         type={type}
                                         currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
                                         pidKeyword={this.state.pidKeyword}
