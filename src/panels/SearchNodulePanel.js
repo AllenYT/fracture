@@ -704,35 +704,28 @@ export class SearchNodulePanel extends Component {
                                     <Grid.Column width={13} className="gridLabel">
                                         <Grid inverted divided>
                                             <Grid.Row columns={6}>
-                                                <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&lt;=0.3cm</a>
-                                                    
+                                                {/* <Grid.Column width={2} className="gridLabel" */}
+                                                <Grid.Column className="gridLabel" widescreen={2} computer={2}> 
+                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&lt;=0.3cm</a>
+                                                </Grid.Column>
+                                                <Grid.Column className="gridLabel" widescreen={2} computer={3}>
+                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>0.3cm-0.5cm</a>
                                                 </Grid.Column>
                                                 <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>0.3cm-0.5cm</a>
-                                                    
+                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>0.5cm-1cm</a>
                                                 </Grid.Column>
                                                 <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>0.5cm-1cm</a>
-                                                    
+                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>1cm-1.3cm</a>
                                                 </Grid.Column>
                                                 <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>1cm-1.3cm</a>
-                                                    
+                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>1.3cm-3cm</a>
                                                 </Grid.Column>
                                                 <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>1.3cm-3cm</a>
-                                                    
+                                                    <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&gt;=3cm</a> 
                                                 </Grid.Column>
-                                                <Grid.Column width={2} className="gridLabel">
-                                                <a style={{color:'#66cfec'}} onClick={this.handleLabels}>&gt;=3cm</a>
-                                                    
-                                                </Grid.Column>
-                                                
-                                                
                                             </Grid.Row>
                                             <Grid.Row>
-                                                <Grid.Column width={6} className="gridLabel inputContainer">
+                                                <Grid.Column className="gridLabel inputContainer" widescreen={6} computer={8}>
                                                     <a style={{color:'#66cfec'}}>自定义：</a>
                                                     <Input id="searchBoxleft" placeholder="cm" onChange={this.handleInputChange} name='left'/>
                                                     <em>&nbsp;&nbsp;-&nbsp;&nbsp;</em>
@@ -759,7 +752,7 @@ export class SearchNodulePanel extends Component {
                                     <Grid inverted divided>
                                         <Grid.Row >
                                             
-                                            <Grid.Column style={{width:'9%'}} >    
+                                            <Grid.Column style={{width:'9%'}} computer={2}>    
                                                 <Dropdown text='毛刺征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
                                                         <Dropdown.Item onClick={this.handleImageLabels}>毛刺</Dropdown.Item>
@@ -769,7 +762,7 @@ export class SearchNodulePanel extends Component {
                                                 </Dropdown>
                                                 
                                             </Grid.Column>
-                                            <Grid.Column style={{width:'9%'}} >
+                                            <Grid.Column style={{width:'9%'}} computer={2}>
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
                                             <Dropdown text='分叶征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
@@ -783,7 +776,7 @@ export class SearchNodulePanel extends Component {
                                             <a style={{color:'#66cfec'}} onClick={this.handleLabels}>胸膜内陷</a>
                                                 
                                             </Grid.Column> */}
-                                            <Grid.Column style={{width:'8%'}} >
+                                            <Grid.Column style={{width:'8%'}} computer={2}>
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>钙化</a> */}
                                             <Dropdown text='钙化' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
@@ -798,7 +791,7 @@ export class SearchNodulePanel extends Component {
                                             <a style={{color:'#66cfec'}} onClick={this.handleLabels}>半实性</a>
                                                 
                                             </Grid.Column> */}
-                                            <Grid.Column style={{width:'8%'}} >
+                                            <Grid.Column style={{width:'8%'}} computer={2}>
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>实性</a> */}
                                             <Dropdown text='密度' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
@@ -808,7 +801,7 @@ export class SearchNodulePanel extends Component {
                                                     </Dropdown.Menu>
                                                 </Dropdown>
                                             </Grid.Column>
-                                            <Grid.Column style={{width:'12%'}} >
+                                            <Grid.Column style={{width:'12%'}} computer={3}>
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
                                             <Dropdown text='胸膜凹陷征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
@@ -818,7 +811,7 @@ export class SearchNodulePanel extends Component {
                                                     </Dropdown.Menu>
                                             </Dropdown>
                                             </Grid.Column>
-                                            <Grid.Column style={{width:'9%'}} >
+                                            <Grid.Column style={{width:'9%'}} computer={2}>
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
                                             <Dropdown text='空洞征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
@@ -828,7 +821,7 @@ export class SearchNodulePanel extends Component {
                                                     </Dropdown.Menu>
                                             </Dropdown>
                                             </Grid.Column>
-                                            <Grid.Column style={{width:'12%'}} >
+                                            <Grid.Column style={{width:'12%'}} computer={3}>
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
                                             <Dropdown text='血管集束征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
@@ -838,7 +831,7 @@ export class SearchNodulePanel extends Component {
                                                     </Dropdown.Menu>
                                             </Dropdown>
                                             </Grid.Column>
-                                            <Grid.Column style={{width:'9%'}} >
+                                            <Grid.Column style={{width:'9%'}} computer={2}>
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
                                             <Dropdown text='空泡征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
@@ -848,7 +841,7 @@ export class SearchNodulePanel extends Component {
                                                     </Dropdown.Menu>
                                             </Dropdown>
                                             </Grid.Column>
-                                            <Grid.Column style={{width:'13%'}} >
+                                            <Grid.Column style={{width:'13%'}} computer={3}>
                                             {/* <a style={{color:'#66cfec'}} onClick={this.handleLabels}>分叶</a> */}
                                             <Dropdown text='支气管充气征' style={{color:'#66cfec'}} id='feaDropdown'>
                                                     <Dropdown.Menu style={{background:'black'}}>
@@ -897,9 +890,9 @@ export class SearchNodulePanel extends Component {
                         </Grid.Column>
                      
                     </Grid.Row>
-                    <Grid.Row >
-                        <Grid.Column width={2}></Grid.Column>
-                        <Grid.Column width={12} id="container">
+                    <Grid.Row centered>
+                        <Grid.Column width={2} only='widescreen'></Grid.Column>
+                        <Grid.Column widescreen={12} computer={14} id="container">
                             {
                                 this.state.show===true?
                                 <div style={{minHeight:590}}>
@@ -986,7 +979,7 @@ export class SearchNodulePanel extends Component {
                             }
                             
                             </Grid.Column>
-                            <Grid.Column width={2}></Grid.Column>
+                            <Grid.Column width={2} only='widescreen'></Grid.Column>
                         </Grid.Row>
                        
                     </Grid>
