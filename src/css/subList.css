@@ -49,3 +49,17 @@
 #output{
     float:right;
 }
+
+@media screen and (min-width: 1200px)  and (max-width:1619px){
+    #subList-accordion {
+        background-color:rgba(1, 23, 46, 0.997) !important;
+        border-radius: 0.1rem !important;
+        border-color: white;
+        color: white;
+        max-height:300px; 
+        overflow-y:auto;
+    }
+    /* .space td{
+        width:11.1%;
+    } */
+}

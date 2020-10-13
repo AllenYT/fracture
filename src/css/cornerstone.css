@@ -60,6 +60,19 @@ input[type=range]:focus {
   outline: none;
 }
 
+.antd-slider{
+  position: absolute;
+  /* transform: rotate(180deg); */
+  /* top: 10%; */
+  /* left: 553.828px; */
+  left: 1100px;
+  /* left:100px; */
+  width: 40px;
+  height: 870px;
+  /* width: 870px;
+  height: 40px; */
+  }
+
 #defWindow .ui.form .field .ui.input input, #defWindow .ui.form .fields .field .ui.input input .wwinput{
   position: absolute;
   transform: rotate(0deg);
@@ -95,6 +108,7 @@ input[type=range]:focus {
 .histogram{
   margin-left: -15%;
   width:110%;
+  max-height: 220px;
 }
 
 .ui.bottom.center.popup#defWindow{
@@ -739,5 +753,35 @@ textarea:focus, input:focus{
     position: absolute;
     bottom: 0px;
     left: 0px;
+  }
+  #canvas-border{
+    /* margin-top: -10px; */
+    border: 2px solid #d1d1d1e0;
+    border-radius: 0.5em;
+    position: absolute;
+    width: 930px;
+    float: left;
+    height:826px;
+    /* line-height: 900px; */
+  }
+
+  .ui.celled.grid.corner-contnt .canvas-style #origin-canvas{
+    /* width: 768px;
+    height: 768px; */
+    width: 820px;
+    height: 820px;
+    position: relative;
+    margin:auto;
+    color: white;
+    /* border: 2px solid whitesmoke;
+    border-radius: 0.3rem; */
+  }
+
+  .antd-slider{
+    position: absolute;
+    top:2%;
+    left: 900px;
+    width: 40px;
+    height: 810px;
   }
 }

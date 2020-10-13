@@ -32,6 +32,7 @@ import $ from  'jquery'
 
 
 
+
 cornerstoneTools.external.cornerstone = cornerstone
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 // cornerstoneWebImageLoader.external.cornerstone = cornerstone
@@ -57,6 +58,7 @@ const eraser = cornerstoneTools.EraserTool
 const {Column, HeaderCell, Cell, Pagination} = Table
 let allROIToolData = {}
 let toolROITypes = ['EllipticalRoi','Bidirectional']
+const cacheSize = 5
 let playTimer = undefined
 // , 'RectangleRoi', 'ArrowAnnotate', 'Length', 'CobbAngle', 'Angle', 'FreehandRoi', 'Calibration'
 // const divStyle = {
@@ -76,35 +78,35 @@ const immersiveStyle = {
     color: "white"
 }
 
-const bottomLeftStyle = {
+let bottomLeftStyle = {
     bottom: "5px",
     left: "-95px",
     position: "absolute",
     color: "white"
 }
 
-const bottomRightStyle = {
+let bottomRightStyle = {
     bottom: "5px",
     right: "-95px",
     position: "absolute",
     color: "white"
 }
 
-const topLeftStyle = {
+let topLeftStyle = {
     top: "5px",
     left: "-95px", // 5px
     position: "absolute",
     color: "white"
 }
 
-const topRightStyle = {
+let topRightStyle = {
     top: "5px",
     right: "-95px", //5px
     position: "absolute",
     color: "white"
 }
 
-const modalBtnStyle = {
+let modalBtnStyle = {
     width: "200px",
     display: "block",
     // marginTop:'10px',
@@ -122,6 +124,7 @@ const draftConfig = config.draft
 const recordConfig = config.record
 const userConfig = config.user
 const reviewConfig = config.review
+const dataConfig = config.data
 
 const selectStyle = {
     'background': 'none',
@@ -220,21 +223,7 @@ class CornerstoneElement extends Component {
             studyList:props.studyList,
             menuTools:'',
             isPlaying: false,
-            // cineFrameRate: 24,
-            // isLoopEnabled: true,
-            // lastChange: '',
-            // list:[],
-            // malignancy: -1,
-            // calcification: -1,
-            // spiculation: -1,
-            // lobulation:-1,
-            // texture:-1,
-            // totalPage: 1,//全部页面
-            // activePage:'1',
-            // // volumeStart:-1,
-            // // volumeEnd:-1,
-            // diameterStart:0,
-            // diameterEnd:5
+            windowWidth:1920
         }
 
         this.onImageRendered = this
@@ -421,9 +410,12 @@ class CornerstoneElement extends Component {
         this.onMouseOver = this
             .onMouseOver
             .bind(this)
-        // this.cacheImage = this
-        //     .cacheImage
-        //     .bind(this)
+        this.cacheImage = this
+            .cacheImage
+            .bind(this)
+        this.cache = this
+            .cache
+            .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -625,12 +617,12 @@ class CornerstoneElement extends Component {
         }  
     }
 
-    nextPath(path) {
-        this
-            .props
-            .history
-            .push(path, {activeItem: 'case'})
-    }
+    // nextPath(path) {
+    //     this
+    //         .props
+    //         .history
+    //         .push(path, {activeItem: 'case'})
+    // }
 
     // toPage(text,e) {
     //     // let doms = document.getElementsByClassName('table-row') for (let i = 0; i <
@@ -882,6 +874,25 @@ class CornerstoneElement extends Component {
         const element = document.querySelector('#origin-canvas')
         this.disableAllTools(element)
         this.setState({leftButtonTools:1,menuTools:'slide'})
+        const newCurrentIdx = this.state.currentIdx
+        // if(newCurrentIdx - cacheSize < 0){
+        //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+        //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else{
+        //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
         //切换切片
     }
 
@@ -935,7 +946,7 @@ class CornerstoneElement extends Component {
         // if(boxes[idx].nodule_hist !== undefined){
         //     var hist_data = boxes[idx].nodule_hist
         //     console.log('hist_data',hist_data)
-        //     this.visualize(hist_data,idx,false)
+        //     this.visualize(hist_data,idx,false)  
         // }
 
         // if(boxes[idx].new_nodule_hist !== undefined){
@@ -952,7 +963,9 @@ class CornerstoneElement extends Component {
         // var data = e.target.value
         // data = JSON.stringify(data)
         // data = JSON.parse(data)
-        if (boxes[idx]!==undefined){
+        console.log('boxes',boxes, e.target.value)
+        if (boxes[idx] !== undefined){
+            console.log('boxes',boxes[idx])
             var hist = boxes[idx].nodule_hist
             this.visualize(hist,idx)
         }
@@ -1015,11 +1028,13 @@ class CornerstoneElement extends Component {
 
     render() {
         let sliderMarks={}
+
         for(let i=0;i<this.state.boxes.length;i++){
             sliderMarks[this.state.boxes[i].slice_idx]=''
         }
         
         
+
         const panes = [
             { menuItem: '影像所见', render: () => 
                 <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} 
@@ -1029,7 +1044,37 @@ class CornerstoneElement extends Component {
         // sessionStorage.clear()
         // console.log('boxes', this.state.boxes)
         // console.log('boxes', this.state.username)
-        const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, wcDefine, dicomTag, studyList, menuTools, cacheModal} = this.state
+        const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, 
+            wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth} = this.state
+        if(windowWidth < 1600){
+            bottomLeftStyle = {
+                bottom: "5px",
+                left: "-50px",
+                position: "absolute",
+                color: "white"
+            }
+            
+            bottomRightStyle = {
+                bottom: "5px",
+                right: "-10px",
+                position: "absolute",
+                color: "white"
+            }
+            
+            topLeftStyle = {
+                top: "5px",
+                left: "-50px", // 5px
+                position: "absolute",
+                color: "white"
+            }
+            
+            topRightStyle = {
+                top: "5px",
+                right: "-10px", //5px
+                position: "absolute",
+                color: "white"
+            }
+        }
         // console.log('dicomTag',dicomTag.elements)
         // var keys = [];
         // for(var propertyName in dicomTag.elements) {
@@ -1120,14 +1165,14 @@ class CornerstoneElement extends Component {
 
         
 
-        if (this.state.draftStatus === '0') 
-            submitButton = (
-                <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
-            )
-        else if (this.state.draftStatus === '1') 
-            submitButton = (
-                <Button icon title='撤销' onClick={this.deSubmit} className='funcbtn'><Icon name='reply' size='large'></Icon></Button>
-            )
+        // if (this.state.draftStatus === '0') 
+        //     submitButton = (
+        //         <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
+        //     )
+        // else if (this.state.draftStatus === '1') 
+        //     submitButton = (
+        //         <Button icon title='撤销' onClick={this.deSubmit} className='funcbtn'><Icon name='reply' size='large'></Icon></Button>
+        //     )
         if (window.location.pathname.split('/')[3] === 'origin') 
             createDraftModal = (
                 <div style={{width:'100%',height:'100%'}}>
@@ -1946,32 +1991,61 @@ class CornerstoneElement extends Component {
             //                             }}>
                                             
             //                                 <canvas className="cornerstone-canvas" id="canvas"/>
-                                            
-            //                                 <div id='dicomTag'>
-            //                                     <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-            //                                     <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-            //                                     <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
-            //                                     <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
-            //                                     <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-            //                                     <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-            //                                     <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-            //                                     <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
-            //                                     <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
-            //                                     <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
-            //                                     <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
-            //                                 </div>
-            //                                 <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-            //                                 </div>
-            //                                 <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-            //                                 <div style={bottomRightStyle}>
-            //                                     WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-            //                                     /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-            //                                 </div>
+            //                                 <canvas className="cornerstone-canvas" id="length-canvas"/>
+            //                                 {
+            //                                     windowWidth < 1600 ?
+            //                                     <div>
+                                                
+            //                                         <div id='dicomTag'>               
+            //                                             <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+            //                                             <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
+            //                                         </div>
+            //                                         <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+            //                                         </div>
+            //                                         <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+            //                                         <div style={bottomRightStyle}>
+            //                                             WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+            //                                             /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+            //                                         </div>
+            //                                     </div>
+            //                                     :
+            //                                     <div>
+            //                                         <div id='dicomTag'>               
+            //                                             <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+            //                                             <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
+            //                                             <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
+            //                                         </div>
+            //                                         <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+            //                                         </div>
+            //                                         <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+            //                                         <div style={bottomRightStyle}>
+            //                                             WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+            //                                             /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+            //                                         </div>
+            //                                     </div>
+            //                                 } 
             //                             </div>
-                                        
+            //                             {canvas}
             //                         </div>
             //                         <div className='canvas-style'>
-                                        
+            //                             <Slider marks={} defaultValue={this.state.currentIdx + 1} onChange={this.handleRangeChange}></Slider>
             //                             <input
             //                                 id="slice-slider"
             //                                 onChange={this.handleRangeChange}
@@ -1981,12 +2055,31 @@ class CornerstoneElement extends Component {
             //                                 step="1"
             //                                 min="1"
             //                                 max={this.state.stack.imageIds.length}></input>
-                        
+            //                                 {
+            //                                 this.state.boxes.map((content,index)=>{
+            //                                     let tempId ='sign'+index
+            //                                     return(
+            //                                     <Label circular id={tempId} className='sign' style={{position:'absolute',minWidth:'0.2em',
+            //                                     minHeight:'0.2em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
+            //                                     )
+            //                                 })
+            //                             }
+            //                             <div id="button-container">
+            //                                 <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
+            //                                 <p id="page-indicator">{this.state.currentIdx + 1}
+            //                                     / {this.state.imageIds.length}</p>
+            //                                 <a
+            //                                     id="immersive-hover"
+            //                                     onClick={() => {
+            //                                     this.setState({immersive: true})
+            //                                 }}>沉浸模式</a>
+            //                             </div>
 
             //                         </div>
+
             //                         </Grid.Column>
                                     
-            //                         <Grid.Column width={4}> 
+            //                        <Grid.Column width={4}>  */}
                                         
             //                             <div id='listTitle'>
             //                                     <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
@@ -1998,7 +2091,7 @@ class CornerstoneElement extends Component {
             //                                 </Accordion>
             //                             </div>
             //                             <div id='report'>
-            //                                 <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
+            //                                 <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }}  */}
             //                                     panes={panes} />
             //                             </div>
             //                         </Grid.Column>
@@ -2127,7 +2220,7 @@ class CornerstoneElement extends Component {
                                         <Button icon onClick={this.playAnimation} className='funcbtn' title='播放动画'><Icon name='play' size='large'></Icon></Button>:
                                         <Button icon onClick={this.pauseAnimation} className='funcbtn' title='暂停动画'><Icon name='pause' size='large'></Icon></Button>
                                     }
-                                    
+                                    {/* <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button> */}
                                     {/* <Modal
                                         basic
                                         open={cacheModal}
@@ -2193,7 +2286,7 @@ class CornerstoneElement extends Component {
                                             <Button icon title='窗宽窗位' onClick={this.wwwcCustom} className='funcbtn'><Icon name='sliders' size='large'></Icon></Button>
                                         }
                                         <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
-                                        {/* {submitButton} */}
+                                        <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
                                         {/* <Button title='3D' className='funcbtn'>3D</Button> */}
                                     </Button.Group>
                                 </Menu.Item>
@@ -2222,26 +2315,56 @@ class CornerstoneElement extends Component {
                                         }}>
                                             <canvas className="cornerstone-canvas" id="canvas"/>
                                             {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                                            <div id='dicomTag'>
-                                                <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {parseInt(this.state.currentIdx) + 1} / {this.state.imageIds.length}</div>
-                                                <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
-                                            </div>
-                                            <div className='dicomTag' style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-                                            </div>
-                                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
-                                            <div style={bottomRightStyle}>
-                                                WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                                                /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                                            </div>
+                                            {/* {canvas} */}
+                                            {
+                                                windowWidth < 1600 ?
+                                                <div>
+                                                
+                                                    <div id='dicomTag'>               
+                                                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                                                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
+                                                    </div>
+                                                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                                                    </div>
+                                                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                                                    <div style={bottomRightStyle}>
+                                                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                                    </div>
+                                                </div>
+                                                :
+                                                <div>
+                                                    <div id='dicomTag'>               
+                                                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                                                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
+                                                    </div>
+                                                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                                                    </div>
+                                                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                                                    <div style={bottomRightStyle}>
+                                                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                                    </div>
+                                                </div>
+                                            } 
                                         </div>
 
                                     </div>
@@ -2258,6 +2381,7 @@ class CornerstoneElement extends Component {
                                             step={1}
                                             max={this.state.stack.imageIds.length}
                                             ></Slider>
+
                                     </div>
                                     </Grid.Column>
                                     <Grid.Column width={4}> 
@@ -2458,6 +2582,7 @@ class CornerstoneElement extends Component {
         // this.setState({currentIdx: event.target.value - 1, imageId:
         // this.state.imageIds[event.target.value - 1]})
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
+
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
         this.refreshImage(false, this.state.imageIds[e-1], e-1)
     }
@@ -2574,11 +2699,47 @@ class CornerstoneElement extends Component {
         if (newCurrentIdx < this.state.imageIds.length) {
             this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
         }
+        // if(newCurrentIdx - cacheSize < 0){
+        //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+        //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
+        // else{
+        //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
+        //         if(i === newCurrentIdx) continue
+        //         this.cacheImage(this.state.imageIds[i])
+        //     }
+        // }
         }else{//向上滚动
             let newCurrentIdx = this.state.currentIdx - 1
             if (newCurrentIdx >= 0) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
             }
+            // if(newCurrentIdx - cacheSize < 0){
+            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
+            //         if(i === newCurrentIdx) continue
+            //         this.cacheImage(this.state.imageIds[i])
+            //     }
+            // }
+            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
+            //         if(i === newCurrentIdx) continue
+            //         this.cacheImage(this.state.imageIds[i])
+            //     }
+            // }
+            // else{
+            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
+            //         if(i === newCurrentIdx) continue
+            //         this.cacheImage(this.state.imageIds[i])
+            //     }
+            // }
         }
     }
 
@@ -2736,50 +2897,51 @@ class CornerstoneElement extends Component {
             if (newCurrentIdx >= 0) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
             }
-            // if(newCurrentIdx - 5 < 0){
-            //     for(var i = 0;i <= newCurrentIdx + 5 ;i++){
+            // if(newCurrentIdx - cacheSize < 0){
+            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
             //         if(i === newCurrentIdx) continue
             //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
-            // else if(newCurrentIdx + 5 > this.state.imageIds.length){
-            //     for(var i = this.state.imageIds.length - 1;i >= newCurrentIdx - 5 ;i--){
+            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
             //         if(i === newCurrentIdx) continue
             //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
             // else{
-            //     for(var i = newCurrentIdx - 5;i <= newCurrentIdx + 5 ;i){
+            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
             //         if(i === newCurrentIdx) continue
             //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
+
         }
         if (event.which == 39 || event.which == 40) {
             event.preventDefault()
             let newCurrentIdx = this.state.currentIdx + 1
             if (newCurrentIdx < this.state.imageIds.length) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+                // console.log('info',cornerstone.imageCache.getCacheInfo())
             }
-            // if(newCurrentIdx - 5 < 0){
-            //     for(var i = 0;i <= newCurrentIdx + 5 ;i++){
+            // if(newCurrentIdx - cacheSize < 0){
+            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
             //         if(i === newCurrentIdx) continue
-            //         this.refreshImage(false, this.state.imageIds[i], newCurrentIdx)
+            //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
-            // else if(newCurrentIdx + 5 > this.state.imageIds.length){
-            //     for(var i = this.state.imageIds.length - 1;i >= newCurrentIdx - 5 ;i--){
+            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
+            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
             //         if(i === newCurrentIdx) continue
-            //         this.refreshImage(false, this.state.imageIds[i], newCurrentIdx)
+            //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
             // else{
-            //     for(var i = newCurrentIdx - 5;i <= newCurrentIdx + 5 ;i){
+            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
             //         if(i === newCurrentIdx) continue
-            //         this.refreshImage(false, this.state.imageIds[i], newCurrentIdx)
+            //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
-
         }
         if (event.which == 72) {
             this.toHidebox() 
@@ -3141,29 +3303,55 @@ class CornerstoneElement extends Component {
             menuTools:''
         })
     }
-
-    //提交结节
-    submit() {
-        this.setState({menuTools:''})
+    nextPath(path) {
+        this.props.history.push(path)
+    } 
+    submit(){
+        console.log('createuser')
         const token = localStorage.getItem('token')
-        console.log('token', token)
         const headers = {
             'Authorization': 'Bearer '.concat(token)
         }
         const params = {
             caseId: this.state.caseId,
-            username:this.state.username
+            // username:this.state.username,
+            newRectStr: JSON.stringify(this.state.boxes)
         }
-        axios.post(draftConfig.submitDraft, qs.stringify(params), {headers}).then(res => {
-            if (res.data === true) 
-                this.setState({'draftStatus': '1'})
-            else 
-                alert("出现错误，请联系管理员！")
+        axios.post(dataConfig.createUser, qs.stringify(params), {headers}).then(res => {
+            if (res.data.status === 'okay') {
+                console.log('createUser')
+                this.nextPath(res.data.nextPath)
+            }
+            else if(res.data.status === 'alreadyExisted'){
+                console.log('alreadyExistedUser')
+                this.nextPath(res.data.nextPath)
+            }
         }).catch(err => {
-            console.log(err)
+            console.log('err: ' + err)
         })
-
     }
+    //提交结节
+    // submit() {
+    //     this.setState({menuTools:''})
+    //     const token = localStorage.getItem('token')
+    //     console.log('token', token)
+    //     const headers = {
+    //         'Authorization': 'Bearer '.concat(token)
+    //     }
+    //     const params = {
+    //         caseId: this.state.caseId,
+    //         username:this.state.username
+    //     }
+    //     axios.post(draftConfig.submitDraft, qs.stringify(params), {headers}).then(res => {
+    //         if (res.data === true) 
+    //             this.setState({'draftStatus': '1'})
+    //         else 
+    //             alert("出现错误，请联系管理员！")
+    //     }).catch(err => {
+    //         console.log(err)
+    //     })
+
+    // }
 
     deSubmit() {
         const token = localStorage.getItem('token')
@@ -3406,9 +3594,18 @@ class CornerstoneElement extends Component {
             })
     }
 
-    // cacheImage(imageId){
-    //     cornerstone.loadAndCacheImage(imageId)
-    // }
+    cacheImage(imageId){
+        cornerstone.loadAndCacheImage(imageId)
+        // console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
+        // cornerstone.ImageCache(imageId)
+    }
+
+    cache() {//coffee button
+        for (var i = this.state.imageIds.length - 1; i >= 0; i--) {
+            this.refreshImage(false, this.state.imageIds[i], i)
+            console.log('info',cornerstone.imageCache.getCacheInfo())
+        }
+    }
 
     checkHash() {
         const noduleNo = this.props.stack.noduleNo
@@ -3439,6 +3636,8 @@ class CornerstoneElement extends Component {
                 window.location.href = '/'
         }
         document.getElementById('header').style.display = 'none'
+        const width = document.body.clientWidth
+        this.setState({windowWidth : width})
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
         const token = localStorage.getItem('token')
         const headers = {
@@ -3580,6 +3779,27 @@ class CornerstoneElement extends Component {
             }
             console.log('listsActiveIndex',prevState.listsActiveIndex,this.state.listsActiveIndex)
             // document.
+        }
+        if(prevState.currentIdx !== this.state.currentIdx){
+            const currentIdx = this.state.currentIdx + 1
+            if(currentIdx - cacheSize < 0){
+                for(var i = 0;i < currentIdx + cacheSize ;i++){
+                    if(i === currentIdx) continue
+                    this.cacheImage(this.state.imageIds[i])
+                }
+            }
+            else if(currentIdx + cacheSize > this.state.imageIds.length){
+                for(var i = this.state.imageIds.length - 1;i > currentIdx - cacheSize ;i--){
+                    if(i === currentIdx) continue
+                    this.cacheImage(this.state.imageIds[i])
+                }
+            }
+            else{
+                for(var i = currentIdx - cacheSize;i < currentIdx + cacheSize ;i++){
+                    if(i === currentIdx) continue
+                    this.cacheImage(this.state.imageIds[i])
+                }
+            }
         }
     }
 }
