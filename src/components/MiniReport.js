@@ -42,7 +42,8 @@ class MiniReport extends Component{
             temp:0,
             templateText:'',
             boxes:props.boxes,
-            dealchoose:'中华共识'
+            dealchoose:'中华共识',
+            windowWidth:1920,
         }
         this.showImages = this.showImages.bind(this)
         this.exportPDF = this.exportPDF.bind(this)
@@ -54,6 +55,8 @@ class MiniReport extends Component{
 
     componentDidMount(){
         console.log('mount')
+        const width = document.body.clientWidth
+        this.setState({windowWidth : width})
         const params = {
             caseId: this.state.caseId,
             username: this.state.username
@@ -416,7 +419,7 @@ class MiniReport extends Component{
         'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
         'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
         'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
-
+        const {windowWidth} = this.state
         
         // console.log('type',this.props.type)
         // console.log('time',buttonflag,this.state.nodules.length)
@@ -425,9 +428,16 @@ class MiniReport extends Component{
                 {
                     this.props.type==='影像所见'?
                 <Grid.Row verticalAlign='middle' columns={4} style={{height:40}}>
-                    <Grid.Column textAlign='left' width={8}>
-                        <div style={{fontSize:18}}></div>
-                    </Grid.Column>
+                    {
+                        windowWidth < 1600?
+                        <Grid.Column textAlign='left' width={7}>
+                            <div style={{fontSize:18}}></div>
+                        </Grid.Column>:
+                        <Grid.Column textAlign='left' width={8}>
+                            <div style={{fontSize:18}}></div>
+                        </Grid.Column>
+                    }
+                    
                     <Grid.Column width={4} textAlign='right'>
                         {/* <Dropdown style={{background:'none',fontSize:18}} text='结节排序'></Dropdown> */}
                     </Grid.Column>
@@ -645,17 +655,27 @@ class MiniReport extends Component{
                     </Grid.Column>
                 </Grid.Row>
                 :
-                <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}>
+                // 处理建议
+                <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}> 
                     <Grid.Column width={8}>
 
                     </Grid.Column>
                     <Grid.Column width={4} textAlign='right'>
-                        <Dropdown style={{background:'none',fontSize:18}} text={this.state.dealchoose} id='dealchoose'>
+                        {windowWidth < 1600 ?
+                        <Dropdown style={{background:'none',fontSize:14}} text={this.state.dealchoose} id='dealchoose'>
+                            <Dropdown.Menu>
+                                <Dropdown.Item onClick={this.dealChoose}>中华共识</Dropdown.Item>
+                                <Dropdown.Item onClick={this.dealChoose}>Fleischner</Dropdown.Item>
+                            </Dropdown.Menu>
+                        </Dropdown>:
+                        <Dropdown style={{background:'none',fontSize:16}} text={this.state.dealchoose} id='dealchoose'>
                             <Dropdown.Menu>
                                 <Dropdown.Item onClick={this.dealChoose}>中华共识</Dropdown.Item>
                                 <Dropdown.Item onClick={this.dealChoose}>Fleischner</Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
+                        }
+                        
                     </Grid.Column>
                     <Grid.Column textAlign='center' width={2}>
                         <Button title='复制' className='inverted blue button' icon='copy outline' onClick={this.handleCopyClick}></Button>

@@ -78,35 +78,35 @@ const immersiveStyle = {
     color: "white"
 }
 
-const bottomLeftStyle = {
+let bottomLeftStyle = {
     bottom: "5px",
     left: "-95px",
     position: "absolute",
     color: "white"
 }
 
-const bottomRightStyle = {
+let bottomRightStyle = {
     bottom: "5px",
     right: "-95px",
     position: "absolute",
     color: "white"
 }
 
-const topLeftStyle = {
+let topLeftStyle = {
     top: "5px",
     left: "-95px", // 5px
     position: "absolute",
     color: "white"
 }
 
-const topRightStyle = {
+let topRightStyle = {
     top: "5px",
     right: "-95px", //5px
     position: "absolute",
     color: "white"
 }
 
-const modalBtnStyle = {
+let modalBtnStyle = {
     width: "200px",
     display: "block",
     // marginTop:'10px',
@@ -222,6 +222,7 @@ class CornerstoneElement extends Component {
             studyList:props.studyList,
             menuTools:'',
             isPlaying: false,
+            windowWidth:1920,
             // cineFrameRate: 24,
             // isLoopEnabled: true,
             // lastChange: '',
@@ -1045,6 +1046,7 @@ class CornerstoneElement extends Component {
         }
         
         
+
         const panes = [
             { menuItem: '影像所见', render: () => 
                 <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} 
@@ -1054,8 +1056,37 @@ class CornerstoneElement extends Component {
         // sessionStorage.clear()
         // console.log('boxes', this.state.boxes)
         // console.log('boxes', this.state.username)
-        const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, wcDefine, dicomTag, studyList, menuTools, cacheModal} = this.state
-        
+        const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, 
+            wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth} = this.state
+        if(windowWidth < 1600){
+            bottomLeftStyle = {
+                bottom: "5px",
+                left: "-50px",
+                position: "absolute",
+                color: "white"
+            }
+            
+            bottomRightStyle = {
+                bottom: "5px",
+                right: "-10px",
+                position: "absolute",
+                color: "white"
+            }
+            
+            topLeftStyle = {
+                top: "5px",
+                left: "-50px", // 5px
+                position: "absolute",
+                color: "white"
+            }
+            
+            topRightStyle = {
+                top: "5px",
+                right: "-10px", //5px
+                position: "absolute",
+                color: "white"
+            }
+        }
         // console.log('dicomTag',dicomTag.elements)
         // var keys = [];
         // for(var propertyName in dicomTag.elements) {
@@ -1730,10 +1761,10 @@ class CornerstoneElement extends Component {
                                 <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
                                     <Grid>
                                         <Grid.Row>
-                                            <Grid.Column width={3}>
+                                            {/* <Grid.Column width={3}>
                                                 IM:{inside.slice_idx + 1}
-                                            </Grid.Column>
-                                            <Grid.Column width={4}>
+                                            </Grid.Column> */}
+                                            <Grid.Column width={6}>
                                                 <Icon name='crosshairs' size='mini'></Icon>
                                                 {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
                                             </Grid.Column>
@@ -2060,26 +2091,55 @@ class CornerstoneElement extends Component {
                                             
                                             <canvas className="cornerstone-canvas" id="canvas"/>
                                             {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                                            <div id='dicomTag'>
-                                                <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-                                                <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
-                                            </div>
-                                            <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-                                            </div>
-                                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-                                            <div style={bottomRightStyle}>
-                                                WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                                                /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                                            </div>
+                                            {
+                                                windowWidth < 1600 ?
+                                                <div>
+                                                
+                                                    <div id='dicomTag'>               
+                                                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                                                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
+                                                    </div>
+                                                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                                                    </div>
+                                                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                                                    <div style={bottomRightStyle}>
+                                                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                                    </div>
+                                                </div>
+                                                :
+                                                <div>
+                                                    <div id='dicomTag'>               
+                                                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                                                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
+                                                    </div>
+                                                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                                                    </div>
+                                                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                                                    <div style={bottomRightStyle}>
+                                                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                                    </div>
+                                                </div>
+                                            } 
                                         </div>
                                         {/* {canvas} */}
                                     </div>
@@ -2357,28 +2417,56 @@ class CornerstoneElement extends Component {
                                         }}>
                                             <canvas className="cornerstone-canvas" id="canvas"/>
                                             {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                                            <div id='dicomTag'>
-                                                <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {parseInt(this.state.currentIdx) + 1} / {this.state.imageIds.length}</div>
-                                                <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
-                                                <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
-                                            </div>
-                                            <div className='dicomTag' style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-                                            </div>
-                                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
-                                            <div style={bottomRightStyle}>
-                                                WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                                                /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                                            </div>
                                             {/* {canvas} */}
-
+                                            {
+                                                windowWidth < 1600 ?
+                                                <div>
+                                                
+                                                    <div id='dicomTag'>               
+                                                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                                                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
+                                                    </div>
+                                                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                                                    </div>
+                                                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                                                    <div style={bottomRightStyle}>
+                                                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                                    </div>
+                                                </div>
+                                                :
+                                                <div>
+                                                    <div id='dicomTag'>               
+                                                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                                                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
+                                                        <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
+                                                    </div>
+                                                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                                                    </div>
+                                                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                                                    <div style={bottomRightStyle}>
+                                                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                                    </div>
+                                                </div>
+                                            } 
                                         </div>
 
                                     </div>
@@ -3622,6 +3710,8 @@ class CornerstoneElement extends Component {
                 window.location.href = '/'
         }
         document.getElementById('header').style.display = 'none'
+        const width = document.body.clientWidth
+        this.setState({windowWidth : width})
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
         const token = localStorage.getItem('token')
         const headers = {
