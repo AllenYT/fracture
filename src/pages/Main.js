@@ -306,15 +306,10 @@ class Main extends Component {
 
                 <div className="ui inverted vertical footer segment">
                     <div className="inline" style={{verticalAlign:'middle'}}>
-                        {/* © 2019 MILab. All rights reserved */}
+                        
                         © 2019 Sichuan University. All rights reserved
                     </div>
-                    {/* <div className="inline">
-                        <Image src={src2} id='img-size'></Image>
-                    </div>
-                    <div className="inline">
-                        <Image src={src1} id='img-size'></Image>
-                    </div> */}
+                    
                     <div className="inline">
                         <Image src={src3} id='img-size'></Image>
                     </div>

@@ -5,8 +5,9 @@
   "dependencies": {
     "@antv/data-set": "^0.10.2",
     "@antv/g2": "^3.5.17",
+    "@material-ui/core": "^4.11.0",
     "@ohif/core": "^2.9.6",
-    "antd": "^3.26.18",
+    "antd": "^4.7.0",
     "axios": "^0.19.2",
     "copy-to-clipboard": "^3.3.1",
     "cornerstone-core": "^2.1.0",
@@ -34,6 +35,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.4.1",
     "react-viewerbase": "^0.17.6",
+    "rsuite": "^4.8.3",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.87.3",
     "superagent": "^5.3.1",
@@ -59,5 +61,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "devDependencies": {}
 }

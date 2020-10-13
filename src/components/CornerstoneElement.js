@@ -21,6 +21,7 @@ import qs from 'qs'
 // import { config } from "rxjs"
 import axios from "axios"
 import { Slider } from "antd"
+// import { Slider, RangeSlider } from 'rsuite'
 import MiniReport from './MiniReport'
 // import { Dropdown } from "antd"
 import { Chart } from '@antv/g2'
@@ -999,7 +1000,7 @@ class CornerstoneElement extends Component {
     }
 
     addSign(slice_idx,e){
-        document.getElementById('slice-slider').value=slice_idx
+        // document.getElementById('slice-slider').value=slice_idx
         // $('#slice-slider::-webkit-slider-runnable-track').css('background','linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)')
         // $('input[type=range]').css('background','linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)')
         // document.querySelector('input[type=range]').style.background='linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)'
@@ -1011,6 +1012,11 @@ class CornerstoneElement extends Component {
     }
 
     render() {
+        let sliderMarks={}
+        for(let i=0;i<this.state.boxes.length;i++){
+            sliderMarks[this.state.boxes[i].slice_idx]=''
+        }
+        
         
         const panes = [
             { menuItem: '影像所见', render: () => 
@@ -1722,7 +1728,7 @@ class CornerstoneElement extends Component {
                                                 {
                                                     // <div style={{display:'inline-block',width:'50%'}}>
                                                         <Button size='mini' circular inverted
-                                                        icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis}>
+                                                        icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this)}>
                                                         </Button>
                                                     // </div>
                                                 
@@ -1826,9 +1832,9 @@ class CornerstoneElement extends Component {
                                        
                                     } */}
 
-                                     <Container>
-                                        <div id={visualId}></div>
-                                    </Container>
+                                     {/* <Container className='histogram'> */}
+                                        <div id={visualId} className='histogram'></div>
+                                    {/* </Container> */}
                                 </Accordion.Content>
                             </div>
                         )
@@ -2052,7 +2058,7 @@ class CornerstoneElement extends Component {
                                             id="slice-slider"
                                             onChange={this.handleRangeChange}
                                             type="range"
-                                            value={this.state.currentIdx + 1}
+                                            value={this.state.currentIdx}
                                             name="volume"
                                             step="1"
                                             min="1"
@@ -2310,70 +2316,52 @@ class CornerstoneElement extends Component {
                                         <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
                                     </Grid.Column>
                                     <Grid.Column width={10} textAlign='center' id='canvas-column'>
-                                    {/* <div id='canvas-border'>
-
-                                    </div> */}
                                     <div className='canvas-style' id='canvas-border'>
-
-                                            <div
-                                                id="origin-canvas"
-                                                // style={divStyle}
-                                                ref={input => {
-                                                this.element = input
-                                            }}>
-                                                <canvas className="cornerstone-canvas" id="canvas"/>
-                                                {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                                                <div id='dicomTag'>
-                                                    <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-                                                    <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
-                                                    <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
-                                                </div>
-                                                <div className='dicomTag' style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-                                                </div>
-                                                <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
-                                                <div style={bottomRightStyle}>
-                                                    WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                                                    /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                                                </div>
+                                    <div
+                                            id="origin-canvas"
+                                            // style={divStyle}
+                                            ref={input => {
+                                            this.element = input
+                                        }}>
+                                            <canvas className="cornerstone-canvas" id="canvas"/>
+                                            {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
+                                            <div id='dicomTag'>
+                                                <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {parseInt(this.state.currentIdx) + 1} / {this.state.imageIds.length}</div>
+                                                <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
+                                                <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
                                             </div>
-                                            {/* {canvas} */}
-
+                                            <div className='dicomTag' style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                                            </div>
+                                            <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
+                                            <div style={bottomRightStyle}>
+                                                WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                                                /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                                            </div>
                                         </div>
-                                        <div className='canvas-style'>
-                                            {/* <Slider 
-                                                marks={} 
-                                                defaultValue={this.state.currentIdx + 1} 
-                                                onChange={this.handleRangeChange} 
-                                                min={}
-                                                ></Slider> */}
-                                            <input
-                                                id="slice-slider"
-                                                onChange={this.handleRangeChange}
-                                                type="range"
-                                                value={this.state.currentIdx + 1}
-                                                name="volume"
-                                                step="1"
-                                                min="1"
 
-                                                max={this.state.stack.imageIds.length}></input>
-                                            {/* {
-                                                this.state.boxes.map((content,index)=>{
-                                                    let tempId ='sign'+index
-                                                    return(
-                                                    <Label circular id={tempId} className='sign' style={{position:'absolute',minWidth:'0.2em',
-                                                    minHeight:'0.2em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
-                                                    )
-                                                })
-                                            } */}
-                                        </div>
+                                    </div>
+                                    <div className='antd-slider'>
+                                        <Slider 
+                                            vertical
+                                            reverse
+                                            tipFormatter={null}
+                                            marks={sliderMarks} 
+                                            value={this.state.currentIdx+1} 
+                                            onChange={this.handleRangeChange}
+                                            // onAfterChange={this.handleRangeChange.bind(this)} 
+                                            min={1}
+                                            step={1}
+                                            max={this.state.stack.imageIds.length}
+                                            ></Slider>
+                                    </div>
                                     </Grid.Column>
                                     <Grid.Column width={4}> 
                                         <div id='listTitle'>
@@ -2568,12 +2556,13 @@ class CornerstoneElement extends Component {
         return {box: -1, pos: 'o'};
     }
 
-    handleRangeChange(event) {
+    handleRangeChange(e) {
+        console.log('slider',e)
         // this.setState({currentIdx: event.target.value - 1, imageId:
         // this.state.imageIds[event.target.value - 1]})
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
-        this.refreshImage(false, this.state.imageIds[event.target.value - 1], event.target.value - 1)
+        this.refreshImage(false, this.state.imageIds[e-1], e-1)
     }
 
     createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
@@ -2674,7 +2663,7 @@ class CornerstoneElement extends Component {
     }
 
     onMouseOver(event){
-        // console.log("mouseover")
+        console.log("mouseover")
         try{
             window.addEventListener("mousewheel",this.onWheel)||window.addEventListener("DOMMouseScroll",this.onWheel);
         }catch(e){
@@ -2697,6 +2686,7 @@ class CornerstoneElement extends Component {
     }
 
     onMouseMove(event) {
+        console.log('onmouse Move')
         const clickX = event.offsetX
         const clickY = event.offsetY
         let x = 0
@@ -2900,6 +2890,7 @@ class CornerstoneElement extends Component {
     }
 
     onMouseDown(event) {
+        console.log('onmouse Down')
         if (event.button == 0) {
             const clickX = event.offsetX
             const clickY = event.offsetY
@@ -2960,6 +2951,7 @@ class CornerstoneElement extends Component {
     }
 
     onMouseOut(event) {
+        console.log('onmouse Out')
         try{
             window.removeEventListener("mousewheel",this.onWheel)||window.removeEventListener("DOMMouseScroll",this.onWheel);
         }catch(e){
@@ -3372,8 +3364,8 @@ class CornerstoneElement extends Component {
     }
 
     refreshImage(initial, imageId, newIdx) {
-        let style = $("<style>", {type:"text/css"}).appendTo("head");
-        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (newIdx -1)*100/this.state.imageIds.length+'%)}');
+        // let style = $("<style>", {type:"text/css"}).appendTo("head");
+        // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (newIdx -1)*100/this.state.imageIds.length+'%)}');
         this.setState({autoRefresh: false})
 
         if (!initial) {
@@ -3625,8 +3617,8 @@ class CornerstoneElement extends Component {
         if(document.getElementById('hideInfo') != null){
             document.getElementById('hideInfo').style.display='none'
         }
-        let style = $("<style>", {type:"text/css"}).appendTo("head");
-        style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (document.getElementById('slice-slider').value)*100/this.state.imageIds.length+'%)}');
+        // let style = $("<style>", {type:"text/css"}).appendTo("head");
+        // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (document.getElementById('slice-slider').value)*100/this.state.imageIds.length+'%)}');
         // for(let i=0;i<this.state.boxes.length;i++){
         //     let point=document.getElementById('sign'+i)
         //     // let leftMargin=parseFloat($('#slice-slider').width())/2+parseFloat($('input[type=range]').css('left').split('px')[0])+'px'
