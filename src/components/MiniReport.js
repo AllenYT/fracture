@@ -657,10 +657,10 @@ class MiniReport extends Component{
                 :
                 // 处理建议
                 <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}> 
-                    <Grid.Column width={8}>
+                    <Grid.Column width={7}>
 
                     </Grid.Column>
-                    <Grid.Column width={4} textAlign='right'>
+                    <Grid.Column widescreen={4} computer={5} textAlign='right'>
                         {windowWidth < 1600 ?
                         <Dropdown style={{background:'none',fontSize:14}} text={this.state.dealchoose} id='dealchoose'>
                             <Dropdown.Menu>
@@ -706,8 +706,8 @@ class MiniReport extends Component{
                     :
                     <Grid.Row >
                         <Grid.Column textAlign='center'>
-                        <Form.TextArea style={{fontSize:'large',overflowY:'auto',height:'150px',width:'100%',
-                        background:'transparent',border:'0rem',marginLeft:'20px'}} id='textarea' placeholder='在此填写处理建议'
+                        <Form.TextArea style={{fontSize:'medium',overflowY:'auto',height:'150px',width:'100%',
+                        background:'transparent',border:'0rem',marginLeft:'0px'}} id='textarea' placeholder='在此填写处理建议'
                         value={this.state.templateText} onChange={this.handleTextareaChange}>
                         </Form.TextArea>
                                             
