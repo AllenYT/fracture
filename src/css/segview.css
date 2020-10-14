@@ -1,0 +1,184 @@
+segment-accordion{
+  /* background-color:rgba(1, 23, 46, 0.997) !important; */
+  background-color:transparent !important;
+  border-radius: 0.1rem !important;
+  border-color: white;
+  color: white;
+  max-height:100%;
+  /* overflow-y:auto; */
+
+  /* overflow-y: visible; */
+}
+
+
+#segment-accordion > div > .title {
+  /* color: #66cfec; */
+  color:whitesmoke;
+  /* display: inline-block; */
+  /* max-height: 30px; */
+  background-color:rgba(1, 23, 46, 0.997) !important;
+}
+
+.ui.checkbox label:before{
+  background-color:rgba(172, 172, 172, 0.997) !important;
+  border:1px solid rgb(255, 255, 255) !important;
+}
+
+#segment-accordion > div > .content {
+  /* color: #66cfec; */
+  color:whitesmoke;
+  /* display: inline-block; */
+  /* max-height: 30px; */
+  background-color:rgba(1, 23, 46, 0.997) !important;
+}
+.ui.form .field > label{
+  color: whitesmoke!important;
+}
+/* .ui.input {
+    position: relative;
+    margin-right: -100px;
+} */
+/* .ui.input > input{
+    line-height: normal;
+    margin-right: -100px!important;
+} */
+.segment-container{
+  position:relative;
+  width:100%;
+  min-height:880px;
+}
+.segment-canvas{
+  position: absolute;
+  top: 0;
+  left: 50px;
+  width: -moz-calc(100% - 100px);
+  width: -webkit-calc(100% - 100px);
+  width: calc(100% - 100px);
+}
+.loading-list{
+  position:absolute;
+  top:0;
+  left:50px;
+  /*grid-column: 1;*/
+  /*grid-row: 1;*/
+  z-index: 0;
+  padding:5px 0 0 15px;
+}
+.loading-list-item {
+  display: block;
+  font-size:25pt;
+}
+.loading-list-progress-container {
+  /*font-size:15pt;*/
+  /*color: #b5b5b5;*/
+  color:white;
+  line-height: 40px;
+}
+.loading-list-progress{
+  width:150px;
+}
+.segment-list{
+
+}
+.segment-list-title{
+  background-color: #021c38 !important;
+  color:white !important;
+  font-size:x-large;
+  line-height: 45px !important;
+  height: 45px;
+}
+.segment-list-item{
+  display: flex;
+  flex-direction: row;
+  color:white;
+}
+.segment-list-item-active{
+  /*color:#66cfec !important;*/
+}
+.segment-list-index{
+  width:45px;
+  padding:10px;
+  margin-right:5px;
+  text-align:center;
+  font-weight:400;
+  background-color: rgba(86,239,252,0.3);
+  color: rgba(86,239,252,0.99);
+  flex:1;
+}
+.segment-list-content{
+  margin-left:10px;
+  margin-top:10px;
+  display:flex;
+  flex-direction: column;
+  align-items: center;
+  width: -moz-calc(100% - 70px);
+  width: -webkit-calc(100% - 70px);
+  width: calc(100% - 70px);
+}
+.segment-list-content-block{
+  margin-bottom: 5px;
+}
+.segment-list-content-name{
+}
+.segment-list-content-tool{
+  display:flex;
+  flex-direction: row;
+  align-items: center;
+}
+.segment-list-content-tool-block{
+  margin-top:5px;
+}
+.segment-list-content-input{
+  margin-bottom: 10px;
+  color:white;
+  display:flex;
+  flex-direction: row;
+  align-items: center;
+}
+.segment-list-content-input input{
+  margin-left:20px;
+  -webkit-appearance: none;/*清除系统默认样式*/
+
+  /*width:100px;*/
+  /*height:30px;*/
+  /*color:rgb(16,16,16);*/
+  position: static;
+  transform: rotate(0deg);
+  height:15px;
+
+  /*cursor:default;*/
+  /*border:initial;*/
+  width: 80%;
+  border-radius: 10px;
+  outline: none;
+  background: -webkit-linear-gradient(#059CFA, #059CFA) no-repeat;
+  background-size: 0% 100%;
+}
+.segment-list-content-input input::-webkit-slider-thumb {
+  -webkit-appearance: none;
+
+  /*background-color: rgb(50, 174, 255);*/
+  height: 16px;
+  width: 16px;
+  margin-top:-1px;/*使滑块超出轨道部分的偏移量相等*/
+  border-radius: 50%; /*外观设置为圆形*/
+  border: solid 0.125em rgba(205, 224, 230, 0.5); /*设置边框*/
+  box-shadow: 0 .125em .125em #3b4547; /*添加底部阴影*/
+}
+.segment-list-content-input input::-webkit-slider-runnable-track {
+  height: 15px;
+  border-radius: 10px; /*将轨道设为圆角的*/
+  box-shadow: 0 1px 1px #def3f8, inset 0 .125em .125em #0d1112;
+  background-color: transparent;
+}
+.segment-list-content-input input:focus {
+  outline: none;
+}
+
+.list >.item{
+  border-top:3px solid transparent;
+  padding:0 !important;
+}
+.corner-row > .three{
+  padding:0 !important;
+}

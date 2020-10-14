@@ -418,6 +418,9 @@ class CornerstoneElement extends Component {
             .cache
             .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
+        this.toSegView = this
+            .toSegView
+            .bind(this)
     }
 
     handleClick = (e, titleProps) => {
@@ -984,6 +987,10 @@ class CornerstoneElement extends Component {
     toHomepage(){
         window.location.href = '/homepage'
         // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
+    }
+
+    toSegView(){
+        window.location.href = '/segView/'+ this.state.caseId
     }
 
     handleLogin() {
@@ -2294,7 +2301,7 @@ class CornerstoneElement extends Component {
                                         }
                                         
                                         
-                                        {/* <Button title='3D' className='funcbtn'>3D</Button> */}
+                                        <Button title='3D' className='funcbtn' onClick={this.toSegView}>3D</Button>
                                     </Button.Group>
                                 </Menu.Item>
                                 <Menu.Item position='right'>

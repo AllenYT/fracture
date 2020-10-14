@@ -19,6 +19,7 @@ import Cov19ListPanel from '../panels/Cov19ListPanel';
 import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
 import HomepagePanel from '../panels/HomepagePanel'
 import preprocess from '../panels/preprocess'
+import ViewerPanel from '../panels/ViewerPanel'
 
 const config = require('../config.json')
 const userConfig = config.user
@@ -301,6 +302,7 @@ class Main extends Component {
                         <Route path='/cov19Case/' component={Cov19DisplayPanel}/>
                         <Route path='/homepage/' component={HomepagePanel}/>
                         <Route path='/preprocess/' component={preprocess}/>
+                        <Route path='/segView/' component={ViewerPanel}/>
                     </div>
                 </div>
 
