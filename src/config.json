@@ -45,7 +45,8 @@
         "readonly":"http://data.deepln.deepx.machineilab.org/draft/isReadonly",
         "createNewDraft":"http://data.deepln.deepx.machineilab.org/draft/createNewDraft",
         "removeDraft": "http://data.deepln.deepx.machineilab.org/draft/removeDraft",
-        "structedReport":"http://data.deepln.deepx.machineilab.org/draft/getReportInfoForCaseIdAndUsername"
+        "structedReport":"http://data.deepln.deepx.machineilab.org/draft/getReportInfoForCaseIdAndUsername",
+        "createUser":"http://data.deepln.deepx.machineilab.org/draft/createUserDraftFromModel"
     },
 
     "review": {

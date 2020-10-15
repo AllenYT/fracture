@@ -1,7 +1,8 @@
 #main {
-    /* min-height: 1200px; */
+    /* height: 975px; */
 }
 #content {
+    /* height: calc(100vh); */
     /* background: url(../images/app-bg.jpg) repeat; */
     background-image: url(../images/bg.png);
 }
