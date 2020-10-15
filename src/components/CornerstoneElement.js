@@ -1586,7 +1586,7 @@ class CornerstoneElement extends Component {
                                                     null
                                                 }
                                                 </Grid.Column>
-                                                <Grid.Column widescreen={3} computer={4} textAlign='center'>
+                                                <Grid.Column widescreen={4} computer={5} textAlign='center'>
                                                         {inside.huMin!==undefined && inside.huMax!==undefined?
                                                     inside.huMin +'~' + inside.huMax + 'HU'
                                                     :
@@ -1785,7 +1785,7 @@ class CornerstoneElement extends Component {
                                     <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
                                         <Grid>
                                             <Grid.Row>
-                                                <Grid.Column width={4}>
+                                                <Grid.Column widescreen={4} computer={5}>
                                                     <Icon name='crosshairs' size='mini'></Icon>
                                                     {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
                                                 </Grid.Column>
@@ -1797,7 +1797,7 @@ class CornerstoneElement extends Component {
                                                         <option value="3">半实性</option>
                                                     </select>
                                                 </Grid.Column>
-                                                <Grid.Column width={6}>
+                                                <Grid.Column widescreen={5} computer={5}>
                                                         {inside.huMin!==undefined && inside.huMax!==undefined?
                                                     inside.huMin +'~' + inside.huMax + 'HU'
                                                     :
@@ -3473,6 +3473,7 @@ class CornerstoneElement extends Component {
 
         // const element = document.getElementById('origin-canvas')
         const element = document.querySelector('#origin-canvas');
+        console.log('element',element)
         // console.log('element',element)
         if (initial) {
             cornerstone.enable(element)
@@ -3498,7 +3499,11 @@ class CornerstoneElement extends Component {
                     }
 
                 }
-                cornerstone.displayImage(element, image)
+                if(element !== undefined){
+                
+                    cornerstone.displayImage(element, image)
+                }
+                
                 
                 // var manager = globalImageIdSpecificToolStateManager.getImageIdToolState(image,'Bidirectional')
                 // console.log('manager',manager)
@@ -3757,7 +3762,7 @@ class CornerstoneElement extends Component {
 
         // window.removeEventListener("resize", this.onWindowResize)
         document.removeEventListener("keydown", this.onKeydown)
-        cornerstone.disable(element)
+        // cornerstone.disable(element)
     }
 
     componentDidUpdate(prevProps, prevState) {

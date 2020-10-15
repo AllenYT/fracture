@@ -30,9 +30,10 @@ class DisplayPanel extends Component {
     if(window.location.pathname.split('/case/')[1].split('/')[0] !== href.split('/case/')[1].split('/')[0]){
       this.setState({caseId:href.split('/case/')[1].split('/')[0],
       username:href.split('/')[3],show:false})
-      this.nextPath(href)
+      // this.nextPath(href)
+      window.location.href=href
     }
-    // window.location.href=href
+    
   }
 
   componentDidUpdate(prevProps,prevState){
