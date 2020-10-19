@@ -175,10 +175,10 @@ class ViewerPanel extends Component {
         listsChangeOpacity:tmp_listsChangeOpacity
       })
 
-      // tmp_urls.forEach((inside, idx) =>{
-      //   this.DownloadSegment(idx, inside[2])
-      // })
-      this.DownloadSegment(6, tmp_urls[6][2])
+      tmp_urls.forEach((inside, idx) =>{
+        this.DownloadSegment(idx, inside[2])
+      })
+      // this.DownloadSegment(6, tmp_urls[6][2])
     }).catch(error => {
       console.log(error)
     })

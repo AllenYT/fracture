@@ -37,7 +37,8 @@ class SegView3D extends Component{
         let volumes = []
         let actors = []
         this.genericRenderWindow = vtkFullScreenRenderWindow.newInstance({
-            background: [0.329412, 0.34902, 0.427451],
+            // background: [0.329412, 0.34902, 0.427451],
+            background: [0, 0, 0],
             container: this.container.current,
         })
         // this.genericRenderWindow = vtkGenericRenderWindow.newInstance({
