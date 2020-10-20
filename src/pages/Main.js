@@ -183,14 +183,14 @@ class Main extends Component {
                     name='patientInfo'>
                     病人详情
                 </Menu.Item> */}
-                <Menu.Item
+                {/* <Menu.Item
                     active={activeItem === 'cov19List'}
                     onClick={this.handleItemClick}
                     as={Link}
                     to='/cov19List'
                     name='cov19List'>
                     新冠肺炎
-                </Menu.Item>
+                </Menu.Item> */}
                 <Menu.Item
                     active={activeItem === 'preprocess'}
                     onClick={this.handleItemClick}
