@@ -5,8 +5,7 @@
         "getSingleJpg":"http://data.deepln.deepx.machineilab.org/data/covidMask",
         "getHist":"http://data.deepln.deepx.machineilab.org/covid/getHist",
         "uploadMutiply":"http://data.deepln.deepx.machineilab.org/data/uploadMutiply",
-        "preprocess":"http://data.deepln.deepx.machineilab.org/preprocess/exec",
-        "createUser":"http://data.deepln.deepx.machineilab.org/data/createUserDraftFromModel"
+        "preprocess":"http://data.deepln.deepx.machineilab.org/preprocess/exec"
     },
 
     "user": {
@@ -46,7 +45,8 @@
         "readonly":"http://data.deepln.deepx.machineilab.org/draft/isReadonly",
         "createNewDraft":"http://data.deepln.deepx.machineilab.org/draft/createNewDraft",
         "removeDraft": "http://data.deepln.deepx.machineilab.org/draft/removeDraft",
-        "structedReport":"http://data.deepln.deepx.machineilab.org/draft/getReportInfoForCaseIdAndUsername"
+        "structedReport":"http://data.deepln.deepx.machineilab.org/draft/getReportInfoForCaseIdAndUsername",
+        "createUser":"http://data.deepln.deepx.machineilab.org/draft/createUserDraftFromModel"
     },
 
     "review": {

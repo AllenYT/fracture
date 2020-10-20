@@ -29,6 +29,8 @@ class StudyBrowserList extends Component{
             load:true
         }
         
+    }
+    componentDidMount(){
         const token = localStorage.getItem('token')
         const params = {
             mainItem: this.state.caseId,
@@ -47,7 +49,7 @@ class StudyBrowserList extends Component{
             } else {
                 const subList = data.subList
                 let theList = []
-                // console.log('subList',data)
+                console.log('subList',data)
                 // const params={caseId:this.state.caseId}
                 Object.keys(subList).map((key,value)=>{
                     // console.log('leftkey',key)
@@ -90,27 +92,30 @@ class StudyBrowserList extends Component{
             console.log(error)
         })
     }
-    
 
-    componentDidUpdate(){
-        const dateSeries = this.state.dateSeries
-        dateSeries.map((serie,index)=>{
-            const previewId = 'preview-'+index
-            
-            const element = document.getElementById(previewId)
-            let imageId = serie.image
-            // console.log('preview',serie.image)
-            cornerstone.enable(element)
-            cornerstone.loadAndCacheImage(imageId).then(function(image) { 
-                // console.log('cache') 
-                var viewport = cornerstone.getDefaultViewportForImage(element, image)
-                viewport.voi.windowWidth = 1600
-                viewport.voi.windowCenter = -600
-                viewport.scale=0.3
-                cornerstone.setViewport(element, viewport)
-                cornerstone.displayImage(element, image)
+    componentDidUpdate(prevProps, prevState){
+        if(prevState !== this.state){
+            console.log("studybrowser state",this.state.dateSeries)
+            const dateSeries = this.state.dateSeries
+            dateSeries.map((serie,index)=>{
+                const previewId = 'preview-'+index
+                
+                const element = document.getElementById(previewId)
+                let imageId = serie.image
+                // console.log('preview',element)
+                cornerstone.enable(element)
+                cornerstone.loadAndCacheImage(imageId).then(function(image) { 
+                    // console.log('cache') 
+                    var viewport = cornerstone.getDefaultViewportForImage(element, image)
+                    viewport.voi.windowWidth = 1600
+                    viewport.voi.windowCenter = -600
+                    viewport.scale=0.3
+                    cornerstone.setViewport(element, viewport)
+                    cornerstone.displayImage(element, image)
+                })
             })
-        })
+        }
+        
     }
 
     render(){

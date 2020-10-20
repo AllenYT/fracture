@@ -125,7 +125,6 @@ const draftConfig = config.draft
 const recordConfig = config.record
 const userConfig = config.user
 const reviewConfig = config.review
-const dataConfig = config.data
 
 const selectStyle = {
     'background': 'none',
@@ -227,7 +226,9 @@ class CornerstoneElement extends Component {
             windowWidth:1920,
             slideSpan:0,
         }
-
+        this.nextPath = this
+            .nextPath
+            .bind(this)
         this.onImageRendered = this
             .onImageRendered
             .bind(this)
@@ -500,7 +501,7 @@ class CornerstoneElement extends Component {
             },
             count: {
             //   max: 350000,
-              tickInterval:1
+            //   tickInterval:1
             }
         })
         // view1.source(dv)
@@ -1436,7 +1437,7 @@ class CornerstoneElement extends Component {
                                 )
                                 probContnt=(
                                     <Grid.Column width={4} textAlign='center'>
-                                        <div>概率:{Math.floor(inside.malProb*1000)/10}%</div>
+                                        <div>{Math.floor(inside.malProb*1000)/10}%</div>
                                     </Grid.Column>
                                 )
                             }
@@ -1467,7 +1468,7 @@ class CornerstoneElement extends Component {
                                 )
                                 probContnt=(
                                     <Grid.Column width={4} textAlign='center'>
-                                        <div style={{color:'green'}}>概率:{Math.floor(inside.malProb*1000)/10}%</div>
+                                        <div style={{color:'green'}}>{Math.floor(inside.malProb*1000)/10}%</div>
                                     </Grid.Column>
                                 )
                             }
@@ -1498,7 +1499,7 @@ class CornerstoneElement extends Component {
                                 )
                                 probContnt=(
                                     <Grid.Column width={4} textAlign='center'>
-                                        <div style={{color:'#fcaf17'}}>概率:{Math.floor(inside.malProb*1000)/10}%</div>
+                                        <div style={{color:'#fcaf17'}}>{Math.floor(inside.malProb*1000)/10}%</div>
                                     </Grid.Column>
                                 )
                             }
@@ -1529,7 +1530,7 @@ class CornerstoneElement extends Component {
                                 )
                                 probContnt=(
                                     <Grid.Column width={4} textAlign='center'>
-                                        <div style={{color:'#CC3300'}}>概率:{Math.floor(inside.malProb*1000)/10}%</div>
+                                        <div style={{color:'#CC3300'}}>{Math.floor(inside.malProb*1000)/10}%</div>
                                     </Grid.Column>
                                 )
                             }
@@ -1556,10 +1557,10 @@ class CornerstoneElement extends Component {
                                                 <Grid.Column width={1}>
                                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                                 </Grid.Column>
-                                                <Grid.Column width={7} textAlign='center'>
+                                                <Grid.Column widescreen={7} computer={7} textAlign='center'>
                                                 {
                                                     idx<3?
-                                                    <Dropdown style={selectStyle} text={dropdownText} icon='null'>
+                                                    <Dropdown style={selectStyle} text={dropdownText} icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -1623,7 +1624,7 @@ class CornerstoneElement extends Component {
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                     :
-                                                    <Dropdown  style={selectStyle} text={dropdownText} upward icon='null'>
+                                                    <Dropdown  style={selectStyle} text={dropdownText} upward icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -1700,16 +1701,16 @@ class CornerstoneElement extends Component {
                                     <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
                                         <Grid>
                                             <Grid.Row>
-                                                <Grid.Column width={3} textAlign='center'>
+                                                <Grid.Column widescreen={3} computer={3} textAlign='center'>
                                                     <select id={texId} style={selectStyle} defaultValue="" disabled>
                                                     <option value="" disabled="disabled">选择亚型</option>
                                                     </select>
                                                 </Grid.Column>
-                                                <Grid.Column width={4}>
-                                                    <Icon name='crosshairs' size='mini'></Icon>
+                                                <Grid.Column widescreen={3} computer={3} textAlign='center'>
+                                                    {/* <Icon name='crosshairs' size='mini'></Icon> */}
                                                     {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
                                                 </Grid.Column>
-                                                <Grid.Column width={3}>
+                                                <Grid.Column widescreen={3} computer={3} textAlign='center'>
                                                     {
                                                     inside.volume!==undefined?
                                                     (Math.floor(inside.volume * 100) / 100).toFixed(2)+'\xa0cm³'
@@ -1717,14 +1718,14 @@ class CornerstoneElement extends Component {
                                                     null
                                                 }
                                                 </Grid.Column>
-                                                <Grid.Column width={4}>
+                                                <Grid.Column widescreen={4} computer={5} textAlign='center'>
                                                         {inside.huMin!==undefined && inside.huMax!==undefined?
                                                     inside.huMin +'~' + inside.huMax + 'HU'
                                                     :
                                                     null
                                                     }
                                                 </Grid.Column>
-                                                <Grid.Column width={2}>
+                                                <Grid.Column widescreen={2} computer={2} textAlign='center'>
                                                     {
                                                         // <div style={{display:'inline-block',width:'50%'}}>
                                                             <Button size='mini' circular inverted
@@ -1770,7 +1771,7 @@ class CornerstoneElement extends Component {
                                                 <Grid.Column width={7} textAlign='center'>
                                                 {
                                                     idx<3?
-                                                    <Dropdown style={selectStyle} text={dropdownText}>
+                                                    <Dropdown style={selectStyle} text={dropdownText} icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -1834,7 +1835,7 @@ class CornerstoneElement extends Component {
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                     :
-                                                    <Dropdown  style={selectStyle} text={dropdownText} upward>
+                                                    <Dropdown  style={selectStyle} text={dropdownText} upward icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -1916,7 +1917,7 @@ class CornerstoneElement extends Component {
                                     <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
                                         <Grid>
                                             <Grid.Row>
-                                                <Grid.Column width={4}>
+                                                <Grid.Column widescreen={4} computer={5}>
                                                     <Icon name='crosshairs' size='mini'></Icon>
                                                     {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
                                                 </Grid.Column>
@@ -1928,7 +1929,7 @@ class CornerstoneElement extends Component {
                                                         <option value="3">半实性</option>
                                                     </select>
                                                 </Grid.Column>
-                                                <Grid.Column width={6}>
+                                                <Grid.Column widescreen={5} computer={5}>
                                                         {inside.huMin!==undefined && inside.huMax!==undefined?
                                                     inside.huMin +'~' + inside.huMax + 'HU'
                                                     :
@@ -2417,8 +2418,14 @@ class CornerstoneElement extends Component {
                                             <Button icon title='窗宽窗位' onClick={this.wwwcCustom} className='funcbtn' active><Icon name='sliders' size='large'></Icon></Button>:
                                             <Button icon title='窗宽窗位' onClick={this.wwwcCustom} className='funcbtn'><Icon name='sliders' size='large'></Icon></Button>
                                         }
-                                        <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
-                                        <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
+                                        {
+                                            this.state.readonly?
+                                            <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
+                                            :
+                                            <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
+                                        }
+                                        
+                                        
                                         {/* <Button title='3D' className='funcbtn'>3D</Button> */}
                                     </Button.Group>
                                 </Menu.Item>
@@ -2468,7 +2475,7 @@ class CornerstoneElement extends Component {
 
                                     </div>
                                     </Grid.Column>
-                                    <Grid.Column width={4}> 
+                                    <Grid.Column widescreen={4} computer={4}> 
                                         <div id='listTitle'>
                                             <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
                                         </div>
@@ -2769,7 +2776,7 @@ class CornerstoneElement extends Component {
     }
 
     onMouseOver(event){
-        console.log("mouseover")
+        // console.log("mouseover")
         try{
             window.addEventListener("mousewheel",this.onWheel)||window.addEventListener("DOMMouseScroll",this.onWheel);
         }catch(e){
@@ -2830,7 +2837,7 @@ class CornerstoneElement extends Component {
     }
 
     onMouseMove(event) {
-        console.log('onmouse Move')
+        // console.log('onmouse Move')
         const clickX = event.offsetX
         const clickY = event.offsetY
         let x = 0
@@ -3111,7 +3118,7 @@ class CornerstoneElement extends Component {
     }
 
     onMouseUp(event) {
-        console.log('up', this.state.clickedArea)
+        // console.log('up', this.state.clickedArea)
         const element = document.querySelector('#origin-canvas')
         const currentToolType = this.state.toolState
         let measureList = this.state.measureList
@@ -3405,14 +3412,17 @@ class CornerstoneElement extends Component {
             // username:this.state.username,
             newRectStr: JSON.stringify(this.state.boxes)
         }
-        axios.post(dataConfig.createUser, qs.stringify(params), {headers}).then(res => {
+        axios.post(draftConfig.createUser, qs.stringify(params), {headers}).then(res => {
+            console.log(res)
             if (res.data.status === 'okay') {
                 console.log('createUser')
-                this.nextPath(res.data.nextPath)
+                // this.nextPath(res.data.nextPath)
+                window.location.href=res.data.nextPath
             }
             else if(res.data.status === 'alreadyExisted'){
                 console.log('alreadyExistedUser')
-                this.nextPath(res.data.nextPath)
+                // this.nextPath(res.data.nextPath)
+                window.location.href=res.data.nextPath
             }
         }).catch(err => {
             console.log('err: ' + err)
@@ -3551,6 +3561,7 @@ class CornerstoneElement extends Component {
 
         // const element = document.getElementById('origin-canvas')
         const element = document.querySelector('#origin-canvas');
+        console.log('element',element)
         // console.log('element',element)
         if (initial) {
             cornerstone.enable(element)
@@ -3581,7 +3592,11 @@ class CornerstoneElement extends Component {
                     }
 
                 }
-                cornerstone.displayImage(element, image)
+                if(element !== undefined){
+                
+                    cornerstone.displayImage(element, image)
+                }
+                
                 
                 // var manager = globalImageIdSpecificToolStateManager.getImageIdToolState(image,'Bidirectional')
                 // console.log('manager',manager)
@@ -3842,7 +3857,7 @@ class CornerstoneElement extends Component {
 
         // window.removeEventListener("resize", this.onWindowResize)
         document.removeEventListener("keydown", this.onKeydown)
-        cornerstone.disable(element)
+        // cornerstone.disable(element)
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -3899,4 +3914,4 @@ class CornerstoneElement extends Component {
     }
 }
 
-export default CornerstoneElement
+export default withRouter(CornerstoneElement)
