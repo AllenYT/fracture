@@ -1559,7 +1559,7 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column widescreen={7} computer={7} textAlign='center'>
                                                 {
-                                                    idx<3?
+                                                    idx<6?
                                                     <Dropdown style={selectStyle} text={dropdownText} icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
@@ -1770,7 +1770,7 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column width={7} textAlign='center'>
                                                 {
-                                                    idx<3?
+                                                    idx<6?
                                                     <Dropdown style={selectStyle} text={dropdownText} icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
