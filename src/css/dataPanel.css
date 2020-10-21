@@ -207,9 +207,16 @@
 }
 
 
-@media screen and (min-width: 1200px)  and (max-width:1619px){
+@media screen and (min-width: 1441px)  and (max-width:1619px){
     #mainList {
         min-width: 350px;
+        white-space: pre-wrap;
+    }
+}
+
+@media screen and (min-width: 1200px)  and (max-width:1440px){
+    #mainList {
+        min-width: 300px;
         white-space: pre-wrap;
     }
 }

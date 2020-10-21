@@ -60,6 +60,7 @@ let allROIToolData = {}
 let toolROITypes = ['EllipticalRoi','Bidirectional']
 const cacheSize = 5
 let playTimer = undefined
+let imageLoadTimer = undefined
 // , 'RectangleRoi', 'ArrowAnnotate', 'Length', 'CobbAngle', 'Angle', 'FreehandRoi', 'Calibration'
 // const divStyle = {
 //     width: "512px",//768px
@@ -222,7 +223,8 @@ class CornerstoneElement extends Component {
             studyList:props.studyList,
             menuTools:'',
             isPlaying: false,
-            windowWidth:1920
+            windowWidth:1920,
+            slideSpan:0,
         }
         this.nextPath = this
             .nextPath
@@ -620,6 +622,8 @@ class CornerstoneElement extends Component {
             this.refreshImage(false, this.state.imageIds[0], 0)
         }  
     }
+
+
 
     // nextPath(path) {
     //     this
@@ -1053,8 +1057,8 @@ class CornerstoneElement extends Component {
         // console.log('boxes', this.state.boxes)
         // console.log('boxes', this.state.username)
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, 
-            wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth} = this.state
-        if(windowWidth < 1600){
+            wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth, slideSpan} = this.state
+        if(windowWidth <= 1600 && windowWidth > 1440){
             bottomLeftStyle = {
                 bottom: "5px",
                 left: "-50px",
@@ -1083,6 +1087,35 @@ class CornerstoneElement extends Component {
                 color: "white"
             }
         }
+        else if(windowWidth <= 1440){
+            bottomLeftStyle = {
+                bottom: "5px",
+                left: "-40px",
+                position: "absolute",
+                color: "white"
+            }
+            
+            bottomRightStyle = {
+                bottom: "5px",
+                right: "-30px",
+                position: "absolute",
+                color: "white"
+            }
+            
+            topLeftStyle = {
+                top: "5px",
+                left: "-40px", // 5px
+                position: "absolute",
+                color: "white"
+            }
+            
+            topRightStyle = {
+                top: "5px",
+                right: "-30px", //5px
+                position: "absolute",
+                color: "white"
+            }
+        }
         // console.log('dicomTag',dicomTag.elements)
         // var keys = [];
         // for(var propertyName in dicomTag.elements) {
@@ -1099,6 +1132,8 @@ class CornerstoneElement extends Component {
         let StartReviewButton;
         let calCount=0
         let canvas;
+        let slideLabel
+        let dicomTagPanel
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
         let segments={
         'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
@@ -1130,6 +1165,103 @@ class CornerstoneElement extends Component {
                 <Button style={{
                     marginLeft: 15 + 'px'
                 }}>审核此例</Button>
+            )
+        }
+        
+        if(slideSpan > 0){
+            slideLabel=(
+                <div style={{position:'absolute',top:'90px',left:'-95px'}}><Label as='a'><Icon name='caret down' />{Math.abs(slideSpan)}</Label></div>
+            )
+        }
+        else if(slideSpan < 0){
+            slideLabel = (
+                <div style={{position:'absolute',top:'90px',left:'-95px'}}><Label as='a'><Icon name='caret up' />{Math.abs(slideSpan)}</Label></div>
+            )
+        }
+        else{
+            slideLabel = (null)
+        }
+
+        if(windowWidth <=1600 && windowWidth > 1440){
+            dicomTagPanel = (
+                <div>                          
+                <div id='dicomTag'>               
+                    <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                    <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                    <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
+                    <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
+                    <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                    
+                    <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                    <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                    <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
+                    <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
+                    <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
+                    <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
+                </div>
+                <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                </div>
+                <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                <div style={bottomRightStyle}>
+                    WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                    /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                </div>
+            </div>
+            )
+            
+        }
+        else if(windowWidth <= 1440){
+            dicomTagPanel= (
+                <div>                          
+                    <div id='dicomTag'>               
+                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                        <div style={{position:'absolute',color:'white',top:'20px',left:'-40px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                        <div style={{position:'absolute',color:'white',top:'35px',left:'-40px'}}>{dicomTag.string('x00100020')}</div>
+                        <div style={{position:'absolute',color:'white',top:'50px',left:'-40px'}}>{dicomTag.string('x00185100')}</div>
+                        <div style={{position:'absolute',color:'white',top:'65px',left:'-40px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                        
+                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                        <div style={{position:'absolute',color:'white',top:'20px',right:'-30px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                        <div style={{position:'absolute',color:'white',top:'35px',right:'-30px'}}>{dicomTag.string('x00090010')}</div>
+                        <div style={{position:'absolute',color:'white',top:'50px',right:'-30px'}}>{dicomTag.string('x0008103e')}</div>
+                        <div style={{position:'absolute',color:'white',top:'65px',right:'-30px'}}>{dicomTag.string('x00080020')}</div>
+                        <div style={{position:'absolute',color:'white',top:'80px',right:'-30px'}}>T: {dicomTag.string('x00180050')}</div>
+                    </div>
+                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-40px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                    </div>
+                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                    <div style={bottomRightStyle}>
+                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                    </div>
+                </div>
+            )  
+        }
+        else{
+            dicomTagPanel=(
+                <div>
+                    <div id='dicomTag'>               
+                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+                        <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                        <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
+                        <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
+                        <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                        {slideLabel}                                                  
+                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+                        <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                        <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
+                        <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
+                        <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
+                        <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
+                    </div>
+                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                    </div>
+                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                    <div style={bottomRightStyle}>
+                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+                    </div>
+                </div>
             )
         }
         // if(window.screen.width <=1280){
@@ -1434,7 +1566,7 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column widescreen={7} computer={7} textAlign='center'>
                                                 {
-                                                    idx<3?
+                                                    idx<6?
                                                     <Dropdown style={selectStyle} text={dropdownText} icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
@@ -1593,7 +1725,7 @@ class CornerstoneElement extends Component {
                                                     null
                                                 }
                                                 </Grid.Column>
-                                                <Grid.Column widescreen={3} computer={4} textAlign='center'>
+                                                <Grid.Column widescreen={4} computer={5} textAlign='center'>
                                                         {inside.huMin!==undefined && inside.huMax!==undefined?
                                                     inside.huMin +'~' + inside.huMax + 'HU'
                                                     :
@@ -1645,7 +1777,7 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column width={7} textAlign='center'>
                                                 {
-                                                    idx<3?
+                                                    idx<6?
                                                     <Dropdown style={selectStyle} text={dropdownText} icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
@@ -1792,7 +1924,7 @@ class CornerstoneElement extends Component {
                                     <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
                                         <Grid>
                                             <Grid.Row>
-                                                <Grid.Column width={4}>
+                                                <Grid.Column widescreen={4} computer={5}>
                                                     <Icon name='crosshairs' size='mini'></Icon>
                                                     {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
                                                 </Grid.Column>
@@ -1804,7 +1936,7 @@ class CornerstoneElement extends Component {
                                                         <option value="3">半实性</option>
                                                     </select>
                                                 </Grid.Column>
-                                                <Grid.Column width={6}>
+                                                <Grid.Column widescreen={5} computer={5}>
                                                         {inside.huMin!==undefined && inside.huMax!==undefined?
                                                     inside.huMin +'~' + inside.huMax + 'HU'
                                                     :
@@ -2330,55 +2462,7 @@ class CornerstoneElement extends Component {
                                             <canvas className="cornerstone-canvas" id="canvas"/>
                                             {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                                             {/* {canvas} */}
-                                            {
-                                                windowWidth < 1600 ?
-                                                <div>
-                                                
-                                                    <div id='dicomTag'>               
-                                                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-                                                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
-                                                    </div>
-                                                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-                                                    </div>
-                                                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-                                                    <div style={bottomRightStyle}>
-                                                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                                                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                                                    </div>
-                                                </div>
-                                                :
-                                                <div>
-                                                    <div id='dicomTag'>               
-                                                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-                                                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
-                                                        <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
-                                                    </div>
-                                                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-                                                    </div>
-                                                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-                                                    <div style={bottomRightStyle}>
-                                                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                                                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                                                    </div>
-                                                </div>
-                                            } 
+                                            {dicomTagPanel} 
                                         </div>
 
                                     </div>
@@ -2711,7 +2795,9 @@ class CornerstoneElement extends Component {
         if (delta <0){//向下滚动
         let newCurrentIdx = this.state.currentIdx + 1
         if (newCurrentIdx < this.state.imageIds.length) {
+            // this.setLoadTimer(newCurrentIdx)
             this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+
         }
         // if(newCurrentIdx - cacheSize < 0){
         //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
@@ -2779,11 +2865,12 @@ class CornerstoneElement extends Component {
                 const mouseClickPos = this.state.mouseClickPos
                 const prePosition = mousePrePos.y - mouseClickPos.y
                 const curPosition = mouseCurPos.y - mouseClickPos.y
+                console.log(mouseCurPos,mousePrePos,mouseClickPos,prePosition,curPosition,this.state.leftBtnSpeed)
                 if(mouseCurPos.y !== mousePrePos.y){
                     let y_dia = mouseCurPos.y - mousePrePos.y
-                    
                     if(this.state.leftBtnSpeed !== 0){
                         var slice_len = Math.round(y_dia/this.state.leftBtnSpeed)
+                        this.setState({slideSpan : Math.round(curPosition/this.state.leftBtnSpeed)})
                         // console.log('divation',this.state.mouseCurPos,this.state.mousePrePos,this.state.mouseClickPos,y_dia,this.state.leftBtnSpeed,slice_len)
                         // for(var i = 0;i < Math.abs(slice_len); i++){
                     if(y_dia > 0){
@@ -2804,6 +2891,7 @@ class CornerstoneElement extends Component {
                             this.refreshImage(false, this.state.imageIds[0], 0)
                         }
                     }
+                    
                         // }
                     }
                     
@@ -3041,7 +3129,7 @@ class CornerstoneElement extends Component {
         const element = document.querySelector('#origin-canvas')
         const currentToolType = this.state.toolState
         let measureList = this.state.measureList
-        this.setState({mouseClickPos:{},mousePrePos:{},mouseCurPos:{}})
+        this.setState({mouseClickPos:{},mousePrePos:{},mouseCurPos:{},slideSpan:0})
         if (this.state.clickedArea.box === -1 && this.state.leftButtonTools === 0) {
             const x1 = this.state.tmpBox.x1
             const y1 = this.state.tmpBox.y1
@@ -3058,46 +3146,46 @@ class CornerstoneElement extends Component {
             this.createBox(x1, x2, y1, y2, this.state.currentIdx, (1+newNodule_no).toString())
         }
         
-        // if(this.state.toolState !== ''){
+        if(this.state.toolState !== ''){
             
-        //     console.log('origin',measureList,measureList.length === 0)
-        //     if(measureList.length === 0 ){
-        //         measureList['EllipticalRoi'] = []
-        //         measureList['Bidirectional'] = []
-        //         // 'EllipticalRoi','Bidirectional'
-        //     }
-        //     console.log('measure',measureList,measureList.length === 0)
-        //     for (let i = 0; i < toolROITypes.length; i++) {
-        //         let toolROIType = toolROITypes[i];
-        //         // let toolROIData = globalImageIdSpecificToolStateManager.getImageIdToolState(this.state.imageIds[this.state.currentIdx], toolROIType);
-        //         // console.log('tool',toolROIData)++
-        //         let toolROIData = cornerstoneTools.getToolState(element,toolROIType)
-        //         // console.log('toolROIData',toolROIData)
-        //         // if(toolROIType === currentToolType){
-        //         //     toolROIData.data[toolROIData.data.length-1]['imageId'] = this.state.currentIdx
-        //         // }
-        //         if (toolROIData !== undefined) {
-        //             allROIToolData[toolROITypes[i]] = toolROIData;
-        //         }
-        //     }
-        //     console.log('toolROIData',allROIToolData)
-        //     let toolROIData = cornerstoneTools.getToolState(element,currentToolType)
-        //     toolROIData.data[toolROIData.data.length-1]['imageId'] = this.state.currentIdx
-        //     console.log(toolROIData)
-        //     const index = measureList[currentToolType].length
-        //     console.log('index',index)
-        //     measureList[currentToolType].push(toolROIData.data[toolROIData.data.length-1])
-        //     // let toolROIDataString = JSON.stringify(allROIToolData);
-        //     // console.log('ROIData',allROIToolData)
-        //     // localStorage.setItem('ROI',toolROIDataString)
-        //     // this.setState({measureList:measureList})
-        //     console.log('list',this.state.measureList)
-        // }
+            console.log('origin',measureList,measureList.length === 0)
+            if(measureList.length === 0 ){
+                measureList['EllipticalRoi'] = []
+                measureList['Bidirectional'] = []
+                // 'EllipticalRoi','Bidirectional'
+            }
+            console.log('measure',measureList,measureList.length === 0)
+            for (let i = 0; i < toolROITypes.length; i++) {
+                let toolROIType = toolROITypes[i];
+                // let toolROIData = globalImageIdSpecificToolStateManager.getImageIdToolState(this.state.imageIds[this.state.currentIdx], toolROIType);
+                // console.log('tool',toolROIData)++
+                let toolROIData = cornerstoneTools.getToolState(element,toolROIType)
+                // console.log('toolROIData',toolROIData)
+                // if(toolROIType === currentToolType){
+                //     toolROIData.data[toolROIData.data.length-1]['imageId'] = this.state.currentIdx
+                // }
+                if (toolROIData !== undefined) {
+                    allROIToolData[toolROITypes[i]] = toolROIData;
+                }
+            }
+            console.log('toolROIData',allROIToolData)
+            let toolROIData = cornerstoneTools.getToolState(element,currentToolType)
+            toolROIData.data[toolROIData.data.length-1]['imageId'] = this.state.currentIdx
+            console.log(toolROIData)
+            const index = measureList[currentToolType].length
+            console.log('index',index)
+            measureList[currentToolType].push(toolROIData.data[toolROIData.data.length-1])
+            // let toolROIDataString = JSON.stringify(allROIToolData);
+            // console.log('ROIData',allROIToolData)
+            // localStorage.setItem('ROI',toolROIDataString)
+            // this.setState({measureList:measureList})
+            console.log('list',this.state.measureList)
+        }
         this.setState({
             clicked: false,
             clickedArea: {},
             tmpBox: {},
-            tmpCoord:{},
+            tmpCoord:{}
             // measureList:measureList
             // random: Math.random()
         })
@@ -3480,20 +3568,26 @@ class CornerstoneElement extends Component {
 
         // const element = document.getElementById('origin-canvas')
         const element = document.querySelector('#origin-canvas');
+        console.log('element',element)
         // console.log('element',element)
         if (initial) {
             cornerstone.enable(element)
+            console.log('enable',cornerstone.enable(element))
         } else {
             cornerstone.getEnabledElement(element)
+            console.log(cornerstone.getEnabledElement(element))
         }
-        // console.log(imageId)
-        cornerstone
+        // console.log('imageLoader',cornerstone.loadImage(imageId))
+        let loadImage = cornerstone.loadImage(imageId)
+        console.log('loadImage', loadImage)
+        let imageobject = cornerstone
             .loadAndCacheImage(imageId)
             .then(image => {
                 // if(this.state.TagFlag === false){
                 //     console.log('image info',image.data)
                 //     this.setState({dicomTag:image.data,TagFlag:true})
                 // }
+                // console.log('image',image.getImage())
                 if (initial) {
                     console.log(this.state.viewport.voi)
                     if (this.state.viewport.voi.windowWidth === undefined || this.state.viewport.voi.windowCenter === undefined) {
@@ -3505,7 +3599,11 @@ class CornerstoneElement extends Component {
                     }
 
                 }
-                cornerstone.displayImage(element, image)
+                if(element !== undefined){
+                
+                    cornerstone.displayImage(element, image)
+                }
+                
                 
                 // var manager = globalImageIdSpecificToolStateManager.getImageIdToolState(image,'Bidirectional')
                 // console.log('manager',manager)
@@ -3609,18 +3707,19 @@ class CornerstoneElement extends Component {
                 // window.addEventListener("resize", this.onWindowResize) if (!initial) {
                 // this.setState({currentIdx: newIdx}) }
             })
+            console.log('imageobject',imageobject)
     }
 
     cacheImage(imageId){
         cornerstone.loadAndCacheImage(imageId)
-        // console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
         // cornerstone.ImageCache(imageId)
+        console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
     }
 
     cache() {//coffee button
         for (var i = this.state.imageIds.length - 1; i >= 0; i--) {
             this.refreshImage(false, this.state.imageIds[i], i)
-            console.log('info',cornerstone.imageCache.getCacheInfo())
+            // console.log('info',cornerstone.imageCache.getCacheInfo())
         }
     }
 
@@ -3654,6 +3753,7 @@ class CornerstoneElement extends Component {
         }
         document.getElementById('header').style.display = 'none'
         const width = document.body.clientWidth
+        // const width = window.outerHeight
         this.setState({windowWidth : width})
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
         const token = localStorage.getItem('token')
@@ -3764,7 +3864,7 @@ class CornerstoneElement extends Component {
 
         // window.removeEventListener("resize", this.onWindowResize)
         document.removeEventListener("keydown", this.onKeydown)
-        cornerstone.disable(element)
+        // cornerstone.disable(element)
     }
 
     componentDidUpdate(prevProps, prevState) {
