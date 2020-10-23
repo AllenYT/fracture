@@ -1,80 +1,77 @@
-import React, {Component} from 'react'
-import {useRef, createRef} from "react";
-import CornerstoneElement from '../components/CornerstoneElement'
-import * as cornerstone from "cornerstone-core"
-import axios from 'axios'
-import qs from 'qs'
-import classnames from 'classnames'
-import dicomParser from 'dicom-parser'
-import SegView3D from '../components/SegView3D'
-import vtkActor from "vtk.js/Sources/Rendering/Core/Actor"
-import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper'
-import vtkColorMaps from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction/ColorMaps';
-import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction'
-import vtkXMLPolyDataReader from 'vtk.js/Sources/IO/XML/XMLPolyDataReader'
-import HttpDataAccessHelper from 'vtk.js/Sources/IO/Core/DataAccessHelper/HttpDataAccessHelper'
+import React, { Component, useCallback } from "react";
+import { useRef, createRef } from "react";
+import CornerstoneElement from "../components/CornerstoneElement";
+import * as cornerstone from "cornerstone-core";
+import axios from "axios";
+import qs from "qs";
+import classnames from "classnames";
+import dicomParser from "dicom-parser";
+import SegView3D from "../components/SegView3D";
+import vtkActor from "vtk.js/Sources/Rendering/Core/Actor";
+import vtkMapper from "vtk.js/Sources/Rendering/Core/Mapper";
+import vtkColorMaps from "vtk.js/Sources/Rendering/Core/ColorTransferFunction/ColorMaps";
+import vtkColorTransferFunction from "vtk.js/Sources/Rendering/Core/ColorTransferFunction";
+import vtkXMLPolyDataReader from "vtk.js/Sources/IO/XML/XMLPolyDataReader";
+import HttpDataAccessHelper from "vtk.js/Sources/IO/Core/DataAccessHelper/HttpDataAccessHelper";
+import ReactDOM from 'react-dom';
 
-import { List, Grid, Accordion, Checkbox, Rating, Progress, Button, } from 'semantic-ui-react'
-import PropTypes from 'prop-types'
-import '../css/cornerstone.css'
-import '../css/segview.css'
+import {
+  List,
+  Grid,
+  Accordion,
+  Checkbox,
+  Rating,
+  Progress,
+  Button,
+} from "semantic-ui-react";
+import PropTypes from "prop-types";
+import "../css/cornerstone.css";
+import "../css/segview.css";
 import vtkPiecewiseFunction from "vtk.js/Sources/Common/DataModel/PiecewiseFunction";
-import StudyBrowserList from '../components/StudyBrowserList';
+import StudyBrowserList from "../components/StudyBrowserList";
 // import SegView3D from '../vtk-viewport/VTKViewport/View3D'
 // import View3D from '../vtk-viewport/index'
 // import createLabelPipeline from '../vtk-viewport/VTKViewport/createLabelPipeline'
 
-const config = require('../config.json')
-const dataConfig = config.data
-const draftConfig = config.draft
+const config = require("../config.json");
+const dataConfig = config.data;
+const draftConfig = config.draft;
 
-const segmentNumDict = {
-  "lung":0,
-  "airway":1,
-  "lobe":2,
-  "nodule":3
+const dictList = {
+  0:{label:"lung",  name:"肺",color:{c1:197, c2:165, c3:145}},
+  1:{label:"airway",name:"支气管",color:{c1:182, c2:228, c3:255}},
+  2:{label:"nodule",name:"结节", color:{c1:178, c2:34, c3:34}},
+  3:{label:"lobe_1",name:"右肺中叶",color:{c1:128, c2:174, c3:128}},
+  4:{label:"lobe_2",name:"右肺上叶",color:{c1:241, c2:214, c3:145}},
+  5:{label:"lobe_3",name:"右肺下叶",color:{c1:177, c2:122, c3:101}},
+  6:{label:"lobe_4",name:"左肺上叶",color:{c1:111, c2:184, c3:210}},
+  7:{label:"lobe_5",name:"左肺下叶",color:{c1:216, c2:101, c3:79}}
 }
-const segmentNameDict = {
-  "lung":"肺",
-  "airway":"支气管",
-  "lobe":"肺叶",
-  "nodule":"结节"
-}
-const lobeDict = {
-  "0" :"右肺上叶",
-  "1":"右肺中叶",
-  "2":"右肺下叶",
-  "3":"左肺上叶",
-  "4":"左肺下叶",
-  // "nodule_1":""
-}
-const colorList=[
-  {num:0,colorvalue1:197,colorvalue2:165,colorvalue3:145},
-  {num:1,colorvalue1:182,colorvalue2:228,colorvalue3:255},
-  {num:2,colorvalue1:128,colorvalue2:174,colorvalue3:128},
-  {num:3,colorvalue1:178,colorvalue2:34,colorvalue3:34}
-]
+
 class ViewerPanel extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-      caseId: window.location.pathname.split('/segView/')[1].split('/')[0],
-      username: window.location.pathname.split('/')[3],
+      windowWidth: window.screen.witdh,
+      windowHeight: window.screen.height,
+      caseId: window.location.pathname.split("/segView/")[1].split("/")[0],
+      username: window.location.pathname.split("/")[3],
       urls: [],
       actors: [],
       segments: [],
       show: false,
-      visibility:[],
-      opacity:[],
-      listsActiveIndex:[],
-      listsChangeOpacity:[],
-      percent:[],
-    }
-    this.nextPath = this.nextPath.bind(this)
-
+      visibility: [],
+      opacity: [],
+      listsActiveIndex: [],
+      listsChangeOpacity: [],
+      percent: [],
+      canvasLen: 850,
+      canvasDis: 50
+    };
+    this.nextPath = this.nextPath.bind(this);
   }
 
-  createPipeline(binary,colorNum,opacity=0.5) {
+  createPipeline(binary, type, opacity = 0.5) {
     console.log("createPipeline")
     const vtpReader = vtkXMLPolyDataReader.newInstance()
     vtpReader.parseAsArrayBuffer(binary)
@@ -107,96 +104,118 @@ class ViewerPanel extends Component {
     //       actor.getProperty().setColor(item.colorvalue)
     //      }
     // }
-    colorList.map((item) => {
-      if(colorNum == item.num){
-        actor.getProperty().setColor(item.colorvalue1/255,item.colorvalue2/255,item.colorvalue3/255)
-      }}
-    )
+    const info = dictList[type]
+    actor.getProperty().setColor(info.color.c1/255,info.color.c2/255,info.color.c3/255)
     mapper.setInputData(source);
 
     return actor;
   }
 
-
-
-
-  componentDidMount(){
-    console.log('call didMount', this.state.caseId)
-    const token = localStorage.getItem('token')
+  componentDidMount() {
+    console.log("call didMount", this.state.caseId);
+    const token = localStorage.getItem("token");
     const headers = {
-      'Authorization': 'Bearer '.concat(token) //add the fun of check
-    }
+      Authorization: "Bearer ".concat(token), //add the fun of check
+    };
     const dataParams = {
-      caseId: this.state.caseId
-    }
+      caseId: this.state.caseId,
+    };
 
-    axios.post(dataConfig.getMhaListForCaseId, qs.stringify(dataParams), { headers }).then(res => {
-      // const urls = res.data
-      // console.log(res.data)
-      console.log('res_data', res.data)
-      const urls = Object.keys(res.data).map(key => [key, res.data[key]])
-      const tmp_urls = []
-      urls.forEach(item => {
-        let name = item[0]
-        let num = segmentNumDict[name]
-        let array = item[1]
-        array.forEach((it, idx)=> {
-          let segmentName;
-          switch (num){
-            case 0: segmentName = segmentNameDict[name] //肺
-              break
-            case 1: segmentName = segmentNameDict[name] //支气管
-              break
-            case 2: segmentName = lobeDict[idx] //肺叶
-              break
-            case 3: segmentName = segmentNameDict[name] + (idx+1) //结节
-              break
-            default: break
-          }
-          tmp_urls.push([segmentName, it, num])
+    axios
+      .post(dataConfig.getMhaListForCaseId, qs.stringify(dataParams), {
+        headers,
+      })
+      .then((res) => {
+        // const urls = res.data
+        // console.log(res.data)
+        console.log("res_data", res.data);
+        const urls = Object.keys(res.data).map((key) => [key, res.data[key]]);
+        const tmp_urls = [];
+        urls.forEach(item => {
+          let label = item[0]
+          let array = item[1]
+          array.forEach((it, idx)=> {
+            let type = 0;
+            if(label === "lung"){
+              type = 0
+            }else if(label === "airway"){
+              type = 1
+            }else if(label === "nodule"){
+              type = 2
+            }else if(label === "lobe"){
+              type = 3 + idx
+            }
+            tmp_urls.push([type, it])
+          })
         })
+
+        const tmp_segments = Object.keys(tmp_urls).map((key) => null);
+        const tmp_percent = Object.keys(tmp_urls).map((key) => 0);
+        const tmp_visibility = Object.keys(tmp_urls).map((key) => 0);
+        const tmp_opacity = Object.keys(tmp_urls).map((key) => 0.5);
+        const tmp_listsActiveIndex = Object.keys(tmp_urls).map((key) => 0);
+        const tmp_listsChangeOpacity = Object.keys(tmp_urls).map((key) => 0);
+        console.log("urls", urls);
+        console.log("tmp_urls", tmp_urls);
+        this.setState({
+          urls: tmp_urls,
+          segments: tmp_segments,
+          percent: tmp_percent,
+          visibility: tmp_visibility,
+          opacity: tmp_opacity,
+          listsActiveIndex: tmp_listsActiveIndex,
+          listsChangeOpacity: tmp_listsChangeOpacity,
+        });
+
+        tmp_urls.forEach((inside, idx) =>{
+          this.DownloadSegment(idx)
+        })
+        // this.DownloadSegment(6, tmp_urls[6][2])
       })
-
-      const tmp_segments = Object.keys(tmp_urls).map(key => null)
-      const tmp_percent = Object.keys(tmp_urls).map(key => 0)
-      const tmp_visibility = Object.keys(tmp_urls).map(key => 0)
-      const tmp_opacity = Object.keys(tmp_urls).map(key => 0.5)
-      const tmp_listsActiveIndex = Object.keys(tmp_urls).map(key => 0)
-      const tmp_listsChangeOpacity = Object.keys(tmp_urls).map(key => 0)
-      console.log('urls', urls)
-      console.log('tmp_urls', tmp_urls)
-      this.setState({
-        urls: tmp_urls,
-        segments: tmp_segments,
-        percent: tmp_percent,
-        visibility: tmp_visibility,
-        opacity:tmp_opacity,
-        listsActiveIndex:tmp_listsActiveIndex,
-        listsChangeOpacity:tmp_listsChangeOpacity
-      })
-
-      tmp_urls.forEach((inside, idx) =>{
-        this.DownloadSegment(idx, inside[2])
-      })
-      // this.DownloadSegment(6, tmp_urls[6][2])
-    }).catch(error => {
-      console.log(error)
-    })
-
-
+      .catch((error) => {
+        console.log(error);
+      });
+    // const dom = ReactDOM.findDOMNode(this.gridRef); 
+    this.fix3DViewWidth('segment-container')
+    window.addEventListener('resize', this.fix3DViewWidth.bind(this,'segment-container'))
   }
-
-  DownloadSegment(idx,colorNum){
+  componentWillMount() {
+    window.removeEventListener('reszie', this.fix3DViewWidth.bind(this,'segment-container'))
+  }
+  fix3DViewWidth(id){
+    console.log("fix:",1)
+    if(document.getElementById(id) !== null){
+      const viewerWidth = document.getElementById(id).clientWidth
+      const viewerHeight = document.getElementById(id).clientHeight
+      if(viewerHeight > viewerWidth){
+        this.setState({
+          canvasLen:viewerWidth - 100,
+          canvasDis:50
+        })
+      }else{
+        let canvasDis = 50
+        if(viewerWidth - viewerHeight > 100){
+          canvasDis = (viewerWidth - viewerHeight)/2
+        }
+        this.setState({
+          canvasLen:viewerHeight,
+          canvasDis:canvasDis
+        })
+      }
+    }
+  }
+  DownloadSegment(idx){
     const progressCallback = (progressEvent) => {
       const percent = Math.floor((100 * progressEvent.loaded) / progressEvent.total)
       const tmp_percent = this.state.percent
       tmp_percent[idx] = percent
       this.setState({ percent: tmp_percent})
     }
+    const type = this.state.urls[idx][0]
     const cur_url = this.state.urls[idx][1] + '?caseId=' + this.state.caseId
     HttpDataAccessHelper.fetchBinary(cur_url, { progressCallback,} )
         .then((binary) => {
-          const actor = this.createPipeline(binary,colorNum)
+          const actor = this.createPipeline(binary,type)
           let tmp_segments = this.state.segments
           tmp_segments[idx] = actor
           let tmp_visibility = this.state.visibility
@@ -210,51 +229,54 @@ class ViewerPanel extends Component {
 
   }
   nextPath(path) {
-    this.props.history.push(path)
-  } 
+    this.props.history.push(path);
+  }
   handleClickScreen(e, href) {
-    console.log('card', href)
-    if (window.location.pathname.split('/segView/')[1].split('/')[0] !== href.split('/case/')[1].split('/')[0]) {
+    console.log("card", href);
+    if (
+      window.location.pathname.split("/segView/")[1].split("/")[0] !==
+      href.split("/case/")[1].split("/")[0]
+    ) {
       this.setState({
-        caseId: href.split('/case/')[1].split('/')[0],
-        username: href.split('/')[3], show: false
-      })
-      window.location.href = '/segView/' + href.split('/case/')[1].split('/')[0]
+        caseId: href.split("/case/")[1].split("/")[0],
+        username: href.split("/")[3],
+        show: false,
+      });
+      window.location.href =
+        "/segView/" + href.split("/case/")[1].split("/")[0];
     }
     // window.location.href=href
   }
-  handleListClick(idx, e, data){
-    console.log("handle click:",  data)
-    let tmp_listsActiveIndex = this.state.listsActiveIndex
-    for(let cur_idx in tmp_listsActiveIndex){
-      if(tmp_listsActiveIndex[cur_idx] === 1){
-        tmp_listsActiveIndex[cur_idx] = 0
+  handleListClick(idx, e, data) {
+    console.log("handle click:", data);
+    let tmp_listsActiveIndex = this.state.listsActiveIndex;
+    for (let cur_idx in tmp_listsActiveIndex) {
+      if (tmp_listsActiveIndex[cur_idx] === 1) {
+        tmp_listsActiveIndex[cur_idx] = 0;
       }
     }
-    tmp_listsActiveIndex[idx] = 1
-    this.setState({ listsActiveIndex: tmp_listsActiveIndex})
-
+    tmp_listsActiveIndex[idx] = 1;
+    this.setState({ listsActiveIndex: tmp_listsActiveIndex });
   }
-  handleVisibleButton(idx, e){
-    e.stopPropagation()
-    let tmp_visibility = this.state.visibility
-    tmp_visibility[idx] = tmp_visibility[idx] === 1?0:1
-    this.setState({ visibility: tmp_visibility})
+  handleVisibleButton(idx, e) {
+    e.stopPropagation();
+    let tmp_visibility = this.state.visibility;
+    tmp_visibility[idx] = tmp_visibility[idx] === 1 ? 0 : 1;
+    this.setState({ visibility: tmp_visibility });
   }
-  handleOpacityButton(idx, e){
-    e.stopPropagation()
-    let tmp_listsChangeOpacity = this.state.listsChangeOpacity
-    tmp_listsChangeOpacity[idx] = tmp_listsChangeOpacity[idx] === 1?0:1
-    this.setState({ listsChangeOpacity: tmp_listsChangeOpacity})
-
+  handleOpacityButton(idx, e) {
+    e.stopPropagation();
+    let tmp_listsChangeOpacity = this.state.listsChangeOpacity;
+    tmp_listsChangeOpacity[idx] = tmp_listsChangeOpacity[idx] === 1 ? 0 : 1;
+    this.setState({ listsChangeOpacity: tmp_listsChangeOpacity });
   }
-  changeOpacity(idx,e){
-    e.stopPropagation()
-    let tmp_opacity = this.state.opacity
-    tmp_opacity[idx] = e.target.value
+  changeOpacity(idx, e) {
+    e.stopPropagation();
+    let tmp_opacity = this.state.opacity;
+    tmp_opacity[idx] = e.target.value;
     this.setState({
-      opacity: tmp_opacity
-    })
+      opacity: tmp_opacity,
+    });
   }
 
   render() {
@@ -262,38 +284,29 @@ class ViewerPanel extends Component {
     let sgList = [];
     let loadingList = [];
     let showList = [];
-    const {visibility, listsActiveIndex, listsChangeOpacity, percent, segments, opacity} = this.state
+    const {
+      visibility,
+      listsActiveIndex,
+      listsChangeOpacity,
+      percent,
+      segments,
+      opacity,
+      canvasLen,
+      canvasDis
+    } = this.state;
     // console.log(visibility,listsActiveIndex)
+    let canvasStyle ={width:`${canvasLen}px`, left:`${canvasDis}px`}
     let count = 0;
-    if(this.state.urls){
-      segmentList = this.state.urls.map((inside, idx) => {
-        if(inside[1].length>0){
-          // let checkBox = false
-          let segmentName = inside[0]
-          return (
-              <Accordion key={idx}>
-                <Accordion.Title>
-                  <Grid>
-                    <Grid.Row>
-                      <Grid.Column width={2}>
-                        <Checkbox defaultChecked={true} toggle />
-                      </Grid.Column>
-                      <Grid.Column width={3}>
-                      {segmentName}
-                    </Grid.Column>
-                    </Grid.Row>
-                  </Grid>
-                </Accordion.Title>
-              <Accordion.Content>
-                  hello
-                </Accordion.Content>
-              </Accordion>
-          )
-        }
-      })
+    let noduleNum = 0;
+    if (this.state.urls) {
       sgList = this.state.urls.map((inside, idx) => {
         if(inside[1].length > 0){
-          let sgName = inside[0]
+          let info = dictList[inside[0]]
+          let sgName = info.name
+          if(inside[0] === 2){
+            noduleNum = noduleNum + 1
+            sgName = sgName + noduleNum
+          }
           let isActive = true
           let isChangeOpacity = true
           if(listsActiveIndex[idx] === 1){
@@ -322,7 +335,7 @@ class ViewerPanel extends Component {
                       {sgName}
                     </div>
                     <div className='segment-list-content-block segment-list-content-info'>
-                     info
+                      info
                     </div>
                     <div className='segment-list-content-block segment-list-content-tool' hidden={!isActive}>
                       {/*content={visibility[idx] === 1?'隐藏':'显示'}*/}
@@ -352,13 +365,17 @@ class ViewerPanel extends Component {
               </List.Item>
           )
         }
-      })
+      });
       var loadingNum = 0;
-      loadingList = this.state.urls.map((inside, idx) =>{
+      loadingList = this.state.urls.map((inside, idx) => {
         if(loadingNum <= 4){
           if(inside[1].length > 0 && percent[idx] > 0 && percent[idx] < 100){
             loadingNum = loadingNum + 1
-            let segmentName = inside[0]
+            let info = dictList[inside[0]]
+            let segmentName = info.name
+            if(inside[0] === 2){
+              segmentName = segmentName + (idx + 1)
+            }
             return (
                 <div key = {idx} className='loading-list-progress-container'>
                   {segmentName}
@@ -367,35 +384,34 @@ class ViewerPanel extends Component {
             )
           }
         }
-      })
-
+      });
     }
-    for(let cur_idx in segments){
-      if(segments[cur_idx]){
-        if(!visibility[cur_idx]){
-          segments[cur_idx].getProperty().setOpacity(0)
-        }else{
-          segments[cur_idx].getProperty().setOpacity(opacity[cur_idx])
+    for (let cur_idx in segments) {
+      if (segments[cur_idx]) {
+        if (!visibility[cur_idx]) {
+          segments[cur_idx].getProperty().setOpacity(0);
+        } else {
+          segments[cur_idx].getProperty().setOpacity(opacity[cur_idx]);
         }
       }
-
     }
-    let segments_list = []
-    for (let cur_idx in segments){
-      segments_list.push(segments[cur_idx])
+    let segments_list = [];
+    for (let cur_idx in segments) {
+      segments_list.push(segments[cur_idx]);
     }
     //console.log('render segments_list:', segments_list)
     return (
-      <div id="viewer" >
-        <Grid className='corner-header'>
-          <Grid.Row>
-            Function menu
-          </Grid.Row>
+      <div id="viewer">
+        <Grid className="corner-header">
+          <Grid.Row>Function menu</Grid.Row>
         </Grid>
-        <Grid celled className='corner-contnt'>
-          <Grid.Row className='corner-row' columns={3}>
+        <Grid celled className="corner-contnt">
+          <Grid.Row className="corner-row" columns={3}>
             <Grid.Column width={2}>
-              <StudyBrowserList handleClickScreen={this.handleClickScreen.bind(this)} caseId={this.state.caseId}/>
+              <StudyBrowserList
+                handleClickScreen={this.handleClickScreen.bind(this)}
+                caseId={this.state.caseId}
+              />
             </Grid.Column>
             {/* 中间部分 */}
             <Grid.Column width={11}>
@@ -403,31 +419,34 @@ class ViewerPanel extends Component {
                 ref={input => {
                   this.container.current = input
                 }} style={style} /> */}
-                <div className='segment-container' >
-                  <div className='segment-canvas'>
-                  <SegView3D id='3d-viewer' actors={segments_list}/>
-                  </div>
-                  <div className='loading-list' hidden={ loadingNum === 0}>
+              <div className="segment-container" id="segment-container">
+                <div className="segment-canvas"  style={canvasStyle}>
+                  <SegView3D id="3d-viewer" actors={segments_list}/>
+                </div>
+                <div className="loading-list" hidden={loadingNum === 0} style={canvasStyle}>
                   {loadingList}
                 </div>
-                </div>
-            </Grid.Column >
+              </div>
+            </Grid.Column>
             {/* 右边部分 */}
             <Grid.Column width={3}>
-
-                <List className='segment-list' selection>
-                  <List.Item><List.Content  className='segment-list-title'>组成列表</List.Content></List.Item>
-                  {sgList}
-                </List>
-                  {/*<Accordion styled id="segment-accordion" fluid>*/}
-                  {/*  {segmentList}*/}
-                  {/*</Accordion>*/}
+              <List className="segment-list" selection>
+                <List.Item>
+                  <List.Content className="segment-list-title">
+                    组成列表
+                  </List.Content>
+                </List.Item>
+                {sgList}
+              </List>
+              {/*<Accordion styled id="segment-accordion" fluid>*/}
+              {/*  {segmentList}*/}
+              {/*</Accordion>*/}
             </Grid.Column>
           </Grid.Row>
         </Grid>
       </div>
-    )
+    );
   }
 }
 
-export default ViewerPanel
+export default ViewerPanel;

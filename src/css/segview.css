@@ -50,15 +50,10 @@ segment-accordion{
 .segment-canvas{
   position: absolute;
   top: 0;
-  left: 50px;
-  width: -moz-calc(100% - 100px);
-  width: -webkit-calc(100% - 100px);
-  width: calc(100% - 100px);
 }
 .loading-list{
   position:absolute;
   top:0;
-  left:50px;
   /*grid-column: 1;*/
   /*grid-row: 1;*/
   z-index: 0;
@@ -158,9 +153,9 @@ segment-accordion{
   -webkit-appearance: none;
 
   /*background-color: rgb(50, 174, 255);*/
-  height: 16px;
-  width: 16px;
-  margin-top:-1px;/*使滑块超出轨道部分的偏移量相等*/
+  height: 15px;
+  width: 15px;
+  margin-top:0px;/*使滑块超出轨道部分的偏移量相等*/
   border-radius: 50%; /*外观设置为圆形*/
   border: solid 0.125em rgba(205, 224, 230, 0.5); /*设置边框*/
   box-shadow: 0 .125em .125em #3b4547; /*添加底部阴影*/

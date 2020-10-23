@@ -93,7 +93,6 @@ class SegView3D extends Component{
             return null;
         }
 
-        const style = {width: '100%'};
         let voi = {
             windowCenter: 0,
             windowWidth: 0,
@@ -103,7 +102,7 @@ class SegView3D extends Component{
             <div id="seg3d-canvas"
                 ref={input => {
                     this.container.current = input
-                }} style={style} />
+                }}/>
         )
     }
 
