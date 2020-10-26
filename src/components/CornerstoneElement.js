@@ -1034,9 +1034,17 @@ class CornerstoneElement extends Component {
     render() {
         let sliderMarks={}
 
-        for(let i=0;i<this.state.boxes.length;i++){
-            sliderMarks[this.state.boxes[i].slice_idx]=''
+        if(this.state.imageIds.length<=100){
+            for(let i=0;i<this.state.boxes.length;i++){
+                sliderMarks[this.state.boxes[i].slice_idx+1]=''
+            }
         }
+        else{
+            for(let i=0;i<this.state.boxes.length;i++){
+                sliderMarks[this.state.boxes[i].slice_idx]=''
+            }
+        }
+        
         
         
 
@@ -2278,7 +2286,7 @@ class CornerstoneElement extends Component {
                                         onClick={this.toMedia}
                                         className='hubtn'
                                         >自定义</Button> */}
-                                        <Popup
+                                        {/* <Popup
                                     trigger={
                                         <Button
                                         // inverted
@@ -2315,7 +2323,7 @@ class CornerstoneElement extends Component {
                                     on='click'
                                     position='bottom center'
                                     id='defWindow'
-                                    />                                               
+                                    />                                                */}
                                 </Button.Group>
                             </Menu.Item>
                             <span id='line-left'></span>
@@ -2424,7 +2432,12 @@ class CornerstoneElement extends Component {
                                             :
                                             <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
                                         }
-                                        
+                                        {
+                                            this.state.readonly?
+                                            null
+                                            :
+                                            <Button icon title='清空标注' onClick={this.clearUserNodule.bind(this)} className='funcbtn'><Icon name='user delete' size='large'></Icon></Button>
+                                        }
                                         
                                         {/* <Button title='3D' className='funcbtn'>3D</Button> */}
                                     </Button.Group>
@@ -3393,6 +3406,7 @@ class CornerstoneElement extends Component {
 
     //暂存结节
     temporaryStorage() {
+        alert("已保存当前结果!")
         this.setState({
             random: Math.random(),
             menuTools:''
@@ -3428,6 +3442,32 @@ class CornerstoneElement extends Component {
             console.log('err: ' + err)
         })
     }
+
+    clearUserNodule(){
+        if(window.confirm("是否删除当前用户标注？") == true){
+            const token = localStorage.getItem('token')
+            console.log('token', token)
+            const headers = {
+                'Authorization': 'Bearer '.concat(token)
+            }
+            const params = {
+                caseId: this.state.caseId
+            }
+            axios.post(draftConfig.removeDraft, qs.stringify(params), {headers}).then(res => {
+                console.log(res.data)
+                if (res.data === true) {
+                    window.location.href =window.location.pathname.split('/')[0]+
+                    '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/deepln'
+                } else {
+                    alert("出现错误,请联系管理员！")
+                }
+            }).catch(err => {
+                console.log(err)
+            })
+        }
+        
+    }
+
     //提交结节
     // submit() {
     //     this.setState({menuTools:''})
