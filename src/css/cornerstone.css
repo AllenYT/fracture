@@ -900,3 +900,145 @@ textarea:focus, input:focus{
     height: 680px;
   }
 }
+
+@media screen and (min-width: 2340px)  and (max-width:2660px){
+  .ui.celled.grid.corner-contnt .canvas-style #origin-canvas{
+    width:1080px;
+    height: 1080px;
+    position: relative;
+    margin:auto;
+    color: white;
+    /* border: 2px solid whitesmoke;
+    border-radius: 0.3rem; */
+  }
+ 
+  .ui.celled.grid.corner-contnt .canvas-style #canvas{
+    width: 1080px;
+    height: 1080px;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+  }
+
+  #canvas-border{
+    /* margin-top: -10px; */
+    border: 2px solid #d1d1d1e0;
+    border-radius: 0.5em;
+    position: absolute;
+    width: 1280px;
+    float: left;
+    height:1080px;
+    /* line-height: 900px; */
+  }
+
+  #canvas-column{
+    min-height: 1100px;
+    background-color: #01172e;
+    /* background-image: radial-gradient(circle, black, #313131); */
+  }
+  #elec-table{
+    /* position: relative; */
+    height: 820px;
+    /* table-layout: fixed; */
+    margin-top: 0px;
+    overflow-y: auto;
+    /* background-color:rgba(0, 77, 160, 0.363) !important; */
+  }
+
+
+  .antd-slider{
+    position: absolute;
+    
+    left: 1300px;
+    width: 40px;
+    height: 1000px;
+  }
+}
+
+@media screen and (min-width: 800px)  and (max-width:1200px){
+  input[type='range'] {
+    background: transparent;
+    -webkit-appearance: none;
+    transform: rotate(90deg);
+    position: absolute;
+    top: 42%;
+    left: 450px;
+    width: 768px;
+    height: 40px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  input[type='range'],
+  input[type='range']::-webkit-slider-runnable-track,
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+  }
+  input[type='range']::-webkit-slider-runnable-track {
+    -webkit-appearance: none;
+    height: 10px;
+    background: #000033;
+  }
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    position: relative;
+  
+    height: 30px;
+    width: 30px;
+    margin-top: -10px;
+    background: white;
+    border-radius: 50%;
+    border: 2px solid white;
+  }
+  input[type='range']::-webkit-slider-thumb::before {
+    position: absolute;
+    content: '';
+    height: 10px; /* equal to height of runnable track */
+    width: 500px; /* make this bigger than the widest range input element */
+    left: -502px; /* this should be -2px - width */
+    top: 8px; /* don't change this */
+    background: #777;
+    color:#777;
+  }
+  input[type=range]:focus {
+    outline: none;
+  }
+
+  .ui.celled.grid.corner-contnt .canvas-style #origin-canvas{
+    width:768px;
+    height: 768px;
+    position: relative;
+    margin:auto;
+    color: white;
+    /* border: 2px solid whitesmoke;
+    border-radius: 0.3rem; */
+  }
+ 
+  .ui.celled.grid.corner-contnt .canvas-style #canvas{
+    width: 768px;
+    height: 768px;
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+  }
+
+  #canvas-border{
+    /* margin-top: -10px; */
+    border: 2px solid #d1d1d1e0;
+    border-radius: 0.5em;
+    position: absolute;
+    width: 860px;
+    float: left;
+    height:800px;
+    /* line-height: 900px; */
+  }
+
+
+
+  .antd-slider{
+    position: absolute;
+    top:2%;
+    left: 880px;
+    width: 40px;
+    height: 750px;
+  }
+}

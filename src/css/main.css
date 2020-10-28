@@ -61,3 +61,12 @@
     visibility: hidden;
 }
 
+@media screen and (min-width: 2340px)  and (max-width:2660px){
+    #content {
+        /* height: calc(100vh); */
+        /* background: url(../images/app-bg.jpg) repeat; */
+        background-image: url(../images/bg.png);
+        min-height: 1280px;
+    }
+}
+

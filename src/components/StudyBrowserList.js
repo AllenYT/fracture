@@ -121,7 +121,7 @@ class StudyBrowserList extends Component{
     render(){
         const dateSeries = this.state.dateSeries
         return(
-            <div style={{height:'870px',overflow:'auto',width:'105%'}}>
+            <div className='preview'>
                 {
                     dateSeries.map((serie,index)=>{
                         let previewId='preview-'+index
