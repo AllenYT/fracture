@@ -226,6 +226,7 @@ class CornerstoneElement extends Component {
             menuTools:'',
             isPlaying: false,
             windowWidth:1920,
+            windowHeight:1080,
             slideSpan:0,
             windowHeight:1080,
         }
@@ -422,6 +423,9 @@ class CornerstoneElement extends Component {
         this.cache = this
             .cache
             .bind(this)
+        this.keyDownSwitch = this
+            .keyDownSwitch
+            .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -551,7 +555,7 @@ class CornerstoneElement extends Component {
     //     this.setState({listsActiveIndex: newIndex})
     // }
     handleListClick = (currentIdx,index,e) => {//点击list-item
-        console.log('id',e.target.id)
+        console.log('id',e.target.id,index)
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ 
         // (currentIdx -1)*100/this.state.imageIds.length+'%)}');
@@ -572,6 +576,16 @@ class CornerstoneElement extends Component {
             })
         }
         
+    }
+
+    keyDownSwitch(currentIdx,sliceIdx){
+        console.log('cur',currentIdx,sliceIdx)
+        this.setState({
+            listsActiveIndex: currentIdx,
+            currentIdx: sliceIdx,
+            autoRefresh: true,
+            doubleClick:false
+        })
     }
 
     playAnimation() {//coffee button
@@ -906,8 +920,8 @@ class CornerstoneElement extends Component {
 
     startAnnos(){
         // this.setState({isbidirectionnal:true,toolState:'EllipticalRoi'})
-        const element = document.querySelector('#origin-canvas')
-        this.disableAllTools(element)
+        // const element = document.querySelector('#origin-canvas')
+        // this.disableAllTools(element)
         // cornerstoneTools.addToolForElement(element,ellipticalRoi)
         // cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
         this.setState({leftButtonTools:0,menuTools:'anno'})
@@ -2465,7 +2479,7 @@ class CornerstoneElement extends Component {
                                         {/* {menuTools === 'anno'?
                                             <Button icon onClick={this.startAnnos} title='标注' className='funcbtn' active><Icon name='edit' size='large'></Icon></Button>:
                                             <Button icon onClick={this.startAnnos} title='标注' className='funcbtn'><Icon name='edit' size='large'></Icon></Button>
-                                        }     */}
+                                        } */}
                                         {menuTools === 'slide'?
                                             <Button icon title='切换切片' onClick={this.slide} className='funcbtn' active><Icon name='sort' size='large'></Icon></Button>:
                                             <Button icon title='切换切片' onClick={this.slide} className='funcbtn'><Icon name='sort' size='large'></Icon></Button>
@@ -2740,15 +2754,17 @@ class CornerstoneElement extends Component {
         const new_y1 = yCenter - height / 2
         // context.rect(box.x1-1, box.y1-1, width+2, height+2)
         if(width > height){
-            context.arc(xCenter, yCenter, width/2+3, 0*Math.PI,2*Math.PI)
+            // context.arc(xCenter, yCenter, width/2+3, 0*Math.PI,2*Math.PI)
+            context.rect(box.x1-10,box.y1-10,width+20,height+20)
         }else{
-            context.arc(xCenter, yCenter, height/2+3, 0*Math.PI,2*Math.PI)
+            // context.arc(xCenter, yCenter, height/2+3, 0*Math.PI,2*Math.PI)
+            context.rect(box.x1-10,box.y1-10,width+20,height+20)
         }
         
         context.lineWidth = 1
         context.stroke()
         if (box.nodule_no != undefined) {
-            context.fillText(parseInt(box.nodule_no)+1, xCenter - 3, new_y1 - 10)
+            context.fillText(parseInt(box.nodule_no)+1, xCenter - 3, new_y1 - 15)
         }
 
     }
@@ -2806,41 +2822,65 @@ class CornerstoneElement extends Component {
     }
 
     createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
+        console.log('coor',x1, x2, y1, y2)
         let pixelArray = []
         const imageId = this.state.imageIds[slice_idx]
         console.log('image',imageId)
         cornerstone
         .loadAndCacheImage(imageId)
         .then(image => {
+            console.log(image)
             const pixeldata = image.getPixelData()
+            var asc = function(a,b){return a-b}
+            pixeldata.sort(asc)
             console.log('pixeldata',pixeldata)
             for(var i=~~x1;i<=x2;i++){
                 for(var j=~~y1;j<=y2;j++){
                     pixelArray.push(pixeldata[512*j+i] - 1024)
                 }
             }
-            var asc = function(a,b){return a-b}
-            console.log('array',pixelArray)
+            
+            // console.log('array',pixelArray)
             const data = pixelArray
             data.sort(asc)
-            console.log('data',data)
-            var dis = (data[data.length-1] - data[0]) / 30
-            var bins = new Array(31).fill(0)
-            var ns = new Array(30).fill(0)
-            bins[0] = data[0]
-            for(var i=1;i<31;i++){
-                if(i === 30){
-                    bins[30] = data[data.length-1]
-                }
-                else{
-                    bins[i] = bins[i-1] + dis
-                }
-                for(var j=0;j<data.length;j++){
-                    if(data[j]>=bins[i-1] && data[j] <=bins[i]){
-                        ns[i-1]+=1
-                    }
+            // console.log('data',data)
+            var map = {}
+            for (var i = 0; i < data.length; i++) {
+                var key = data[i]
+                if (map[key]) {
+                    map[key] += 1
+                } else {
+                    map[key] = 1
                 }
             }
+            console.log('map',map)
+            var ns = []
+            var bins = []
+            for(var key in map){
+                bins.push(parseInt(key))
+                ns.push(map[key])
+            }
+            // var ns = []
+            // for(var i=0;i < data.length;i++){
+            //     ns.append()
+            // }
+            // var dis = (data[data.length-1] - data[0]) / 30
+            // var bins = new Array(31).fill(0)
+            // var ns = new Array(30).fill(0)
+            // bins[0] = data[0]
+            // for(var i=1;i<31;i++){
+            //     if(i === 30){
+            //         bins[30] = data[data.length-1]
+            //     }
+            //     else{
+            //         bins[i] = bins[i-1] + dis
+            //     }
+            //     for(var j=0;j<data.length;j++){
+            //         if(data[j]>=bins[i-1] && data[j] <=bins[i]){
+            //             ns[i-1]+=1
+            //         }
+            //     }
+            // }
             console.log('bins',bins,ns)
             var obj = {}
             obj.bins = bins
@@ -3054,6 +3094,7 @@ class CornerstoneElement extends Component {
         if (this.state.clicked && this.state.clickedArea.box === -1) {
             let tmpBox = this.state.tmpBox
             let tmpCoord = this.state.tmpCoord
+            console.log('xy',x,y)
             let r = ((tmpCoord.x1 - x)**2+(tmpCoord.y1 - y)**2)**0.5
             tmpBox.x1 = tmpCoord.x1 - r
             tmpBox.y1 = tmpCoord.y1 - r
@@ -3113,57 +3154,39 @@ class CornerstoneElement extends Component {
             // esc, back to normal
             this.setState({immersive: false})
         }
-        if (event.which == 37 || event.which == 38) {
+        if (event.which == 37 ) {
             event.preventDefault()
             let newCurrentIdx = this.state.currentIdx - 1
             if (newCurrentIdx >= 0) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
             }
-            // if(newCurrentIdx - cacheSize < 0){
-            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
-            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-            // else{
-            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-
         }
-        if (event.which == 39 || event.which == 40) {
+        if(event.which == 38){
+            //切换结节list
+            event.preventDefault()
+            const listsActiveIndex = this.state.listsActiveIndex
+            console.log('listsIdx',listsActiveIndex)
+            let boxes = this.state.boxes
+            if(listsActiveIndex > 0)
+                this.keyDownSwitch(boxes[listsActiveIndex-1].nodule_no,boxes[listsActiveIndex-1].slice_idx)
+        }
+        if (event.which == 39) {
             event.preventDefault()
             let newCurrentIdx = this.state.currentIdx + 1
             if (newCurrentIdx < this.state.imageIds.length) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
                 // console.log('info',cornerstone.imageCache.getCacheInfo())
             }
-            // if(newCurrentIdx - cacheSize < 0){
-            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
-            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-            // else{
-            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
+        }
+        if(event.which == 40){
+            //切换结节list
+            event.preventDefault()
+            const listsActiveIndex = this.state.listsActiveIndex
+            
+            let boxes = this.state.boxes
+            console.log('listsIdx',listsActiveIndex,boxes[listsActiveIndex+1])
+            if(listsActiveIndex < boxes.length-1)
+                this.keyDownSwitch(boxes[listsActiveIndex+1].nodule_no,boxes[listsActiveIndex+1].slice_idx)
         }
         if (event.which == 72) {
             this.toHidebox() 
@@ -3861,7 +3884,7 @@ class CornerstoneElement extends Component {
     cacheImage(imageId){
         cornerstone.loadAndCacheImage(imageId)
         // cornerstone.ImageCache(imageId)
-        console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
+        // console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
     }
 
     cache() {//coffee button
@@ -3902,9 +3925,8 @@ class CornerstoneElement extends Component {
         document.getElementById('header').style.display = 'none'
         const width = document.body.clientWidth
         const height = document.body.clientHeight
-        console.log('ww',width,height)
         // const width = window.outerHeight
-        this.setState({windowWidth : width, windowHeight:height})
+        this.setState({windowWidth : width, windowHeight: height})
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
         const token = localStorage.getItem('token')
         const headers = {
@@ -4039,7 +4061,7 @@ class CornerstoneElement extends Component {
         }
         if(prevState.listsActiveIndex!==-1 && prevState.listsActiveIndex !== this.state.listsActiveIndex){
             const visId = 'visual-' + prevState.listsActiveIndex
-            if(document.getElementById(visId) !== undefined && document.getElementById(visId)!=null){
+            if(document.getElementById(visId) !== undefined && document.getElementById(visId) !== null){
                 document.getElementById(visId).innerHTML=''
             }
             else{
