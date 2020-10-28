@@ -20,7 +20,7 @@ import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
 import axios from "axios"
-import { Slider } from "antd"
+import { Slider,Select } from "antd"
 // import { Slider, RangeSlider } from 'rsuite'
 import MiniReport from './MiniReport'
 // import { Dropdown } from "antd"
@@ -173,6 +173,8 @@ const toolstrigger = (
         <Icon name='user' />
     </span>
 )
+
+const {Option} = Select
     
 
 class CornerstoneElement extends Component {
@@ -226,6 +228,7 @@ class CornerstoneElement extends Component {
             windowWidth:1920,
             windowHeight:1080,
             slideSpan:0,
+            windowHeight:1080,
         }
         this.nextPath = this
             .nextPath
@@ -765,26 +768,6 @@ class CornerstoneElement extends Component {
         })
     }
 
-    // onSelectPlace = (event) => {
-    //     // const segment = event.currentTarget.innerHTML
-    //     // const place=event.currentTarget.parentNode.innerHTML
-    //     // console.log('segment',segment,place)
-    //     const value = event.currentTarget.value
-    //     const noduleId = event
-    //         .currentTarget
-    //         .id
-    //         .split('-')[1]
-    //     let boxes = this.state.boxes
-    //     for (let i = 0; i < boxes.length; i++) {
-    //         if (boxes[i].nodule_no === noduleId) {
-    //             boxes[i].place = value
-    //         }
-    //     }
-    //     this.setState({
-    //         boxes: boxes,
-    //         random: Math.random()
-    //     })
-    // }
     onSelectPlace = (event) => {
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
         let segments={
@@ -821,6 +804,61 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             boxes: boxes,
+            // random: Math.random()
+        })
+    }
+
+    representChange = (e,{value,name}) =>{
+        let represents={'lobulation':'分叶','spiculation':'毛刺','calcification':'钙化','pin':'胸膜凹陷',
+                    'cav':'空洞','vss':'血管集束','bea':'空泡','bro':'支气管充气'}
+        console.log('测量',value,name.split('dropdown')[1])
+        let boxes = this.state.boxes
+        for(let count = 0;count<boxes.length;count++){
+            if (boxes[count].nodule_no === name.split('dropdown')[1]) {
+                boxes[count].lobulation=1
+                boxes[count].spiculation=1
+                boxes[count].calcification=1
+                boxes[count].pin=1
+                boxes[count].cav=1
+                boxes[count].vss=1
+                boxes[count].bea=1
+                boxes[count].bro=1
+                for(let itemValue in value){
+                    for(let keyRepresents in represents){
+                        if(value[itemValue] === represents[keyRepresents]){
+                            if(keyRepresents === 'lobulation'){
+                                boxes[count].lobulation=2
+                            }
+                            else if(keyRepresents === 'spiculation'){
+                                boxes[count].spiculation=2
+                            }
+                            else if(keyRepresents === 'calcification'){
+                                boxes[count].calcification=2
+                            }
+                            else if(keyRepresents === 'pin'){
+                                boxes[count].pin=2
+                            }
+                            else if(keyRepresents === 'cav'){
+                                boxes[count].cav=2
+                            }
+                            else if(keyRepresents === 'vss'){
+                                boxes[count].vss=2
+                            }
+                            else if(keyRepresents === 'bea'){
+                                boxes[count].bea=2
+                            }
+                            else if(keyRepresents === 'bro'){
+                                boxes[count].bro=2
+                            }
+                            break
+                        }
+                    }
+                }
+                break
+            }
+        }
+        this.setState({
+            boxes: boxes
             // random: Math.random()
         })
     }
@@ -1035,9 +1073,17 @@ class CornerstoneElement extends Component {
     render() {
         let sliderMarks={}
 
-        for(let i=0;i<this.state.boxes.length;i++){
-            sliderMarks[this.state.boxes[i].slice_idx]=''
+        if(this.state.imageIds.length<=100){
+            for(let i=0;i<this.state.boxes.length;i++){
+                sliderMarks[this.state.boxes[i].slice_idx+1]=''
+            }
         }
+        else{
+            for(let i=0;i<this.state.boxes.length;i++){
+                sliderMarks[this.state.boxes[i].slice_idx]=''
+            }
+        }
+        
         
         
 
@@ -1142,8 +1188,14 @@ class CornerstoneElement extends Component {
             { key: '胸膜凹陷', text: '胸膜凹陷', value: '胸膜凹陷' },
             { key: '血管集束', text: '血管集束', value: '血管集束' },
             { key: '空泡', text: '空泡', value: '空泡' },
+            { key: '空洞', text: '空洞', value: '空洞' },
             { key: '支气管充气', text: '支气管充气', value: '支气管充气' },
         ]
+        // let options = ['分叶','毛刺','钙化','胸膜凹陷','血管集束','空泡','空洞','支气管充气']
+        // let children=[]
+        // for(let i=0;i<options.length;i++){
+        //     children.push(<Option key={i}>{options[i]}</Option>)
+        // }
 
         const locationOptions=[
             { key: '分叶', text: '分叶', value: '分叶' },
@@ -1560,7 +1612,7 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column widescreen={7} computer={7} textAlign='center'>
                                                 {
-                                                    idx<3?
+                                                    idx<6?
                                                     <Dropdown style={selectStyle} text={dropdownText} icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
@@ -1748,8 +1800,8 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}}>表征:</Grid.Column>
                                                 <Grid.Column width={11} style={{paddingLeft:'0px',paddingRight:'0px'}}>
-                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' 
-                                                    defaultValue={representArray} />
+                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name='represent' 
+                                                    defaultValue={representArray} onClick={this.representChange.bind(this),document.getElementsByName('represent')}/>
                                                 </Grid.Column>
                                             </Grid.Row>
                                         </Grid>
@@ -1771,7 +1823,7 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column width={7} textAlign='center'>
                                                 {
-                                                    idx<3?
+                                                    idx<6?
                                                     <Dropdown style={selectStyle} text={dropdownText} icon={null}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
@@ -1952,8 +2004,13 @@ class CornerstoneElement extends Component {
                                             <Grid.Row verticalAlign='middle'>
                                                 <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}} textAlign='center'>表征</Grid.Column>
                                                 <Grid.Column width={14} style={{paddingLeft:'0px',paddingRight:'0px'}}>
-                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' 
-                                                    defaultValue={representArray} />
+                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name={'dropdown'+idx}
+                                                    defaultValue={representArray} onChange={this.representChange.bind(this)} />
+                                                    {/* <Select mode='multiple' placeholder='请选择表征' allowClear 
+                                                    defaultValue={['分叶']} onChange={this.representChange.bind(this)}
+                                                    style={{ width: '90%' }}>
+                                                        {children}
+                                                    </Select> */}
                                                 </Grid.Column>
                                             </Grid.Row>
                                         </Grid>
@@ -2279,7 +2336,7 @@ class CornerstoneElement extends Component {
                                         onClick={this.toMedia}
                                         className='hubtn'
                                         >自定义</Button> */}
-                                        <Popup
+                                        {/* <Popup
                                     trigger={
                                         <Button
                                         // inverted
@@ -2316,7 +2373,7 @@ class CornerstoneElement extends Component {
                                     on='click'
                                     position='bottom center'
                                     id='defWindow'
-                                    />                                               
+                                    />                                                */}
                                 </Button.Group>
                             </Menu.Item>
                             <span id='line-left'></span>
@@ -2406,10 +2463,10 @@ class CornerstoneElement extends Component {
                                 <span id='line-right'></span>
                                 <Menu.Item className='funcolumn'>
                                     <Button.Group>
-                                        {menuTools === 'anno'?
+                                        {/* {menuTools === 'anno'?
                                             <Button icon onClick={this.startAnnos} title='标注' className='funcbtn' active><Icon name='edit' size='large'></Icon></Button>:
                                             <Button icon onClick={this.startAnnos} title='标注' className='funcbtn'><Icon name='edit' size='large'></Icon></Button>
-                                        }    
+                                        }     */}
                                         {menuTools === 'slide'?
                                             <Button icon title='切换切片' onClick={this.slide} className='funcbtn' active><Icon name='sort' size='large'></Icon></Button>:
                                             <Button icon title='切换切片' onClick={this.slide} className='funcbtn'><Icon name='sort' size='large'></Icon></Button>
@@ -2425,7 +2482,12 @@ class CornerstoneElement extends Component {
                                             :
                                             <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
                                         }
-                                        
+                                        {
+                                            this.state.readonly?
+                                            null
+                                            :
+                                            <Button icon title='清空标注' onClick={this.clearUserNodule.bind(this)} className='funcbtn'><Icon name='user delete' size='large'></Icon></Button>
+                                        }
                                         
                                         {/* <Button title='3D' className='funcbtn'>3D</Button> */}
                                     </Button.Group>
@@ -2537,7 +2599,7 @@ class CornerstoneElement extends Component {
                                         </div>
                                         </Grid.Column>
                                     </Grid.Row>
-                                    <Grid.Row>
+                                    <Grid.Row className='corner-row' columns={2}>
                                         <Grid.Column width={10}>
                                             <div id='listTitle'>
                                                 <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
@@ -2564,7 +2626,6 @@ class CornerstoneElement extends Component {
                                 </Grid>
 
                             }
-                            
                         {/* </div> */}
 
                     </div>
@@ -3292,6 +3353,7 @@ class CornerstoneElement extends Component {
     }
 
     doubleClickListItems(e){
+        console.log('doubleclick')
         this.setState({doubleClick:true})
     }
 
@@ -3491,6 +3553,7 @@ class CornerstoneElement extends Component {
 
     //暂存结节
     temporaryStorage() {
+        alert("已保存当前结果!")
         this.setState({
             random: Math.random(),
             menuTools:''
@@ -3526,6 +3589,32 @@ class CornerstoneElement extends Component {
             console.log('err: ' + err)
         })
     }
+
+    clearUserNodule(){
+        if(window.confirm("是否删除当前用户标注？") == true){
+            const token = localStorage.getItem('token')
+            console.log('token', token)
+            const headers = {
+                'Authorization': 'Bearer '.concat(token)
+            }
+            const params = {
+                caseId: this.state.caseId
+            }
+            axios.post(draftConfig.removeDraft, qs.stringify(params), {headers}).then(res => {
+                console.log(res.data)
+                if (res.data === true) {
+                    window.location.href =window.location.pathname.split('/')[0]+
+                    '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/deepln'
+                } else {
+                    alert("出现错误,请联系管理员！")
+                }
+            }).catch(err => {
+                console.log(err)
+            })
+        }
+        
+    }
+
     //提交结节
     // submit() {
     //     this.setState({menuTools:''})
@@ -3944,6 +4033,7 @@ class CornerstoneElement extends Component {
 
 
         let listitems=document.getElementById('cornerstone-accordion')
+        console.log('listitems',listitems)
         listitems.addEventListener('dblclick',this.doubleClickListItems.bind(this))
     }
 
