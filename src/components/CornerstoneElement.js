@@ -214,7 +214,7 @@ class CornerstoneElement extends Component {
             isbidirectionnal:false,
             measureList:[],
             toolState:'',
-            leftButtonTools:1, //0-标注，1-切片切换，2-wwwc
+            leftButtonTools:1, //0-标注，1-切片切换，2-wwwc,3-bidirection
             mouseCurPos:{},
             mouseClickPos:{},
             mousePrePos:{},
@@ -915,7 +915,7 @@ class CornerstoneElement extends Component {
             },
             ['Mouse']
         )
-        // cornerstoneTools.setToolDisabledForElement(element, 'Bidirectional')
+        cornerstoneTools.setToolDisabledForElement(element, 'Bidirectional')
     }
 
     startAnnos(){
@@ -932,24 +932,6 @@ class CornerstoneElement extends Component {
         this.disableAllTools(element)
         this.setState({leftButtonTools:1,menuTools:'slide'})
         const newCurrentIdx = this.state.currentIdx
-        // if(newCurrentIdx - cacheSize < 0){
-        //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
-        //         if(i === newCurrentIdx) continue
-        //         this.cacheImage(this.state.imageIds[i])
-        //     }
-        // }
-        // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
-        //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
-        //         if(i === newCurrentIdx) continue
-        //         this.cacheImage(this.state.imageIds[i])
-        //     }
-        // }
-        // else{
-        //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
-        //         if(i === newCurrentIdx) continue
-        //         this.cacheImage(this.state.imageIds[i])
-        //     }
-        // }
         //切换切片
     }
 
@@ -985,13 +967,14 @@ class CornerstoneElement extends Component {
         cornerstone.updateImage(element);
     }
 
-    lengthMeasure(box){
-        this.setState({isbidirectionnal:true,toolState:'Bidirectional'})
-        // console.log('测量')
-        // const element = document.querySelector('#origin-canvas')
-        // this.disableAllTools(element)
+    lengthMeasure(){
+        this.setState({leftButtonTools:3,menuTools:'bidirect'})
+
+        console.log('测量')
+        const element = document.querySelector('#origin-canvas')
+        this.disableAllTools(element)
         // cornerstoneTools.addToolForElement(element, bidirectional)
-        // cornerstoneTools.setToolActiveForElement(element, 'Bidirectional',{mouseButtonMask:1},['Mouse'])
+        cornerstoneTools.setToolActiveForElement(element, 'Bidirectional',{mouseButtonMask:1},['Mouse'])
         // cornerstoneTools.length.activate(element,4);
 
     }
@@ -2476,10 +2459,14 @@ class CornerstoneElement extends Component {
                                 <span id='line-right'></span>
                                 <Menu.Item className='funcolumn'>
                                     <Button.Group>
-                                        {/* {menuTools === 'anno'?
+                                        {menuTools === 'anno'?
                                             <Button icon onClick={this.startAnnos} title='标注' className='funcbtn' active><Icon name='edit' size='large'></Icon></Button>:
                                             <Button icon onClick={this.startAnnos} title='标注' className='funcbtn'><Icon name='edit' size='large'></Icon></Button>
-                                        } */}
+                                        }
+                                        {menuTools === 'bidirect'?
+                                            <Button icon onClick={this.lengthMeasure} title='测量' className='funcbtn' active><Icon name='crosshairs' size='large'></Icon></Button>:
+                                            <Button icon onClick={this.lengthMeasure} title='测量' className='funcbtn'><Icon name='crosshairs' size='large'></Icon></Button>
+                                        }
                                         {menuTools === 'slide'?
                                             <Button icon title='切换切片' onClick={this.slide} className='funcbtn' active><Icon name='sort' size='large'></Icon></Button>:
                                             <Button icon title='切换切片' onClick={this.slide} className='funcbtn'><Icon name='sort' size='large'></Icon></Button>
@@ -2562,7 +2549,7 @@ class CornerstoneElement extends Component {
                                                 .location
                                                 .pathname
                                                 .split('/')[3]}</h3> */}
-                                            <div id='elec-table'>
+                                            <div id='elec-table' onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                 <Accordion styled id="cornerstone-accordion" fluid>
                                                     {tableContent}
                                                 </Accordion>
@@ -2622,7 +2609,7 @@ class CornerstoneElement extends Component {
                                                 .location
                                                 .pathname
                                                 .split('/')[3]}</h3> */}
-                                            <div id='elec-table'>
+                                            <div id='elec-table' onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                 <Accordion styled id="cornerstone-accordion" fluid>
                                                     {tableContent}
                                                 </Accordion>
@@ -4023,9 +4010,9 @@ class CornerstoneElement extends Component {
         
 
 
-        let listitems=document.getElementById('cornerstone-accordion')
-        console.log('listitems',listitems)
-        listitems.addEventListener('dblclick',this.doubleClickListItems.bind(this))
+        // let listitems=document.getElementById('cornerstone-accordion')
+        // console.log('listitems',listitems)
+        // listitems.addEventListener('dblclick',this.doubleClickListItems.bind(this))
     }
 
     componentWillUnmount() {
