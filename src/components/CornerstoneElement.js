@@ -423,6 +423,9 @@ class CornerstoneElement extends Component {
         this.cache = this
             .cache
             .bind(this)
+        this.keyDownSwitch = this
+            .keyDownSwitch
+            .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -552,7 +555,7 @@ class CornerstoneElement extends Component {
     //     this.setState({listsActiveIndex: newIndex})
     // }
     handleListClick = (currentIdx,index,e) => {//点击list-item
-        console.log('id',e.target.id)
+        console.log('id',e.target.id,index)
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ 
         // (currentIdx -1)*100/this.state.imageIds.length+'%)}');
@@ -573,6 +576,16 @@ class CornerstoneElement extends Component {
             })
         }
         
+    }
+
+    keyDownSwitch(currentIdx,sliceIdx){
+        console.log('cur',currentIdx,sliceIdx)
+        this.setState({
+            listsActiveIndex: currentIdx,
+            currentIdx: sliceIdx,
+            autoRefresh: true,
+            doubleClick:false
+        })
     }
 
     playAnimation() {//coffee button
@@ -907,8 +920,8 @@ class CornerstoneElement extends Component {
 
     startAnnos(){
         // this.setState({isbidirectionnal:true,toolState:'EllipticalRoi'})
-        const element = document.querySelector('#origin-canvas')
-        this.disableAllTools(element)
+        // const element = document.querySelector('#origin-canvas')
+        // this.disableAllTools(element)
         // cornerstoneTools.addToolForElement(element,ellipticalRoi)
         // cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
         this.setState({leftButtonTools:0,menuTools:'anno'})
@@ -2466,7 +2479,7 @@ class CornerstoneElement extends Component {
                                         {/* {menuTools === 'anno'?
                                             <Button icon onClick={this.startAnnos} title='标注' className='funcbtn' active><Icon name='edit' size='large'></Icon></Button>:
                                             <Button icon onClick={this.startAnnos} title='标注' className='funcbtn'><Icon name='edit' size='large'></Icon></Button>
-                                        }     */}
+                                        } */}
                                         {menuTools === 'slide'?
                                             <Button icon title='切换切片' onClick={this.slide} className='funcbtn' active><Icon name='sort' size='large'></Icon></Button>:
                                             <Button icon title='切换切片' onClick={this.slide} className='funcbtn'><Icon name='sort' size='large'></Icon></Button>
@@ -2741,15 +2754,17 @@ class CornerstoneElement extends Component {
         const new_y1 = yCenter - height / 2
         // context.rect(box.x1-1, box.y1-1, width+2, height+2)
         if(width > height){
-            context.arc(xCenter, yCenter, width/2+3, 0*Math.PI,2*Math.PI)
+            // context.arc(xCenter, yCenter, width/2+3, 0*Math.PI,2*Math.PI)
+            context.rect(box.x1-10,box.y1-10,width+20,height+20)
         }else{
-            context.arc(xCenter, yCenter, height/2+3, 0*Math.PI,2*Math.PI)
+            // context.arc(xCenter, yCenter, height/2+3, 0*Math.PI,2*Math.PI)
+            context.rect(box.x1-10,box.y1-10,width+20,height+20)
         }
         
         context.lineWidth = 1
         context.stroke()
         if (box.nodule_no != undefined) {
-            context.fillText(parseInt(box.nodule_no)+1, xCenter - 3, new_y1 - 10)
+            context.fillText(parseInt(box.nodule_no)+1, xCenter - 3, new_y1 - 15)
         }
 
     }
@@ -3145,28 +3160,15 @@ class CornerstoneElement extends Component {
             if (newCurrentIdx >= 0) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
             }
-            // if(newCurrentIdx - cacheSize < 0){
-            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
-            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-            // else{
-            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-
         }
         if(event.which == 38){
             //切换结节list
+            event.preventDefault()
+            const listsActiveIndex = this.state.listsActiveIndex
+            console.log('listsIdx',listsActiveIndex)
+            let boxes = this.state.boxes
+            if(listsActiveIndex > 0)
+                this.keyDownSwitch(boxes[listsActiveIndex-1].nodule_no,boxes[listsActiveIndex-1].slice_idx)
         }
         if (event.which == 39) {
             event.preventDefault()
@@ -3175,27 +3177,16 @@ class CornerstoneElement extends Component {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
                 // console.log('info',cornerstone.imageCache.getCacheInfo())
             }
-            // if(newCurrentIdx - cacheSize < 0){
-            //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-            // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
-            //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
-            // else{
-            //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
-            //         if(i === newCurrentIdx) continue
-            //         this.cacheImage(this.state.imageIds[i])
-            //     }
-            // }
         }
-        if(event.which === 40){
+        if(event.which == 40){
             //切换结节list
+            event.preventDefault()
+            const listsActiveIndex = this.state.listsActiveIndex
+            
+            let boxes = this.state.boxes
+            console.log('listsIdx',listsActiveIndex,boxes[listsActiveIndex+1])
+            if(listsActiveIndex < boxes.length-1)
+                this.keyDownSwitch(boxes[listsActiveIndex+1].nodule_no,boxes[listsActiveIndex+1].slice_idx)
         }
         if (event.which == 72) {
             this.toHidebox() 
@@ -3893,7 +3884,7 @@ class CornerstoneElement extends Component {
     cacheImage(imageId){
         cornerstone.loadAndCacheImage(imageId)
         // cornerstone.ImageCache(imageId)
-        console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
+        // console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)
     }
 
     cache() {//coffee button
