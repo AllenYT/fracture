@@ -791,7 +791,7 @@ textarea:focus, input:focus{
   }
 }
 
-@media screen and (min-width: 1200px)  and (max-width:1440px){
+@media screen and (min-width: 1201px)  and (max-width:1440px){
   input[type='range'] {
     background: transparent;
     -webkit-appearance: none;
