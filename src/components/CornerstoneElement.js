@@ -224,6 +224,7 @@ class CornerstoneElement extends Component {
             menuTools:'',
             isPlaying: false,
             windowWidth:1920,
+            windowHeight:1080,
             slideSpan:0,
         }
         this.nextPath = this
@@ -1050,7 +1051,7 @@ class CornerstoneElement extends Component {
         // console.log('boxes', this.state.boxes)
         // console.log('boxes', this.state.username)
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, 
-            wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth, slideSpan} = this.state
+            wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth, windowHeight, slideSpan} = this.state
         if(windowWidth <= 1600 && windowWidth > 1440){
             bottomLeftStyle = {
                 bottom: "5px",
@@ -2439,65 +2440,131 @@ class CornerstoneElement extends Component {
                                     </Dropdown>
                                 </Menu.Item>
                             </Menu>
-                            <Grid celled className='corner-contnt' >
-                                <Grid.Row className='corner-row' columns={3}>
-                                    <Grid.Column width={2}>
-                                        <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
-                                    </Grid.Column>
-                                    <Grid.Column width={10} textAlign='center' id='canvas-column'>
-                                    <div className='canvas-style' id='canvas-border'>
-                                    <div
-                                            id="origin-canvas"
-                                            // style={divStyle}
-                                            ref={input => {
-                                            this.element = input
-                                        }}>
-                                            <canvas className="cornerstone-canvas" id="canvas"/>
-                                            {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                                            {/* {canvas} */}
-                                            {dicomTagPanel} 
-                                        </div>
+                            {
+                                windowHeight < windowWidth ? 
+                                <Grid celled className='corner-contnt' >
+                                    <Grid.Row className='corner-row' columns={3}>
+                                        <Grid.Column width={2}>
+                                            <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
+                                        </Grid.Column>
+                                        <Grid.Column width={10} textAlign='center' id='canvas-column'>
+                                        <div className='canvas-style' id='canvas-border'>
+                                        <div
+                                                id="origin-canvas"
+                                                // style={divStyle}
+                                                ref={input => {
+                                                this.element = input
+                                            }}>
+                                                <canvas className="cornerstone-canvas" id="canvas"/>
+                                                {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
+                                                {/* {canvas} */}
+                                                {dicomTagPanel} 
+                                            </div>
 
-                                    </div>
-                                    <div className='antd-slider'>
-                                        <Slider 
-                                            vertical
-                                            reverse
-                                            tipFormatter={null}
-                                            marks={sliderMarks} 
-                                            value={this.state.currentIdx+1} 
-                                            onChange={this.handleRangeChange}
-                                            // onAfterChange={this.handleRangeChange.bind(this)} 
-                                            min={1}
-                                            step={1}
-                                            max={this.state.stack.imageIds.length}
-                                            ></Slider>
+                                        </div>
+                                        <div className='antd-slider'>
+                                            <Slider 
+                                                vertical
+                                                reverse
+                                                tipFormatter={null}
+                                                marks={sliderMarks} 
+                                                value={this.state.currentIdx+1} 
+                                                onChange={this.handleRangeChange}
+                                                // onAfterChange={this.handleRangeChange.bind(this)} 
+                                                min={1}
+                                                step={1}
+                                                max={this.state.stack.imageIds.length}
+                                                ></Slider>
 
-                                    </div>
-                                    </Grid.Column>
-                                    <Grid.Column widescreen={4} computer={4}> 
-                                        <div id='listTitle'>
-                                            <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
                                         </div>
-                                    
-                                        {/* <h3 id="annotator-header">标注人：{window
-                                            .location
-                                            .pathname
-                                            .split('/')[3]}</h3> */}
-                                        <div id='elec-table'>
-                                            <Accordion styled id="cornerstone-accordion" fluid>
-                                                {tableContent}
-                                            </Accordion>
-                                    
-                                        </div>
-                                        <div id='report'>
-                                            <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
-                                            panes={panes} />
-                                        </div>
-                                    </Grid.Column>
-                                </Grid.Row>
+                                        </Grid.Column>
+                                        <Grid.Column widescreen={4} computer={4}> 
+                                            <div id='listTitle'>
+                                                <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
+                                            </div>
+                                        
+                                            {/* <h3 id="annotator-header">标注人：{window
+                                                .location
+                                                .pathname
+                                                .split('/')[3]}</h3> */}
+                                            <div id='elec-table'>
+                                                <Accordion styled id="cornerstone-accordion" fluid>
+                                                    {tableContent}
+                                                </Accordion>
+                                        
+                                            </div>
+                                            <div id='report'>
+                                                <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
+                                                panes={panes} />
+                                            </div>
+                                        </Grid.Column>
+                                    </Grid.Row>
                                 
-                            </Grid>
+                                </Grid>:
+                                <Grid celled className='corner-contnt' >
+                                    <Grid.Row className='corner-row' columns={2}>
+                                        <Grid.Column width={3}>
+                                            <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
+                                        </Grid.Column>
+                                        <Grid.Column width={13} textAlign='center' id='canvas-column'>
+                                        <div className='canvas-style' id='canvas-border'>
+                                        <div
+                                                id="origin-canvas"
+                                                // style={divStyle}
+                                                ref={input => {
+                                                this.element = input
+                                            }}>
+                                                <canvas className="cornerstone-canvas" id="canvas"/>
+                                                {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
+                                                {/* {canvas} */}
+                                                {dicomTagPanel} 
+                                            </div>
+
+                                        </div>
+                                        <div className='antd-slider'>
+                                            <Slider 
+                                                vertical
+                                                reverse
+                                                tipFormatter={null}
+                                                marks={sliderMarks} 
+                                                value={this.state.currentIdx+1} 
+                                                onChange={this.handleRangeChange}
+                                                // onAfterChange={this.handleRangeChange.bind(this)} 
+                                                min={1}
+                                                step={1}
+                                                max={this.state.stack.imageIds.length}
+                                                ></Slider>
+                                        </div>
+                                        </Grid.Column>
+                                    </Grid.Row>
+                                    <Grid.Row>
+                                        <Grid.Column width={10}>
+                                            <div id='listTitle'>
+                                                <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
+                                            </div>
+                                        
+                                            {/* <h3 id="annotator-header">标注人：{window
+                                                .location
+                                                .pathname
+                                                .split('/')[3]}</h3> */}
+                                            <div id='elec-table'>
+                                                <Accordion styled id="cornerstone-accordion" fluid>
+                                                    {tableContent}
+                                                </Accordion>
+                                        
+                                            </div>
+                                        </Grid.Column>
+                                        <Grid.Column width={6}>
+                                            <div id='report'>
+                                                <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
+                                                panes={panes} />
+                                            </div>
+                                        </Grid.Column>
+                                    </Grid.Row>
+                                </Grid>
+
+                            }
+                            
                         {/* </div> */}
 
                     </div>
@@ -2679,41 +2746,65 @@ class CornerstoneElement extends Component {
     }
 
     createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
+        console.log('coor',x1, x2, y1, y2)
         let pixelArray = []
         const imageId = this.state.imageIds[slice_idx]
         console.log('image',imageId)
         cornerstone
         .loadAndCacheImage(imageId)
         .then(image => {
+            console.log(image)
             const pixeldata = image.getPixelData()
+            var asc = function(a,b){return a-b}
+            pixeldata.sort(asc)
             console.log('pixeldata',pixeldata)
             for(var i=~~x1;i<=x2;i++){
                 for(var j=~~y1;j<=y2;j++){
                     pixelArray.push(pixeldata[512*j+i] - 1024)
                 }
             }
-            var asc = function(a,b){return a-b}
-            console.log('array',pixelArray)
+            
+            // console.log('array',pixelArray)
             const data = pixelArray
             data.sort(asc)
-            console.log('data',data)
-            var dis = (data[data.length-1] - data[0]) / 30
-            var bins = new Array(31).fill(0)
-            var ns = new Array(30).fill(0)
-            bins[0] = data[0]
-            for(var i=1;i<31;i++){
-                if(i === 30){
-                    bins[30] = data[data.length-1]
-                }
-                else{
-                    bins[i] = bins[i-1] + dis
-                }
-                for(var j=0;j<data.length;j++){
-                    if(data[j]>=bins[i-1] && data[j] <=bins[i]){
-                        ns[i-1]+=1
-                    }
+            // console.log('data',data)
+            var map = {}
+            for (var i = 0; i < data.length; i++) {
+                var key = data[i]
+                if (map[key]) {
+                    map[key] += 1
+                } else {
+                    map[key] = 1
                 }
             }
+            console.log('map',map)
+            var ns = []
+            var bins = []
+            for(var key in map){
+                bins.push(parseInt(key))
+                ns.push(map[key])
+            }
+            // var ns = []
+            // for(var i=0;i < data.length;i++){
+            //     ns.append()
+            // }
+            // var dis = (data[data.length-1] - data[0]) / 30
+            // var bins = new Array(31).fill(0)
+            // var ns = new Array(30).fill(0)
+            // bins[0] = data[0]
+            // for(var i=1;i<31;i++){
+            //     if(i === 30){
+            //         bins[30] = data[data.length-1]
+            //     }
+            //     else{
+            //         bins[i] = bins[i-1] + dis
+            //     }
+            //     for(var j=0;j<data.length;j++){
+            //         if(data[j]>=bins[i-1] && data[j] <=bins[i]){
+            //             ns[i-1]+=1
+            //         }
+            //     }
+            // }
             console.log('bins',bins,ns)
             var obj = {}
             obj.bins = bins
@@ -2927,6 +3018,7 @@ class CornerstoneElement extends Component {
         if (this.state.clicked && this.state.clickedArea.box === -1) {
             let tmpBox = this.state.tmpBox
             let tmpCoord = this.state.tmpCoord
+            console.log('xy',x,y)
             let r = ((tmpCoord.x1 - x)**2+(tmpCoord.y1 - y)**2)**0.5
             tmpBox.x1 = tmpCoord.x1 - r
             tmpBox.y1 = tmpCoord.y1 - r
@@ -2986,7 +3078,7 @@ class CornerstoneElement extends Component {
             // esc, back to normal
             this.setState({immersive: false})
         }
-        if (event.which == 37 || event.which == 38) {
+        if (event.which == 37 ) {
             event.preventDefault()
             let newCurrentIdx = this.state.currentIdx - 1
             if (newCurrentIdx >= 0) {
@@ -3012,7 +3104,10 @@ class CornerstoneElement extends Component {
             // }
 
         }
-        if (event.which == 39 || event.which == 40) {
+        if(event.which == 38){
+            //切换结节list
+        }
+        if (event.which == 39) {
             event.preventDefault()
             let newCurrentIdx = this.state.currentIdx + 1
             if (newCurrentIdx < this.state.imageIds.length) {
@@ -3037,6 +3132,9 @@ class CornerstoneElement extends Component {
             //         this.cacheImage(this.state.imageIds[i])
             //     }
             // }
+        }
+        if(event.which === 40){
+            //切换结节list
         }
         if (event.which == 72) {
             this.toHidebox() 
@@ -3746,8 +3844,9 @@ class CornerstoneElement extends Component {
         }
         document.getElementById('header').style.display = 'none'
         const width = document.body.clientWidth
+        const height = document.body.clientHeight
         // const width = window.outerHeight
-        this.setState({windowWidth : width})
+        this.setState({windowWidth : width, windowHeight: height})
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
         const token = localStorage.getItem('token')
         const headers = {
@@ -3881,7 +3980,7 @@ class CornerstoneElement extends Component {
         }
         if(prevState.listsActiveIndex!==-1 && prevState.listsActiveIndex !== this.state.listsActiveIndex){
             const visId = 'visual-' + prevState.listsActiveIndex
-            if(document.getElementById(visId) !== undefined){
+            if(document.getElementById(visId) !== undefined && document.getElementById(visId) !== null){
                 document.getElementById(visId).innerHTML=''
             }
             else{
