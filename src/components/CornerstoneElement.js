@@ -1624,9 +1624,7 @@ class CornerstoneElement extends Component {
                                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                                     
                                                 </Grid.Column>
-                                                <Grid.Column width={1}>
-                                                <div style={{fontSize:'1rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
-                                                </Grid.Column>
+                                                
                                                 <Grid.Column widescreen={6} computer={7} textAlign='center'>
                                                 {
                                                     idx<6?
@@ -1771,11 +1769,10 @@ class CornerstoneElement extends Component {
                                     <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
                                         <Grid>
                                             <Grid.Row>
-                                                <Grid.Column widescreen={3} computer={3} textAlign='center'>
-                                                    <select id={texId} style={selectStyle} defaultValue="" disabled>
-                                                    <option value="" disabled="disabled">选择亚型</option>
-                                                    </select>
+                                                <Grid.Column width={1}>
+                                                <div style={{fontSize:'1rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
                                                 </Grid.Column>
+                                                
                                                 <Grid.Column widescreen={3} computer={3} textAlign='center'>
                                                     {/* <Icon name='crosshairs' size='mini'></Icon> */}
                                                     {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
@@ -1805,7 +1802,14 @@ class CornerstoneElement extends Component {
                                                     
                                                     }
                                                 </Grid.Column>
+                                                
                                             </Grid.Row>
+                                            {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
+                                                    <select id={texId} style={selectStyle} defaultValue="" disabled>
+                                                    <option value="" disabled="disabled">选择亚型</option>
+                                                    </select>
+                                                </Grid.Column> */}
+                                        
                                             <Grid.Row textAlign='center' verticalAlign='middle' centered>
                                                 <Grid.Column width={3}>
                                                     <select id={texId} style={selectStyle} value={inside.texture} onChange={this.onSelectTex}>
@@ -1817,8 +1821,10 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}}>表征:</Grid.Column>
                                                 <Grid.Column width={11} style={{paddingLeft:'0px',paddingRight:'0px'}}>
-                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name='represent' 
-                                                    defaultValue={representArray} onClick={this.representChange.bind(this),document.getElementsByName('represent')}/>
+                                                    {/* <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name='represent' 
+                                                    defaultValue={representArray} onClick={this.representChange.bind(this),document.getElementsByName('represent')}/> */}
+                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name={'dropdown'+idx}
+                                                    defaultValue={representArray} onChange={this.representChange.bind(this)} />
                                                 </Grid.Column>
                                             </Grid.Row>
                                         </Grid>
@@ -1838,10 +1844,8 @@ class CornerstoneElement extends Component {
                                                 <Grid.Column width={1}>
                                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                                 </Grid.Column>
-                                                <Grid.Column width={1}>
-                                                    <div style={{fontSize:'0.5rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
-                                                </Grid.Column>
-                                                <Grid.Column width={6} textAlign='center'>
+                                                
+                                                <Grid.Column widescreen={6} computer={7} textAlign='center'>
                                                 {
                                                     idx<6?
                                                     <Dropdown style={selectStyle} text={dropdownText} icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
@@ -1980,6 +1984,7 @@ class CornerstoneElement extends Component {
                                             <option value="" disabled="disabled">选择亚型</option>
                                             </select>
                                         </Grid.Column>
+                                        
                                         <Grid.Column width={1} textAlign='center'>
                                             <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
                                         </Grid.Column>
@@ -1990,6 +1995,9 @@ class CornerstoneElement extends Component {
                                     <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
                                         <Grid>
                                             <Grid.Row>
+                                            <Grid.Column width={1}>
+                                            <div style={{fontSize:'0.5rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
+                                            </Grid.Column>
                                                 <Grid.Column widescreen={4} computer={5}>
                                                     <Icon name='crosshairs' size='mini'></Icon>
                                                     {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
@@ -2002,7 +2010,7 @@ class CornerstoneElement extends Component {
                                                         <option value="3">半实性</option>
                                                     </select>
                                                 </Grid.Column>
-                                                <Grid.Column widescreen={5} computer={5}>
+                                                <Grid.Column widescreen={3} computer={4}>
                                                         {inside.huMin!==undefined && inside.huMax!==undefined?
                                                     inside.huMin +'~' + inside.huMax + 'HU'
                                                     :
@@ -2570,7 +2578,7 @@ class CornerstoneElement extends Component {
                                                 .pathname
                                                 .split('/')[3]}</h3> */}
                                             <div id='elec-table'>
-                                                <Accordion styled id="cornerstone-accordion" fluid>
+                                                <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                     {tableContent}
                                                 </Accordion>
                                         
@@ -2631,7 +2639,7 @@ class CornerstoneElement extends Component {
                                                 .pathname
                                                 .split('/')[3]}</h3> */}
                                             <div id='elec-table'>
-                                                <Accordion styled id="cornerstone-accordion" fluid>
+                                                <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                     {tableContent}
                                                 </Accordion>
                                         
@@ -3176,7 +3184,7 @@ class CornerstoneElement extends Component {
             console.log('listsIdx',listsActiveIndex)
             let boxes = this.state.boxes
             if(listsActiveIndex > 0)
-                this.keyDownSwitch(boxes[listsActiveIndex-1].nodule_no,boxes[listsActiveIndex-1].slice_idx)
+                this.keyDownSwitch(parseInt(boxes[listsActiveIndex-1].nodule_no),boxes[listsActiveIndex-1].slice_idx)
         }
         if (event.which == 39) {
             event.preventDefault()
@@ -3194,7 +3202,7 @@ class CornerstoneElement extends Component {
             let boxes = this.state.boxes
             console.log('listsIdx',listsActiveIndex,boxes[listsActiveIndex+1])
             if(listsActiveIndex < boxes.length-1)
-                this.keyDownSwitch(boxes[listsActiveIndex+1].nodule_no,boxes[listsActiveIndex+1].slice_idx)
+                this.keyDownSwitch(parseInt(boxes[listsActiveIndex+1].nodule_no),boxes[listsActiveIndex+1].slice_idx)
         }
         if (event.which == 72) {
             this.toHidebox() 
@@ -4032,9 +4040,9 @@ class CornerstoneElement extends Component {
 
 
         // let listitems=document.getElementById('cornerstone-accordion')
-        let listitems=document.getElementById('elec-table')
-        console.log('listitems',listitems)
-        listitems.addEventListener('dblclick',this.doubleClickListItems.bind(this))
+        // let listitems=document.getElementById('elec-table')
+        // console.log('listitems',listitems)
+        // listitems.addEventListener('dblclick',this.doubleClickListItems.bind(this))
     }
 
     componentWillUnmount() {
