@@ -60,20 +60,6 @@ class StudyBrowserList extends Component{
                             axios.post(dataConfig.getDataListForCaseId,qs.stringify({caseId:serie.split('#')[0]})),
                         ])
                         .then(([annotype,dicom])=>{
-                            // const previewId = 'preview-'+(index+1)*(value+1)
-                            // console.log('preview',previewId)
-                            // const element = document.getElementById(previewId)
-                            // let imageId = dicom.data[dicom.data.length/2]
-                            // cornerstone.enable(element)
-                            // cornerstone.loadAndCacheImage(imageId).then(function(image) { 
-                            //     // console.log('cache') 
-                            //     var viewport = cornerstone.getDefaultViewportForImage(element, image)
-                            //     viewport.voi.windowWidth = 1600
-                            //     viewport.voi.windowCenter = -600
-                            //     viewport.scale=1
-                            //     cornerstone.setViewport(element, viewport)
-                            //     cornerstone.displayImage(element, image)
-                            // })
                             
                             theList.push({
                                 'date':key,
@@ -95,25 +81,40 @@ class StudyBrowserList extends Component{
 
     componentDidUpdate(prevProps, prevState){
         if(prevState !== this.state){
-            console.log("studybrowser state",this.state.dateSeries)
-            const dateSeries = this.state.dateSeries
-            dateSeries.map((serie,index)=>{
-                const previewId = 'preview-'+index
-                
-                const element = document.getElementById(previewId)
-                let imageId = serie.image
-                // console.log('preview',element)
-                cornerstone.enable(element)
-                cornerstone.loadAndCacheImage(imageId).then(function(image) { 
-                    // console.log('cache') 
-                    var viewport = cornerstone.getDefaultViewportForImage(element, image)
-                    viewport.voi.windowWidth = 1600
-                    viewport.voi.windowCenter = -600
-                    viewport.scale=0.3
-                    cornerstone.setViewport(element, viewport)
-                    cornerstone.displayImage(element, image)
+            let flag=0
+            let dateSeries = this.state.dateSeries
+            for(let j=0;j<dateSeries.length;j++){
+                for(let i=0;i<dateSeries.length-j-1;i++){
+                    if(parseInt(dateSeries[i].date)<parseInt(dateSeries[i+1].date)){
+                        let temp = dateSeries[i]
+                        dateSeries[i] = dateSeries[i+1]
+                        dateSeries[i+1] = temp
+                        flag=1
+                    }
+                }
+            }
+            if(flag===1){
+                this.setState({dateSeries:dateSeries})
+            }
+            else{
+                dateSeries.map((serie,index)=>{
+                    const previewId = 'preview-'+index
+                    
+                    const element = document.getElementById(previewId)
+                    let imageId = serie.image
+                    // console.log('preview',element)
+                    cornerstone.enable(element)
+                    cornerstone.loadAndCacheImage(imageId).then(function(image) { 
+                        // console.log('cache') 
+                        var viewport = cornerstone.getDefaultViewportForImage(element, image)
+                        viewport.voi.windowWidth = 1600
+                        viewport.voi.windowCenter = -600
+                        viewport.scale=0.3
+                        cornerstone.setViewport(element, viewport)
+                        cornerstone.displayImage(element, image)
+                    })
                 })
-            })
+            }
         }
         
     }

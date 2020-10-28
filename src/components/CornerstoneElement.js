@@ -555,26 +555,26 @@ class CornerstoneElement extends Component {
     //     this.setState({listsActiveIndex: newIndex})
     // }
     handleListClick = (currentIdx,index,e) => {//点击list-item
-        console.log('id',e.target.id,index)
+        console.log('id')
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ 
         // (currentIdx -1)*100/this.state.imageIds.length+'%)}');
         // const {index} = titleProps
         // console.log('index',index)
         const id=e.target.id
-        if(id!=='place-'+index && id!=='texSel-'+index && id!=='malSel-'+index && id!=='del-'+id.split("-")[1]){
-            const {listsActiveIndex} = this.state
-            const newIndex = listsActiveIndex === index
-                ? -1
-                : index
-    
-            this.setState({
-                listsActiveIndex: newIndex,
-                currentIdx: currentIdx-1,
-                autoRefresh: true,
-                doubleClick:false
-            })
-        }
+        // if(id!=='place-'+index && id!=='texSel-'+index && id!=='malSel-'+index && id!=='del-'+id.split("-")[1]){
+        const {listsActiveIndex} = this.state
+        const newIndex = listsActiveIndex === index
+            ? -1
+            : index
+
+        this.setState({
+            listsActiveIndex: newIndex,
+            currentIdx: currentIdx-1,
+            autoRefresh: true,
+            doubleClick:false
+        })
+        // }
         
     }
 
@@ -791,9 +791,12 @@ class CornerstoneElement extends Component {
         const segment = event.currentTarget.innerHTML
         const place = event.currentTarget.id.split('-')[2]
         const noduleId = event.currentTarget.id.split('-')[1]
+        console.log('',)
         console.log('id',segment,place,noduleId)
         let boxes = this.state.boxes
+        // console.log('onselectplace',boxes)
         for (let i = 0; i < boxes.length; i++) {
+            // console.log('onselectplace',boxes[i].nodule_no,boxes[i],noduleId,boxes[i].nodule_no===noduleId)
             if (boxes[i].nodule_no === noduleId) {
                 for(let item in places){
                     if(places[item]===place){
@@ -969,12 +972,11 @@ class CornerstoneElement extends Component {
 
     lengthMeasure(){
         this.setState({leftButtonTools:3,menuTools:'bidirect'})
-
-        console.log('测量')
-        const element = document.querySelector('#origin-canvas')
-        this.disableAllTools(element)
+        // console.log('测量')
+        // const element = document.querySelector('#origin-canvas')
+        // this.disableAllTools(element)
         // cornerstoneTools.addToolForElement(element, bidirectional)
-        cornerstoneTools.setToolActiveForElement(element, 'Bidirectional',{mouseButtonMask:1},['Mouse'])
+        // cornerstoneTools.setToolActiveForElement(element, 'Bidirectional',{mouseButtonMask:1},['Mouse'])
         // cornerstoneTools.length.activate(element,4);
 
     }
@@ -1605,11 +1607,15 @@ class CornerstoneElement extends Component {
                                             <Grid.Row>
                                                 <Grid.Column width={1}>
                                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
+                                                    
                                                 </Grid.Column>
-                                                <Grid.Column widescreen={7} computer={7} textAlign='center'>
+                                                <Grid.Column width={1}>
+                                                <div style={{fontSize:'1rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
+                                                </Grid.Column>
+                                                <Grid.Column widescreen={6} computer={7} textAlign='center'>
                                                 {
                                                     idx<6?
-                                                    <Dropdown style={selectStyle} text={dropdownText} icon={null}>
+                                                    <Dropdown style={selectStyle} text={dropdownText} icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -1673,7 +1679,7 @@ class CornerstoneElement extends Component {
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                     :
-                                                    <Dropdown  style={selectStyle} text={dropdownText} upward icon={null}>
+                                                    <Dropdown  style={selectStyle} text={dropdownText} upward icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -1817,10 +1823,13 @@ class CornerstoneElement extends Component {
                                                 <Grid.Column width={1}>
                                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                                 </Grid.Column>
-                                                <Grid.Column width={7} textAlign='center'>
+                                                <Grid.Column width={1}>
+                                                    <div style={{fontSize:'0.5rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
+                                                </Grid.Column>
+                                                <Grid.Column width={6} textAlign='center'>
                                                 {
                                                     idx<6?
-                                                    <Dropdown style={selectStyle} text={dropdownText} icon={null}>
+                                                    <Dropdown style={selectStyle} text={dropdownText} icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -1884,7 +1893,7 @@ class CornerstoneElement extends Component {
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                     :
-                                                    <Dropdown  style={selectStyle} text={dropdownText} upward icon={null}>
+                                                    <Dropdown  style={selectStyle} text={dropdownText} upward icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -2562,7 +2571,8 @@ class CornerstoneElement extends Component {
                                         </Grid.Column>
                                     </Grid.Row>
                                 
-                                </Grid>:
+                                </Grid>
+                                :
                                 <Grid celled className='corner-contnt' >
                                     <Grid.Row className='corner-row' columns={2}>
                                         <Grid.Column width={3}>
@@ -2889,7 +2899,8 @@ class CornerstoneElement extends Component {
                 "y1": y1,
                 "y2": y2,
                 "highlight": false,
-                "diameter":0.00
+                "diameter":0.00,
+                "place":0,
             }
             let boxes = this.state.boxes
             console.log("newBox", newBox)
@@ -3012,7 +3023,7 @@ class CornerstoneElement extends Component {
                 const mouseClickPos = this.state.mouseClickPos
                 const prePosition = mousePrePos.y - mouseClickPos.y
                 const curPosition = mouseCurPos.y - mouseClickPos.y
-                console.log(mouseCurPos,mousePrePos,mouseClickPos,prePosition,curPosition,this.state.leftBtnSpeed)
+                // console.log(mouseCurPos,mousePrePos,mouseClickPos,prePosition,curPosition,this.state.leftBtnSpeed)
                 if(mouseCurPos.y !== mousePrePos.y){
                     let y_dia = mouseCurPos.y - mousePrePos.y
                     if(this.state.leftBtnSpeed !== 0){
@@ -3275,6 +3286,7 @@ class CornerstoneElement extends Component {
             }
             this.createBox(x1, x2, y1, y2, this.state.currentIdx, (1+newNodule_no).toString())
         }
+        // else if()
         
         if(this.state.toolState !== ''){
             
@@ -4007,9 +4019,7 @@ class CornerstoneElement extends Component {
             const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
             this.setState({leftBtnSpeed:leftBtnSpeed})
         }
-        
-
-
+    
         // let listitems=document.getElementById('cornerstone-accordion')
         // console.log('listitems',listitems)
         // listitems.addEventListener('dblclick',this.doubleClickListItems.bind(this))

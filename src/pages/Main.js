@@ -302,18 +302,19 @@ class Main extends Component {
                         <Route path='/homepage/' component={HomepagePanel}/>
                         <Route path='/preprocess/' component={preprocess}/>
                     </div>
+                    <div className="ui inverted vertical footer segment">
+                        <div className="inline" style={{verticalAlign:'middle'}}>
+                            
+                            © 2019 Sichuan University. All rights reserved
+                        </div>
+                        
+                        <div className="inline">
+                            <Image src={src3} id='img-size'></Image>
+                        </div>
+                </div>
                 </div>
 
-                <div className="ui inverted vertical footer segment">
-                    <div className="inline" style={{verticalAlign:'middle'}}>
-                        
-                        © 2019 Sichuan University. All rights reserved
-                    </div>
-                    
-                    <div className="inline">
-                        <Image src={src3} id='img-size'></Image>
-                    </div>
-                </div>
+                
 
             </Router>
         )
