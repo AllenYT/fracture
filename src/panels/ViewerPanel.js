@@ -23,13 +23,15 @@ import {
   Progress,
   Button,
   Icon,
-  Radio
+  Menu,
+  Radio, Image, Dropdown
 } from "semantic-ui-react";
 import PropTypes from "prop-types";
 import "../css/cornerstone.css";
 import "../css/segview.css";
 import vtkPiecewiseFunction from "vtk.js/Sources/Common/DataModel/PiecewiseFunction";
 import StudyBrowserList from "../components/StudyBrowserList";
+import src1 from "../images/scu-logo.jpg";
 // import SegView3D from '../vtk-viewport/VTKViewport/View3D'
 // import View3D from '../vtk-viewport/index'
 // import createLabelPipeline from '../vtk-viewport/VTKViewport/createLabelPipeline'
@@ -37,6 +39,7 @@ import StudyBrowserList from "../components/StudyBrowserList";
 const config = require("../config.json");
 const dataConfig = config.data;
 const draftConfig = config.draft;
+const userConfig = config.user
 
 const dictList = {
   0:{class:0, label:"lung",  name:"肺",color:{c1:197, c2:165, c3:145}},
@@ -76,6 +79,10 @@ class ViewerPanel extends Component {
       canvasDis: 50
     };
     this.nextPath = this.nextPath.bind(this);
+    this.handleLogout = this
+        .handleLogout
+        .bind(this);
+    this.toHomepage = this.toHomepage.bind(this);
   }
 
   createPipeline(binary, type, opacity = 0.5) {
@@ -182,7 +189,9 @@ class ViewerPanel extends Component {
       .catch((error) => {
         console.log(error);
       });
-    // const dom = ReactDOM.findDOMNode(this.gridRef); 
+    // const dom = ReactDOM.findDOMNode(this.gridRef);
+    document.getElementById('header').style.display = 'none'
+
     this.fix3DViewWidth('segment-container')
     window.addEventListener('resize', this.fix3DViewWidth.bind(this,'segment-container'))
     // window.addEventListener('mousedown', this.mouseDown.bind(this))
@@ -305,6 +314,35 @@ class ViewerPanel extends Component {
   nextPath(path) {
     this.props.history.push(path);
   }
+  goBack(){
+    window.history.back();
+  }
+  toHomepage(){
+    window.location.href = '/homepage'
+    // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
+  }
+  handleLogout() {
+    const token = localStorage.getItem('token')
+    const headers = {
+      'Authorization': 'Bearer '.concat(token)
+    }
+    axios
+        .get(userConfig.signoutUser, {headers})
+        .then((response) => {
+          if (response.data.status === 'okay') {
+            this.setState({isLoggedIn: false})
+            localStorage.clear()
+            sessionStorage.clear()
+            window.location.href = '/'
+          } else {
+            alert("出现内部错误，请联系管理员！")
+            window.location.href = '/'
+          }
+        })
+        .catch((error) => {
+          console.log("error")
+        })
+  }
   handleClickScreen(e, href) {
     console.log("card", href);
     if (
@@ -396,6 +434,7 @@ class ViewerPanel extends Component {
 
   render() {
     const nameList = ['肺','肺叶','支气管','结节']
+    const welcome = '欢迎您，' + localStorage.realname;
     let sgList = [];
     let loadingList = [];
     let optList = [];
@@ -531,18 +570,30 @@ class ViewerPanel extends Component {
     // console.log('render segments:', segments)
     return (
       <div id="viewer">
-        <Grid className="corner-header">
-          <Grid.Column width={4}>
-          </Grid.Column>
-          <Grid.Column width={1}>
+        <Menu className="corner-header">
+          <Menu.Item>
+            <Image src={src1} avatar size='mini'/>
+            <a id='sys-name' href='/searchCase'>DeepLN肺结节全周期<br/>管理数据平台</a>
+          </Menu.Item>
+          <Menu.Item className='funcList'>
             <Button.Group>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 0)}><Icon name='search plus' size='large'/></Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 1)}><Icon name='search minus' size='large'/></Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='reply' size='large'/></Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='share' size='large'/></Button>
+              <Button title='3D' className='funcBtn' onClick={this.goBack.bind(this)}>2D</Button>
             </Button.Group>
-          </Grid.Column>
-        </Grid>
+          </Menu.Item>
+          <Menu.Item position='right'>
+            <Dropdown text={welcome}>
+              <Dropdown.Menu id="logout-menu">
+                <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
+                <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
+                <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
+              </Dropdown.Menu>
+            </Dropdown>
+          </Menu.Item>
+        </Menu>
         <Grid celled className="corner-contnt">
           <Grid.Row className="corner-row" columns={3}>
             <Grid.Column width={2}>

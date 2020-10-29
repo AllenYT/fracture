@@ -82,14 +82,14 @@ class SegView3D extends Component{
     componentDidUpdate(prevProps) {
 
 
-        if (prevProps.volumes !== this.props.volumes){
-            if(this.props.volumes.length){
-                this.props.volumes.forEach(this.renderer.addVolume);
-            }else{
-                //  Remove all volumes
-            }
-            this.renderWindow.render()
-        }
+        // if (prevProps.volumes !== this.props.volumes){
+        //     if(this.props.volumes.length){
+        //         this.props.volumes.forEach(this.renderer.addVolume);
+        //     }else{
+        //         //  Remove all volumes
+        //     }
+        //     this.renderWindow.render()
+        // }
         if (this.props.loading) {
             //console.log("call Update actos change", this.props.actors)
             // console.log("getActor before", this.renderer.getActors())
