@@ -13,7 +13,6 @@ import vtkColorMaps from "vtk.js/Sources/Rendering/Core/ColorTransferFunction/Co
 import vtkColorTransferFunction from "vtk.js/Sources/Rendering/Core/ColorTransferFunction";
 import vtkXMLPolyDataReader from "vtk.js/Sources/IO/XML/XMLPolyDataReader";
 import HttpDataAccessHelper from "vtk.js/Sources/IO/Core/DataAccessHelper/HttpDataAccessHelper";
-import ReactDOM from 'react-dom';
 
 import {
   List,
@@ -23,6 +22,8 @@ import {
   Rating,
   Progress,
   Button,
+  Icon,
+  Radio
 } from "semantic-ui-react";
 import PropTypes from "prop-types";
 import "../css/cornerstone.css";
@@ -38,21 +39,21 @@ const dataConfig = config.data;
 const draftConfig = config.draft;
 
 const dictList = {
-  0:{label:"lung",  name:"肺",color:{c1:197, c2:165, c3:145}},
-  1:{label:"airway",name:"支气管",color:{c1:182, c2:228, c3:255}},
-  2:{label:"nodule",name:"结节", color:{c1:178, c2:34, c3:34}},
-  3:{label:"lobe_1",name:"右肺中叶",color:{c1:128, c2:174, c3:128}},
-  4:{label:"lobe_2",name:"右肺上叶",color:{c1:241, c2:214, c3:145}},
-  5:{label:"lobe_3",name:"右肺下叶",color:{c1:177, c2:122, c3:101}},
-  6:{label:"lobe_4",name:"左肺上叶",color:{c1:111, c2:184, c3:210}},
-  7:{label:"lobe_5",name:"左肺下叶",color:{c1:216, c2:101, c3:79}}
+  0:{class:0, label:"lung",  name:"肺",color:{c1:197, c2:165, c3:145}},
+  1:{class:2, label:"airway",name:"支气管",color:{c1:182, c2:228, c3:255}},
+  2:{class:3, label:"nodule",name:"结节", color:{c1:178, c2:34, c3:34}},
+  3:{class:1, label:"lobe_1",name:"右肺中叶",color:{c1:128, c2:174, c3:128}},
+  4:{class:1, label:"lobe_2",name:"右肺上叶",color:{c1:241, c2:214, c3:145}},
+  5:{class:1, label:"lobe_3",name:"右肺下叶",color:{c1:177, c2:122, c3:101}},
+  6:{class:1, label:"lobe_4",name:"左肺上叶",color:{c1:111, c2:184, c3:210}},
+  7:{class:1, label:"lobe_5",name:"左肺下叶",color:{c1:216, c2:101, c3:79}}
 }
 
 class ViewerPanel extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      windowWidth: window.screen.witdh,
+      windowWidth: window.screen.width,
       windowHeight: window.screen.height,
       caseId: window.location.pathname.split("/segView/")[1].split("/")[0],
       username: window.location.pathname.split("/")[3],
@@ -60,10 +61,16 @@ class ViewerPanel extends Component {
       actors: [],
       segments: [],
       show: false,
-      visibility: [],
+      segVisible: [],
       opacity: [],
-      listsActiveIndex: [],
-      listsChangeOpacity: [],
+      listsActive: [],
+      listsOpacityChangeable: [],
+      optVisible:false,
+      optSelected:[1,1,1,1],
+      funcOperating:false,
+      funcOperator:[],
+      loading: false,
+      listLoading:[],
       percent: [],
       canvasLen: 850,
       canvasDis: 50
@@ -72,7 +79,7 @@ class ViewerPanel extends Component {
   }
 
   createPipeline(binary, type, opacity = 0.5) {
-    console.log("createPipeline")
+    // console.log("createPipeline")
     const vtpReader = vtkXMLPolyDataReader.newInstance()
     vtpReader.parseAsArrayBuffer(binary)
     const source = vtpReader.getOutputData()
@@ -132,8 +139,8 @@ class ViewerPanel extends Component {
         const urls = Object.keys(res.data).map((key) => [key, res.data[key]]);
         const tmp_urls = [];
         urls.forEach(item => {
-          let label = item[0]
-          let array = item[1]
+          const label = item[0]
+          const array = item[1]
           array.forEach((it, idx)=> {
             let type = 0;
             if(label === "lung"){
@@ -145,32 +152,32 @@ class ViewerPanel extends Component {
             }else if(label === "lobe"){
               type = 3 + idx
             }
-            tmp_urls.push([type, it])
+            tmp_urls.push([type, it]) //urls[0] is type, urls[1] is url
           })
         })
 
         const tmp_segments = Object.keys(tmp_urls).map((key) => null);
         const tmp_percent = Object.keys(tmp_urls).map((key) => 0);
-        const tmp_visibility = Object.keys(tmp_urls).map((key) => 0);
+        const tmp_segVisible = Object.keys(tmp_urls).map((key) => 0);
         const tmp_opacity = Object.keys(tmp_urls).map((key) => 0.5);
-        const tmp_listsActiveIndex = Object.keys(tmp_urls).map((key) => 0);
-        const tmp_listsChangeOpacity = Object.keys(tmp_urls).map((key) => 0);
+        const tmp_listsActive = Object.keys(tmp_urls).map((key) => 0);
+        const tmp_listsOpacityChangeable = Object.keys(tmp_urls).map((key) => 0);
+        const tmp_listLoading = Object.keys(tmp_urls).map((key) => false);
         console.log("urls", urls);
         console.log("tmp_urls", tmp_urls);
         this.setState({
           urls: tmp_urls,
           segments: tmp_segments,
           percent: tmp_percent,
-          visibility: tmp_visibility,
+          segVisible: tmp_segVisible,
           opacity: tmp_opacity,
-          listsActiveIndex: tmp_listsActiveIndex,
-          listsChangeOpacity: tmp_listsChangeOpacity,
+          listsActive: tmp_listsActive,
+          listsOpacityChangeable: tmp_listsOpacityChangeable,
         });
 
         tmp_urls.forEach((inside, idx) =>{
           this.DownloadSegment(idx)
         })
-        // this.DownloadSegment(6, tmp_urls[6][2])
       })
       .catch((error) => {
         console.log(error);
@@ -178,12 +185,71 @@ class ViewerPanel extends Component {
     // const dom = ReactDOM.findDOMNode(this.gridRef); 
     this.fix3DViewWidth('segment-container')
     window.addEventListener('resize', this.fix3DViewWidth.bind(this,'segment-container'))
+    // window.addEventListener('mousedown', this.mouseDown.bind(this))
+    // window.addEventListener('mouseup', this.mouseUp.bind(this))
+    // window.addEventListener('mousemove', this.mouseMove.bind(this))
+    // window.addEventListener('mousewheel', this.mouseWheel.bind(this))
   }
   componentWillMount() {
-    window.removeEventListener('reszie', this.fix3DViewWidth.bind(this,'segment-container'))
+    window.removeEventListener('resize', this.fix3DViewWidth.bind(this,'segment-container'))
   }
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    const listLoading = this.state.listLoading
+    if(this.state.loading){
+      let tmp_loading = false;
+      listLoading.forEach(item => {
+        if(item){
+          tmp_loading = true
+        }
+      })
+      if(!tmp_loading){
+        this.setState({
+            loading: tmp_loading
+          }
+        )
+      }
+    }else{
+      let tmp_loading = false;
+      listLoading.forEach(item => {
+        if(item){
+          tmp_loading = true
+        }
+      })
+      if(tmp_loading){
+        this.setState({
+              loading: tmp_loading
+            }
+        )
+      }
+    }
+
+  }
+
+  mouseDown(e){
+    console.log("mouseDown:",e)
+  }
+  mouseUp(e){
+    console.log("mouseUp:",e)
+  }
+  mouseMove(e){
+    //console.log("mouseMove:",e)
+  }
+
+  mouseWheel(e){
+    console.log("mouseWheel:",e)
+  }
+
+  mouseOut(e){
+    console.log("mouseOut:",e) // div1 移出 div2
+  }
+  mouseLeave(e){
+    console.log("mouseLeave:",e)
+  }
+  mouseEnter(e){
+    console.log("mouseEnter:",e)
+  }
+
   fix3DViewWidth(id){
-    console.log("fix:",1)
     if(document.getElementById(id) !== null){
       const viewerWidth = document.getElementById(id).clientWidth
       const viewerHeight = document.getElementById(id).clientHeight
@@ -218,15 +284,23 @@ class ViewerPanel extends Component {
           const actor = this.createPipeline(binary,type)
           let tmp_segments = this.state.segments
           tmp_segments[idx] = actor
-          let tmp_visibility = this.state.visibility
-          tmp_visibility[idx] = 1
+          let tmp_segVisible = this.state.segVisible
+          tmp_segVisible[idx] = 1
+          let tmp_listLoading = this.state.listLoading
+          tmp_listLoading[idx] = false
           this.setState({
             segments: tmp_segments,
-            visibility:tmp_visibility,
+            segVisible:tmp_segVisible,
+            listLoading: tmp_listLoading
             // segments_list: this.state.segments_list.concat(actor),
           })
         })
-
+    let tmp_listLoading = this.state.listLoading
+    tmp_listLoading[idx] = true
+    this.setState({
+        listLoading: tmp_listLoading
+      }
+    )
   }
   nextPath(path) {
     this.props.history.push(path);
@@ -247,28 +321,54 @@ class ViewerPanel extends Component {
     }
     // window.location.href=href
   }
+  handleFuncButton(idx, e){
+    let tmp_funcOperator = this.state.funcOperator
+    tmp_funcOperator[idx] = 1;
+    console.log('funcButton:', tmp_funcOperator)
+    this.setState({
+      funcOperating: true,
+      funcOperator: tmp_funcOperator
+    })
+
+  }
+  Seg3DCallBack = (msg) => {
+    let tmp_funcOperator = this.state.funcOperator
+    tmp_funcOperator[msg] = 0;
+    this.setState({
+      funcOperator: tmp_funcOperator
+    })
+    let count = 0;
+    tmp_funcOperator.forEach(item => {
+      count = count + item
+    })
+    if(count === 0){
+      this.setState({
+        funcOperating: false
+      })
+    }
+  }
   handleListClick(idx, e, data) {
     console.log("handle click:", data);
-    let tmp_listsActiveIndex = this.state.listsActiveIndex;
-    for (let cur_idx in tmp_listsActiveIndex) {
-      if (tmp_listsActiveIndex[cur_idx] === 1) {
-        tmp_listsActiveIndex[cur_idx] = 0;
+    let tmp_listsActive = this.state.listsActive;
+    for (let cur_idx in tmp_listsActive) {
+      if (tmp_listsActive[cur_idx] === 1) {
+        tmp_listsActive[cur_idx] = 0;
       }
     }
-    tmp_listsActiveIndex[idx] = 1;
-    this.setState({ listsActiveIndex: tmp_listsActiveIndex });
+    tmp_listsActive[idx] = 1;
+    this.setState({ listsActive: tmp_listsActive });
   }
   handleVisibleButton(idx, e) {
     e.stopPropagation();
-    let tmp_visibility = this.state.visibility;
-    tmp_visibility[idx] = tmp_visibility[idx] === 1 ? 0 : 1;
-    this.setState({ visibility: tmp_visibility });
+    let tmp_segVisible = this.state.segVisible;
+    tmp_segVisible[idx] = tmp_segVisible[idx] === 1 ? 0 : 1;
+    this.setState({ segVisible: tmp_segVisible });
   }
   handleOpacityButton(idx, e) {
     e.stopPropagation();
-    let tmp_listsChangeOpacity = this.state.listsChangeOpacity;
-    tmp_listsChangeOpacity[idx] = tmp_listsChangeOpacity[idx] === 1 ? 0 : 1;
-    this.setState({ listsChangeOpacity: tmp_listsChangeOpacity });
+    let tmp_listsOpacityChangeable = this.state.listsOpacityChangeable;
+    tmp_listsOpacityChangeable[idx] = tmp_listsOpacityChangeable[idx] === 1 ? 0 : 1;
+    this.setState({ listsOpacityChangeable: tmp_listsOpacityChangeable });
   }
   changeOpacity(idx, e) {
     e.stopPropagation();
@@ -278,23 +378,43 @@ class ViewerPanel extends Component {
       opacity: tmp_opacity,
     });
   }
+  handleOptButton(e){
+    e.stopPropagation();
+    let tmp_optVisible = this.state.optVisible;
+    tmp_optVisible = !tmp_optVisible;
+    this.setState({
+      optVisible: tmp_optVisible
+    })
+  }
+  changeOptSelection(idx){
+    let tmp_optSelected = this.state.optSelected;
+    tmp_optSelected[idx] = tmp_optSelected[idx] === 1 ? 0 : 1;
+    this.setState({
+      optSelected: tmp_optSelected
+    })
+  }
 
   render() {
-    let segmentList = "";
+    const nameList = ['肺','肺叶','支气管','结节']
     let sgList = [];
     let loadingList = [];
-    let showList = [];
+    let optList = [];
     const {
-      visibility,
-      listsActiveIndex,
-      listsChangeOpacity,
-      percent,
-      segments,
-      opacity,
-      canvasLen,
-      canvasDis
+        segVisible,
+        listsActive,
+        listsOpacityChangeable,
+        optVisible,
+        optSelected,
+        loading,
+        percent,
+        segments,
+        opacity,
+        funcOperating,
+        funcOperator,
+        canvasLen,
+        canvasDis
     } = this.state;
-    // console.log(visibility,listsActiveIndex)
+
     let canvasStyle ={width:`${canvasLen}px`, left:`${canvasDis}px`}
     let count = 0;
     let noduleNum = 0;
@@ -302,68 +422,71 @@ class ViewerPanel extends Component {
       sgList = this.state.urls.map((inside, idx) => {
         if(inside[1].length > 0){
           let info = dictList[inside[0]]
-          let sgName = info.name
-          if(inside[0] === 2){
-            noduleNum = noduleNum + 1
-            sgName = sgName + noduleNum
-          }
-          let isActive = true
-          let isChangeOpacity = true
-          if(listsActiveIndex[idx] === 1){
-            isActive = true
-          }else{
-            isActive = false
-          }
-          if(listsChangeOpacity[idx] === 1){
-            isChangeOpacity = true
-          }else{
-            isChangeOpacity = false
-          }
-          let itemClass = classnames({
-            'segment-list-item': true,
-            'segment-list-item-active': isActive
-          })
-          const inputRangeStyle={
-            backgroundSize:opacity[idx] * 100 + '%'
-          }
-          return (
-              <List.Item onClick={this.handleListClick.bind(this, idx)}>
-                <List.Content className={itemClass}>
-                  <div className='segment-list-index'>{idx}</div>
-                  <div className='segment-list-content'>
-                    <div className='segment-list-content-block segment-list-content-name'>
-                      {sgName}
+          let sgClass = info.class
+          if(optSelected[sgClass] === 1){
+            let sgName = info.name
+            if(inside[0] === 2){
+              noduleNum = noduleNum + 1
+              sgName = sgName + noduleNum
+            }
+            let isActive = true
+            let isChangeOpacity = true
+            if(listsActive[idx] === 1){
+              isActive = true
+            }else{
+              isActive = false
+            }
+            if(listsOpacityChangeable[idx] === 1){
+              isChangeOpacity = true
+            }else{
+              isChangeOpacity = false
+            }
+            let itemClass = classnames({
+              'segment-list-item': true,
+              'segment-list-item-active': isActive
+            })
+            const inputRangeStyle={
+              backgroundSize:opacity[idx] * 100 + '%'
+            }
+            return (
+                <List.Item onClick={this.handleListClick.bind(this, idx)} key={idx}>
+                  <List.Content className={itemClass}>
+                    <div className='segment-list-index'>{idx}</div>
+                    <div className='segment-list-content'>
+                      <div className='segment-list-content-block segment-list-content-name'>
+                        {sgName}
+                      </div>
+                      <div className='segment-list-content-block segment-list-content-info'>
+                        info
+                      </div>
+                      <div className='segment-list-content-block segment-list-content-tool' hidden={!isActive}>
+                        {/*content={segVisible[idx] === 1?'隐藏':'显示'}*/}
+                        <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-visible'
+                                onClick={this.handleVisibleButton.bind(this, idx)} hidden={segVisible[idx] === 0}>隐藏</Button>
+                        <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-visible'
+                                onClick={this.handleVisibleButton.bind(this, idx)} hidden={segVisible[idx] === 1}>显示</Button>
+                        <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-opacity'
+                                onClick={this.handleOpacityButton.bind(this, idx)} hidden={isChangeOpacity}>调整透明度</Button>
+                        <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-opacity'
+                                onClick={this.handleOpacityButton.bind(this, idx)} hidden={!isChangeOpacity}>调整完毕</Button>
+                      </div>
+                      <div className='segment-list-content-block' className='segment-list-content-input' hidden={!(isActive && isChangeOpacity)}>
+                        {opacity[idx] * 100}%
+                        <input
+                            style={inputRangeStyle}
+                            type='range'
+                            min={0}
+                            max={1}
+                            step={0.1}
+                            value={opacity[idx]}
+                            onChange={this.changeOpacity.bind(this, idx)}
+                        />
+                      </div>
                     </div>
-                    <div className='segment-list-content-block segment-list-content-info'>
-                      info
-                    </div>
-                    <div className='segment-list-content-block segment-list-content-tool' hidden={!isActive}>
-                      {/*content={visibility[idx] === 1?'隐藏':'显示'}*/}
-                      <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-visible'
-                              onClick={this.handleVisibleButton.bind(this, idx)} hidden={visibility[idx] === 0}>隐藏</Button>
-                      <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-visible'
-                              onClick={this.handleVisibleButton.bind(this, idx)} hidden={visibility[idx] === 1}>显示</Button>
-                      <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-opacity'
-                              onClick={this.handleOpacityButton.bind(this, idx)} hidden={isChangeOpacity}>调整透明度</Button>
-                      <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-opacity'
-                              onClick={this.handleOpacityButton.bind(this, idx)} hidden={!isChangeOpacity}>调整完毕</Button>
-                    </div>
-                    <div className='segment-list-content-block' className='segment-list-content-input' hidden={!(isActive && isChangeOpacity)}>
-                      {opacity[idx] * 100}%
-                      <input
-                          style={inputRangeStyle}
-                          type='range'
-                          min={0}
-                          max={1}
-                          step={0.1}
-                          value={opacity[idx]}
-                          onChange={this.changeOpacity.bind(this, idx)}
-                      />
-                    </div>
-                  </div>
-                </List.Content>
-              </List.Item>
-          )
+                  </List.Content>
+                </List.Item>
+            )
+          }
         }
       });
       var loadingNum = 0;
@@ -386,24 +509,39 @@ class ViewerPanel extends Component {
         }
       });
     }
+    optList = nameList.map((inside, idx) =>{
+      return (
+          <List.Item key = {idx}><Checkbox label={inside} checked={optSelected[idx] === 1} onChange={this.changeOptSelection.bind(this, idx)}/></List.Item>
+      )
+    })
     for (let cur_idx in segments) {
       if (segments[cur_idx]) {
-        if (!visibility[cur_idx]) {
+        if (!segVisible[cur_idx]) {
           segments[cur_idx].getProperty().setOpacity(0);
         } else {
           segments[cur_idx].getProperty().setOpacity(opacity[cur_idx]);
         }
       }
     }
-    let segments_list = [];
-    for (let cur_idx in segments) {
-      segments_list.push(segments[cur_idx]);
-    }
-    //console.log('render segments_list:', segments_list)
+
+    // let segments_list = [];
+    // for (let cur_idx in segments) {
+    //   segments_list.push(segments[cur_idx]);
+    // }
+    // console.log('render segments:', segments)
     return (
       <div id="viewer">
         <Grid className="corner-header">
-          <Grid.Row>Function menu</Grid.Row>
+          <Grid.Column width={4}>
+          </Grid.Column>
+          <Grid.Column width={1}>
+            <Button.Group>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 0)}><Icon name='search plus' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 1)}><Icon name='search minus' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='reply' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='share' size='large'/></Button>
+            </Button.Group>
+          </Grid.Column>
         </Grid>
         <Grid celled className="corner-contnt">
           <Grid.Row className="corner-row" columns={3}>
@@ -421,7 +559,7 @@ class ViewerPanel extends Component {
                 }} style={style} /> */}
               <div className="segment-container" id="segment-container">
                 <div className="segment-canvas"  style={canvasStyle}>
-                  <SegView3D id="3d-viewer" actors={segments_list}/>
+                  <SegView3D id="3d-viewer" loading={loading} actors={segments} funcOperator={funcOperator} funcOperating={funcOperating} callback={this.Seg3DCallBack}/>
                 </div>
                 <div className="loading-list" hidden={loadingNum === 0} style={canvasStyle}>
                   {loadingList}
@@ -430,12 +568,20 @@ class ViewerPanel extends Component {
             </Grid.Column>
             {/* 右边部分 */}
             <Grid.Column width={3}>
+              <div className="segment-list-title-opts" hidden={!optVisible}>
+                <List className="segment-list-title-opts-list">
+                  {optList}
+                </List>
+              </div>
+              <List.Item>
+                <List.Content className="segment-list-title">
+                  组成列表
+                  <Button basic inverted className='segment-list-title-button' onClick={this.handleOptButton.bind(this)}>
+                    <Icon name='content'/>筛选
+                  </Button>
+                </List.Content>
+              </List.Item>
               <List className="segment-list" selection>
-                <List.Item>
-                  <List.Content className="segment-list-title">
-                    组成列表
-                  </List.Content>
-                </List.Item>
                 {sgList}
               </List>
               {/*<Accordion styled id="segment-accordion" fluid>*/}

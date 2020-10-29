@@ -76,11 +76,33 @@ segment-accordion{
 
 }
 .segment-list-title{
+  display:flex;
+  flex-direction: row;
+  justify-content: space-between;
   background-color: #021c38 !important;
   color:white !important;
   font-size:x-large;
   line-height: 45px !important;
   height: 45px;
+}
+.segment-list-title-button{
+  /*font-size: 18px !important;*/
+}
+.segment-list-title-opts{
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  top: 59px;
+  right: 17.5px;
+}
+.segment-list-title-opts-list{
+  width:88px;
+}
+.segment-list-title-opts-list > .item{
+
+}
+.segment-list-title-opts-list >.item > .checkbox{
+  margin:5px 0 !important;
 }
 .segment-list-item{
   display: flex;
@@ -169,11 +191,14 @@ segment-accordion{
 .segment-list-content-input input:focus {
   outline: none;
 }
-
+.list{
+  margin-top:0 !important;
+  overflow-y:auto;
+}
 .list >.item{
   border-top:3px solid transparent;
   padding:0 !important;
 }
-.corner-row > .three{
-  padding:0 !important;
-}
+/*.corner-row > .three{*/
+/*  padding:0 !important;*/
+/*}*/
