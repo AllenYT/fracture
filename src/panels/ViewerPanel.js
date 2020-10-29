@@ -45,11 +45,11 @@ const dictList = {
   0:{class:0, label:"lung",  name:"肺",color:{c1:197, c2:165, c3:145}},
   1:{class:2, label:"airway",name:"支气管",color:{c1:182, c2:228, c3:255}},
   2:{class:3, label:"nodule",name:"结节", color:{c1:178, c2:34, c3:34}},
-  3:{class:1, label:"lobe_1",name:"右肺中叶",color:{c1:128, c2:174, c3:128}},
-  4:{class:1, label:"lobe_2",name:"右肺上叶",color:{c1:241, c2:214, c3:145}},
+  3:{class:1, label:"lobe_1",name:"左肺下叶",color:{c1:128, c2:174, c3:128}},
+  4:{class:1, label:"lobe_2",name:"右肺中叶",color:{c1:241, c2:214, c3:145}},
   5:{class:1, label:"lobe_3",name:"右肺下叶",color:{c1:177, c2:122, c3:101}},
   6:{class:1, label:"lobe_4",name:"左肺上叶",color:{c1:111, c2:184, c3:210}},
-  7:{class:1, label:"lobe_5",name:"左肺下叶",color:{c1:216, c2:101, c3:79}}
+  7:{class:1, label:"lobe_5",name:"右肺上叶",color:{c1:216, c2:101, c3:79}}
 }
 
 class ViewerPanel extends Component {
@@ -180,6 +180,7 @@ class ViewerPanel extends Component {
           opacity: tmp_opacity,
           listsActive: tmp_listsActive,
           listsOpacityChangeable: tmp_listsOpacityChangeable,
+          listLoading: tmp_listLoading
         });
 
         tmp_urls.forEach((inside, idx) =>{
