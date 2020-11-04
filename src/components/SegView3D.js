@@ -132,14 +132,14 @@ class SegView3D extends Component{
         }
     }
     magnifyView(){
-        this.camera.dolly(0.9)
+        this.camera.dolly(1.1)
         this.renderer.resetCameraClippingRange()
         this.renderWindow.render()
         // this.camera.setParallelScale(this.camera.getParallelScale() / 0.9)
         // this.renderer.updateLightsGeometryToFollowCamera();
     }
     reductView(){
-        this.camera.dolly(1.1)
+        this.camera.dolly(0.9)
         this.renderer.resetCameraClippingRange()
         this.renderWindow.render()
     }
