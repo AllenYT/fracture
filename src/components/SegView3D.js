@@ -4,6 +4,7 @@ import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper'
 import vtkColorMaps from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction/ColorMaps';
 import vtkFullScreenRenderWindow from 'vtk.js/Sources/Rendering/Misc/FullScreenRenderWindow';
 import vtkCamera from 'vtk.js/Sources/Rendering/Core/Camera'
+import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
 import vtkGenericRenderWindow from 'vtk.js/Sources/Rendering/Misc/GenericRenderWindow'
 import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction'
 import vtkXMLPolyDataReader from 'vtk.js/Sources/IO/XML/XMLPolyDataReader'
@@ -14,6 +15,9 @@ import '../css/cornerstone.css'
 import axios from 'axios'
 import qs from 'qs'
 import vtkInteractorStyleTrackballCamera from "vtk.js/Sources/Interaction/Style/InteractorStyleTrackballCamera";
+
+const normalVpList = [[0.0, 0.0, 0.5, 0.5], [0.0, 0.5, 0.5, 1.0], [0.5, 0.0, 1.0, 0.5], [0.5, 0.5, 1.0, 1.0]] //左下，左上，右下，右上
+const selectedVpList = [[0.0, 0.0, 0.67, 1.0], [0.67, 0.0, 1.0, 0.33], [0.67, 0.33, 1.0, 0.66], [0.67, 0.66, 1.0, 1.0]]
 
 class SegView3D extends Component{
     static propTypes = {
@@ -30,27 +34,52 @@ class SegView3D extends Component{
     //         // segments: props.segments
     //     }
         this.state = {
-
+            viewerWidth:0,
+            viewerHeight:0,
+            selected:false,
+            selectedNum:0
         }
         this.genericRenderWindow = null
         this.container = React.createRef()
     }
 
     componentDidMount(){
-        let volumes = []
-        let actors = []
+        this.props.onRef(this)
+
         this.camera = vtkCamera.newInstance()
-        this.genericRenderWindow = vtkFullScreenRenderWindow.newInstance({
-            // background: [0.329412, 0.34902, 0.427451],
-            background: [0, 0, 0],
-            container: this.container.current,
-        })
-        // this.genericRenderWindow = vtkGenericRenderWindow.newInstance({
-        //     background: [0, 0, 0]
+        // this.fullscreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
+        //     background: [0.329412, 0.34902, 0.427451],
+        //     container: this.container.current,
         // })
-        // this.genericRenderWindow.setContainer(this.container.current)
-        this.renderer = this.genericRenderWindow.getRenderer()
+        this.genericRenderWindow = vtkGenericRenderWindow.newInstance({
+            background: [0, 0, 0]
+        })
+        this.genericRenderWindow.setContainer(this.container.current)
+        this.glWindow = this.genericRenderWindow.getOpenGLRenderWindow()
         this.renderWindow = this.genericRenderWindow.getRenderWindow()
+
+        this.renderer = this.genericRenderWindow.getRenderer()
+        this.renderer.setViewport(normalVpList[3][0], normalVpList[3][1], normalVpList[3][2], normalVpList[3][3])
+        this.renderer.setBackground([0,0,0])
+
+        this.renderer1 = vtkRenderer.newInstance()
+        this.renderer1.setViewport(normalVpList[1][0], normalVpList[1][1], normalVpList[1][2], normalVpList[1][3])
+        this.renderer1.setBackground([1,1,0])
+
+        this.renderer2 = vtkRenderer.newInstance()
+        this.renderer2.setViewport(normalVpList[0][0], normalVpList[0][1], normalVpList[0][2], normalVpList[0][3])
+        this.renderer2.setBackground([1,0,1])
+
+        this.renderer3 = vtkRenderer.newInstance()
+        this.renderer3.setViewport(normalVpList[2][0], normalVpList[2][1], normalVpList[2][2], normalVpList[2][3])
+        this.renderer3.setBackground([0,1,1])
+
+        this.renderWindow.addRenderer(this.renderer1)
+        this.renderWindow.addRenderer(this.renderer2)
+        this.renderWindow.addRenderer(this.renderer3)
+
+
+
         this.interactor = this.renderWindow.getInteractor()
         this.renderer.setActiveCamera(this.camera)
         this.interactor.setInteractorStyle(null)
@@ -60,27 +89,17 @@ class SegView3D extends Component{
 
 
         //this.componentDidUpdate({})
-
-        if(this.props.volumes){
-            volumes = volumes.concat(this.props.volumes)
-        }
-        if(this.props.actors){
-            actors = actors.concat(this.props.actors)
-        }
         this.renderer.resetCamera()
         this.renderWindow.render()
-
         // this.setState({
         //     funcOperator:this.props.funcOperator
         // })
-        console.log("componentDidMount")
     }
     componentWillUpdate(nextProps, nextState, nextContext) {
 
     }
 
     componentDidUpdate(prevProps) {
-
 
         // if (prevProps.volumes !== this.props.volumes){
         //     if(this.props.volumes.length){
@@ -111,32 +130,6 @@ class SegView3D extends Component{
         }else{
             console.log("loading complete")
         }
-        if (this.props.funcOperating){
-            const funcOperator = prevProps.funcOperator
-            if(funcOperator){
-                funcOperator.forEach((item, idx) => {
-                    if(item && item === 1){
-                        this.handleOperation(idx)
-                    }
-                    this.props.callback(idx)
-                })
-            }
-        }
-    }
-
-    handleOperation(idx){
-        // Azimuth(150)表示 camera 的视点位置沿顺时针旋转 150 度角
-        // Elevation(60)表示 camera 的视点位置沿向上的方面旋转 60 度角
-        switch (idx){
-            case 0:this.magnifyView()
-                break
-            case 1:this.reductView()
-                break
-            case 2:this.turnLeft()
-                break
-            case 3:this.turnRight()
-                break
-        }
     }
     magnifyView(){
         this.camera.dolly(0.9)
@@ -158,7 +151,142 @@ class SegView3D extends Component{
         this.camera.azimuth(-90)
         this.renderWindow.render()
     }
+    setContainerSize(width, height){
+        if(this.glWindow){
+            this.setState({
+                viewerWidth: width,
+                viewerHeight: height
+            })
 
+            this.glWindow.setSize(width, height)
+            this.renderWindow.render()
+        }
+    }
+    selectOne(){
+        this.setState({
+            selected: true,
+            selectedNum: 1,
+        })
+
+        this.renderer.setViewport(selectedVpList[0][0], selectedVpList[0][1], selectedVpList[0][2], selectedVpList[0][3])
+        this.renderer1.setViewport(selectedVpList[3][0], selectedVpList[3][1], selectedVpList[3][2], selectedVpList[3][3])
+        this.renderer2.setViewport(selectedVpList[2][0], selectedVpList[2][1], selectedVpList[2][2], selectedVpList[2][3])
+        this.renderer3.setViewport(selectedVpList[1][0], selectedVpList[1][1], selectedVpList[1][2], selectedVpList[1][3])
+
+        this.renderWindow.render()
+    }
+    selectTwo(){
+        this.setState({
+            selected: true,
+            selectedNum: 2
+        })
+
+        this.renderer.setViewport(selectedVpList[3][0], selectedVpList[3][1], selectedVpList[3][2], selectedVpList[3][3])
+        this.renderer1.setViewport(selectedVpList[0][0], selectedVpList[0][1], selectedVpList[0][2], selectedVpList[0][3])
+        this.renderer2.setViewport(selectedVpList[2][0], selectedVpList[2][1], selectedVpList[2][2], selectedVpList[2][3])
+        this.renderer3.setViewport(selectedVpList[1][0], selectedVpList[1][1], selectedVpList[1][2], selectedVpList[1][3])
+
+        this.renderWindow.render()
+    }
+    selectThree(){
+        this.setState({
+            selected: true,
+            selectedNum: 3
+        })
+
+        this.renderer.setViewport(selectedVpList[3][0], selectedVpList[3][1], selectedVpList[3][2], selectedVpList[3][3])
+        this.renderer1.setViewport(selectedVpList[2][0], selectedVpList[2][1], selectedVpList[2][2], selectedVpList[2][3])
+        this.renderer2.setViewport(selectedVpList[0][0], selectedVpList[0][1], selectedVpList[0][2], selectedVpList[0][3])
+        this.renderer3.setViewport(selectedVpList[1][0], selectedVpList[1][1], selectedVpList[1][2], selectedVpList[1][3])
+
+        this.renderWindow.render()
+    }
+    selectFour(){
+        this.setState({
+            selected: true,
+            selectedNum: 4
+        })
+
+        this.renderer.setViewport(selectedVpList[3][0], selectedVpList[3][1], selectedVpList[3][2], selectedVpList[3][3])
+        this.renderer1.setViewport(selectedVpList[2][0], selectedVpList[2][1], selectedVpList[2][2], selectedVpList[2][3])
+        this.renderer2.setViewport(selectedVpList[1][0], selectedVpList[1][1], selectedVpList[1][2], selectedVpList[1][3])
+        this.renderer3.setViewport(selectedVpList[0][0], selectedVpList[0][1], selectedVpList[0][2], selectedVpList[0][3])
+
+        this.renderWindow.render()
+    }
+    cancelSelection(){
+        this.setState({
+            selected: false,
+            selectedNum: 0
+        })
+
+        this.renderer.setViewport(normalVpList[3][0], normalVpList[3][1], normalVpList[3][2], normalVpList[3][3])
+        this.renderer1.setViewport(normalVpList[1][0], normalVpList[1][1], normalVpList[1][2], normalVpList[1][3])
+        this.renderer2.setViewport(normalVpList[0][0], normalVpList[0][1], normalVpList[0][2], normalVpList[0][3])
+        this.renderer3.setViewport(normalVpList[2][0], normalVpList[2][1], normalVpList[2][2], normalVpList[2][3])
+
+        this.renderWindow.render()
+    }
+    dblclick(offsetX, offsetY){
+        const {viewerWidth, viewerHeight, selected, selectedNum} = this.state
+        if(selected){
+            const oneThirdWidth = viewerWidth/3
+            const oneThirdHeight = viewerHeight/3
+            if(offsetX > 2*oneThirdWidth){
+                //不操作'
+                if(selectedNum === 1){
+                    console.log("selected:", selectedNum)
+                    if(offsetY < oneThirdHeight){
+                        this.selectTwo()
+                    }else if(offsetY > oneThirdHeight && offsetY < 2*oneThirdHeight){
+                        this.selectThree()
+                    }else if(offsetY > 2*oneThirdHeight){
+                        this.selectFour()
+                    }
+
+                }else if(selectedNum === 2){
+                    console.log("selected:", selectedNum)
+                    if(offsetY < oneThirdHeight){
+                        this.selectOne()
+                    }else if(offsetY > oneThirdHeight && offsetY < 2*oneThirdHeight){
+                        this.selectThree()
+                    }else if(offsetY > 2*oneThirdHeight){
+                        this.selectFour()
+                    }
+                }else if(selectedNum === 3){
+                    console.log("selected:", selectedNum)
+                    if(offsetY < oneThirdHeight){
+                        this.selectOne()
+                    }else if(offsetY > oneThirdHeight && offsetY < 2*oneThirdHeight){
+                        this.selectTwo()
+                    }else if(offsetY > 2*oneThirdHeight){
+                        this.selectFour()
+                    }
+                }else if(selectedNum === 4){
+                    console.log("selected:", selectedNum)
+                    if(offsetY < oneThirdHeight){
+                        this.selectOne()
+                    }else if(offsetY > oneThirdHeight && offsetY < 2*oneThirdHeight){
+                        this.selectTwo()
+                    }else if(offsetY > 2*oneThirdHeight){
+                        this.selectThree()
+                    }
+                }
+            }
+        }else{
+            const halfWidth = viewerWidth/2
+            const halfHeight = viewerHeight/2
+            if(offsetX < halfWidth && offsetY < halfHeight){
+                this.selectTwo()
+            }else if(offsetX > halfWidth && offsetY < halfHeight){
+                this.selectOne()
+            }else if(offsetX < halfWidth && offsetY > halfHeight){
+                this.selectThree()
+            }else if(offsetX > halfWidth && offsetY > halfHeight){
+                this.selectFour()
+            }
+        }
+    }
     render() {
         if (!this.props.volumes && !this.props.actors) {
             return null;

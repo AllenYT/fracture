@@ -70,13 +70,11 @@ class ViewerPanel extends Component {
       listsOpacityChangeable: [],
       optVisible:false,
       optSelected:[1,1,1,1],
-      funcOperating:false,
-      funcOperator:[],
       loading: false,
       listLoading:[],
       percent: [],
-      canvasLen: 850,
-      canvasDis: 50
+      viewerWidth: 0,
+      viewerHeight: 0,
     };
     this.nextPath = this.nextPath.bind(this);
     this.handleLogout = this
@@ -192,15 +190,17 @@ class ViewerPanel extends Component {
     // const dom = ReactDOM.findDOMNode(this.gridRef);
     document.getElementById('header').style.display = 'none'
 
-    this.fix3DViewWidth('segment-container')
-    window.addEventListener('resize', this.fix3DViewWidth.bind(this,'segment-container'))
+    this.resize3DView()
+    window.addEventListener('resize', this.resize3DView.bind(this))
+
+    window.addEventListener('dblclick' , this.dblclick.bind(this))
     // window.addEventListener('mousedown', this.mouseDown.bind(this))
     // window.addEventListener('mouseup', this.mouseUp.bind(this))
     // window.addEventListener('mousemove', this.mouseMove.bind(this))
     // window.addEventListener('mousewheel', this.mouseWheel.bind(this))
   }
   componentWillMount() {
-    window.removeEventListener('resize', this.fix3DViewWidth.bind(this,'segment-container'))
+    window.removeEventListener('resize', this.resize3DView.bind(this))
   }
   componentDidUpdate(prevProps, prevState, snapshot) {
     const listLoading = this.state.listLoading
@@ -234,6 +234,11 @@ class ViewerPanel extends Component {
 
   }
 
+  dblclick(e){
+    if(e.path[0].nodeName === 'CANVAS'){
+      this.segView3D.dblclick(e.offsetX, e.offsetY)
+    }
+  }
   mouseDown(e){
     console.log("mouseDown:",e)
   }
@@ -258,25 +263,15 @@ class ViewerPanel extends Component {
     console.log("mouseEnter:",e)
   }
 
-  fix3DViewWidth(id){
-    if(document.getElementById(id) !== null){
-      const viewerWidth = document.getElementById(id).clientWidth
-      const viewerHeight = document.getElementById(id).clientHeight
-      if(viewerHeight > viewerWidth){
-        this.setState({
-          canvasLen:viewerWidth - 100,
-          canvasDis:50
-        })
-      }else{
-        let canvasDis = 50
-        if(viewerWidth - viewerHeight > 100){
-          canvasDis = (viewerWidth - viewerHeight)/2
-        }
-        this.setState({
-          canvasLen:viewerHeight,
-          canvasDis:canvasDis
-        })
-      }
+  resize3DView(){
+    if(document.getElementById('segment-container') !== null) {
+      const clientWidth = document.getElementById('segment-container').clientWidth
+      const clientHeight = document.getElementById('segment-container').clientHeight
+      this.setState({
+        viewerWidth : clientWidth,
+        viewerHeight: clientHeight
+      })
+      this.segView3D.setContainerSize(clientWidth, clientHeight)
     }
   }
   DownloadSegment(idx){
@@ -360,29 +355,25 @@ class ViewerPanel extends Component {
     // window.location.href=href
   }
   handleFuncButton(idx, e){
-    let tmp_funcOperator = this.state.funcOperator
-    tmp_funcOperator[idx] = 1;
-    console.log('funcButton:', tmp_funcOperator)
-    this.setState({
-      funcOperating: true,
-      funcOperator: tmp_funcOperator
-    })
-
-  }
-  Seg3DCallBack = (msg) => {
-    let tmp_funcOperator = this.state.funcOperator
-    tmp_funcOperator[msg] = 0;
-    this.setState({
-      funcOperator: tmp_funcOperator
-    })
-    let count = 0;
-    tmp_funcOperator.forEach(item => {
-      count = count + item
-    })
-    if(count === 0){
-      this.setState({
-        funcOperating: false
-      })
+    switch (idx){
+      case 0:this.segView3D.magnifyView()
+        break
+      case 1:this.segView3D.reductView()
+        break
+      case 2:this.segView3D.turnLeft()
+        break
+      case 3:this.segView3D.turnRight()
+        break
+      case 4:this.segView3D.selectOne()
+            break
+      case 5:this.segView3D.selectTwo()
+        break
+      case 6:this.segView3D.selectThree()
+        break
+      case 7:this.segView3D.selectFour()
+        break
+      case 8:this.segView3D.cancelSelection()
+        break
     }
   }
   handleListClick(idx, e, data) {
@@ -448,13 +439,11 @@ class ViewerPanel extends Component {
         percent,
         segments,
         opacity,
-        funcOperating,
-        funcOperator,
-        canvasLen,
-        canvasDis
+        viewerWidth,
+        viewerHeight
     } = this.state;
 
-    let canvasStyle ={width:`${canvasLen}px`, left:`${canvasDis}px`}
+    let canvasStyle ={width:`${viewerWidth}px`, height:`${viewerHeight}px`}
     let count = 0;
     let noduleNum = 0;
     if (this.state.urls) {
@@ -581,7 +570,14 @@ class ViewerPanel extends Component {
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 1)}><Icon name='search minus' size='large'/></Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='reply' size='large'/></Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='share' size='large'/></Button>
-              <Button title='3D' className='funcBtn' onClick={this.goBack.bind(this)}>2D</Button>
+
+              <Button className='funcBtn' onClick={this.goBack.bind(this)}>2D</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 4)}>1</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 5)}>2</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 6)}>3</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 7)}>4</Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 8)}><Icon name='th large' size='large'/></Button>
+
             </Button.Group>
           </Menu.Item>
           <Menu.Item position='right'>
@@ -610,7 +606,8 @@ class ViewerPanel extends Component {
                 }} style={style} /> */}
               <div className="segment-container" id="segment-container">
                 <div className="segment-canvas"  style={canvasStyle}>
-                  <SegView3D id="3d-viewer" loading={loading} actors={segments} funcOperator={funcOperator} funcOperating={funcOperating} callback={this.Seg3DCallBack}/>
+                  <SegView3D id="3d-viewer" loading={loading} actors={segments}
+                  onRef={(ref) => {this.segView3D = ref}}/>
                 </div>
                 <div className="loading-list" hidden={loadingNum === 0} style={canvasStyle}>
                   {loadingList}
