@@ -121,10 +121,10 @@ class DisplayPanel extends Component {
             draftStatus = readonlyResponse.data.status
             let boxes = draftResponse.data
             boxes.sort(this.sliceIdxSort('slice_idx'))
-          for (var i = 0; i < boxes.length; i++) {
-            boxes[i].nodule_no= ""+i
-            boxes[i].rect_no = "a00" + i
-          } 
+            for (var i = 0; i < boxes.length; i++) {
+              boxes[i].nodule_no= ""+i
+              boxes[i].rect_no = "a00" + i
+            } 
             console.log('boxidx',boxes)
             const stack = {
               imageIds: dataResponse.data,

@@ -28,6 +28,13 @@ import { Chart } from '@antv/g2'
 import DataSet from '@antv/data-set'
 import src1 from '../images/scu-logo.jpg'
 import $ from  'jquery'
+import download from 'downloadjs'
+
+import echarts from 'echarts/lib/echarts';
+import  'echarts/lib/chart/bar';
+import 'echarts/lib/component/tooltip';
+import 'echarts/lib/component/title';
+import 'echarts/lib/component/toolbox'
 // import { WrappedStudyBrowser } from "./wrappedStudyBrowser"
 
 
@@ -229,6 +236,7 @@ class CornerstoneElement extends Component {
             windowHeight:1080,
             slideSpan:0,
             windowHeight:1080,
+            preListActiveIdx:-1,
         }
         this.nextPath = this
             .nextPath
@@ -285,6 +293,9 @@ class CornerstoneElement extends Component {
 
         this.findCurrentArea = this
             .findCurrentArea
+            .bind(this)
+        this.findMeasureArea = this
+            .findMeasureArea
             .bind(this)
 
         this.onKeydown = this
@@ -423,8 +434,11 @@ class CornerstoneElement extends Component {
         this.cache = this
             .cache
             .bind(this)
-        this.keyDownSwitch = this
-            .keyDownSwitch
+        this.keyDownListSwitch = this
+            .keyDownListSwitch
+            .bind(this)
+        this.drawBidirection = this
+            .drawBidirection
             .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
@@ -448,14 +462,57 @@ class CornerstoneElement extends Component {
         // console.log("to media", viewport)
     }
 
+    //antv
+    // visualize(hist_data,idx){
+    //     const visId = 'visual-' + idx
+    //     document.getElementById(visId).innerHTML=''
+    //     let bins=hist_data.bins
+    //     let ns=hist_data.n
+    //     console.log('bins',bins)
+    //     console.log('ns',ns)
+    //     var histogram = []
+    //     var line=[]
+    //     for (var i = 0; i < bins.length-1; i++) {
+    //         var obj = {}
+            
+    //         obj.value = [bins[i],bins[i+1]]
+    //         obj.count=ns[i]
+    //         histogram.push(obj)
+    //     }
+    //     console.log('histogram',histogram)
+    //     const ds = new DataSet()
+    //     const dv = ds.createView().source(histogram)
+    //     let chart = new Chart({
+    //         container: visId,
+    //         forceFit:true,
+    //         height: 300,
+    //         width:500,
+    //     });
+    //     let view1=chart.view()
+    //     view1.source(dv, {
+    //         value: {
+    //         minLimit: bins[0]-50,
+    //         maxLimit:bins[bins.length-1]+50,
+    //         },
+    //     })
+    //     view1.interval().position('value*count').color('#00FFFF')
+    //     chart.render()
+    // }
+
+    //echarts
     visualize(hist_data,idx){
         const visId = 'visual-' + idx
-        document.getElementById(visId).innerHTML=''
-        // if(!isNewBox){
+        // document.getElementById(visId).innerHTML=''
+        var dom = document.getElementById(visId);
+        dom.style.display = ''
+        dom.style.height = '300px'
+        dom.style.width = '450px'
         let bins=hist_data.bins
         let ns=hist_data.n
-        console.log('bins',bins)
-        console.log('ns',ns)
+        var myChart = echarts.init(dom);
+        var minValue = bins[0] - 50
+        var maxValue = bins[bins.length - 1] + 50
+        console.log(bins,bins[0] - 50,bins[bins.length - 1] + 50)
         var histogram = []
         var line=[]
         for (var i = 0; i < bins.length-1; i++) {
@@ -464,76 +521,61 @@ class CornerstoneElement extends Component {
             obj.value = [bins[i],bins[i+1]]
             obj.count=ns[i]
             histogram.push(obj)
-            
-            
-            // var obj2={}
-            // obj2.value=bins[i]
-            // obj2.count=ns[i]
-            // line.push(obj2)
         }
-        console.log('histogram',histogram)
-        // console.log('line',line)
-        const ds = new DataSet()
-        const dv = ds.createView().source(histogram)
-        // const dv2=ds.createView().source(line)
-
-        // dv.transform({
-        //     type: 'bin.histogram',
-        //     field: 'value',
-        //     binWidth: 5000,
-        //     as: ['value', 'count'],
-        // })
-        let chart = new Chart({
-            container: visId,
-            // forceFit: true,
-            forceFit:true,
-            height: 300,
-            width:500,
-            // padding: [30,30,'auto',30]
-        });
-        // chart.axis
-        // chart.tooltip({
-        //     crosshairs: false,
-        //     inPlot: false,
-        //     position: 'top'
-        //   })
-        let view1=chart.view()
-        // view1.axis(false)
-        view1.source(dv, {
-            value: {
-            //   nice: true,
-            minLimit: bins[0]-50,
-            maxLimit:bins[bins.length-1]+50,
-            //   tickCount:5
+        myChart.setOption({
+        color: ['#00FFFF'],
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow' 
             },
-            count: {
-            //   max: 350000,
-            //   tickInterval:1
+        },
+        toolbox: {
+            feature: {
+                saveAsImage: {}
             }
-        })
-        // view1.source(dv)
-        view1.interval().position('value*count').color('#00FFFF')
-
-        // var view2 = chart.view()
-        // view2.axis(false)
-        // // view2.source(line)
-        // view2.source(line,{
-        //     value: {
-        //         // nice: true,
-        //         minLimit: bins[0]-50,
-        //     maxLimit:bins[bins.length-1]+50,
-        //         // tickCount:10
-        //     },
-        //     count: {
-        //         // max: 350000,
-        //         tickCount:10
-        //     }
-        // })
-        // view2.line().position('value*count').style({
-        //     stroke: 'white',
-            
-        //     }).shape('smooth')
-        chart.render() 
+        },
+        grid: {
+            left: '15%',
+            right: '4%',
+            bottom: '3%',
+            top: '10%',
+            containLabel: true
+        },
+        xAxis: [
+            {
+                type: 'category',
+                scale:'true',
+                data: bins,
+                // min: minValue,
+                // max: maxValue,
+                axisTick: {
+                    alignWithLabel: true
+                },
+                axisLabel: {
+                    color: "rgb(191,192,195)"
+                },
+            }
+        ],
+        yAxis: [
+            {
+                type: 'value',
+                
+                axisLabel: {
+                    color: "rgb(191,192,195)"
+                },
+                minInterval: 1
+            }
+        ],
+        series: [
+            {
+                name: 'count',
+                type: 'bar',
+                barWidth: '60%',
+                data: ns,
+            }
+        ]
+});
     }
 
     wcSlider =  (e, { name, value }) => {//窗位
@@ -572,51 +614,36 @@ class CornerstoneElement extends Component {
             listsActiveIndex: newIndex,
             currentIdx: currentIdx-1,
             autoRefresh: true,
-            doubleClick:false
+            doubleClick:false,
+            preListActiveIdx:-1,
         })
         // }
         
     }
 
-    keyDownSwitch(currentIdx,sliceIdx){
+    keyDownListSwitch(ActiveIdx){
+        const boxes = this.state.boxes
+        let currentIdx = parseInt(boxes[ActiveIdx].nodule_no)
+        let sliceIdx = boxes[ActiveIdx].slice_idx
+        if(this.state.preListActiveIdx !== -1){
+            currentIdx = parseInt(boxes[this.state.preListActiveIdx].nodule_no)
+            sliceIdx  = boxes[this.state.preListActiveIdx].slice_idx
+        }
         console.log('cur',currentIdx,sliceIdx)
         this.setState({
             listsActiveIndex: currentIdx,
             currentIdx: sliceIdx,
             autoRefresh: true,
-            doubleClick:false
+            doubleClick:false,
+            preListActiveIdx:-1,
         })
     }
 
     playAnimation() {//coffee button
-        // this.setState({cacheModal:true})
-        // for (var i = this.state.imageIds.length - 1; i >= 0; i--) {
-        //     this.refreshImage(false, this.state.imageIds[i], i)
-        // }
-
-        // for (var i = 0; i < this.state.imageIds.length; i++) {
-        //     this.refreshImage(false, this.state.imageIds[i], i)
-        // }
         this.setState(({isPlaying}) => ({
             isPlaying: !isPlaying
         }))
         playTimer = setInterval(() => this.Animation(), 1000)
-        // if(this.state.isPlaying){ //true
-        //     var playTimer = setTimeout(function(){
-        //         //your codes
-
-        //         var curIdx = this.state.currentIdx
-        //         if(curIdx < imageIdsLength - 1){
-        //             this.refreshImage(false, this.state.imageIds[curIdx+1], curIdx+1)
-        //         }
-        //         else{
-        //             this.refreshImage(false, this.state.imageIds[0], 0)
-        //         }         
-        //     },1000);
-        // }
-        // else{
-        //     clearInterval(playTimer)
-        // }
     }
 
     pauseAnimation(){
@@ -715,7 +742,7 @@ class CornerstoneElement extends Component {
         console.log('in', event.target.textContent)
         let boxes = this.state.boxes
         for (var i = 0; i < boxes.length; i++) {
-            if (boxes[i].nodule_no === event.target.textContent) {
+            if (parseInt(boxes[i].nodule_no) === (event.target.textContent - 1)) {
                 boxes[i].highlight = true
             }
         }
@@ -728,7 +755,7 @@ class CornerstoneElement extends Component {
         console.log('out', event.target.textContent)
         let boxes = this.state.boxes
         for (var i = 0; i < boxes.length; i++) {
-            if (boxes[i].nodule_no === event.target.textContent) {
+            if (parseInt(boxes[i].nodule_no) === (event.target.textContent - 1)) {
                 boxes[i].highlight = false
             }
         }
@@ -982,29 +1009,8 @@ class CornerstoneElement extends Component {
     }
 
     featureAnalysis(idx,e){
-        // const idx = e.target.value
         console.log("特征分析")
         const boxes = this.state.boxes
-        // if(boxes[idx].nodule_hist !== undefined){
-        //     var hist_data = boxes[idx].nodule_hist
-        //     console.log('hist_data',hist_data)
-        //     this.visualize(hist_data,idx,false)  
-        // }
-
-        // if(boxes[idx].new_nodule_hist !== undefined){
-        //     var new_nodule_hist = boxes[idx].new_nodule_hist
-        //     console.log('hist_data',new_nodule_hist)
-        //     this.visualize(new_nodule_hist,idx, true)
-        // }
-        
-        
-        // if(hist_data!==undefined){
-            
-        // }
-        
-        // var data = e.target.value
-        // data = JSON.stringify(data)
-        // data = JSON.parse(data)
         console.log('boxes',boxes, e.target.value)
         if (boxes[idx] !== undefined){
             console.log('boxes',boxes[idx])
@@ -1012,6 +1018,19 @@ class CornerstoneElement extends Component {
             this.visualize(hist,idx)
         }
     }
+
+    // downloadBar(idx,e){
+    //     const visId = 'visual_' + idx
+    //     console.log(visId)
+    //     const dataURI = document.getElementById(visId)
+    //     // var chart = Chart.init(document.getElementById('main'))
+    //     console.log('dataURI',dataURI)
+    //     var a = document.createElement("a")
+    //     // const uri = dataURI.toDataURL()
+    //     a.download = 'chart.jpg'
+    //     a.click()
+    //     // download(uri,'chart.jpg',"image/jpg")
+    // }
 
     eraseLabel(){
         const element = document.querySelector('#origin-canvas')
@@ -1609,9 +1628,7 @@ class CornerstoneElement extends Component {
                                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                                     
                                                 </Grid.Column>
-                                                <Grid.Column width={1}>
-                                                <div style={{fontSize:'1rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
-                                                </Grid.Column>
+                                                
                                                 <Grid.Column widescreen={6} computer={7} textAlign='center'>
                                                 {
                                                     idx<6?
@@ -1756,11 +1773,10 @@ class CornerstoneElement extends Component {
                                     <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
                                         <Grid>
                                             <Grid.Row>
-                                                <Grid.Column widescreen={3} computer={3} textAlign='center'>
-                                                    <select id={texId} style={selectStyle} defaultValue="" disabled>
-                                                    <option value="" disabled="disabled">选择亚型</option>
-                                                    </select>
+                                                <Grid.Column width={1}>
+                                                <div style={{fontSize:'1rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
                                                 </Grid.Column>
+                                                
                                                 <Grid.Column widescreen={3} computer={3} textAlign='center'>
                                                     {/* <Icon name='crosshairs' size='mini'></Icon> */}
                                                     {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
@@ -1781,16 +1797,23 @@ class CornerstoneElement extends Component {
                                                     }
                                                 </Grid.Column>
                                                 <Grid.Column widescreen={2} computer={2} textAlign='center'>
-                                                    {
-                                                        // <div style={{display:'inline-block',width:'50%'}}>
-                                                            <Button size='mini' circular inverted
-                                                            icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this,idx)}>
-                                                            </Button>
-                                                        // </div>
                                                     
-                                                    }
+                                                    <Button size='mini' circular inverted
+                                                    icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this,idx)}>
+                                                    </Button>
+                                                    {/* <Button size='mini' circular basic inverted
+                                                    icon='download' title='下载' value={idx} onClick={this.downloadBar.bind(this,idx)}>
+                                                    </Button>
+                                                             */}
                                                 </Grid.Column>
+                                                
                                             </Grid.Row>
+                                            {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
+                                                    <select id={texId} style={selectStyle} defaultValue="" disabled>
+                                                    <option value="" disabled="disabled">选择亚型</option>
+                                                    </select>
+                                                </Grid.Column> */}
+                                        
                                             <Grid.Row textAlign='center' verticalAlign='middle' centered>
                                                 <Grid.Column width={3}>
                                                     <select id={texId} style={selectStyle} value={inside.texture} onChange={this.onSelectTex}>
@@ -1802,8 +1825,10 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}}>表征:</Grid.Column>
                                                 <Grid.Column width={11} style={{paddingLeft:'0px',paddingRight:'0px'}}>
-                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name='represent' 
-                                                    defaultValue={representArray} onClick={this.representChange.bind(this),document.getElementsByName('represent')}/>
+                                                    {/* <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name='represent' 
+                                                    defaultValue={representArray} onClick={this.representChange.bind(this),document.getElementsByName('represent')}/> */}
+                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name={'dropdown'+idx}
+                                                    defaultValue={representArray} onChange={this.representChange.bind(this)} />
                                                 </Grid.Column>
                                             </Grid.Row>
                                         </Grid>
@@ -1823,10 +1848,8 @@ class CornerstoneElement extends Component {
                                                 <Grid.Column width={1}>
                                                     <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
                                                 </Grid.Column>
-                                                <Grid.Column width={1}>
-                                                    <div style={{fontSize:'0.5rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
-                                                </Grid.Column>
-                                                <Grid.Column width={6} textAlign='center'>
+                                                
+                                                <Grid.Column widescreen={6} computer={7} textAlign='center'>
                                                 {
                                                     idx<6?
                                                     <Dropdown style={selectStyle} text={dropdownText} icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
@@ -1965,6 +1988,7 @@ class CornerstoneElement extends Component {
                                             <option value="" disabled="disabled">选择亚型</option>
                                             </select>
                                         </Grid.Column>
+                                        
                                         <Grid.Column width={1} textAlign='center'>
                                             <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
                                         </Grid.Column>
@@ -1975,6 +1999,9 @@ class CornerstoneElement extends Component {
                                     <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
                                         <Grid>
                                             <Grid.Row>
+                                            <Grid.Column width={1}>
+                                            <div style={{fontSize:'0.5rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
+                                            </Grid.Column>
                                                 <Grid.Column widescreen={4} computer={5}>
                                                     <Icon name='crosshairs' size='mini'></Icon>
                                                     {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
@@ -1987,7 +2014,7 @@ class CornerstoneElement extends Component {
                                                         <option value="3">半实性</option>
                                                     </select>
                                                 </Grid.Column>
-                                                <Grid.Column widescreen={5} computer={5}>
+                                                <Grid.Column widescreen={3} computer={4}>
                                                         {inside.huMin!==undefined && inside.huMax!==undefined?
                                                     inside.huMin +'~' + inside.huMax + 'HU'
                                                     :
@@ -1995,14 +2022,12 @@ class CornerstoneElement extends Component {
                                                     }
                                                 </Grid.Column>
                                                 <Grid.Column width={2}>
-                                                    {
-                                                        // <div style={{display:'inline-block',width:'50%'}}>
-                                                            <Button size='mini' circular inverted
-                                                            icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this,idx)}>
-                                                            </Button>
-                                                        // </div>
-                                                    
-                                                    }
+                                                    <Button size='mini' circular inverted
+                                                    icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this,idx)}>
+                                                    </Button>
+                                                    {/* <Button size='mini' circular basic inverted
+                                                    icon='download' title='下载' value={idx} onClick={this.downloadBar.bind(this,idx)}>
+                                                    </Button> */}
                                                 </Grid.Column>
                                             </Grid.Row>
                                             {/* <Grid.Row textAlign='center' verticalAlign='middle' centered> */}
@@ -2027,277 +2052,7 @@ class CornerstoneElement extends Component {
                         }
                         
                     })
-            // }
-
-            // if (this.state.readonly) {
-            //     return (
-            //         <div>
-                        
-            //             <Menu className='corner-header'>
-            //                 <Menu.Item>
-            //                     <Image src={src1} avatar size='mini'/>
-            //                     <a id='sys-name' href='/searchCase'>DeepLN肺结节全周期<br/>管理数据平台</a>
-            //                 </Menu.Item>
-            //                 <Menu.Item className='hucolumn'>
-            //                 <Button.Group>
-            //                         <Button
-            //                             // inverted
-            //                             // color='black'
-            //                             onClick={this.toPulmonary}
-            //                             content='肺窗'
-            //                             className='hubtn'
-            //                             />
-            //                         <Button
-            //                             // inverted
-            //                             // color='blue'
-            //                             onClick={this.toBoneWindow} //骨窗窗宽窗位函数
-            //                             content='骨窗'
-            //                             className='hubtn'
-            //                             />
-            //                         <Button
-            //                             // inverted
-            //                             // color='blue'
-            //                             onClick={this.toVentralWindow} //腹窗窗宽窗位函数
-            //                             content='腹窗'
-            //                             className='hubtn'
-            //                             />
-            //                         <Button
-            //                             // inverted
-            //                             // color='blue'
-            //                             onClick={this.toMedia}
-            //                             content='纵隔窗'
-            //                             className='hubtn'
-            //                             />
-                                    
-            //                             <Popup
-            //                         trigger={
-            //                             <Button
-            //                             // inverted
-            //                             // color='blue'
-            //                             // onClick={this.toMedia}
-            //                             className='hubtn'
-            //                             >自定义</Button>
-            //                         }
-            //                         content={
-            //                             <Form>
-            //                                 <Form.Input
-            //                                 label={`窗宽WW: ${wwDefine}`}
-            //                                 min={100}
-            //                                 max={2000}
-            //                                 name='wwDefine'
-            //                                 onChange={this.handleSliderChange}
-            //                                 step={100}
-            //                                 type='range'
-            //                                 value={wwDefine}
-            //                                 className='wwinput'
-            //                                 />
-            //                                 <Form.Input
-            //                                 label={`窗位WC: ${wcDefine}`}
-            //                                 min={-1000}
-            //                                 max={2000}
-            //                                 name='wcDefine'
-            //                                 onChange={this.wcSlider}
-            //                                 step={100}
-            //                                 type='range'
-            //                                 value={wcDefine}
-            //                                 />
-            //                             </Form>
-            //                         }
-            //                         on='click'
-            //                         position='bottom center'
-            //                         id='defWindow'
-            //                     />                                               
-            //                     </Button.Group>
-            //                 </Menu.Item>
-            //                 <span id='line-left'></span>
-            //                 <Menu.Item className='funcolumn'>
-            //                 <Button.Group>
-            //                         <Button
-            //                         // inverted
-            //                         // color='blue'
-            //                         icon
-            //                         title='灰度反转'
-            //                         // style={{width:55,height:60,fontSize:14,fontSize:14}}
-            //                         onClick={this.imagesFilp}
-            //                         className='funcbtn'
-            //                         ><Icon name='adjust' size='large'></Icon></Button>              
-            //                         <Button
-            //                             // inverted
-            //                             // color='blue'
-            //                             icon
-            //                             title='放大'
-            //                             // style={{width:55,height:60,fontSize:14,fontSize:14}}
-            //                             onClick={this.ZoomIn}
-            //                             className='funcbtn'
-            //                             ><Icon name='search plus' size='large'></Icon></Button>
-            //                         <Button
-            //                             // inverted
-            //                             // color='blue'
-            //                             icon
-            //                             title='缩小'
-            //                             // style={{width:55,height:60,fontSize:14}}
-            //                             onClick={this.ZoomOut}
-            //                             className='funcbtn'
-            //                             ><Icon name='search minus' size='large'></Icon></Button>
-            //                         <Button icon onClick={this.reset} className='funcbtn' title='刷新'><Icon name='repeat' size='large'></Icon></Button>
-                            
-            //                         <Button icon onClick={this.toHidebox} className='funcbtn' id='showNodule' title='显示结节'><Icon name='eye' size='large'></Icon></Button>
-            //                         <Button icon onClick={this.toHidebox} className='funcbtn' id='hideNodule' title='隐藏结节'><Icon name='eye slash' size='large'></Icon></Button>
-            //                         <Button icon onClick={this.toHideInfo} className='funcbtn' id='showInfo' title='显示信息'><Icon name='content' size='large'></Icon></Button>
-            //                         <Button icon onClick={this.toHideInfo} className='funcbtn' id='hideInfo' title='隐藏信息'><Icon name='delete calendar' size='large'></Icon></Button>
-            //                         <Button className='funcbtn'
-            //                         onClick={() => {
-            //                             this.setState({immersive: true})
-            //                         }}
-            //                         icon title='沉浸模式' className='funcbtn'><Icon name='expand arrows alternate' size='large'></Icon></Button>
-            //                     {
-            //                         this.state.newAnno?
-            //                             <Button icon onClick={this.clearthenFork} className='funcbtn' id='showNodule' title='新建标注'><Icon name='plus' size='large'></Icon></Button>
-            //                         :
-            //                         null
-            //                     }
-            //                 </Button.Group>
-            //                 </Menu.Item>
-            //                 <Menu.Item position='right'>
-            //                     <Dropdown text={welcome}>
-            //                         <Dropdown.Menu id="logout-menu">
-            //                             <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
-            //                             <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
-            //                             <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
-            //                         </Dropdown.Menu>
-            //                     </Dropdown>
-            //                 </Menu.Item>
-            //             </Menu>
-            //                 <Grid celled className='corner-contnt'>
-            //                     <Grid.Row className='corner-row' columns={3}>
-            //                         <Grid.Column width={2}>
-            //                             <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
-            //                         </Grid.Column>
-
-            //                         <Grid.Column width={10} textAlign='center' id='canvas-column'>
-                                    
-
-                                    
-            //                         <div className='canvas-style'>
-            //                             <div
-            //                                 id="origin-canvas"
-            //                                 // style={divStyle}
-            //                                 ref={input => {
-            //                                 this.element = input
-            //                             }}>
-                                            
-            //                                 <canvas className="cornerstone-canvas" id="canvas"/>
-            //                                 <canvas className="cornerstone-canvas" id="length-canvas"/>
-            //                                 {
-            //                                     windowWidth < 1600 ?
-            //                                     <div>
-                                                
-            //                                         <div id='dicomTag'>               
-            //                                             <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-            //                                             <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
-            //                                         </div>
-            //                                         <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-            //                                         </div>
-            //                                         <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-            //                                         <div style={bottomRightStyle}>
-            //                                             WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-            //                                             /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-            //                                         </div>
-            //                                     </div>
-            //                                     :
-            //                                     <div>
-            //                                         <div id='dicomTag'>               
-            //                                             <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-            //                                             <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
-            //                                             <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
-            //                                         </div>
-            //                                         <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-            //                                         </div>
-            //                                         <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-            //                                         <div style={bottomRightStyle}>
-            //                                             WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-            //                                             /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-            //                                         </div>
-            //                                     </div>
-            //                                 } 
-            //                             </div>
-            //                             {canvas}
-            //                         </div>
-            //                         <div className='canvas-style'>
-            //                             <Slider marks={} defaultValue={this.state.currentIdx + 1} onChange={this.handleRangeChange}></Slider>
-            //                             <input
-            //                                 id="slice-slider"
-            //                                 onChange={this.handleRangeChange}
-            //                                 type="range"
-            //                                 value={this.state.currentIdx}
-            //                                 name="volume"
-            //                                 step="1"
-            //                                 min="1"
-            //                                 max={this.state.stack.imageIds.length}></input>
-            //                                 {
-            //                                 this.state.boxes.map((content,index)=>{
-            //                                     let tempId ='sign'+index
-            //                                     return(
-            //                                     <Label circular id={tempId} className='sign' style={{position:'absolute',minWidth:'0.2em',
-            //                                     minHeight:'0.2em',backgroundColor:'white'}} onClick={this.addSign.bind(this,content.slice_idx+1)}></Label>
-            //                                     )
-            //                                 })
-            //                             }
-            //                             <div id="button-container">
-            //                                 <div id='showNodules'><Checkbox label='显示结节' checked={showNodules} onChange={this.toHidebox}/></div>
-            //                                 <p id="page-indicator">{this.state.currentIdx + 1}
-            //                                     / {this.state.imageIds.length}</p>
-            //                                 <a
-            //                                     id="immersive-hover"
-            //                                     onClick={() => {
-            //                                     this.setState({immersive: true})
-            //                                 }}>沉浸模式</a>
-            //                             </div>
-
-            //                         </div>
-
-            //                         </Grid.Column>
-                                    
-            //                        <Grid.Column width={4}>  */}
-                                        
-            //                             <div id='listTitle'>
-            //                                     <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
-                                                
-            //                             </div>
-            //                             <div id='elec-table'>
-            //                                 <Accordion styled id="cornerstone-accordion" fluid>
-            //                                     {tableContent}
-            //                                 </Accordion>
-            //                             </div>
-            //                             <div id='report'>
-            //                                 <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }}  */}
-            //                                     panes={panes} />
-            //                             </div>
-            //                         </Grid.Column>
-            //                     </Grid.Row>
-                                
-            //                 </Grid>
-                        
-            //         </div>
-            //     )
-            // } else {
+          
                 return (
                     <div id="cornerstone">
                         <Menu className='corner-header'>
@@ -2558,8 +2313,8 @@ class CornerstoneElement extends Component {
                                                 .location
                                                 .pathname
                                                 .split('/')[3]}</h3> */}
-                                            <div id='elec-table' onDoubleClick={this.doubleClickListItems.bind(this)}>
-                                                <Accordion styled id="cornerstone-accordion" fluid>
+                                            <div id='elec-table'>
+                                                <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                     {tableContent}
                                                 </Accordion>
                                         
@@ -2619,8 +2374,8 @@ class CornerstoneElement extends Component {
                                                 .location
                                                 .pathname
                                                 .split('/')[3]}</h3> */}
-                                            <div id='elec-table' onDoubleClick={this.doubleClickListItems.bind(this)}>
-                                                <Accordion styled id="cornerstone-accordion" fluid>
+                                            <div id='elec-table'>
+                                                <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                     {tableContent}
                                                 </Accordion>
                                         
@@ -2739,6 +2494,7 @@ class CornerstoneElement extends Component {
         const yCenter = (box.y1 + (box.y2 - box.y1) / 2)
         const width = box.x2 - box.x1
         const height = box.y2 - box.y1
+        // console.log('xy',box)
         if (box.highlight === false || box.highlight === undefined) {
             context.setLineDash([])
             context.strokeStyle = 'yellow'
@@ -2749,21 +2505,59 @@ class CornerstoneElement extends Component {
         }
         context.beginPath()
         const new_y1 = yCenter - height / 2
-        // context.rect(box.x1-1, box.y1-1, width+2, height+2)
-        if(width > height){
+        // if(box.probability === 1){
+            context.rect(box.x1,box.y1,width,height)
+        // }
+        // else{
+        // context.rect(box.x1-10,box.y1-10,width+20,height+20)
+        // }
+        
+        // if(width > height){
             // context.arc(xCenter, yCenter, width/2+3, 0*Math.PI,2*Math.PI)
-            context.rect(box.x1-10,box.y1-10,width+20,height+20)
-        }else{
+            // context.rect(box.x1-10,box.y1-10,width+20,height+20)
+            // context.rect(box.x1,box.y1,width,height)
+        // }else{
             // context.arc(xCenter, yCenter, height/2+3, 0*Math.PI,2*Math.PI)
-            context.rect(box.x1-10,box.y1-10,width+20,height+20)
-        }
+            // context.rect(box.x1-10,box.y1-10,width+20,height+20)
+            // context.rect(box.x1,box.y1,width,height)
+        // }
         
         context.lineWidth = 1
         context.stroke()
         if (box.nodule_no != undefined) {
             context.fillText(parseInt(box.nodule_no)+1, xCenter - 3, new_y1 - 15)
         }
+        context.closePath()
 
+    }
+
+    drawBidirection(box){
+        if(box.measure !== null && box.measure !== undefined){
+            const measureCoord = box.measure
+            const canvas = document.getElementById("canvas")
+            const context = canvas.getContext('2d')
+            context.lineWidth = 1
+            context.strokeStyle = 'white'
+            context.fillStyle = 'white'
+            const x1 = measureCoord.x1
+            const y1 = measureCoord.y1
+            const x2 = measureCoord.x2
+            const y2 = measureCoord.y2
+            const x3 = measureCoord.x3
+            const y3 = measureCoord.y3
+            const x4 = measureCoord.x4
+            const y4 = measureCoord.y4
+            context.beginPath()
+            context.moveTo(x1,y1)
+            context.lineTo(x2,y2)
+            // context.stroke()
+            // context.beginPath()
+            
+            context.moveTo(x3,y3)
+            context.lineTo(x4,y4)
+            context.stroke()
+            context.closePath()
+        }
     }
 
     findCurrentArea(x, y) {
@@ -2774,38 +2568,90 @@ class CornerstoneElement extends Component {
             if (box.slice_idx == this.state.currentIdx) {
                 const xCenter = box.x1 + (box.x2 - box.x1) / 2;
                 const yCenter = box.y1 + (box.y2 - box.y1) / 2;
-                if (box.x1 - lineOffset < x && x < box.x1 + lineOffset) {
-                    if (box.y1 - lineOffset < y && y < box.y1 + lineOffset) {
+                const width  = box.x2 - box.x1
+                const height = box.y2 - box.y1
+                const y1 = box.y1
+                const x1 = box.x1
+                const y2 = box.y2
+                const x2 = box.x2
+                if (x1 - lineOffset < x && x < x1 + lineOffset) {
+                    if (y1 - lineOffset < y && y < y1 + lineOffset) {
                         return {box: i, pos: 'tl'};
-                    } else if (box.y2 - lineOffset < y && y < box.y2 + lineOffset) {
+                    } else if (y2 - lineOffset < y && y < y2 + lineOffset) {
                         return {box: i, pos: 'bl'};
-                    } else if (yCenter - lineOffset < y && y < yCenter + lineOffset) {
+                    // } else if (yCenter - lineOffset < y && y < yCenter + lineOffset) {
+                    } else if (yCenter - height/2 + lineOffset < y && y < yCenter + height/2 - lineOffset) {
                         return {box: i, pos: 'l'};
                     }
-                } else if (box.x2 - lineOffset < x && x < box.x2 + lineOffset) {
-                    if (box.y1 - lineOffset < y && y < box.y1 + lineOffset) {
+                } else if (x2 - lineOffset < x && x < x2 + lineOffset) {
+                    if (y1 - lineOffset < y && y < y1 + lineOffset) {
                         return {box: i, pos: 'tr'};
-                    } else if (box.y2 - lineOffset < y && y < box.y2 + lineOffset) {
+                    } else if (y2 - lineOffset < y && y < y2 + lineOffset) {
                         return {box: i, pos: 'br'};
-                    } else if (yCenter - lineOffset < y && y < yCenter + lineOffset) {
+                    // } else if (yCenter - lineOffset < y && y < yCenter + lineOffset) {
+                    } else if (yCenter - height/2 + lineOffset < y && y < yCenter + height/2 - lineOffset) {
                         return {box: i, pos: 'r'};
                     }
-                } else if (xCenter - lineOffset < x && x < xCenter + lineOffset) {
-                    if (box.y1 - lineOffset < y && y < box.y1 + lineOffset) {
+                // } else if (xCenter - lineOffset < x && x < xCenter + lineOffset) {
+                } else if (xCenter - width/2 + lineOffset < x && x < xCenter + width/2 - lineOffset) {
+                    if (y1 - lineOffset < y && y < y1 + lineOffset) {
                         return {box: i, pos: 't'};
-                    } else if (box.y2 - lineOffset < y && y < box.y2 + lineOffset) {
+                    } else if (y2 - lineOffset < y && y < y2 + lineOffset) {
                         return {box: i, pos: 'b'};
-                    } else if (box.y1 - lineOffset < y && y < box.y2 + lineOffset) {
+                    } else if (y1 - lineOffset < y && y < y2 + lineOffset) {
                         return {box: i, pos: 'i'};
                     }
-                } else if (box.x1 - lineOffset < x && x < box.x2 + lineOffset) {
-                    if (box.y1 - lineOffset < y && y < box.y2 + lineOffset) {
+                } else if (x1 - lineOffset < x && x < x2 + lineOffset) {
+                    if (y1 - lineOffset < y && y < y2 + lineOffset) {
                         return {box: i, pos: 'i'};
                     }
                 }
             }
         }
         return {box: -1, pos: 'o'};
+    }
+
+    findMeasureArea(x,y){
+        const lineOffset = 2;
+        for (var i = 0; i < this.state.boxes.length; i++) {
+            const box = this.state.boxes[i]
+            if (box.slice_idx == this.state.currentIdx) {
+                const xCenter = box.x1 + (box.x2 - box.x1) / 2;
+                const yCenter = box.y1 + (box.y2 - box.y1) / 2;
+                const width  = box.x2 - box.x1
+                const height = box.y2 - box.y1
+                const y1 = box.y1
+                const x1 = box.x1
+                const y2 = box.y2
+                const x2 = box.x2
+                // console.log(x1,y1,x2,y2,box.measure)
+                if(x1 - lineOffset < x && x < x2 + lineOffset && y1 - lineOffset < y && y < y2 + lineOffset){
+                    if(box.measure){
+                        if(box.measure.x1 - lineOffset < x && x < box.measure.x1 + lineOffset && box.measure.y1 - lineOffset < y && y < box.measure.y1 + lineOffset){
+                            return {box: i, pos:'ib', m_pos:'sl'}
+                        }
+                        else if(box.measure.x2 - lineOffset < x && x < box.measure.x2 + lineOffset && box.measure.y2 - lineOffset < y && y < box.measure.y2 + lineOffset){
+                            return {box: i, pos:'ib', m_pos:'el'}
+                        }
+                        else if(box.measure.x3 - lineOffset < x && x < box.measure.x3 + lineOffset && box.measure.y3 - lineOffset < y && y < box.measure.y3 + lineOffset){
+                            return {box: i, pos:'ib', m_pos:'ss'}
+                        }
+                        else if(box.measure.x4 - lineOffset < x && x < box.measure.x4 + lineOffset && box.measure.y4 - lineOffset < y && y < box.measure.y4 + lineOffset){
+                            return {box: i, pos:'ib', m_pos:'es'}
+                        }
+                        else if(box.measure.intersec_x - lineOffset < x && x < box.measure.intersec_x + lineOffset && box.measure.intersec_y - lineOffset < y && y < box.measure.intersec_y + lineOffset){
+                            return {box: i, pos:'ib', m_pos:'cm'}
+                        }
+                    }
+                    else{
+                        console.log('om')
+                        return {box: i, pos:'ib', m_pos:'om'}
+                    }
+                }
+            }
+        }
+        return {box: -1, pos:'ob', m_pos:'om'}
+
     }
 
     handleRangeChange(e) {
@@ -2823,67 +2669,46 @@ class CornerstoneElement extends Component {
         let pixelArray = []
         const imageId = this.state.imageIds[slice_idx]
         console.log('image',imageId)
-        cornerstone
-        .loadAndCacheImage(imageId)
-        .then(image => {
-            console.log(image)
-            const pixeldata = image.getPixelData()
-            var asc = function(a,b){return a-b}
-            pixeldata.sort(asc)
-            console.log('pixeldata',pixeldata)
-            for(var i=~~x1;i<=x2;i++){
-                for(var j=~~y1;j<=y2;j++){
-                    pixelArray.push(pixeldata[512*j+i] - 1024)
-                }
-            }
+        // cornerstone
+        // .loadAndCacheImage(imageId)
+        // .then(image => {
+        //     console.log(image)
+        //     const pixeldata = image.getPixelData()
+        //     var asc = function(a,b){return a-b}
+        //     pixeldata.sort(asc)
+        //     console.log('pixeldata',pixeldata)
+        //     for(var i=~~x1;i<=x2;i++){
+        //         for(var j=~~y1;j<=y2;j++){
+        //             pixelArray.push(pixeldata[512*j+i] - 1024)
+        //         }
+        //     }
             
-            // console.log('array',pixelArray)
-            const data = pixelArray
-            data.sort(asc)
-            // console.log('data',data)
-            var map = {}
-            for (var i = 0; i < data.length; i++) {
-                var key = data[i]
-                if (map[key]) {
-                    map[key] += 1
-                } else {
-                    map[key] = 1
-                }
-            }
-            console.log('map',map)
-            var ns = []
-            var bins = []
-            for(var key in map){
-                bins.push(parseInt(key))
-                ns.push(map[key])
-            }
-            // var ns = []
-            // for(var i=0;i < data.length;i++){
-            //     ns.append()
-            // }
-            // var dis = (data[data.length-1] - data[0]) / 30
-            // var bins = new Array(31).fill(0)
-            // var ns = new Array(30).fill(0)
-            // bins[0] = data[0]
-            // for(var i=1;i<31;i++){
-            //     if(i === 30){
-            //         bins[30] = data[data.length-1]
-            //     }
-            //     else{
-            //         bins[i] = bins[i-1] + dis
-            //     }
-            //     for(var j=0;j<data.length;j++){
-            //         if(data[j]>=bins[i-1] && data[j] <=bins[i]){
-            //             ns[i-1]+=1
-            //         }
-            //     }
-            // }
-            console.log('bins',bins,ns)
-            var obj = {}
-            obj.bins = bins
-            obj.n = ns
-            var nodule_hist = []
-            nodule_hist.push(obj)
+        //     // console.log('array',pixelArray)
+        //     const data = pixelArray
+        //     data.sort(asc)
+        //     // console.log('data',data)
+        //     var map = {}
+        //     for (var i = 0; i < data.length; i++) {
+        //         var key = data[i]
+        //         if (map[key]) {
+        //             map[key] += 1
+        //         } else {
+        //             map[key] = 1
+        //         }
+        //     }
+        //     console.log('map',map)
+        //     var ns = []
+        //     var bins = []
+        //     for(var key in map){
+        //         bins.push(parseInt(key))
+        //         ns.push(map[key])
+        //     }
+        //     console.log('bins',bins,ns)
+        //     var obj = {}
+        //     obj.bins = bins
+        //     obj.n = ns
+        //     var nodule_hist = []
+        //     nodule_hist.push(obj)
             const newBox = {
                 // "calcification": [], "lobulation": [],
                 "malignancy": -1,
@@ -2892,7 +2717,7 @@ class CornerstoneElement extends Component {
                 "place": "",
                 "probability": 1,
                 "slice_idx": slice_idx,
-                "nodule_hist":obj,
+                // "nodule_hist":obj,
                 // "spiculation": [], "texture": [],
                 "x1": x1,
                 "x2": x2,
@@ -2901,23 +2726,38 @@ class CornerstoneElement extends Component {
                 "highlight": false,
                 "diameter":0.00,
                 "place":0,
+                "modified":1,
             }
             let boxes = this.state.boxes
             console.log("newBox", newBox)
             boxes.push(newBox)
             this.setState({boxes: boxes})
             console.log("Boxes", this.state.boxes)
-            this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)    
-        })
+            
+        // })
+        this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)    
     }
 
-    // preventMouseWheel(event){
-    //     const e = event || window.event
-    //     if(e.stopPropagation) e.stopPropagation()
-    //     else e.cancelBubble = true
-    //     if(e.preventDefault) e.preventDefault()
-    //     else e.returnValue = false
-    // }
+//    createBidirectBox(x1, x2, y1, y2, slice_idx, nodule_idx){
+//     const newBox = {
+//         // "calcification": [], "lobulation": [],
+//         "malignancy": -1,
+//         "nodule_no": nodule_idx,
+//         "patho": "",
+//         "place": "",
+//         "probability": 1,
+//         "slice_idx": slice_idx,
+//         "nodule_hist":obj,
+//         // "spiculation": [], "texture": [],
+//         "x1": x1,
+//         "x2": x2,
+//         "y1": y1,
+//         "y2": y2,
+//         "highlight": false,
+//         "diameter":0.00,
+//         "place":0,
+//     }
+//    }
 
     onWheel(event){
         // this.preventMouseWheel(event)
@@ -3007,9 +2847,8 @@ class CornerstoneElement extends Component {
         const clickY = event.offsetY
         let x = 0
         let y = 0
-        if(this.state.leftButtonTools === 1){
+        if(this.state.leftButtonTools === 1){ 
             if(JSON.stringify(this.state.mouseClickPos) !== '{}'){
-            // console.log('clicked')
                 if(JSON.stringify(this.state.mousePrePos) === '{}'){
                     this.setState({mousePrePos:this.state.mouseClickPos})
                 }
@@ -3017,20 +2856,16 @@ class CornerstoneElement extends Component {
                     'x':clickX,
                     'y':clickY
                 }})
-                // console.log('pos',this.state.mousePrePos)
                 const mouseCurPos = this.state.mouseCurPos
                 const mousePrePos = this.state.mousePrePos
                 const mouseClickPos = this.state.mouseClickPos
                 const prePosition = mousePrePos.y - mouseClickPos.y
                 const curPosition = mouseCurPos.y - mouseClickPos.y
-                // console.log(mouseCurPos,mousePrePos,mouseClickPos,prePosition,curPosition,this.state.leftBtnSpeed)
                 if(mouseCurPos.y !== mousePrePos.y){
                     let y_dia = mouseCurPos.y - mousePrePos.y
                     if(this.state.leftBtnSpeed !== 0){
                         var slice_len = Math.round(y_dia/this.state.leftBtnSpeed)
                         this.setState({slideSpan : Math.round(curPosition/this.state.leftBtnSpeed)})
-                        // console.log('divation',this.state.mouseCurPos,this.state.mousePrePos,this.state.mouseClickPos,y_dia,this.state.leftBtnSpeed,slice_len)
-                        // for(var i = 0;i < Math.abs(slice_len); i++){
                     if(y_dia > 0){
                         let newCurrentIdx = this.state.currentIdx + slice_len
                         if (newCurrentIdx < this.state.imageIds.length) {
@@ -3049,93 +2884,182 @@ class CornerstoneElement extends Component {
                             this.refreshImage(false, this.state.imageIds[0], 0)
                         }
                     }
+                }
                     
-                        // }
-                    }
+            }
+            this.setState({mousePrePos:mouseCurPos})
+        }
+    }
+        else if(this.state.leftButtonTools === 0){ //Annos
+            if (!this.state.immersive) {
+                const transX = this.state.viewport.translation.x
+                const transY = this.state.viewport.translation.y
+                const scale = this.state.viewport.scale
+                const halfValue = 256
+                let offsetminus = document.getElementById('canvas').width/2
+                x = (clickX - scale * transX - offsetminus) / scale + halfValue
+                y = (clickY - scale * transY - offsetminus) / scale + halfValue
+    
+            } else {
+                x = clickX / 2.5
+                y = clickY / 2.5
+            }
+    
+    
+            let content = this.findCurrentArea(x, y)
+            if (!this.state.clicked) {
+                if (content.pos === 't' || content.pos === 'b') 
+                    document.getElementById("canvas").style.cursor = "s-resize"
+                else if (content.pos === 'l' || content.pos === 'r') 
+                    document.getElementById("canvas").style.cursor = "e-resize"
+                else if (content.pos === 'tr' || content.pos === 'bl') 
+                    document.getElementById("canvas").style.cursor = "ne-resize"
+                else if (content.pos === 'tl' || content.pos === 'br') 
+                    document.getElementById("canvas").style.cursor = "nw-resize"
+                else if (content.pos === 'i') 
+                    document.getElementById("canvas").style.cursor = "grab"
+                    // document.getElementById("canvas").style.cursor = "auto"
+                else if (!this.state.clicked) 
+                    document.getElementById("canvas").style.cursor = "auto"
+            }
+    
+            if (this.state.clicked && this.state.clickedArea.box === -1) {  //mousedown && mouse is outside the annos
+                let tmpBox = this.state.tmpBox 
+                console.log('tmpbox',tmpBox)
+                let tmpCoord = this.state.tmpCoord
+                console.log('xy',x,y)
+                tmpBox.x1 = tmpCoord.x1
+                tmpBox.y1 = tmpCoord.y1
+                tmpBox.x2 = x
+                tmpBox.y2 = y
+                this.setState({tmpBox: tmpBox})
+                this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+            } else if (this.state.clicked && this.state.clickedArea.box !== -1) { //mousedown && mouse is inside the annos
+                let boxes = this.state.boxes
+                let currentBox = boxes[this.state.clickedArea.box]
+    
+                if (this.state.clickedArea.pos === 'i') {
+                    const oldCenterX = (currentBox.x1 + currentBox.x2) / 2
+                    const oldCenterY = (currentBox.y1 + currentBox.y2) / 2
+                    const xOffset = x - oldCenterX
+                    const yOffset = y - oldCenterY
+                    currentBox.x1 += xOffset
+                    currentBox.x2 += xOffset
+                    currentBox.y1 += yOffset
+                    currentBox.y2 += yOffset
+                }
+    
+                if (this.state.clickedArea.pos === 'tl' || this.state.clickedArea.pos === 'l' || this.state.clickedArea.pos === 'bl') {
+                    currentBox.x1 = x
+                }
+                if (this.state.clickedArea.pos === 'tl' || this.state.clickedArea.pos === 't' || this.state.clickedArea.pos === 'tr') {
+                    currentBox.y1 = y
+                }
+                if (this.state.clickedArea.pos === 'tr' || this.state.clickedArea.pos === 'r' || this.state.clickedArea.pos === 'br') {
+                    currentBox.x2 = x
+                }
+                if (this.state.clickedArea.pos === 'bl' || this.state.clickedArea.pos === 'b' || this.state.clickedArea.pos === 'br') {
+                    currentBox.y2 = y
+                }
+    
+                currentBox.modified = 1
+                boxes[this.state.clickedArea.box] = currentBox
+                console.log("Current Box", currentBox)
+                this.setState({boxes: boxes})
+                this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+            }
+        }
+        else if(this.state.leftButtonTools === 3){
+            if (!this.state.immersive) {
+                const transX = this.state.viewport.translation.x
+                const transY = this.state.viewport.translation.y
+                const scale = this.state.viewport.scale
+                const halfValue = 256
+                let offsetminus = document.getElementById('canvas').width/2
+                x = (clickX - scale * transX - offsetminus) / scale + halfValue
+                y = (clickY - scale * transY - offsetminus) / scale + halfValue
+
+            } else {
+                x = clickX / 2.5
+                y = clickY / 2.5
+            }
+
+
+            let content = this.findMeasureArea(x, y)
+            // console.log('pos',content)
+            if (!this.state.clicked) {
+                if(content.m_pos === 'sl' || content.m_pos === 'el'){
+                    document.getElementById("canvas").style.cursor = "se-resize"
+                }
+                else if(content.m_pos === 'ss' || content.m_pos === 'es'){
+                    document.getElementById("canvas").style.cursor = "ne-resize"
+                }
+                else if (content.m_pos === 'cm') 
+                    document.getElementById("canvas").style.cursor = "grab"
+                else if (!this.state.clicked) 
+                    document.getElementById("canvas").style.cursor = "auto"
+            }
+            // console.log('onmousemove',this.state.clicked && this.state.clickedArea.box !== -1 && this.state.clickedArea.m_pos === 'om',this.state.tmpCoord)
+            if (this.state.clicked && this.state.clickedArea.box !== -1 && this.state.clickedArea.m_pos === 'om') {  //mousedown && mouse is inside the annos && ouside of measure
+                let tmpBox = this.state.tmpBox //={}
+                console.log('tmpBox',tmpBox)
+                tmpBox.measure = {}
+                let tmpCoord = this.state.tmpCoord
+                // console.log('xy',x,y)
+                tmpBox.measure.x1 = tmpCoord.x1
+                tmpBox.measure.y1 = tmpCoord.y1
+                tmpBox.measure.x2 = x
+                tmpBox.measure.y2 = y
+                tmpBox.measure.intersec_x = (x + tmpCoord.x1) / 2
+                tmpBox.measure.intersec_y = (y + tmpCoord.y1) / 2
+                tmpBox.measure.x3 = (tmpBox.measure.intersec_x + tmpCoord.x1) / 2
+                tmpBox.measure.y3 = (y + tmpBox.measure.intersec_y) / 2
+                tmpBox.measure.x4 = (x + tmpBox.measure.intersec_x) / 2
+                tmpBox.measure.y4 = (tmpBox.measure.intersec_y + tmpBox.measure.y1) / 2
+                this.setState({tmpBox:tmpBox})
+                console.log('tmpBox',tmpBox)
+                this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+            } else if (this.state.clicked && this.state.clickedArea.box !== -1 && this.state.clickedArea.m_pos !== 'om') { //mousedown && mouse is inside the annos && inside the measure
+                let boxes = this.state.boxes
+                let currentBox = boxes[this.state.clickedArea.box]
+                if(this.state.clickedArea.m_pos === 'sl'){
+                    currentBox.measure.x1 = x
+                    currentBox.measure.y1 = y
+                    currentBox.measure.intersec_x =  currentBox.measure.x2 - x
+                    currentBox.measure.intersec_y = currentBox.measure.y2 - y
+                    // currentBox.measure.x3 = currentBox.measure.intersec_x
+                }
+                else if(this.state.clickedArea.m_pos === 'el'){
+
+                }
+                else if(this.state.clickedArea.m_pos === 'ss'){
                     
                 }
-                this.setState({mousePrePos:mouseCurPos})
+                else if(this.state.clickedArea.m_pos === 'es'){
+                    
+                }
+                else if(this.state.clickedArea.m_pos === 'cm'){
+                    const oldCenterX = (currentBox.measure.x1 + currentBox.measure.x2) / 2
+                    const oldCenterY = (currentBox.measure.y1 + currentBox.measure.y2) / 2
+                    const xOffset = x - oldCenterX
+                    const yOffset = y - oldCenterY
+                    currentBox.measure.x1 += xOffset
+                    currentBox.measure.x2 += xOffset
+                    currentBox.measure.x3 += xOffset
+                    currentBox.measure.x4 += xOffset
+                    currentBox.measure.y1 += yOffset
+                    currentBox.measure.y2 += yOffset
+                    currentBox.measure.y3 += yOffset
+                    currentBox.measure.y4 += yOffset
+                    currentBox.measure.intersec_x = x
+                    currentBox.measure.intersec_y = y
+                }
+
+                boxes[this.state.clickedArea.box] = currentBox
+                console.log("Current Box", currentBox)
+                this.setState({boxes: boxes})
+                this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
             }
-        }
-        
-        if (!this.state.immersive) {
-            const transX = this.state.viewport.translation.x
-            const transY = this.state.viewport.translation.y
-            const scale = this.state.viewport.scale
-            const halfValue = 256
-            let offsetminus = document.getElementById('canvas').width/2
-            x = (clickX - scale * transX - offsetminus) / scale + halfValue
-            y = (clickY - scale * transY - offsetminus) / scale + halfValue
-
-        } else {
-            x = clickX / 2.5
-            y = clickY / 2.5
-        }
-
-
-        let content = this.findCurrentArea(x, y)
-        if (!this.state.clicked) {
-            if (content.pos === 't' || content.pos === 'b') 
-                document.getElementById("canvas").style.cursor = "s-resize"
-            else if (content.pos === 'l' || content.pos === 'r') 
-                document.getElementById("canvas").style.cursor = "e-resize"
-            else if (content.pos === 'tr' || content.pos === 'bl') 
-                document.getElementById("canvas").style.cursor = "ne-resize"
-            else if (content.pos === 'tl' || content.pos === 'br') 
-                document.getElementById("canvas").style.cursor = "nw-resize"
-            else if (content.pos === 'i') 
-                document.getElementById("canvas").style.cursor = "grab"
-            else if (!this.state.clicked) 
-                document.getElementById("canvas").style.cursor = "auto"
-        }
-
-        if (this.state.clicked && this.state.clickedArea.box === -1) {
-            let tmpBox = this.state.tmpBox
-            let tmpCoord = this.state.tmpCoord
-            console.log('xy',x,y)
-            let r = ((tmpCoord.x1 - x)**2+(tmpCoord.y1 - y)**2)**0.5
-            tmpBox.x1 = tmpCoord.x1 - r
-            tmpBox.y1 = tmpCoord.y1 - r
-            tmpBox.x2 = tmpCoord.x1 + r
-            tmpBox.y2 = tmpCoord.y1 + r
-            // tmpBox.x2 = x
-            // tmpBox.y2 = y
-            this.setState({tmpBox})
-            this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
-            // this.drawTmpBox()
-        } else if (this.state.clicked && this.state.clickedArea.box !== -1) {
-            let boxes = this.state.boxes
-            let currentBox = boxes[this.state.clickedArea.box]
-
-            if (this.state.clickedArea.pos === 'i') {
-                const oldCenterX = (currentBox.x1 + currentBox.x2) / 2
-                const oldCenterY = (currentBox.y1 + currentBox.y2) / 2
-                const xOffset = x - oldCenterX
-                const yOffset = y - oldCenterY
-                currentBox.x1 += xOffset
-                currentBox.x2 += xOffset
-                currentBox.y1 += yOffset
-                currentBox.y2 += yOffset
-            }
-
-            if (this.state.clickedArea.pos === 'tl' || this.state.clickedArea.pos === 'l' || this.state.clickedArea.pos === 'bl') {
-                currentBox.x1 = x
-            }
-            if (this.state.clickedArea.pos === 'tl' || this.state.clickedArea.pos === 't' || this.state.clickedArea.pos === 'tr') {
-                currentBox.y1 = y
-            }
-            if (this.state.clickedArea.pos === 'tr' || this.state.clickedArea.pos === 'r' || this.state.clickedArea.pos === 'br') {
-                currentBox.x2 = x
-            }
-            if (this.state.clickedArea.pos === 'bl' || this.state.clickedArea.pos === 'b' || this.state.clickedArea.pos === 'br') {
-                currentBox.y2 = y
-            }
-
-            console.log("Current Box", currentBox)
-
-            boxes[this.state.clickedArea.box] = currentBox
-            this.setState({boxes: boxes})
-            this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
         }
     }
 
@@ -3163,10 +3087,8 @@ class CornerstoneElement extends Component {
             //切换结节list
             event.preventDefault()
             const listsActiveIndex = this.state.listsActiveIndex
-            console.log('listsIdx',listsActiveIndex)
-            let boxes = this.state.boxes
             if(listsActiveIndex > 0)
-                this.keyDownSwitch(boxes[listsActiveIndex-1].nodule_no,boxes[listsActiveIndex-1].slice_idx)
+                this.keyDownListSwitch(listsActiveIndex-1)
         }
         if (event.which == 39) {
             event.preventDefault()
@@ -3180,11 +3102,14 @@ class CornerstoneElement extends Component {
             //切换结节list
             event.preventDefault()
             const listsActiveIndex = this.state.listsActiveIndex
-            
-            let boxes = this.state.boxes
-            console.log('listsIdx',listsActiveIndex,boxes[listsActiveIndex+1])
-            if(listsActiveIndex < boxes.length-1)
-                this.keyDownSwitch(boxes[listsActiveIndex+1].nodule_no,boxes[listsActiveIndex+1].slice_idx)
+            const boxes = this.state.boxes
+            if(listsActiveIndex < boxes.length-1){
+                this.keyDownListSwitch(listsActiveIndex+1)
+            }
+            else if(listsActiveIndex === boxes.length - 1){
+                this.keyDownListSwitch(0)
+            }
+                
         }
         if (event.which == 72) {
             this.toHidebox() 
@@ -3220,32 +3145,47 @@ class CornerstoneElement extends Component {
                 y = clickY / 2.5
             }
 
-            const coords = {
-                x1: x,
-                x2: x,
-                y1: y,
-                y2: y
+            if(this.state.leftButtonTools === 0){
+                const coords = {
+                    x1: x,
+                    x2: x,
+                    y1: y,
+                    y2: y
+                }
+                let content = this.findCurrentArea(x, y)
+                if (content.pos === 'o') {
+                    document
+                        .getElementById("canvas")
+                        .style
+                        .cursor = "crosshair"
+                }
+                else{
+                    document
+                        .getElementById("canvas")
+                        .style
+                        .cursor = "auto"
+                }
+                this.setState({clicked: true, clickedArea: content, tmpCoord: coords})
             }
-
-            // const coords = {
-            //     x:x,
-            //     y:y
-            // }
-            let content = this.findCurrentArea(x, y)
-            if (content.pos == 'o' && this.state.leftButtonTools === 0) {
-                document
-                    .getElementById("canvas")
-                    .style
-                    .cursor = "crosshair"
-            }
-            else{
-                document
-                    .getElementById("canvas")
-                    .style
-                    .cursor = "auto"
+            else if(this.state.leftButtonTools === 3){ //bidirection
+                const coords = {
+                    x1: x, //start
+                    y1: y,
+                    x2: x, //end
+                    y2: y,
+                    x3 :x,
+                    y3 :y,
+                    x4: x,
+                    y4: y,
+                    intersec_x: x,
+                    intersec_y: y,
+                }
+                let content = this.findMeasureArea(x,y)
+                console.log('cotnt',content)
+                this.setState({clicked: true, clickedArea: content, tmpCoord: coords})
             }
             // this.setState({clicked: true, clickedArea: content, tmpBox: coords})
-            this.setState({clicked: true, clickedArea: content, tmpCoord: coords})
+            
         }
         else if(event.button == 1){
             event.preventDefault()
@@ -3266,11 +3206,6 @@ class CornerstoneElement extends Component {
     }
 
     onMouseUp(event) {
-        // console.log('up', this.state.clickedArea)
-        const element = document.querySelector('#origin-canvas')
-        const currentToolType = this.state.toolState
-        let measureList = this.state.measureList
-        this.setState({mouseClickPos:{},mousePrePos:{},mouseCurPos:{},slideSpan:0})
         if (this.state.clickedArea.box === -1 && this.state.leftButtonTools === 0) {
             const x1 = this.state.tmpBox.x1
             const y1 = this.state.tmpBox.y1
@@ -3285,49 +3220,39 @@ class CornerstoneElement extends Component {
                 }
             }
             this.createBox(x1, x2, y1, y2, this.state.currentIdx, (1+newNodule_no).toString())
+            // this.createBox(this.state.tmpBox, this.state.currentIdx, (1+newNodule_no).toString())
         }
-        // else if()
-        
-        if(this.state.toolState !== ''){
-            
-            console.log('origin',measureList,measureList.length === 0)
-            if(measureList.length === 0 ){
-                measureList['EllipticalRoi'] = []
-                measureList['Bidirectional'] = []
-                // 'EllipticalRoi','Bidirectional'
-            }
-            console.log('measure',measureList,measureList.length === 0)
-            for (let i = 0; i < toolROITypes.length; i++) {
-                let toolROIType = toolROITypes[i];
-                // let toolROIData = globalImageIdSpecificToolStateManager.getImageIdToolState(this.state.imageIds[this.state.currentIdx], toolROIType);
-                // console.log('tool',toolROIData)++
-                let toolROIData = cornerstoneTools.getToolState(element,toolROIType)
-                // console.log('toolROIData',toolROIData)
-                // if(toolROIType === currentToolType){
-                //     toolROIData.data[toolROIData.data.length-1]['imageId'] = this.state.currentIdx
-                // }
-                if (toolROIData !== undefined) {
-                    allROIToolData[toolROITypes[i]] = toolROIData;
-                }
-            }
-            console.log('toolROIData',allROIToolData)
-            let toolROIData = cornerstoneTools.getToolState(element,currentToolType)
-            toolROIData.data[toolROIData.data.length-1]['imageId'] = this.state.currentIdx
-            console.log(toolROIData)
-            const index = measureList[currentToolType].length
-            console.log('index',index)
-            measureList[currentToolType].push(toolROIData.data[toolROIData.data.length-1])
-            // let toolROIDataString = JSON.stringify(allROIToolData);
-            // console.log('ROIData',allROIToolData)
-            // localStorage.setItem('ROI',toolROIDataString)
-            // this.setState({measureList:measureList})
-            console.log('list',this.state.measureList)
+        if(this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3 && event.button === 0 && this.state.clickedArea.m_pos === 'om'){
+            console.log('tmpBox',this.state.tmpBox)
+            const boxes = this.state.boxes
+            let currentBox = boxes[this.state.clickedArea.box]
+            currentBox.measure = {}
+            console.log('currentBox',currentBox)
+            currentBox.measure.x1 = this.state.tmpBox.measure.x1
+            currentBox.measure.y1 = this.state.tmpBox.measure.y1
+            currentBox.measure.x2 = this.state.tmpBox.measure.x2
+            currentBox.measure.y2 = this.state.tmpBox.measure.y2
+            currentBox.measure.x3 = this.state.tmpBox.measure.x3
+            currentBox.measure.y3 = this.state.tmpBox.measure.y3
+            currentBox.measure.x4 = this.state.tmpBox.measure.x4
+            currentBox.measure.y4 = this.state.tmpBox.measure.y4
+            currentBox.measure.intersec_x = this.state.tmpBox.measure.intersec_x
+            currentBox.measure.intersec_y = this.state.tmpBox.measure.intersec_y
+            boxes[this.state.clickedArea.box] = currentBox
+            this.setState({boxes:boxes})
+            this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+            console.log('box',this.state.boxes)
         }
+     
         this.setState({
             clicked: false,
             clickedArea: {},
             tmpBox: {},
-            tmpCoord:{}
+            tmpCoord:{},
+            mouseClickPos:{},
+            mousePrePos:{},
+            mouseCurPos:{},
+            slideSpan:0
             // measureList:measureList
             // random: Math.random()
         })
@@ -3385,6 +3310,7 @@ class CornerstoneElement extends Component {
         cornerstone.setViewport(this.element, viewport)
         this.setState({viewport})
         console.log("to ZoomIn", viewport)
+        
     }
 
     ZoomOut(){//缩小
@@ -3703,6 +3629,7 @@ class CornerstoneElement extends Component {
                 // if (this.state.boxes[i].slice_idx == this.state.currentIdx && this.state.immersive == false) 
                 if (this.state.boxes[i].slice_idx == this.state.currentIdx) 
                     this.drawBoxes(this.state.boxes[i])
+                    this.drawBidirection(this.state.boxes[i])
             }
 
         }
@@ -3712,8 +3639,8 @@ class CornerstoneElement extends Component {
         if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.leftButtonTools == 0) { 
             this.drawBoxes(this.state.tmpBox)
         }
-        else if(this.state.clicked && this.state.clickedArea.box == -1 && this.state.isbidirectionnal === true){
-            this.lengthMeasure(this.state.tmpBox)
+        else if(this.state.clicked && this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3){
+            this.drawBidirection(this.state.tmpBox)
         }
 
         this.setState({viewport})
@@ -3792,17 +3719,6 @@ class CornerstoneElement extends Component {
                 //     .wwwc
                 //     .activate(element, 2) // ww/wc is the default tool for middle mouse button
                 if(initial){
-                    //mousebuttonmask:4-middle,2-right,1-left
-                    // cornerstoneTools.addToolForElement(element, wwwc)
-                    // cornerstoneTools.setToolActiveForElement(
-                    //     element,
-                    //     'Wwwc',
-                    //     {
-                    //         mouseButtonMask: 2, //middle mouse button
-                    //     },
-                    //     ['Mouse']
-                    // )
-
                     if (!this.state.immersive) {
                         cornerstoneTools.addToolForElement(element, pan)
                         cornerstoneTools.setToolActiveForElement(
@@ -3814,14 +3730,6 @@ class CornerstoneElement extends Component {
                             ['Mouse']
 
                         )
-                        // cornerstoneTools.addToolForElement(element, zoomMouseWheel)
-                        // cornerstoneTools.setToolActiveForElement(
-                        //     element,
-                        //     'ZoomMouseWheel',
-                        //     { 
-                        //         mouseButtonMask: 2,
-                        //     }
-                        // )
                         cornerstoneTools.addToolForElement(element, zoomWheel)
                         cornerstoneTools.setToolActiveForElement(
                             element,
@@ -3830,36 +3738,7 @@ class CornerstoneElement extends Component {
                                 mouseButtonMask: 2,
                             }
                         )
-
-                        // cornerstoneTools
-                        //     .pan
-                        //     .activate(element, 4) // pan is the default tool for right mouse button
-                        // cornerstoneTools
-                        //     .zoomWheel
-                        //     .activate(element) // zoom is the default tool for middle mouse wheel
-
-                        // cornerstoneTools
-                        //     .touchInput
-                        //     .enable(element)
-                        // cornerstoneTools
-                        //     .panTouchDrag
-                        //     .activate(element)
-                        // cornerstoneTools
-                        //     .zoomTouchPinch
-                        //     .activate(element)
                 }
-                // else{
-                //     // console.log(image.getPixelData())
-                //     cornerstoneTools.addToolForElement(element, bidirectional)
-                //     cornerstoneTools.setToolActiveForElement(
-                //         element,
-                //         'Bidirectional',
-                //         {
-                //             mouseButtonMask:1,
-                //         },
-                //         ['Mouse']
-                //     )
-                // }
                 
             element.addEventListener("cornerstoneimagerendered", this.onImageRendered)
             element.addEventListener("cornerstonenewimage", this.onNewImage)
@@ -3950,53 +3829,6 @@ class CornerstoneElement extends Component {
             console.log(err)
         })
         
-        // Promise.all([
-        //     axios.post(draftConfig.getModelResults, qs.stringify(params), {headers}),
-        //     axios.post(draftConfig.getAnnoResults, qs.stringify(params), {headers}),
-        //     axios.post(reviewConfig.getReviewResults, qs.stringify(params), {headers})
-        // ]).then(([res1, res2, res3]) => {
-        //     const modelList = res1.data.dataList
-        //     const annoList = res2.data.dataList
-        //     const reviewList = res3.data.dataList
-
-        //     let modelStr = ''
-        //     let annoStr = ''
-        //     let reviewStr = ''
-
-        //     if (modelList.length > 0) {
-        //         // console.log(modelList)
-        //         for (var i = 0; i < modelList.length; i++) {
-        //             modelStr += '<a href="/case/' + this.state.caseId + '/' + modelList[i] + '"><div class="ui blue label">'
-        //             modelStr += modelList[i]
-        //             modelStr += '</div></a>'
-        //             modelStr += '</br></br>'
-        //         }
-        //         this.setState({modelResults: modelStr})
-        //         // console.log('模型结果',modelStr)
-        //     }
-
-        //     if (annoList.length > 0) {
-        //         for (var i = 0; i < annoList.length; i++) {
-        //             annoStr += '<a href="/case/' + this.state.caseId + '/' + annoList[i] + '"><div class="ui label">'
-        //             annoStr += annoList[i]
-        //             annoStr += '</div></a>'
-        //             annoStr += '</br></br>'
-        //         }
-        //         this.setState({annoResults: annoStr,newAnno:false})
-        //     }
-
-        //     if (reviewList.length > 0) {
-        //         for (var i = 0; i < reviewList.length; i++) {
-        //             reviewStr += '<a href="/review/' + this.state.caseId + '/' + reviewList[i] + '"><div class="ui teal label">'
-        //             reviewStr += reviewList[i]
-        //             reviewStr += '</div></a>'
-        //             reviewStr += '</br></br>'
-        //         }
-        //         this.setState({reviewResults: reviewStr})
-        //     }
-        // }).catch((error) => {
-        //     console.log(error)
-        // })
         if(document.getElementById('hideNodule') != null){
             document.getElementById('hideNodule').style.display='none'
         }
@@ -4059,13 +3891,17 @@ class CornerstoneElement extends Component {
         if(prevState.listsActiveIndex!==-1 && prevState.listsActiveIndex !== this.state.listsActiveIndex){
             const visId = 'visual-' + prevState.listsActiveIndex
             if(document.getElementById(visId) !== undefined && document.getElementById(visId) !== null){
-                document.getElementById(visId).innerHTML=''
+                // document.getElementById(visId).innerHTML=''
+                document.getElementById(visId).style.display='none'
             }
             else{
                 console.log('visId is not exist!')
             }
             console.log('listsActiveIndex',prevState.listsActiveIndex,this.state.listsActiveIndex)
             // document.
+        }
+        if(prevState.listsActiveIndex !== -1 && this.state.listsActiveIndex === -1){
+            this.setState({preListActiveIdx : prevState.listsActiveIndex})
         }
         if(prevState.currentIdx !== this.state.currentIdx){
             const currentIdx = this.state.currentIdx + 1

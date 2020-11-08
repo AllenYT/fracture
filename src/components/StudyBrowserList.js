@@ -126,9 +126,10 @@ class StudyBrowserList extends Component{
                 {
                     dateSeries.map((serie,index)=>{
                         let previewId='preview-'+index
+                        let keyId = 'key-' + index
                         // console.log('render',previewId)
                         return(
-                            <Card onClick={(e)=>this.props.handleClickScreen(e,serie.href)}>
+                            <Card onClick={(e)=>this.props.handleClickScreen(e,serie.href)} key={keyId}>
                                 <div className='preview-canvas' id={previewId}>
                                 </div>
                                 <Card.Content>

@@ -316,7 +316,7 @@ class MiniReport extends Component{
                 let texture=''
                 let calcification=''
                 let malignancy=''
-                console.log('minireport-boxes',this.state.boxes[this.props.activeItem],this.props.activeItem)
+                console.log('minireport-boxes',this.state.boxes,this.state.boxes[this.props.activeItem],this.props.activeItem)
                 if(this.state.boxes[this.props.activeItem]['place']===0 || this.state.boxes[this.props.activeItem]['place']===undefined || 
                 this.state.boxes[this.props.activeItem]['place']===""){
                     place='未知位置'
