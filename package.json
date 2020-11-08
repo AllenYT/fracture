@@ -42,7 +42,7 @@
     "xlsx": "^0.16.3"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "PORT=8096 react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -57,6 +57,7 @@
       "not op_mini all"
     ],
     "development": [
+      "ie 11",
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
