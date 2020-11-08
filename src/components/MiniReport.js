@@ -71,9 +71,25 @@ class MiniReport extends Component{
         
     }
 
-    componentDidUpdate(prevProps){
-        if(prevProps.activeItem != this.props.activeItem){
+    componentDidUpdate(prevProps,prevState){
+        if(prevProps.activeItem !== this.props.activeItem){
+            // console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
             this.template()
+        }
+        console.log('boxes changed',prevProps.boxes,this.props.boxes,prevState.boxes,this.state.boxes)
+        if(prevProps.boxes !== this.props.boxes){
+            console.log('boxes changed',prevProps.boxes,this.props.boxes)
+            const params = {
+                caseId: this.state.caseId,
+                username: this.state.username
+            }
+            axios.post(draftConfig.structedReport, qs.stringify(params)).then((response) => {
+                const data = response.data
+                console.log('report:',data,params)
+                this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
+                    patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
+               
+            }).catch((error) => console.log(error))
         }
     }
 
