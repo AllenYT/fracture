@@ -555,7 +555,7 @@ class CornerstoneElement extends Component {
     //     this.setState({listsActiveIndex: newIndex})
     // }
     handleListClick = (currentIdx,index,e) => {//点击list-item
-        console.log('id')
+        console.log('id',e.target.id)
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ 
         // (currentIdx -1)*100/this.state.imageIds.length+'%)}');
@@ -563,18 +563,19 @@ class CornerstoneElement extends Component {
         // console.log('index',index)
         const id=e.target.id
         // if(id!=='place-'+index && id!=='texSel-'+index && id!=='malSel-'+index && id!=='del-'+id.split("-")[1]){
-        const {listsActiveIndex} = this.state
-        const newIndex = listsActiveIndex === index
-            ? -1
-            : index
+        if(id!=='del-'+id.split("-")[1]){
+            const {listsActiveIndex} = this.state
+            const newIndex = listsActiveIndex === index
+                ? -1
+                : index
 
-        this.setState({
-            listsActiveIndex: newIndex,
-            currentIdx: currentIdx-1,
-            autoRefresh: true,
-            doubleClick:false
-        })
-        // }
+            this.setState({
+                listsActiveIndex: newIndex,
+                currentIdx: currentIdx-1,
+                autoRefresh: true,
+                doubleClick:false
+            })
+        }
         
     }
 
@@ -691,6 +692,7 @@ class CornerstoneElement extends Component {
     }
 
     delNodule(event) {
+        console.log('delOperation')
         const delNoduleId = event.target.id
         const nodule_no = delNoduleId.split("-")[1]
         let boxes = this.state.boxes
@@ -704,7 +706,7 @@ class CornerstoneElement extends Component {
             
         }
         this.setState({
-            boxes: boxes,
+            boxes: boxes
             // random: Math.random()
         })
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
@@ -1100,7 +1102,7 @@ class CornerstoneElement extends Component {
         
         
 
-        const panes = [
+        let panes = [
             { menuItem: '影像所见', render: () => 
                 <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} 
                 imageIds={this.state.imageIds} boxes={this.state.boxes} activeItem={this.state.doubleClick===true?'all':this.state.listsActiveIndex}/></Tab.Pane> },
