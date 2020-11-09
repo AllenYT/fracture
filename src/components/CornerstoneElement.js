@@ -2555,7 +2555,8 @@ class CornerstoneElement extends Component {
 
                                         </div>
                                         <div className='antd-slider'>
-                                            <Slider 
+                                            <Slider
+                                                id='antd-slide' 
                                                 vertical
                                                 reverse
                                                 tipFormatter={null}
@@ -3173,11 +3174,15 @@ class CornerstoneElement extends Component {
             this.setState({immersive: false})
         }
         if (event.which == 37 ) {
-            event.preventDefault()
-            let newCurrentIdx = this.state.currentIdx - 1
-            if (newCurrentIdx >= 0) {
-                this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+            // console.log('active item',document.activeElement,document.getElementsByClassName("ant-slider-handle")[0])
+            if(document.getElementsByClassName("ant-slider-handle")[0]!==document.activeElement){
+                event.preventDefault()
+                let newCurrentIdx = this.state.currentIdx - 1
+                if (newCurrentIdx >= 0) {
+                    this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+                }
             }
+            
         }
         if(event.which == 38){
             //切换结节list
@@ -3189,12 +3194,15 @@ class CornerstoneElement extends Component {
                 this.keyDownSwitch(parseInt(boxes[listsActiveIndex-1].nodule_no),boxes[listsActiveIndex-1].slice_idx)
         }
         if (event.which == 39) {
-            event.preventDefault()
-            let newCurrentIdx = this.state.currentIdx + 1
-            if (newCurrentIdx < this.state.imageIds.length) {
-                this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
-                // console.log('info',cornerstone.imageCache.getCacheInfo())
+            if(document.getElementsByClassName("ant-slider-handle")[0]!==document.activeElement){
+                event.preventDefault()
+                let newCurrentIdx = this.state.currentIdx + 1
+                if (newCurrentIdx < this.state.imageIds.length) {
+                    this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
+                    // console.log('info',cornerstone.imageCache.getCacheInfo())
+                }
             }
+            
         }
         if(event.which == 40){
             //切换结节list
