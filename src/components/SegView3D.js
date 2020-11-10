@@ -3,8 +3,9 @@ import vtkActor from "vtk.js/Sources/Rendering/Core/Actor"
 import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper'
 import vtkColorMaps from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction/ColorMaps';
 import vtkFullScreenRenderWindow from 'vtk.js/Sources/Rendering/Misc/FullScreenRenderWindow';
+import vtkPicker from 'vtk.js/Sources/Rendering/Core/Picker'
 import vtkCamera from 'vtk.js/Sources/Rendering/Core/Camera'
-import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer';
+import vtkRenderer from 'vtk.js/Sources/Rendering/Core/Renderer'
 import vtkGenericRenderWindow from 'vtk.js/Sources/Rendering/Misc/GenericRenderWindow'
 import vtkColorTransferFunction from 'vtk.js/Sources/Rendering/Core/ColorTransferFunction'
 import vtkXMLPolyDataReader from 'vtk.js/Sources/IO/XML/XMLPolyDataReader'
@@ -46,7 +47,6 @@ class SegView3D extends Component{
     componentDidMount(){
         this.props.onRef(this)
 
-        this.camera = vtkCamera.newInstance()
         // this.fullscreenRenderWindow = vtkFullScreenRenderWindow.newInstance({
         //     background: [0.329412, 0.34902, 0.427451],
         //     container: this.container.current,
@@ -81,15 +81,27 @@ class SegView3D extends Component{
 
 
         this.interactor = this.renderWindow.getInteractor()
-        this.renderer.setActiveCamera(this.camera)
-        this.interactor.setInteractorStyle(null)
-        // this.interactor.onMouseWheel((callback) => {
+        this.camera = this.renderer.getActiveCamera()
+        this.camera1 = this.renderer1.getActiveCamera()
+        this.camera1.setParallelProjection(true);
+        this.camera1.azimuth(180)
+        this.camera2 = this.renderer2.getActiveCamera()
+        this.camera2.setParallelProjection(true);
+        this.camera2.azimuth(180)
+        this.camera3 = this.renderer3.getActiveCamera()
+        this.camera3.setParallelProjection(true);
+        this.camera3.azimuth(180)
+        // this.interactor.setInteractorStyle(null)
+        this.picker = vtkPicker.newInstance()
+        // this.interactor.onLeftButtonPress((callback) => {
         //     console.log("inter:", callback)
+        //     if(this.picker){
+        //         this.picker.pick([callback.position.x, callback.position.y, callback.position.z], callback.pokedRenderer)
+        //         let picked = this.picker.getPickedPositions()
+        //         console.log("picked:", this.picker.getPickedPositions())
+        //     }
         // })
 
-
-        //this.componentDidUpdate({})
-        this.renderer.resetCamera()
         this.renderWindow.render()
         // this.setState({
         //     funcOperator:this.props.funcOperator
@@ -100,36 +112,70 @@ class SegView3D extends Component{
     }
 
     componentDidUpdate(prevProps) {
-
-        // if (prevProps.volumes !== this.props.volumes){
-        //     if(this.props.volumes.length){
-        //         this.props.volumes.forEach(this.renderer.addVolume);
-        //     }else{
-        //         //  Remove all volumes
+        // if (prevProps.volumes !== this.props.volumes) {
+        //     console.log("this.props",this.props.volumes)
+        //     if (this.props.volumes.length) {
+        //         this.props.volumes.forEach(this.renderer1.addVolume);
+        //     } else {
+        //         // TODO: Remove all volumes
         //     }
-        //     this.renderWindow.render()
+        //     this.renderer1.resetCamera()
+        //     this.renderWindow.render();
         // }
-        if (this.props.loading) {
-            //console.log("call Update actos change", this.props.actors)
-            // console.log("getActor before", this.renderer.getActors())
-            // this.renderer.removeAllActors()
-            // console.log("getActor after", this.renderer.getActors())
-            let actorsList = []
-            this.props.actors.forEach(item => {
-                if(item){
-                    actorsList.push(item)
-                }
-            })
-            if (actorsList) {
-                actorsList.forEach(this.renderer.addActor)
+        if (prevProps.axialActorVolumes !== this.props.axialActorVolumes) {
+            console.log("this.axialActorVolumes",this.props.axialActorVolumes)
+            if (this.props.axialActorVolumes.length) {
+                this.props.axialActorVolumes.forEach(this.renderer1.addVolume);
             } else {
-                // Remove all actors
+                // TODO: Remove all volumes
             }
-            this.renderer.resetCamera()
-            this.renderWindow.render()
-        }else{
-            console.log("loading complete")
+            this.renderer1.resetCamera()
+            this.renderWindow.render();
         }
+        if (prevProps.coronalVolumes !== this.props.coronalVolumes) {
+            console.log("this.coronalVolumes",this.props.coronalVolumes)
+            if (this.props.coronalVolumes.length) {
+                this.props.coronalVolumes.forEach(this.renderer2.addVolume);
+            } else {
+                // TODO: Remove all volumes
+            }
+            this.renderer2.resetCamera()
+            this.renderWindow.render();
+        }
+        if (prevProps.sagittalActorVolumes !== this.props.sagittalActorVolumes) {
+            console.log("this.sagittalActorVolumes",this.props.sagittalActorVolumes)
+            if (this.props.sagittalActorVolumes.length) {
+                this.props.sagittalActorVolumes.forEach(this.renderer3.addVolume);
+            } else {
+                // TODO: Remove all volumes
+            }
+            this.renderer3.resetCamera()
+            this.renderWindow.render();
+        }
+        // if (this.props.loading) {
+        //     //console.log("call Update actos change", this.props.actors)
+        //     // console.log("getActor before", this.renderer.getActors())
+        //     // this.renderer.removeAllActors()
+        //     // console.log("getActor after", this.renderer.getActors())
+        //     let actorsList = []
+        //     this.props.actors.forEach(item => {
+        //         if(item){
+        //             actorsList.push(item)
+        //         }
+        //     })
+        //     if (actorsList) {
+        //         actorsList.forEach(this.renderer.addActor)
+        //     } else {
+        //         // Remove all actors
+        //     }
+        //     this.renderer.resetCamera()
+        //     this.renderWindow.render()
+        // }else{
+        //     console.log("loading complete")
+        // }
+    }
+    reRenderAll(){
+        this.renderWindow.render()
     }
     magnifyView(){
         this.camera.dolly(1.1)

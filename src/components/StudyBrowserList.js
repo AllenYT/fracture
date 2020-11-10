@@ -74,7 +74,6 @@ class StudyBrowserList extends Component{
                             //     cornerstone.setViewport(element, viewport)
                             //     cornerstone.displayImage(element, image)
                             // })
-                            
                             theList.push({
                                 'date':key,
                                 'caseId':serie.split('#')[0],

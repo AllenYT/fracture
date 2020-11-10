@@ -1,4 +1,5 @@
 import React, { Component, useCallback } from "react";
+import { vec3 , mat4} from 'gl-matrix';
 import { useRef, createRef } from "react";
 import CornerstoneElement from "../components/CornerstoneElement";
 import * as cornerstone from "cornerstone-core";
@@ -11,6 +12,12 @@ import vtkActor from "vtk.js/Sources/Rendering/Core/Actor";
 import vtkMapper from "vtk.js/Sources/Rendering/Core/Mapper";
 import vtkColorMaps from "vtk.js/Sources/Rendering/Core/ColorTransferFunction/ColorMaps";
 import vtkColorTransferFunction from "vtk.js/Sources/Rendering/Core/ColorTransferFunction";
+import vtkDataArray from 'vtk.js/Sources/Common/Core/DataArray';
+import vtkImageData from 'vtk.js/Sources/Common/DataModel/ImageData';
+import vtkImageReslice from 'vtk.js/Sources/Imaging/Core/ImageReslice';
+import vtkImageMapper from 'vtk.js/Sources/Rendering/Core/ImageMapper';
+import vtkVolume from 'vtk.js/Sources/Rendering/Core/Volume';
+import vtkVolumeMapper from 'vtk.js/Sources/Rendering/Core/VolumeMapper';
 import vtkXMLPolyDataReader from "vtk.js/Sources/IO/XML/XMLPolyDataReader";
 import HttpDataAccessHelper from "vtk.js/Sources/IO/Core/DataAccessHelper/HttpDataAccessHelper";
 
@@ -40,6 +47,12 @@ const config = require("../config.json");
 const dataConfig = config.data;
 const draftConfig = config.draft;
 const userConfig = config.user
+const imageData = vtkImageData.newInstance();
+const volumeActor = vtkVolume.newInstance();
+const volumeMapper = vtkVolumeMapper.newInstance();
+const cImageReslice = vtkImageReslice.newInstance();
+const aImageReslice = vtkImageReslice.newInstance();
+const sImageReslice = vtkImageReslice.newInstance();
 
 const dictList = {
   0:{class:0, label:"lung",  name:"肺",color:{c1:197, c2:165, c3:145}},
@@ -60,6 +73,7 @@ class ViewerPanel extends Component {
       windowHeight: window.screen.height,
       caseId: window.location.pathname.split("/segView/")[1].split("/")[0],
       username: window.location.pathname.split("/")[3],
+      imageIds: [],
       urls: [],
       actors: [],
       segments: [],
@@ -75,6 +89,10 @@ class ViewerPanel extends Component {
       percent: [],
       viewerWidth: 0,
       viewerHeight: 0,
+      volumes: [],
+      coronalVolumes: [],
+      sagittalActorVolumes: [],
+      axialActorVolumes: []
     };
     this.nextPath = this.nextPath.bind(this);
     this.handleLogout = this
@@ -123,7 +141,102 @@ class ViewerPanel extends Component {
     return actor;
   }
 
-  componentDidMount() {
+  createSlicePipeline(imageReslice, cols, rows) {
+    // imageReslice.setScalarScale(65535 / 255);
+    console.log("axes", imageReslice.getResliceAxes())
+    const obliqueSlice = imageReslice.getOutputData();
+    console.log("obliqueSlice", imageReslice.getOutputData().getPointData().getScalars().getData())
+    obliqueSlice.setDimensions(cols,rows,10)
+
+    const mapper = vtkVolumeMapper.newInstance();
+    mapper.setInputData(obliqueSlice)
+    const actor = vtkVolume.newInstance();
+    actor.setMapper(mapper);
+
+    const range = imageData
+        .getPointData()
+        .getScalars()
+        .getRange();
+    console.log("range:",range)
+    actor
+        .getProperty()
+        .getRGBTransferFunction(0)
+        .setRange(range[0], range[1]);
+
+    return actor
+    // const sampleDistance =
+    //     1.2 *
+    //     Math.sqrt(
+    //         imageData
+    //             .getSpacing()
+    //             .map(v => v * v)
+    //             .reduce((a, b) => a + b, 0)
+    //     );
+    // mapper.setSampleDistance(sampleDistance);
+
+    // const ctfun = vtkColorTransferFunction.newInstance();
+    // ctfun.addRGBPoint(200, 1, 1, 1);
+    // ctfun.addRGBPoint(2000.0, 0, 0, 0);
+    // ctfun.addRGBPoint(-1000, 0.3, 0.3, 1);
+    // ctfun.addRGBPoint(-600, 0, 0, 1);
+    // ctfun.addRGBPoint(-530, 0.134704, 0.781726, 0.0724558);
+    // ctfun.addRGBPoint(-460, 0.929244, 1, 0.109473);
+    // ctfun.addRGBPoint(-400, 0.888889, 0.254949, 0.0240258);
+    // ctfun.addRGBPoint(2952, 1, 0.3, 0.3);
+
+    // actor.getProperty().setRGBTransferFunction(0, ctfun);
+  }
+
+  createMPRImageReslice(){
+    //sagittal 矢状面 coronal 冠状面 axial 轴状面
+    const axialAxes = mat4.create()
+    // axialAxes[14] = 90
+    const coronalAxes = mat4.fromValues(
+        1, 0, 0, 0,
+        0, 0, 1, 0,
+        0, -1, 0, 0,
+        0, 0, 0, 1
+    )
+    coronalAxes[13] = 240
+    const sagittalAxes = mat4.fromValues(
+        0, 0, -1, 0,
+        0, 1, 0, 0,
+        1, 0, 0, 0,
+        0, 0, 0, 1)
+    sagittalAxes[12] = 130 
+    // const sagittalAxes = mat4.create()
+    // mat4.rotateZ(sagittalAxes, sagittalAxes, -90 * Math.PI / 180)
+    // const translate = mat4.create()
+    // translate[14] = -130
+    // mat4.multiply(sagittalAxes, sagittalAxes, translate)
+    aImageReslice.setInputData(imageData)
+    aImageReslice.setOutputDimensionality(2);
+    aImageReslice.setOutputScalarType('Uint16Array');
+    aImageReslice.setResliceAxes(axialAxes)
+
+    cImageReslice.setInputData(imageData)
+    cImageReslice.setOutputDimensionality(2);
+    cImageReslice.setOutputScalarType('Uint16Array');
+    cImageReslice.setResliceAxes(coronalAxes)
+
+    sImageReslice.setInputData(imageData)
+    sImageReslice.setOutputDimensionality(2);
+    sImageReslice.setOutputScalarType('Uint16Array');
+    sImageReslice.setResliceAxes(sagittalAxes)
+  }
+
+  updateVolumeActor(){
+    const axialActor = this.createSlicePipeline(aImageReslice, 512, 512 )
+    const coronalActor = this.createSlicePipeline(cImageReslice, 512, 512 )
+    const sagittalActor = this.createSlicePipeline(sImageReslice, 512, 512)
+    this.setState({
+      axialActorVolumes: [axialActor],
+      coronalVolumes: [coronalActor],
+      sagittalActorVolumes: [sagittalActor]
+    })
+  }
+
+  async componentDidMount() {
     console.log("call didMount", this.state.caseId);
     const token = localStorage.getItem("token");
     const headers = {
@@ -132,7 +245,6 @@ class ViewerPanel extends Component {
     const dataParams = {
       caseId: this.state.caseId,
     };
-
     axios
       .post(dataConfig.getMhaListForCaseId, qs.stringify(dataParams), {
         headers,
@@ -181,13 +293,14 @@ class ViewerPanel extends Component {
           listLoading: tmp_listLoading
         });
 
-        tmp_urls.forEach((inside, idx) =>{
-          this.DownloadSegment(idx)
-        })
+        // tmp_urls.forEach((inside, idx) =>{
+        //   this.DownloadSegment(idx)
+        // })
       })
       .catch((error) => {
         console.log(error);
       });
+
     // const dom = ReactDOM.findDOMNode(this.gridRef);
     document.getElementById('header').style.display = 'none'
 
@@ -199,6 +312,188 @@ class ViewerPanel extends Component {
     // window.addEventListener('mouseup', this.mouseUp.bind(this))
     // window.addEventListener('mousemove', this.mouseMove.bind(this))
     // window.addEventListener('mousewheel', this.mouseWheel.bind(this))
+    const imageIdPromise = new Promise((resolve, reject) => {
+      axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams), {headers})
+          .then((res) => {
+            const imageIds = res.data
+            resolve(imageIds)
+          },reject)
+
+    })
+    const imageIds = await imageIdPromise
+    this.setState({
+      imageIds: imageIds
+    })
+    const metaDataPromise = new Promise((resolve, reject) => {
+      cornerstone.loadAndCacheImage(imageIds[0]).then(img => {
+        let dataSet = img.data
+        let bitsAllocated = dataSet.int16('x00280100')
+        let bitsStored = dataSet.int16('x00280101')
+        let samplesPerPixel = dataSet.int16('x00280002')
+        let highBit = dataSet.int16('x00280102')
+        let photometricInterpretation = dataSet.string('x00280004')
+        let pixelRepresentation = dataSet.int16('x00280103')
+        let windowWidth = dataSet.string('x00281051')
+        let windowCenter = dataSet.string('x00281050')
+        let modality = dataSet.string('x00080060')
+        const imageMetaData = {
+          bitsAllocated: bitsAllocated,
+          bitsStored: bitsStored,
+          samplesPerPixel: samplesPerPixel,
+          highBit: highBit,
+          photometricInterpretation: photometricInterpretation,
+          pixelRepresentation: pixelRepresentation,
+          windowWidth: windowWidth,
+          windowCenter: windowCenter,
+        }
+        let studyInstanceUid = dataSet.string('x0020000d');
+        let rows = dataSet.int16('x00280010');
+        let columns = dataSet.int16('x00280011');
+        let imagePositionPatientString = dataSet.string('x00200032')
+        let imagePositionPatient = imagePositionPatientString.split('\\')
+        let imageOrientationPatientString = dataSet.string('x00200037')
+        let imageOrientationPatient = imageOrientationPatientString.split('\\')
+        let rowCosines = [imageOrientationPatient[0], imageOrientationPatient[1], imageOrientationPatient[2]]
+        let columnCosines = [imageOrientationPatient[3], imageOrientationPatient[4], imageOrientationPatient[5]]
+        let pixelSpacingString = dataSet.string('x00280030')
+        let pixelSpacing = pixelSpacingString.split('\\')
+        let rowPixelSpacing = pixelSpacing[0]
+        let columnPixelSpacing = pixelSpacing[1]
+        const metaData0 = {
+          frameOfReferenceUID: studyInstanceUid,
+          rows: rows,
+          columns: columns,
+          rowCosines: rowCosines,
+          columnCosines: columnCosines,
+          imagePositionPatient: imagePositionPatient,
+          imageOrientationPatient: imageOrientationPatient,
+          pixelSpacing: pixelSpacing,
+          rowPixelSpacing: rowPixelSpacing,
+          columnPixelSpacing: columnPixelSpacing
+        };
+
+        const pixeldata = img.getPixelData()
+        const {intercept, slope} = img
+        console.log("img",img)
+        const pixelArray = new Uint16Array(512 * 512 * 512);
+        const scalarArray = vtkDataArray.newInstance({
+          name: 'Pixels',
+          values: pixelArray
+        });
+        const rowCosineVec = vec3.fromValues(...rowCosines);
+        const colCosineVec = vec3.fromValues(...columnCosines);
+        const scanAxisNormal = vec3.cross([], rowCosineVec, colCosineVec);
+        const direction = [...rowCosineVec, ...colCosineVec, ...scanAxisNormal];
+        // const { spacing, origin, sortedDatasets } = sortDatasetsByImagePosition(
+        //     scanAxisNormal,
+        //     metaDataMap
+        // );
+        //
+        const xSpacing = img.columnPixelSpacing;
+        const ySpacing = img.rowPixelSpacing;
+        const zSpacing = 0;
+        imageData.setDirection(direction);
+        imageData.setDimensions(512, 512, 512);
+        // imageData.setSpacing(xSpacing, ySpacing, zSpacing);
+        // imageData.setOrigin(...origin);
+        imageData.getPointData().setScalars(scalarArray);
+
+        const scalars = imageData.getPointData().getScalars();
+        const scalarData = scalars.getData();
+        const sliceLength = pixeldata.length
+        const totalLength = scalarData.length
+        console.log("length",{sliceLength, totalLength})
+        for (let pixelIndex = 0; pixelIndex < pixeldata.length; pixelIndex++) {
+          // const destIdx = totalLength - 1 - pixelIndex;
+          const destIdx = pixelIndex;
+          const pixel = pixeldata[pixelIndex];
+          // const pixelValue = pixel * slope + intercept
+          const pixelValue = pixel
+          scalarData[destIdx] = pixelValue;
+        }
+
+        this.createMPRImageReslice()
+
+        this.updateVolumeActor()
+        resolve({metaData0, imageMetaData})
+      },reject)
+    })
+    const {metaData0, imageMetaData} = await metaDataPromise
+    console.log("this is ", metaData0)
+    console.log("this is ", imageMetaData)
+    // imageIds.splice(5)
+    imageIds.splice(0,1)
+    imageIds.forEach((item, idx)=>{
+      cornerstone.loadAndCacheImage(item).then(img=>{
+        const pixeldata = img.getPixelData()
+        const {intercept, slope} = img
+        const scalars = imageData.getPointData().getScalars();
+        const scalarData = scalars.getData();
+        const sliceLength = pixeldata.length
+        const totalLength = scalarData.length
+        for (let pixelIndex = 0; pixelIndex < pixeldata.length; pixelIndex++) {
+          // const destIdx = totalLength - 1 - (pixelIndex + idx * sliceLength);
+          const destIdx = (pixelIndex + idx * sliceLength);
+          const pixel = pixeldata[pixelIndex];
+          const pixelValue = pixel
+
+          scalarData[destIdx] = pixelValue;
+        }
+        if(idx === imageIds.length - 1){
+          imageData.modified()
+          this.updateVolumeActor()
+        }else{
+          if(idx % 20 === 0){
+            console.log("modified")
+            imageData.modified()
+            this.updateVolumeActor()
+          }
+        }
+      })
+    })
+
+    // cornerstone
+    //     .loadAndCacheImage(imageIds[0])
+    //     .then(img => {
+    //
+    //       // const ctfun = vtkColorTransferFunction.newInstance();
+    //       // ctfun.addRGBPoint(200, 1, 1, 1);
+    //       // ctfun.addRGBPoint(2000.0, 0, 0, 0);
+    //       // ctfun.addRGBPoint(-1000, 0.3, 0.3, 1);
+    //       // ctfun.addRGBPoint(-600, 0, 0, 1);
+    //       // ctfun.addRGBPoint(-530, 0.134704, 0.781726, 0.0724558);
+    //       // ctfun.addRGBPoint(-460, 0.929244, 1, 0.109473);
+    //       // ctfun.addRGBPoint(-400, 0.888889, 0.254949, 0.0240258);
+    //       // ctfun.addRGBPoint(2952, 1, 0.3, 0.3);
+    //       //
+    //       // volumeActor.getProperty().setRGBTransferFunction(0, ctfun);
+    //
+    //       // const nowPixelArray = new Uint16Array(512 * 512 * 10);
+    //       // const nowScalarArray = vtkDataArray.newInstance({
+    //       //   name: 'Pixels',
+    //       //   values: nowPixelArray
+    //       // });
+    //       // const nowImageData = vtkImageData.newInstance();
+    //       // nowImageData.setDimensions(512, 512, 10);
+    //       // nowImageData.setDirection(direction)
+    //       // nowImageData.getPointData().setScalars(nowScalarArray);
+    //       // const nowScalars = nowImageData.getPointData().getScalars();
+    //       // const nowScalarData = nowScalars.getData();
+    //       // for (let pixelIndex = 0; pixelIndex < pixeldata.length; pixelIndex++) {
+    //       //   const pixelValue1 = scalarData[pixelIndex]
+    //       //   nowScalarData[pixelIndex] = pixelValue1;
+    //       // }
+    //       // for (let pixelIndex = 0; pixelIndex < pixeldata.length; pixelIndex++) {
+    //       //   const destIdx = pixelIndex + 9 * pixeldata.length;
+    //       //   const pixelValue2 = scalarData[pixelIndex]
+    //       //   nowScalarData[destIdx] = pixelValue2;
+    //       // }
+    //       // const actor = this.createCT3dPipeline(nowImageData)
+    //
+    //       // imageIds.splice(4)
+    //     //   imageIds.splice(0,1)
+    //     //   imageIds.map((item, idx)=>{
+    // })
   }
   componentWillMount() {
     window.removeEventListener('resize', this.resize3DView.bind(this))
@@ -239,29 +534,6 @@ class ViewerPanel extends Component {
     if(e.path[0].nodeName === 'CANVAS'){
       this.segView3D.dblclick(e.offsetX, e.offsetY)
     }
-  }
-  mouseDown(e){
-    console.log("mouseDown:",e)
-  }
-  mouseUp(e){
-    console.log("mouseUp:",e)
-  }
-  mouseMove(e){
-    //console.log("mouseMove:",e)
-  }
-
-  mouseWheel(e){
-    console.log("mouseWheel:",e)
-  }
-
-  mouseOut(e){
-    console.log("mouseOut:",e) // div1 移出 div2
-  }
-  mouseLeave(e){
-    console.log("mouseLeave:",e)
-  }
-  mouseEnter(e){
-    console.log("mouseEnter:",e)
   }
 
   resize3DView(){
@@ -355,6 +627,24 @@ class ViewerPanel extends Component {
     }
     // window.location.href=href
   }
+  rotateX(){
+
+  }
+  rotateY(){
+
+  }
+  rotateZ(){
+
+  }
+  translateX(){
+
+  }
+  translateY(){
+
+  }
+  translateZ(){
+
+  }
   handleFuncButton(idx, e){
     switch (idx){
       case 0:this.segView3D.magnifyView()
@@ -375,6 +665,18 @@ class ViewerPanel extends Component {
         break
       case 8:this.segView3D.cancelSelection()
         break
+      case 9:this.rotateX()
+            break
+      case 10:this.rotateY()
+            break
+      case 11:this.rotateZ()
+            break
+      case 12:this.translateX()
+            break
+      case 13:this.translateY()
+            break
+      case 14:this.translateZ()
+            break
     }
   }
   handleListClick(idx, e, data) {
@@ -441,7 +743,11 @@ class ViewerPanel extends Component {
         segments,
         opacity,
         viewerWidth,
-        viewerHeight
+        viewerHeight,
+      coronalVolumes,
+      sagittalActorVolumes,
+      axialActorVolumes,
+      volumes,
     } = this.state;
 
     let canvasStyle ={width:`${viewerWidth}px`, height:`${viewerHeight}px`}
@@ -578,6 +884,12 @@ class ViewerPanel extends Component {
               <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 6)}>3</Button>
               <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 7)}>4</Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 8)}><Icon name='th large' size='large'/></Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 9)}>rx</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 10)}>ry</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 11)}>rz</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 12)}>tx</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 13)}>ty</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 14)}>tz</Button>
 
             </Button.Group>
           </Menu.Item>
@@ -607,8 +919,13 @@ class ViewerPanel extends Component {
                 }} style={style} /> */}
               <div className="segment-container" id="segment-container">
                 <div className="segment-canvas"  style={canvasStyle}>
-                  <SegView3D id="3d-viewer" loading={loading} actors={segments}
-                  onRef={(ref) => {this.segView3D = ref}}/>
+                  <SegView3D id="3d-viewer"
+                             loading={loading}
+                             actors={segments} volumes={volumes}
+                             axialActorVolumes={axialActorVolumes}
+                             coronalVolumes={coronalVolumes}
+                             sagittalActorVolumes={sagittalActorVolumes}
+                             onRef={(ref) => {this.segView3D = ref}}/>
                 </div>
                 <div className="loading-list" hidden={loadingNum === 0} style={canvasStyle}>
                   {loadingList}
