@@ -14,8 +14,9 @@ import vtkColorMaps from "vtk.js/Sources/Rendering/Core/ColorTransferFunction/Co
 import vtkColorTransferFunction from "vtk.js/Sources/Rendering/Core/ColorTransferFunction";
 import vtkDataArray from 'vtk.js/Sources/Common/Core/DataArray';
 import vtkImageData from 'vtk.js/Sources/Common/DataModel/ImageData';
+import vtkSphereSource from 'vtk.js/Sources/Filters/Sources/SphereSource';
+import vtkSphereMapper from 'vtk.js/Sources/Rendering/Core/SphereMapper';
 import vtkImageReslice from 'vtk.js/Sources/Imaging/Core/ImageReslice';
-import vtkImageMapper from 'vtk.js/Sources/Rendering/Core/ImageMapper';
 import vtkVolume from 'vtk.js/Sources/Rendering/Core/Volume';
 import vtkVolumeMapper from 'vtk.js/Sources/Rendering/Core/VolumeMapper';
 import vtkXMLPolyDataReader from "vtk.js/Sources/IO/XML/XMLPolyDataReader";
@@ -47,9 +48,9 @@ const config = require("../config.json");
 const dataConfig = config.data;
 const draftConfig = config.draft;
 const userConfig = config.user
+
 const imageData = vtkImageData.newInstance();
-const volumeActor = vtkVolume.newInstance();
-const volumeMapper = vtkVolumeMapper.newInstance();
+const sphereSource = vtkSphereSource.newInstance();
 const cImageReslice = vtkImageReslice.newInstance();
 const aImageReslice = vtkImageReslice.newInstance();
 const sImageReslice = vtkImageReslice.newInstance();
@@ -71,13 +72,22 @@ class ViewerPanel extends Component {
     this.state = {
       windowWidth: window.screen.width,
       windowHeight: window.screen.height,
+      viewerWidth: 0,
+      viewerHeight: 0,
       caseId: window.location.pathname.split("/segView/")[1].split("/")[0],
       username: window.location.pathname.split("/")[3],
       imageIds: [],
       urls: [],
-      actors: [],
-      segments: [],
       show: false,
+      segments: [],
+      segRange: {
+        xMax:-Infinity,
+        yMax:-Infinity,
+        zMax:-Infinity,
+        xMin:Infinity,
+        yMin:Infinity,
+        zMin:Infinity
+      },
       segVisible: [],
       opacity: [],
       listsActive: [],
@@ -87,12 +97,13 @@ class ViewerPanel extends Component {
       loading: false,
       listLoading:[],
       percent: [],
-      viewerWidth: 0,
-      viewerHeight: 0,
       volumes: [],
-      coronalVolumes: [],
+      origin: [130,240,90],
+      coronalActorVolumes: [],
       sagittalActorVolumes: [],
-      axialActorVolumes: []
+      axialActorVolumes: [],
+      pointActors: [],
+      editing: false
     };
     this.nextPath = this.nextPath.bind(this);
     this.handleLogout = this
@@ -103,29 +114,62 @@ class ViewerPanel extends Component {
 
   createPipeline(binary, type, opacity = 0.5) {
     // console.log("createPipeline")
+
     const vtpReader = vtkXMLPolyDataReader.newInstance()
     vtpReader.parseAsArrayBuffer(binary)
     const source = vtpReader.getOutputData()
-    const lookupTable = vtkColorTransferFunction.newInstance()
-    const lookback=vtkPiecewiseFunction.newInstance()
 
+    let xMax = -Infinity
+    let yMax = -Infinity
+    let zMax = -Infinity
+    let xMin = Infinity
+    let yMin = Infinity
+    let zMin = Infinity
+    const points = source.getPoints()
+    for(let i = 0; i < points.getNumberOfPoints(); i++){
+      let point = points.getPoint(i)
+      let x = point[0]
+      let y = point[1]
+      let z = point[2]
+      xMin = Math.min(x, xMin)
+      yMin = Math.min(y, yMin)
+      zMin = Math.min(z, zMin)
+      xMax = Math.max(x, xMax)
+      yMax = Math.max(y, yMax)
+      zMax = Math.max(z, zMax)
+    }
+    let range = {
+      xMax:xMax,
+      yMax:yMax,
+      zMax:zMax,
+      xMin:xMin,
+      yMin:yMin,
+      zMin:zMin
+    }
+    console.log("segRange:", range)
+    this.setState({
+      segRange: range
+    })
+    // const lookupTable = vtkColorTransferFunction.newInstance()
+    // const lookback=vtkPiecewiseFunction.newInstance()
     // const scalars = source.getPointData().getScalars();
     // const dataRange = [].concat(scalars ? scalars.getRange() : [0, 1]);
-
     // lookupTable.addRGBPoint(200.0,1.0,1.0,1.0)
-    lookupTable.applyColorMap(vtkColorMaps.getPresetByName('erdc_rainbow_bright'))
-
+    // lookupTable.applyColorMap(vtkColorMaps.getPresetByName('erdc_rainbow_bright'))
     // lookupTable.setMappingRange(dataRange[0], dataRange[1]);
     // lookupTable.updateRange();
+    // const mapper = vtkMapper.newInstance({
+    //   interpolateScalarsBeforeMapping: false, //颜色插值
+    //   useLookupTableScalarRange: true,
+    //   lookupTable,
+    //   scalarVisibility: false,
+    // })
 
     const mapper = vtkMapper.newInstance({
-      interpolateScalarsBeforeMapping: false,
-      useLookupTableScalarRange: true,
-      lookupTable,
-      scalarVisibility: false,
+      scalarVisibility: false
     })
+
     const actor = vtkActor.newInstance();
-    actor.rotateX(-90);
     actor.getProperty().setOpacity(opacity);
     actor.setMapper(mapper);
     // let color="";
@@ -145,7 +189,6 @@ class ViewerPanel extends Component {
     // imageReslice.setScalarScale(65535 / 255);
     console.log("axes", imageReslice.getResliceAxes())
     const obliqueSlice = imageReslice.getOutputData();
-    console.log("obliqueSlice", imageReslice.getOutputData().getPointData().getScalars().getData())
     obliqueSlice.setDimensions(cols,rows,10)
 
     const mapper = vtkVolumeMapper.newInstance();
@@ -189,21 +232,23 @@ class ViewerPanel extends Component {
 
   createMPRImageReslice(){
     //sagittal 矢状面 coronal 冠状面 axial 轴状面
+    const origin = this.state.origin
     const axialAxes = mat4.create()
-    // axialAxes[14] = 90
+    axialAxes[14] = origin[2]
     const coronalAxes = mat4.fromValues(
         1, 0, 0, 0,
         0, 0, 1, 0,
         0, -1, 0, 0,
         0, 0, 0, 1
     )
-    coronalAxes[13] = 240
+    coronalAxes[13] = origin[1]
     const sagittalAxes = mat4.fromValues(
         0, 0, -1, 0,
         0, 1, 0, 0,
         1, 0, 0, 0,
         0, 0, 0, 1)
-    sagittalAxes[12] = 130 
+    sagittalAxes[12] = origin[0]
+
     // const sagittalAxes = mat4.create()
     // mat4.rotateZ(sagittalAxes, sagittalAxes, -90 * Math.PI / 180)
     // const translate = mat4.create()
@@ -226,12 +271,26 @@ class ViewerPanel extends Component {
   }
 
   updateVolumeActor(){
+    const origin = this.state.origin
+    const axialAxes = aImageReslice.getResliceAxes()
+    axialAxes[14] = origin[2]
+    const coronalAxes = cImageReslice.getResliceAxes()
+    coronalAxes[13] = origin[1]
+    const sagittalAxes = sImageReslice.getResliceAxes()
+    sagittalAxes[12] = origin[0]
+
+    aImageReslice.setResliceAxes(axialAxes)
+    cImageReslice.setResliceAxes(coronalAxes)
+    sImageReslice.setResliceAxes(sagittalAxes)
+
     const axialActor = this.createSlicePipeline(aImageReslice, 512, 512 )
     const coronalActor = this.createSlicePipeline(cImageReslice, 512, 512 )
+    coronalActor.rotateZ(-180)
     const sagittalActor = this.createSlicePipeline(sImageReslice, 512, 512)
+
     this.setState({
       axialActorVolumes: [axialActor],
-      coronalVolumes: [coronalActor],
+      coronalActorVolumes: [coronalActor],
       sagittalActorVolumes: [sagittalActor]
     })
   }
@@ -272,7 +331,6 @@ class ViewerPanel extends Component {
             tmp_urls.push([type, it]) //urls[0] is type, urls[1] is url
           })
         })
-
         const tmp_segments = Object.keys(tmp_urls).map((key) => null);
         const tmp_percent = Object.keys(tmp_urls).map((key) => 0);
         const tmp_segVisible = Object.keys(tmp_urls).map((key) => 0);
@@ -296,6 +354,7 @@ class ViewerPanel extends Component {
         // tmp_urls.forEach((inside, idx) =>{
         //   this.DownloadSegment(idx)
         // })
+
       })
       .catch((error) => {
         console.log(error);
@@ -306,8 +365,8 @@ class ViewerPanel extends Component {
 
     this.resize3DView()
     window.addEventListener('resize', this.resize3DView.bind(this))
-
     window.addEventListener('dblclick' , this.dblclick.bind(this))
+    window.addEventListener('click', this.click.bind(this))
     // window.addEventListener('mousedown', this.mouseDown.bind(this))
     // window.addEventListener('mouseup', this.mouseUp.bind(this))
     // window.addEventListener('mousemove', this.mouseMove.bind(this))
@@ -411,7 +470,6 @@ class ViewerPanel extends Component {
           const pixelValue = pixel
           scalarData[destIdx] = pixelValue;
         }
-
         this.createMPRImageReslice()
 
         this.updateVolumeActor()
@@ -421,7 +479,6 @@ class ViewerPanel extends Component {
     const {metaData0, imageMetaData} = await metaDataPromise
     console.log("this is ", metaData0)
     console.log("this is ", imageMetaData)
-    // imageIds.splice(5)
     imageIds.splice(0,1)
     imageIds.forEach((item, idx)=>{
       cornerstone.loadAndCacheImage(item).then(img=>{
@@ -452,51 +509,11 @@ class ViewerPanel extends Component {
       })
     })
 
-    // cornerstone
-    //     .loadAndCacheImage(imageIds[0])
-    //     .then(img => {
-    //
-    //       // const ctfun = vtkColorTransferFunction.newInstance();
-    //       // ctfun.addRGBPoint(200, 1, 1, 1);
-    //       // ctfun.addRGBPoint(2000.0, 0, 0, 0);
-    //       // ctfun.addRGBPoint(-1000, 0.3, 0.3, 1);
-    //       // ctfun.addRGBPoint(-600, 0, 0, 1);
-    //       // ctfun.addRGBPoint(-530, 0.134704, 0.781726, 0.0724558);
-    //       // ctfun.addRGBPoint(-460, 0.929244, 1, 0.109473);
-    //       // ctfun.addRGBPoint(-400, 0.888889, 0.254949, 0.0240258);
-    //       // ctfun.addRGBPoint(2952, 1, 0.3, 0.3);
-    //       //
-    //       // volumeActor.getProperty().setRGBTransferFunction(0, ctfun);
-    //
-    //       // const nowPixelArray = new Uint16Array(512 * 512 * 10);
-    //       // const nowScalarArray = vtkDataArray.newInstance({
-    //       //   name: 'Pixels',
-    //       //   values: nowPixelArray
-    //       // });
-    //       // const nowImageData = vtkImageData.newInstance();
-    //       // nowImageData.setDimensions(512, 512, 10);
-    //       // nowImageData.setDirection(direction)
-    //       // nowImageData.getPointData().setScalars(nowScalarArray);
-    //       // const nowScalars = nowImageData.getPointData().getScalars();
-    //       // const nowScalarData = nowScalars.getData();
-    //       // for (let pixelIndex = 0; pixelIndex < pixeldata.length; pixelIndex++) {
-    //       //   const pixelValue1 = scalarData[pixelIndex]
-    //       //   nowScalarData[pixelIndex] = pixelValue1;
-    //       // }
-    //       // for (let pixelIndex = 0; pixelIndex < pixeldata.length; pixelIndex++) {
-    //       //   const destIdx = pixelIndex + 9 * pixeldata.length;
-    //       //   const pixelValue2 = scalarData[pixelIndex]
-    //       //   nowScalarData[destIdx] = pixelValue2;
-    //       // }
-    //       // const actor = this.createCT3dPipeline(nowImageData)
-    //
-    //       // imageIds.splice(4)
-    //     //   imageIds.splice(0,1)
-    //     //   imageIds.map((item, idx)=>{
-    // })
   }
   componentWillMount() {
     window.removeEventListener('resize', this.resize3DView.bind(this))
+    window.removeEventListener('dblclick', this.dblclick.bind(this))
+    window.removeEventListener('click', this.click.bind(this))
   }
   componentDidUpdate(prevProps, prevState, snapshot) {
     const listLoading = this.state.listLoading
@@ -535,7 +552,42 @@ class ViewerPanel extends Component {
       this.segView3D.dblclick(e.offsetX, e.offsetY)
     }
   }
+  click(e){
+    if(this.state.editing){
+      if(e.path[0].nodeName === 'CANVAS'){
+        const picked = this.segView3D.mousemove(e.offsetX, e.offsetY)
+        console.log("picked ", picked)
+        if(picked){
+          sphereSource.setRadius(10)
+          sphereSource.setCenter(picked)
+          const mapper = vtkMapper.newInstance({
+            scalarVisibility: false
+          })
+          mapper.setInputData(sphereSource.getOutputData());
+          const actor = vtkActor.newInstance();
+          actor.setMapper(mapper);
 
+          const origin = this.state.origin
+          const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
+          const x = picked[0]
+          const y = picked[1]
+          const z = picked[2]
+          origin[0] = 512 * (x - xMin) / (xMax - xMin)
+          origin[1] = 512 * (zMax - z) / (zMax - zMin)
+          origin[2] = this.state.imageIds.length * (y - yMin) / (yMax - yMin)
+          this.setState({
+            origin: origin,
+            pointActors: [actor]
+          })
+          imageData.modified()
+          this.updateVolumeActor()
+        }
+      }
+    }
+  }
+  mousedown(e){
+
+  }
   resize3DView(){
     if(document.getElementById('segment-container') !== null) {
       const clientWidth = document.getElementById('segment-container').clientWidth
@@ -559,7 +611,10 @@ class ViewerPanel extends Component {
     HttpDataAccessHelper.fetchBinary(cur_url, { progressCallback,} )
         .then((binary) => {
           const actor = this.createPipeline(binary,type)
-          let tmp_segments = this.state.segments
+          let tmp_segments = []
+          this.state.segments.forEach((item, idx) =>{
+            tmp_segments[idx] = item
+          })
           tmp_segments[idx] = actor
           let tmp_segVisible = this.state.segVisible
           tmp_segVisible[idx] = 1
@@ -628,22 +683,54 @@ class ViewerPanel extends Component {
     // window.location.href=href
   }
   rotateX(){
-
+    this.setState({
+      editing: true
+    })
   }
   rotateY(){
-
+    this.setState({
+      editing: false
+    })
   }
   rotateZ(){
-
+    const center = sphereSource.getCenter()
+    console.log("center:", center)
+    center[1] = center[1] + 20
+    sphereSource.setCenter(center)
+    console.log("center:", sphereSource.getCenter())
+    const mapper = vtkMapper.newInstance({
+      scalarVisibility: false
+    })
+    mapper.setInputData(sphereSource.getOutputData());
+    const actor = vtkActor.newInstance();
+    actor.setMapper(mapper);
+    this.setState({
+      editing: true,
+      pointActors: [actor]
+    })
   }
   translateX(){
-
+    const center = sphereSource.getCenter()
+    console.log("center:", center)
+    center[2] = center[2] + 20
+    sphereSource.setCenter(center)
+    console.log("center:", sphereSource.getCenter())
+    const mapper = vtkMapper.newInstance({
+      scalarVisibility: false
+    })
+    mapper.setInputData(sphereSource.getOutputData());
+    const actor = vtkActor.newInstance();
+    actor.setMapper(mapper);
+    this.setState({
+      editing: true,
+      pointActors: [actor]
+    })
   }
   translateY(){
 
   }
   translateZ(){
-
+    this.segView3D.reRenderAll()
   }
   handleFuncButton(idx, e){
     switch (idx){
@@ -694,7 +781,21 @@ class ViewerPanel extends Component {
     e.stopPropagation();
     let tmp_segVisible = this.state.segVisible;
     tmp_segVisible[idx] = tmp_segVisible[idx] === 1 ? 0 : 1;
-    this.setState({ segVisible: tmp_segVisible });
+
+    let tmp_segments = []
+    this.state.segments.forEach((item, i) =>{
+      tmp_segments[i] = item
+    })
+    if(tmp_segVisible[idx] === 0){
+      tmp_segments[idx].getProperty().setOpacity(0)
+    }else{
+      tmp_segments[idx].getProperty().setOpacity(this.state.opacity[idx])
+    }
+
+    this.setState({
+      segVisible: tmp_segVisible,
+      segments: tmp_segments
+    });
   }
   handleOpacityButton(idx, e) {
     e.stopPropagation();
@@ -706,8 +807,18 @@ class ViewerPanel extends Component {
     e.stopPropagation();
     let tmp_opacity = this.state.opacity;
     tmp_opacity[idx] = e.target.value;
+
+    let tmp_segments = []
+    this.state.segments.forEach((item, i) =>{
+      tmp_segments[i] = item
+    })
+    if(this.state.segVisible[idx] === 1){
+      tmp_segments[idx].getProperty().setOpacity(e.target.value)
+    }
+
     this.setState({
       opacity: tmp_opacity,
+      segments: tmp_segments
     });
   }
   handleOptButton(e){
@@ -739,12 +850,13 @@ class ViewerPanel extends Component {
         optVisible,
         optSelected,
         loading,
+        pointActors,
         percent,
         segments,
         opacity,
         viewerWidth,
         viewerHeight,
-      coronalVolumes,
+      coronalActorVolumes,
       sagittalActorVolumes,
       axialActorVolumes,
       volumes,
@@ -849,15 +961,6 @@ class ViewerPanel extends Component {
           <List.Item key = {idx}><Checkbox label={inside} checked={optSelected[idx] === 1} onChange={this.changeOptSelection.bind(this, idx)}/></List.Item>
       )
     })
-    for (let cur_idx in segments) {
-      if (segments[cur_idx]) {
-        if (!segVisible[cur_idx]) {
-          segments[cur_idx].getProperty().setOpacity(0);
-        } else {
-          segments[cur_idx].getProperty().setOpacity(opacity[cur_idx]);
-        }
-      }
-    }
 
     // let segments_list = [];
     // for (let cur_idx in segments) {
@@ -921,9 +1024,10 @@ class ViewerPanel extends Component {
                 <div className="segment-canvas"  style={canvasStyle}>
                   <SegView3D id="3d-viewer"
                              loading={loading}
+                             pointActors={pointActors}
                              actors={segments} volumes={volumes}
                              axialActorVolumes={axialActorVolumes}
-                             coronalVolumes={coronalVolumes}
+                             coronalActorVolumes={coronalActorVolumes}
                              sagittalActorVolumes={sagittalActorVolumes}
                              onRef={(ref) => {this.segView3D = ref}}/>
                 </div>

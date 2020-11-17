@@ -82,6 +82,7 @@ class SegView3D extends Component{
 
         this.interactor = this.renderWindow.getInteractor()
         this.camera = this.renderer.getActiveCamera()
+        this.camera.elevation(-90)
         this.camera1 = this.renderer1.getActiveCamera()
         this.camera1.setParallelProjection(true);
         this.camera1.azimuth(180)
@@ -93,14 +94,14 @@ class SegView3D extends Component{
         this.camera3.azimuth(180)
         // this.interactor.setInteractorStyle(null)
         this.picker = vtkPicker.newInstance()
-        // this.interactor.onLeftButtonPress((callback) => {
-        //     console.log("inter:", callback)
-        //     if(this.picker){
-        //         this.picker.pick([callback.position.x, callback.position.y, callback.position.z], callback.pokedRenderer)
-        //         let picked = this.picker.getPickedPositions()
-        //         console.log("picked:", this.picker.getPickedPositions())
-        //     }
-        // })
+        this.interactor.onLeftButtonPress((callback) => {
+            console.log("inter:", callback.position)
+            if(this.picker){
+                this.picker.pick([callback.position.x, callback.position.y, callback.position.z], callback.pokedRenderer)
+                let picked = this.picker.getPickedPositions()
+                console.log("picked " + this.picker.getPickedPositions()[0])
+            }
+        })
 
         this.renderWindow.render()
         // this.setState({
@@ -132,10 +133,10 @@ class SegView3D extends Component{
             this.renderer1.resetCamera()
             this.renderWindow.render();
         }
-        if (prevProps.coronalVolumes !== this.props.coronalVolumes) {
-            console.log("this.coronalVolumes",this.props.coronalVolumes)
-            if (this.props.coronalVolumes.length) {
-                this.props.coronalVolumes.forEach(this.renderer2.addVolume);
+        if (prevProps.coronalActorVolumes !== this.props.coronalActorVolumes) {
+            console.log("this.coronalVolumes",this.props.coronalActorVolumes)
+            if (this.props.coronalActorVolumes.length) {
+                this.props.coronalActorVolumes.forEach(this.renderer2.addVolume);
             } else {
                 // TODO: Remove all volumes
             }
@@ -152,29 +153,36 @@ class SegView3D extends Component{
             this.renderer3.resetCamera()
             this.renderWindow.render();
         }
-        // if (this.props.loading) {
-        //     //console.log("call Update actos change", this.props.actors)
-        //     // console.log("getActor before", this.renderer.getActors())
-        //     // this.renderer.removeAllActors()
-        //     // console.log("getActor after", this.renderer.getActors())
-        //     let actorsList = []
-        //     this.props.actors.forEach(item => {
-        //         if(item){
-        //             actorsList.push(item)
-        //         }
-        //     })
-        //     if (actorsList) {
-        //         actorsList.forEach(this.renderer.addActor)
-        //     } else {
-        //         // Remove all actors
-        //     }
-        //     this.renderer.resetCamera()
-        //     this.renderWindow.render()
-        // }else{
-        //     console.log("loading complete")
-        // }
+        if (prevProps.pointActors !== this.props.pointActors){
+            console.log("this.pointActors",this.props.pointActors)
+            if (this.props.pointActors.length){
+                prevProps.pointActors.forEach(this.renderer.removeActor);
+                this.props.pointActors.forEach(this.renderer.addActor);
+                console.log("this.actors",this.renderer.getActors())
+            }else{
+
+            }
+            this.renderWindow.render();
+        }
+        if (prevProps.actors !== this.props.actors){
+            if (this.props.actors.length) {
+                this.props.actors.forEach(this.renderer.addActor);
+            } else {
+                // TODO: Remove all volumes
+            }
+            this.renderer.resetCamera()
+            this.renderWindow.render()
+        }
+        if (this.props.loading) {
+            //console.log("call Update actos change", this.props.actors)
+            // this.renderer.removeAllActors()
+            this.renderer.resetCamera()
+        }else{
+            console.log("loading complete")
+        }
     }
     reRenderAll(){
+        this.renderer.resetCamera()
         this.renderWindow.render()
     }
     magnifyView(){
@@ -273,7 +281,24 @@ class SegView3D extends Component{
 
         this.renderWindow.render()
     }
+    click(){
+        // window.addEventListener('mousedown', function (e){
+        //     console.log("mousedown", e)
+        //     window.addEventListener('mouseup', function (e) {
+        //         console.log("mouseup: ", e)
+        //     }, false)
+        // }, false)
+    }
+    mousemove(offsetX, offsetY){
+        const x = offsetX
+        const y = this.state.viewerHeight - offsetY
+        const movePicker = vtkPicker.newInstance()
+        movePicker.pick([x, y, 0], this.renderer)
+        const picked = movePicker.getPickedPositions()[0]
+        return picked
+    }
     dblclick(offsetX, offsetY){
+        //offset is based on top left
         const {viewerWidth, viewerHeight, selected, selectedNum} = this.state
         if(selected){
             const oneThirdWidth = viewerWidth/3
