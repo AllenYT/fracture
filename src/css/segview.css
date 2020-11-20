@@ -60,6 +60,26 @@ segment-accordion{
   position: absolute;
   top: 0;
 }
+.segment-content{
+  position: absolute;
+  top: 0;
+  z-index: 0;
+}
+.segment-content-block{
+  border:1px solid #364f5b;
+}
+.segment-content-row{
+  position: absolute;
+  height: 5px;
+  border-top: 2px transparent;
+  border-bottom: 2px transparent;
+}
+.segment-content-column{
+  position: absolute;
+  width: 3px;
+  border-left: 1px transparent;
+  border-right: 1px transparent;
+}
 .loading-list{
   position:absolute;
   top:0;

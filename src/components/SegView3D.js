@@ -18,7 +18,7 @@ import qs from 'qs'
 import vtkInteractorStyleTrackballCamera from "vtk.js/Sources/Interaction/Style/InteractorStyleTrackballCamera";
 
 const normalVpList = [[0.0, 0.0, 0.5, 0.5], [0.0, 0.5, 0.5, 1.0], [0.5, 0.0, 1.0, 0.5], [0.5, 0.5, 1.0, 1.0]] //左下，左上，右下，右上
-const selectedVpList = [[0.0, 0.0, 0.67, 1.0], [0.67, 0.0, 1.0, 0.33], [0.67, 0.33, 1.0, 0.66], [0.67, 0.66, 1.0, 1.0]]
+const selectedVpList = [[0.0, 0.0, 0.67, 1.0], [0.67, 0.0, 1.0, 0.34], [0.67, 0.34, 1.0, 0.67], [0.67, 0.67, 1.0, 1.0]]
 
 class SegView3D extends Component{
     static propTypes = {
@@ -64,15 +64,15 @@ class SegView3D extends Component{
 
         this.renderer1 = vtkRenderer.newInstance()
         this.renderer1.setViewport(normalVpList[1][0], normalVpList[1][1], normalVpList[1][2], normalVpList[1][3])
-        this.renderer1.setBackground([1,1,0])
+        this.renderer1.setBackground([0,0,0])
 
         this.renderer2 = vtkRenderer.newInstance()
         this.renderer2.setViewport(normalVpList[0][0], normalVpList[0][1], normalVpList[0][2], normalVpList[0][3])
-        this.renderer2.setBackground([1,0,1])
+        this.renderer2.setBackground([0,0,0])
 
         this.renderer3 = vtkRenderer.newInstance()
         this.renderer3.setViewport(normalVpList[2][0], normalVpList[2][1], normalVpList[2][2], normalVpList[2][3])
-        this.renderer3.setBackground([0,1,1])
+        this.renderer3.setBackground([0,0,0])
 
         this.renderWindow.addRenderer(this.renderer1)
         this.renderWindow.addRenderer(this.renderer2)
@@ -82,16 +82,15 @@ class SegView3D extends Component{
 
         this.interactor = this.renderWindow.getInteractor()
         this.camera = this.renderer.getActiveCamera()
+
         this.camera.elevation(-90)
         this.camera1 = this.renderer1.getActiveCamera()
-        this.camera1.setParallelProjection(true);
         this.camera1.azimuth(180)
         this.camera2 = this.renderer2.getActiveCamera()
-        this.camera2.setParallelProjection(true);
         this.camera2.azimuth(180)
         this.camera3 = this.renderer3.getActiveCamera()
-        this.camera3.setParallelProjection(true);
         this.camera3.azimuth(180)
+        this.camera3.setViewUp(1,0,0)
         // this.interactor.setInteractorStyle(null)
         this.picker = vtkPicker.newInstance()
         this.interactor.onLeftButtonPress((callback) => {
@@ -124,7 +123,7 @@ class SegView3D extends Component{
         //     this.renderWindow.render();
         // }
         if (prevProps.axialActorVolumes !== this.props.axialActorVolumes) {
-            console.log("this.axialActorVolumes",this.props.axialActorVolumes)
+            // console.log("this.axialActorVolumes",this.props.axialActorVolumes)
             if (this.props.axialActorVolumes.length) {
                 this.props.axialActorVolumes.forEach(this.renderer1.addVolume);
             } else {
@@ -134,7 +133,7 @@ class SegView3D extends Component{
             this.renderWindow.render();
         }
         if (prevProps.coronalActorVolumes !== this.props.coronalActorVolumes) {
-            console.log("this.coronalVolumes",this.props.coronalActorVolumes)
+            // console.log("this.coronalVolumes",this.props.coronalActorVolumes)
             if (this.props.coronalActorVolumes.length) {
                 this.props.coronalActorVolumes.forEach(this.renderer2.addVolume);
             } else {
@@ -144,7 +143,7 @@ class SegView3D extends Component{
             this.renderWindow.render();
         }
         if (prevProps.sagittalActorVolumes !== this.props.sagittalActorVolumes) {
-            console.log("this.sagittalActorVolumes",this.props.sagittalActorVolumes)
+            // console.log("this.sagittalActorVolumes",this.props.sagittalActorVolumes)
             if (this.props.sagittalActorVolumes.length) {
                 this.props.sagittalActorVolumes.forEach(this.renderer3.addVolume);
             } else {
@@ -154,7 +153,7 @@ class SegView3D extends Component{
             this.renderWindow.render();
         }
         if (prevProps.pointActors !== this.props.pointActors){
-            console.log("this.pointActors",this.props.pointActors)
+            // console.log("this.pointActors",this.props.pointActors)
             if (this.props.pointActors.length){
                 prevProps.pointActors.forEach(this.renderer.removeActor);
                 this.props.pointActors.forEach(this.renderer.addActor);
@@ -197,14 +196,23 @@ class SegView3D extends Component{
         this.renderer.resetCameraClippingRange()
         this.renderWindow.render()
     }
-    turnRight(){
-        this.camera.azimuth(90)
+    turnUp(){
+        console.log("focal", this.camera.getFocalPoint())
+        console.log("position", this.camera.getPosition())
+        this.renderWindow.render()
+    }
+    turnDown(){
         this.renderWindow.render()
     }
     turnLeft(){
+        this.camera.azimuth(90)
+        this.renderWindow.render()
+    }
+    turnRight(){
         this.camera.azimuth(-90)
         this.renderWindow.render()
     }
+
     setContainerSize(width, height){
         if(this.glWindow){
             this.setState({
@@ -216,12 +224,25 @@ class SegView3D extends Component{
             this.renderWindow.render()
         }
     }
-    selectOne(){
-        this.setState({
-            selected: true,
-            selectedNum: 1,
-        })
 
+
+    selectByNum(selectedNum){
+        if(selectedNum === 0){
+            this.cancelSelection()
+        }else if(selectedNum === 1){
+            this.selectOne()
+        }else if(selectedNum === 2){
+            this.selectTwo()
+        }else if(selectedNum === 3){
+            this.selectThree()
+        }else if(selectedNum === 4){
+            this.selectFour()
+        }
+        this.setState({
+            selectedNum: selectedNum
+        })
+    }
+    selectOne(){
         this.renderer.setViewport(selectedVpList[0][0], selectedVpList[0][1], selectedVpList[0][2], selectedVpList[0][3])
         this.renderer1.setViewport(selectedVpList[3][0], selectedVpList[3][1], selectedVpList[3][2], selectedVpList[3][3])
         this.renderer2.setViewport(selectedVpList[2][0], selectedVpList[2][1], selectedVpList[2][2], selectedVpList[2][3])
@@ -230,11 +251,6 @@ class SegView3D extends Component{
         this.renderWindow.render()
     }
     selectTwo(){
-        this.setState({
-            selected: true,
-            selectedNum: 2
-        })
-
         this.renderer.setViewport(selectedVpList[3][0], selectedVpList[3][1], selectedVpList[3][2], selectedVpList[3][3])
         this.renderer1.setViewport(selectedVpList[0][0], selectedVpList[0][1], selectedVpList[0][2], selectedVpList[0][3])
         this.renderer2.setViewport(selectedVpList[2][0], selectedVpList[2][1], selectedVpList[2][2], selectedVpList[2][3])
@@ -243,11 +259,6 @@ class SegView3D extends Component{
         this.renderWindow.render()
     }
     selectThree(){
-        this.setState({
-            selected: true,
-            selectedNum: 3
-        })
-
         this.renderer.setViewport(selectedVpList[3][0], selectedVpList[3][1], selectedVpList[3][2], selectedVpList[3][3])
         this.renderer1.setViewport(selectedVpList[2][0], selectedVpList[2][1], selectedVpList[2][2], selectedVpList[2][3])
         this.renderer2.setViewport(selectedVpList[0][0], selectedVpList[0][1], selectedVpList[0][2], selectedVpList[0][3])
@@ -256,11 +267,6 @@ class SegView3D extends Component{
         this.renderWindow.render()
     }
     selectFour(){
-        this.setState({
-            selected: true,
-            selectedNum: 4
-        })
-
         this.renderer.setViewport(selectedVpList[3][0], selectedVpList[3][1], selectedVpList[3][2], selectedVpList[3][3])
         this.renderer1.setViewport(selectedVpList[2][0], selectedVpList[2][1], selectedVpList[2][2], selectedVpList[2][3])
         this.renderer2.setViewport(selectedVpList[1][0], selectedVpList[1][1], selectedVpList[1][2], selectedVpList[1][3])
@@ -269,11 +275,6 @@ class SegView3D extends Component{
         this.renderWindow.render()
     }
     cancelSelection(){
-        this.setState({
-            selected: false,
-            selectedNum: 0
-        })
-
         this.renderer.setViewport(normalVpList[3][0], normalVpList[3][1], normalVpList[3][2], normalVpList[3][3])
         this.renderer1.setViewport(normalVpList[1][0], normalVpList[1][1], normalVpList[1][2], normalVpList[1][3])
         this.renderer2.setViewport(normalVpList[0][0], normalVpList[0][1], normalVpList[0][2], normalVpList[0][3])
@@ -281,15 +282,8 @@ class SegView3D extends Component{
 
         this.renderWindow.render()
     }
-    click(){
-        // window.addEventListener('mousedown', function (e){
-        //     console.log("mousedown", e)
-        //     window.addEventListener('mouseup', function (e) {
-        //         console.log("mouseup: ", e)
-        //     }, false)
-        // }, false)
-    }
-    mousemove(offsetX, offsetY){
+
+    click(offsetX, offsetY){
         const x = offsetX
         const y = this.state.viewerHeight - offsetY
         const movePicker = vtkPicker.newInstance()
@@ -299,8 +293,8 @@ class SegView3D extends Component{
     }
     dblclick(offsetX, offsetY){
         //offset is based on top left
-        const {viewerWidth, viewerHeight, selected, selectedNum} = this.state
-        if(selected){
+        const {viewerWidth, viewerHeight, selectedNum} = this.state
+        if(selectedNum !== 0){
             const oneThirdWidth = viewerWidth/3
             const oneThirdHeight = viewerHeight/3
             if(offsetX > 2*oneThirdWidth){
@@ -309,38 +303,50 @@ class SegView3D extends Component{
                     console.log("selected:", selectedNum)
                     if(offsetY < oneThirdHeight){
                         this.selectTwo()
+                        return 2;
                     }else if(offsetY > oneThirdHeight && offsetY < 2*oneThirdHeight){
                         this.selectThree()
+                        return 3;
                     }else if(offsetY > 2*oneThirdHeight){
                         this.selectFour()
+                        return 4;
                     }
 
                 }else if(selectedNum === 2){
                     console.log("selected:", selectedNum)
                     if(offsetY < oneThirdHeight){
                         this.selectOne()
+                        return 1;
                     }else if(offsetY > oneThirdHeight && offsetY < 2*oneThirdHeight){
                         this.selectThree()
+                        return 3;
                     }else if(offsetY > 2*oneThirdHeight){
                         this.selectFour()
+                        return 4;
                     }
                 }else if(selectedNum === 3){
                     console.log("selected:", selectedNum)
                     if(offsetY < oneThirdHeight){
                         this.selectOne()
+                        return 1;
                     }else if(offsetY > oneThirdHeight && offsetY < 2*oneThirdHeight){
                         this.selectTwo()
+                        return 3;
                     }else if(offsetY > 2*oneThirdHeight){
                         this.selectFour()
+                        return 4;
                     }
                 }else if(selectedNum === 4){
                     console.log("selected:", selectedNum)
                     if(offsetY < oneThirdHeight){
                         this.selectOne()
+                        return 1;
                     }else if(offsetY > oneThirdHeight && offsetY < 2*oneThirdHeight){
                         this.selectTwo()
+                        return 2;
                     }else if(offsetY > 2*oneThirdHeight){
                         this.selectThree()
+                        return 4;
                     }
                 }
             }
@@ -349,16 +355,21 @@ class SegView3D extends Component{
             const halfHeight = viewerHeight/2
             if(offsetX < halfWidth && offsetY < halfHeight){
                 this.selectTwo()
+                return 2;
             }else if(offsetX > halfWidth && offsetY < halfHeight){
                 this.selectOne()
+                return 1;
             }else if(offsetX < halfWidth && offsetY > halfHeight){
                 this.selectThree()
+                return 3;
             }else if(offsetX > halfWidth && offsetY > halfHeight){
                 this.selectFour()
+                return 4;
             }
         }
     }
     render() {
+
         if (!this.props.volumes && !this.props.actors) {
             return null;
         }

@@ -66,6 +66,19 @@ const dictList = {
   7:{class:1, label:"lobe_5",name:"右肺上叶",color:{c1:216, c2:101, c3:79}}
 }
 
+const contentUnselectedStyles =[
+    {position: "absolute"},
+    {position: "absolute"},
+  {position: "absolute"},
+  {position: "absolute"}
+]
+const contentSelectedStyles = [
+  {position: "absolute"},
+  {position: "absolute"},
+  {position: "absolute"},
+  {position: "absolute"}
+]
+
 class ViewerPanel extends Component {
   constructor(props) {
     super(props);
@@ -98,12 +111,21 @@ class ViewerPanel extends Component {
       listLoading:[],
       percent: [],
       volumes: [],
-      origin: [130,240,90],
+      origin: [140,240,10],
+      axialActorVolumes: [],
       coronalActorVolumes: [],
       sagittalActorVolumes: [],
-      axialActorVolumes: [],
       pointActors: [],
-      editing: false
+      editing: false,
+      selected: false,
+      selectedNum: 0,
+      selectionStyles:[],
+      axialRowStyle: {},
+      axialColumnStyle: {},
+      coronalRowStyle: {},
+      coronalColumnStyle: {},
+      sagittalRowStyle: {},
+      sagittalColumnStyle: {},
     };
     this.nextPath = this.nextPath.bind(this);
     this.handleLogout = this
@@ -200,7 +222,6 @@ class ViewerPanel extends Component {
         .getPointData()
         .getScalars()
         .getRange();
-    console.log("range:",range)
     actor
         .getProperty()
         .getRGBTransferFunction(0)
@@ -235,6 +256,7 @@ class ViewerPanel extends Component {
     const origin = this.state.origin
     const axialAxes = mat4.create()
     axialAxes[14] = origin[2]
+    // rotateX -PI/2
     const coronalAxes = mat4.fromValues(
         1, 0, 0, 0,
         0, 0, 1, 0,
@@ -242,6 +264,7 @@ class ViewerPanel extends Component {
         0, 0, 0, 1
     )
     coronalAxes[13] = origin[1]
+    // rotateY -PI/2
     const sagittalAxes = mat4.fromValues(
         0, 0, -1, 0,
         0, 1, 0, 0,
@@ -270,8 +293,10 @@ class ViewerPanel extends Component {
     sImageReslice.setResliceAxes(sagittalAxes)
   }
 
-  updateVolumeActor(){
-    const origin = this.state.origin
+  updateVolumeActor(origin){
+    if(!origin){
+      origin = this.state.origin
+    }
     const axialAxes = aImageReslice.getResliceAxes()
     axialAxes[14] = origin[2]
     const coronalAxes = cImageReslice.getResliceAxes()
@@ -351,9 +376,9 @@ class ViewerPanel extends Component {
           listLoading: tmp_listLoading
         });
 
-        // tmp_urls.forEach((inside, idx) =>{
-        //   this.DownloadSegment(idx)
-        // })
+        tmp_urls.forEach((inside, idx) =>{
+          this.DownloadSegment(idx)
+        })
 
       })
       .catch((error) => {
@@ -364,10 +389,12 @@ class ViewerPanel extends Component {
     document.getElementById('header').style.display = 'none'
 
     this.resize3DView()
+
     window.addEventListener('resize', this.resize3DView.bind(this))
     window.addEventListener('dblclick' , this.dblclick.bind(this))
     window.addEventListener('click', this.click.bind(this))
-    // window.addEventListener('mousedown', this.mouseDown.bind(this))
+    window.addEventListener('mousedown', this.mousedown.bind(this))
+
     // window.addEventListener('mouseup', this.mouseUp.bind(this))
     // window.addEventListener('mousemove', this.mouseMove.bind(this))
     // window.addEventListener('mousewheel', this.mouseWheel.bind(this))
@@ -546,19 +573,272 @@ class ViewerPanel extends Component {
     }
 
   }
+  getRatio(first){
+    //for first parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
+    const selectedNum = this.state.selectedNum
+    const volLength = 600
+    const length = 512
+    let ratio
+    if(selectedNum === 0){
+      ratio = length / (volLength / 2)
+    }else if(selectedNum === 1){
+      ratio = length / (volLength / 3)
+    }else if(selectedNum === 2){
+      if(first === 0){
+        ratio = length / volLength
+      }else{
+        ratio = length / (volLength / 3)
+      }
+    }else if(selectedNum === 3){
+      if(first === 1){
+        ratio = length / volLength
+      }else{
+        ratio = length / (volLength / 3)
+      }
+    }else if(selectedNum === 4){
+      if(first === 2){
+        ratio = length / volLength
+      }else{
+        ratio = length / (volLength / 3)
+      }
+    }
+    return ratio
+  }
+  mousedown(e){
+    if(e.path[0].className === "segment-content-row segment-content-row-axial"){
+      console.log("mouse down", e)
+      const y = e.clientY
+      const origin = this.state.origin
+      const finalOrigin = []
+      origin.forEach((item, idx) => {
+        finalOrigin[idx] = item
+      })
+      const selectedNum = this.state.selectedNum
+      const ratio = this.getRatio(0)
+      const that = this
+      window.addEventListener("mousemove", moving)
+      function moving(e){
+        console.log("mouse move1", origin)
+        const yNow = e.clientY
+        finalOrigin[1] = origin[1] + (y - yNow) * ratio
+        console.log("mouse move2", finalOrigin)
+        const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = that.getRowAndColumnStyle(selectedNum, finalOrigin)
+        that.setState({
+          axialRowStyle: axialRowStyle,
+          axialColumnStyle: axialColumnStyle,
+          coronalRowStyle: coronalRowStyle,
+          coronalColumnStyle: coronalColumnStyle,
+          sagittalRowStyle: sagittalRowStyle,
+          sagittalColumnStyle: sagittalColumnStyle
+        })
+      }
+      window.addEventListener("mouseup", up)
+      function up(e){
+        imageData.modified()
+        that.updateVolumeActor(finalOrigin)
+        that.setState({
+          origin: finalOrigin
+        })
+        window.removeEventListener("mousemove", moving)
+        window.removeEventListener("mouseup", up)
+      }
+    }
+    if(e.path[0].className === "segment-content-column segment-content-column-axial"){
+      const x = e.clientX
+      const origin = this.state.origin
+      const finalOrigin = []
+      origin.forEach((item, idx) => {
+        finalOrigin[idx] = item
+      })
+      const selectedNum = this.state.selectedNum
+      const ratio = this.getRatio(0)
+      const that = this
+      window.addEventListener("mousemove", moving)
+      function moving(e){
+        const xNow = e.clientX
+        finalOrigin[0] = origin[0] + (x - xNow) * ratio
+        const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = that.getRowAndColumnStyle(selectedNum, finalOrigin)
+        that.setState({
+          axialRowStyle: axialRowStyle,
+          axialColumnStyle: axialColumnStyle,
+          coronalRowStyle: coronalRowStyle,
+          coronalColumnStyle: coronalColumnStyle,
+          sagittalRowStyle: sagittalRowStyle,
+          sagittalColumnStyle: sagittalColumnStyle
+        })
+      }
+      window.addEventListener("mouseup", up)
+      function up(e){
+        imageData.modified()
+        that.updateVolumeActor(finalOrigin)
+        that.setState({
+          origin: finalOrigin
+        })
+        window.removeEventListener("mousemove", moving)
+        window.removeEventListener("mouseup", up)
+      }
+    }
+    if(e.path[0].className === "segment-content-row segment-content-row-coronal"){
+      console.log("mouse down", e)
+      const y = e.clientY
+      const origin = this.state.origin
+      const finalOrigin = []
+      origin.forEach((item, idx) => {
+        finalOrigin[idx] = item
+      })
+      const selectedNum = this.state.selectedNum
+      const ratio = this.getRatio(1)
+      const that = this
+      window.addEventListener("mousemove", moving)
+      function moving(e){
+        const yNow = e.clientY
+        finalOrigin[2] = origin[2] + (yNow - y) * ratio
+        const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = that.getRowAndColumnStyle(selectedNum, finalOrigin)
+        that.setState({
+          axialRowStyle: axialRowStyle,
+          axialColumnStyle: axialColumnStyle,
+          coronalRowStyle: coronalRowStyle,
+          coronalColumnStyle: coronalColumnStyle,
+          sagittalRowStyle: sagittalRowStyle,
+          sagittalColumnStyle: sagittalColumnStyle
+        })
+      }
+      window.addEventListener("mouseup", up)
+      function up(e){
+        imageData.modified()
+        that.updateVolumeActor(finalOrigin)
+        that.setState({
+          origin: finalOrigin
+        })
+        window.removeEventListener("mousemove", moving)
+        window.removeEventListener("mouseup", up)
+      }
+    }
+    if(e.path[0].className === "segment-content-column segment-content-column-coronal"){
+      const x = e.clientX
+      const origin = this.state.origin
+      const finalOrigin = []
+      origin.forEach((item, idx) => {
+        finalOrigin[idx] = item
+      })
+      const selectedNum = this.state.selectedNum
+      const ratio = this.getRatio(1)
+      const that = this
+      window.addEventListener("mousemove", moving)
+      function moving(e){
+        const xNow = e.clientX
+        finalOrigin[0] = origin[0] + (x - xNow) * ratio
+        const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = that.getRowAndColumnStyle(selectedNum, finalOrigin)
+        that.setState({
+          axialRowStyle: axialRowStyle,
+          axialColumnStyle: axialColumnStyle,
+          coronalRowStyle: coronalRowStyle,
+          coronalColumnStyle: coronalColumnStyle,
+          sagittalRowStyle: sagittalRowStyle,
+          sagittalColumnStyle: sagittalColumnStyle
+        })
+      }
+      window.addEventListener("mouseup", up)
+      function up(e){
+        imageData.modified()
+        that.updateVolumeActor(finalOrigin)
+        that.setState({
+          origin: finalOrigin
+        })
+        window.removeEventListener("mousemove", moving)
+        window.removeEventListener("mouseup", up)
+      }
+    }
+    if(e.path[0].className === "segment-content-row segment-content-row-sagittal"){
+      console.log("mouse down", e)
+      const y = e.clientY
+      const origin = this.state.origin
+      const finalOrigin = []
+      origin.forEach((item, idx) => {
+        finalOrigin[idx] = item
+      })
+      const selectedNum = this.state.selectedNum
+      const ratio = this.getRatio(2)
+      const that = this
+      window.addEventListener("mousemove", moving)
+      function moving(e){
+        const yNow = e.clientY
+        finalOrigin[2] = origin[2] + (yNow - y) * ratio
+        const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = that.getRowAndColumnStyle(selectedNum, finalOrigin)
+        that.setState({
+          axialRowStyle: axialRowStyle,
+          axialColumnStyle: axialColumnStyle,
+          coronalRowStyle: coronalRowStyle,
+          coronalColumnStyle: coronalColumnStyle,
+          sagittalRowStyle: sagittalRowStyle,
+          sagittalColumnStyle: sagittalColumnStyle
+        })
 
-  dblclick(e){
-    if(e.path[0].nodeName === 'CANVAS'){
-      this.segView3D.dblclick(e.offsetX, e.offsetY)
+      }
+      window.addEventListener("mouseup", up)
+      function up(e){
+        imageData.modified()
+        that.updateVolumeActor(finalOrigin)
+        that.setState({
+          origin: finalOrigin
+        })
+        window.removeEventListener("mousemove", moving)
+        window.removeEventListener("mouseup", up)
+      }
+    }
+    if(e.path[0].className === "segment-content-column segment-content-column-sagittal"){
+      const x = e.clientX
+      const origin = this.state.origin
+      const finalOrigin = []
+      origin.forEach((item, idx) => {
+        finalOrigin[idx] = item
+      })
+      const selectedNum = this.state.selectedNum
+      const ratio = this.getRatio(2)
+      const that = this
+      window.addEventListener("mousemove", moving)
+      function moving(e){
+        const xNow = e.clientX
+        finalOrigin[1] = origin[1] + (xNow - x) * ratio
+        const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = that.getRowAndColumnStyle(selectedNum, finalOrigin)
+        that.setState({
+          axialRowStyle: axialRowStyle,
+          axialColumnStyle: axialColumnStyle,
+          coronalRowStyle: coronalRowStyle,
+          coronalColumnStyle: coronalColumnStyle,
+          sagittalRowStyle: sagittalRowStyle,
+          sagittalColumnStyle: sagittalColumnStyle
+        })
+      }
+      window.addEventListener("mouseup", up)
+      function up(e){
+        imageData.modified()
+        that.updateVolumeActor(finalOrigin)
+        that.setState({
+          origin: finalOrigin
+        })
+        window.removeEventListener("mousemove", moving)
+        window.removeEventListener("mouseup", up)
+      }
     }
   }
   click(e){
     if(this.state.editing){
-      if(e.path[0].nodeName === 'CANVAS'){
-        const picked = this.segView3D.mousemove(e.offsetX, e.offsetY)
+      if(e.path[0].className === "segment-content-block segment-content-3d"){
+        console.log("e.offsetX", e.offsetX)
+        console.log("e.offsetY", e.offsetY)
+        const {viewerWidth, selectedNum} = this.state
+        let picked
+        if(selectedNum === 0){
+          picked = this.segView3D.click(e.offsetX + viewerWidth / 2, e.offsetY)
+        }else if(selectedNum === 1){
+          picked = this.segView3D.click(e.offsetX, e.offsetY)
+        }else{
+          picked = this.segView3D.click(e.offsetX + 0.67 * viewerWidth, e.offsetY)
+        }
         console.log("picked ", picked)
         if(picked){
-          sphereSource.setRadius(10)
+          sphereSource.setRadius(5)
           sphereSource.setCenter(picked)
           const mapper = vtkMapper.newInstance({
             scalarVisibility: false
@@ -567,38 +847,209 @@ class ViewerPanel extends Component {
           const actor = vtkActor.newInstance();
           actor.setMapper(mapper);
 
+          const selectedNum = this.state.selectedNum
           const origin = this.state.origin
           const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
           const x = picked[0]
           const y = picked[1]
           const z = picked[2]
-          origin[0] = 512 * (x - xMin) / (xMax - xMin)
-          origin[1] = 512 * (zMax - z) / (zMax - zMin)
-          origin[2] = this.state.imageIds.length * (y - yMin) / (yMax - yMin)
-          this.setState({
-            origin: origin,
-            pointActors: [actor]
-          })
+          origin[0] = 512 * (xMax - x) / (xMax - xMin)
+          origin[1] = 512 * (y - yMin) / (yMax - yMin)
+          origin[2] = this.state.imageIds.length * (zMax - z) / (zMax - zMin)
+          this.selectByNum(selectedNum)
           imageData.modified()
           this.updateVolumeActor()
+          this.setState({
+            pointActors: [actor]
+          })
         }
       }
     }
   }
-  mousedown(e){
+  dblclick(e){
+    const paths = e.path
+    if (paths[1].className === "segment-content") {
+      //for selectedNum: 1 represents 3d; 2 represents axial; 3 represents coronal; 4 represents sagittal
+      if (paths[0].className === "segment-content-block segment-content-axial") {
+        this.selectByNum(2)
+      } else if (paths[0].className === "segment-content-block segment-content-coronal") {
+        this.selectByNum(3)
+      } else if (paths[0].className === "segment-content-block segment-content-sagittal") {
+        this.selectByNum(4)
+      } else if (paths[0].className === "segment-content-block segment-content-3d") {
+        this.selectByNum(1)
+      }
+    }
+    // if(this.state.editing){
+    //
+    // }else{
+    //   if(e.path[0].nodeName === 'CANVAS'){
+    //     const selectedNum = this.segView3D.dblclick(e.offsetX, e.offsetY)
+    //     if(selectedNum === 1){
+    //       this.selectByNum(1)
+    //     }else if(selectedNum === 2){
+    //       this.selectByNum(2)
+    //     }else if(selectedNum === 3){
+    //       this.selectByNum(3)
+    //     }else if(selectedNum === 4){
+    //       this.selectByNum(4)
+    //     }
+    //   }
+    // }
+  }
+  selectByNum(selectedNum){
+    this.segView3D.selectByNum(selectedNum)
+    const selectionStyles = this.getSelectionStyles(selectedNum)
+    const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = this.getRowAndColumnStyle(selectedNum)
+    this.setState({
+      selectedNum: selectedNum,
+      selectionStyles: selectionStyles,
+      axialRowStyle: axialRowStyle,
+      axialColumnStyle: axialColumnStyle,
+      coronalRowStyle: coronalRowStyle,
+      coronalColumnStyle: coronalColumnStyle,
+      sagittalRowStyle: sagittalRowStyle,
+      sagittalColumnStyle: sagittalColumnStyle
+    })
+  }
+  getRowAndColumnStyle(selectedNum, origin){
+    //num 0 represents no selection, num 1 represents selection of 3d, num 2 represents selection of axial,
+    //num 3 represents selection of coronal, num 4 represents selection of sagittal
+    if(!origin){
+      origin = this.state.origin
+    }
+    const {viewerWidth, viewerHeight, imageIds} = this.state
+    const length = imageIds.length
+    const volLength = 600
+    const valueA1 = this.calTypeA(viewerHeight/2, volLength/2, origin[1], 512)
+    const valueA2 = this.calTypeA(viewerHeight, volLength, origin[1], 512)
+    const valueA3 = this.calTypeA(0.33 * viewerHeight, volLength/3, origin[1], 512)
+    
+    const valueA4 = this.calTypeA(viewerWidth/2, volLength/2, origin[0], 512)
+    const valueA5 = this.calTypeA(0.67 * viewerWidth, volLength, origin[0], 512)
+    const valueA6 = this.calTypeA(0.33 * viewerWidth, volLength/3, origin[0], 512)
+    const valueA7 = this.calTypeA(0.33 * viewerWidth, volLength/3, origin[0], 512)
+    
+    const valueB1 = this.calTypeB(viewerHeight/2, volLength/2, origin[2], 512)
+    const valueB2 = this.calTypeB(viewerHeight, volLength, origin[2], 512)
+    const valueB3 = this.calTypeB(0.34 * viewerHeight, volLength/3, origin[2], 512)
+    const valueB4 = this.calTypeB(0.33 * viewerHeight, volLength/3, origin[2], 512)
+    
+    const valueB5 = this.calTypeB(viewerWidth/2, volLength/2, origin[1], 512)
+    const valueB6 = this.calTypeB(0.33 * viewerWidth, volLength/3, origin[1], 512)
+    const valueB7 = this.calTypeB(0.67 * viewerWidth, volLength, origin[1], 512)
 
+    const colorA = "red"
+    const colorC = "green"
+    const colorS = "yellow"
+
+    let axialRowStyle = {}
+    let axialColumnStyle = {}
+    let coronalRowStyle = {}
+    let coronalColumnStyle = {}
+    let sagittalRowStyle = {}
+    let sagittalColumnStyle = {}
+    console.log("selectedNum:", selectedNum)
+    if(selectedNum === 0){
+      axialRowStyle = {top:`${valueA1}px`, left:"0", width:`${viewerWidth/2}px`, background:colorC}
+      axialColumnStyle = {top:"0", left:`${valueA4}px`, height:`${viewerHeight/2}px`, background:colorS}
+      coronalRowStyle = {top:`${valueB1}px`, left:"0", width:`${viewerWidth/2}px`, background:colorA}
+      coronalColumnStyle = {top:"0", left:`${valueA4}px`, height:`${viewerHeight/2}px`, background:colorS}
+      sagittalRowStyle = {top:`${valueB1}px`, left:"0", width:`${viewerWidth/2}px`, background:colorA}
+      sagittalColumnStyle = {top:"0", left:`${valueB5}px`, height:`${viewerHeight/2}px`, background:colorC}
+    }else if(selectedNum === 1){
+      axialRowStyle = {top:`${valueA3}px`, left:"0", width:`${0.33 * viewerWidth}px`, background:colorC}
+      axialColumnStyle = {top:"0", left:`${valueA6}px`, height:`${0.33 * viewerHeight}px`, background:colorS}
+      coronalRowStyle = {top:`${valueB4}px`, left:"0", width:`${0.33 * viewerWidth}px`, background:colorA}
+      coronalColumnStyle = {top:"0", left:`${valueA6}px`, height:`${0.33 * viewerHeight}px`, background:colorS}
+      sagittalRowStyle = {top:`${valueB3}px`, left:"0", width:`${0.33 * viewerWidth}px`, background:colorA}
+      sagittalColumnStyle = {top:"0", left:`${valueB6}px`, height:`${0.34 * viewerHeight}px`, background:colorC}
+    }else if(selectedNum === 2){
+      axialRowStyle = {top:`${valueA2}px`, left:"0", width:`${0.67 * viewerWidth}px`, background:colorC}
+      axialColumnStyle = {top:"0", left:`${valueA5}px`, height:`${viewerHeight}px`, background:colorS}
+      coronalRowStyle = {top:`${valueB4}px`, left:"0", width:`${0.33 * viewerWidth}px`, background:colorA}
+      coronalColumnStyle = {top:"0", left:`${valueA6}px`, height:`${0.33 * viewerHeight}px`, background:colorS}
+      sagittalRowStyle = {top:`${valueB3}px`, left:"0", width:`${0.33 * viewerWidth}px`, background:colorA}
+      sagittalColumnStyle = {top:"0", left:`${valueB6}px`, height:`${0.34 * viewerHeight}px`, background:colorC}
+    }else if(selectedNum === 3){
+      axialRowStyle = {top:`${valueA3}px`, left:"0", width:`${0.33 * viewerWidth}px`, background:colorC}
+      axialColumnStyle = {top:"0", left:`${valueA6}px`, height:`${0.33 * viewerHeight}px`, background:colorS}
+      coronalRowStyle = {top:`${valueB2}px`, left:"0", width:`${0.67 * viewerWidth}px`, background:colorA}
+      coronalColumnStyle = {top:"0", left:`${valueA5}px`, height:`${viewerHeight}px`, background:colorS}
+      sagittalRowStyle = {top:`${valueB3}px`, left:"0", width:`${0.33 * viewerWidth}px`, background:colorA}
+      sagittalColumnStyle = {top:"0", left:`${valueB6}px`, height:`${0.34 * viewerHeight}px`, background:colorC}
+    }else if(selectedNum === 4){
+      axialRowStyle = {top:`${valueA3}px`, left:"0", width:`${0.33 * viewerWidth}px`, background:colorC}
+      axialColumnStyle = {top:"0", left:`${valueA6}px`, height:`${0.33 * viewerHeight}px`, background:colorS}
+      coronalRowStyle = {top:`${valueB3}px`, left:"0", width:`${0.33 * viewerWidth}px`, background:colorA}
+      coronalColumnStyle = {top:"0", left:`${valueA7}px`, height:`${0.34 * viewerHeight}px`, background:colorS}
+      sagittalRowStyle = {top:`${valueB2}px`, left:"0", width:`${0.67 * viewerWidth}px`, background:colorA}
+      sagittalColumnStyle = {top:"0", left:`${valueB7}px`, height:`${viewerHeight}px`, background:colorC}
+    }
+    return {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle}
+  }
+  calTypeA(w, x, y, z){
+    return w - (w - x)/2 - x * y / z
+  }
+  calTypeB(w, x, y, z){
+    return (w - x)/2 + x * y / z
+  }
+  getSelectionStyles(selectedNum, viewerWidth, viewerHeight){
+    //num 0 represents no selection, num 1 represents selection of 3d, num 2 represents selection of axial,
+    //num 3 represents selection of coronal, num 4 represents selection of sagittal
+
+    //[0] represents style of 3d, [1] represents style of axial,
+    //[2] represents style of coronal, [3] represents style of sagittal
+    if(!viewerWidth){
+      viewerWidth = this.state.viewerWidth
+    }
+    if(!viewerHeight){
+      viewerHeight = this.state.viewerHeight
+    }
+    const selectionStyles = []
+    if(selectedNum === 0){
+      selectionStyles.push({position:"absolute", top:"0", left:`${viewerWidth/2}px`, width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
+      selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
+      selectionStyles.push({position:"absolute", top:`${viewerHeight/2}px`, left:"0", width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
+      selectionStyles.push({position:"absolute", top:`${viewerHeight/2}px`, left:`${viewerWidth/2}px`, width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
+    }else if(selectedNum === 1){
+      selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${0.67 * viewerWidth}px`, height:`${viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:"0", left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.33 * viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:`${0.33 * viewerHeight}px`, left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.33 * viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:`${0.66 * viewerHeight}px`, left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.34 * viewerHeight}px`})
+    }else if(selectedNum === 2){
+      selectionStyles.push({position:"absolute", top:"0", left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.33 * viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${0.67 * viewerWidth}px`, height:`${viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:`${0.33 * viewerHeight}px`, left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.33 * viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:`${0.66 * viewerHeight}px`, left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.34 * viewerHeight}px`})
+    }else if(selectedNum === 3){
+      selectionStyles.push({position:"absolute", top:"0", left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.33 * viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:`${0.33 * viewerHeight}px`, left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.33 * viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${0.67 * viewerWidth}px`, height:`${viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:`${0.66 * viewerHeight}px`, left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.34 * viewerHeight}px`})
+    }else if(selectedNum === 4){
+      selectionStyles.push({position:"absolute", top:"0", left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.33 * viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:`${0.33 * viewerHeight}px`, left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.33 * viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:`${0.66 * viewerHeight}px`, left:`${0.67 * viewerWidth}px`, width:`${0.33 * viewerWidth}px`, height:`${0.34 * viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${0.67 * viewerWidth}px`, height:`${viewerHeight}px`})
+    }
+    return selectionStyles
   }
   resize3DView(){
     if(document.getElementById('segment-container') !== null) {
       const clientWidth = document.getElementById('segment-container').clientWidth
       const clientHeight = document.getElementById('segment-container').clientHeight
+      const selectedNum = this.state.selectedNum
+      const selectionStyles = this.getSelectionStyles(selectedNum, clientWidth, clientHeight)
       this.setState({
-        viewerWidth : clientWidth,
-        viewerHeight: clientHeight
+        viewerWidth: clientWidth,
+        viewerHeight: clientHeight,
+        selectionStyles: selectionStyles
       })
       this.segView3D.setContainerSize(clientWidth, clientHeight)
     }
   }
+
   DownloadSegment(idx){
     const progressCallback = (progressEvent) => {
       const percent = Math.floor((100 * progressEvent.loaded) / progressEvent.total)
@@ -682,12 +1133,45 @@ class ViewerPanel extends Component {
     }
     // window.location.href=href
   }
-  rotateX(){
+
+  handleFuncButton(idx, e){
+    switch (idx){
+      case 0:this.segView3D.magnifyView()
+        break
+      case 1:this.segView3D.reductView()
+        break
+      case 2:this.segView3D.turnUp()
+        break
+      case 3:this.segView3D.turnDown()
+        break
+      case 4:this.segView3D.turnLeft()
+        break
+      case 5:this.segView3D.turnRight()
+        break
+      case 6:this.selectByNum(1)
+            break
+      case 7:this.selectByNum(2)
+        break
+      case 8:this.selectByNum(3)
+        break
+      case 9:this.selectByNum(4)
+        break
+      case 10:this.selectByNum(0)
+        break
+      case 11:this.startEdit()
+            break
+      case 12:this.endEdit()
+            break
+    }
+  }
+  startEdit(){
+    const selectedNum = this.state.selectedNum
+    this.selectByNum(selectedNum)
     this.setState({
       editing: true
     })
   }
-  rotateY(){
+  endEdit(){
     this.setState({
       editing: false
     })
@@ -732,40 +1216,8 @@ class ViewerPanel extends Component {
   translateZ(){
     this.segView3D.reRenderAll()
   }
-  handleFuncButton(idx, e){
-    switch (idx){
-      case 0:this.segView3D.magnifyView()
-        break
-      case 1:this.segView3D.reductView()
-        break
-      case 2:this.segView3D.turnLeft()
-        break
-      case 3:this.segView3D.turnRight()
-        break
-      case 4:this.segView3D.selectOne()
-            break
-      case 5:this.segView3D.selectTwo()
-        break
-      case 6:this.segView3D.selectThree()
-        break
-      case 7:this.segView3D.selectFour()
-        break
-      case 8:this.segView3D.cancelSelection()
-        break
-      case 9:this.rotateX()
-            break
-      case 10:this.rotateY()
-            break
-      case 11:this.rotateZ()
-            break
-      case 12:this.translateX()
-            break
-      case 13:this.translateY()
-            break
-      case 14:this.translateZ()
-            break
-    }
-  }
+
+
   handleListClick(idx, e, data) {
     console.log("handle click:", data);
     let tmp_listsActive = this.state.listsActive;
@@ -856,13 +1308,21 @@ class ViewerPanel extends Component {
         opacity,
         viewerWidth,
         viewerHeight,
-      coronalActorVolumes,
-      sagittalActorVolumes,
-      axialActorVolumes,
-      volumes,
+        coronalActorVolumes,
+        sagittalActorVolumes,
+        axialActorVolumes,
+        volumes,
+        editing,
+        selectionStyles,
+      axialRowStyle,
+      axialColumnStyle,
+      coronalRowStyle,
+      coronalColumnStyle,
+      sagittalRowStyle,
+      sagittalColumnStyle
     } = this.state;
+    const canvasStyle ={width:`${viewerWidth}px`, height:`${viewerHeight}px`}
 
-    let canvasStyle ={width:`${viewerWidth}px`, height:`${viewerHeight}px`}
     let count = 0;
     let noduleNum = 0;
     if (this.state.urls) {
@@ -978,21 +1438,22 @@ class ViewerPanel extends Component {
             <Button.Group>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 0)}><Icon name='search plus' size='large'/></Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 1)}><Icon name='search minus' size='large'/></Button>
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='reply' size='large'/></Button>
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='share' size='large'/></Button>
+              {/*<Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='reply' size='large'/></Button>*/}
+              {/*<Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='share' size='large'/></Button>*/}
 
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='arrow alternate circle up outline' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='arrow alternate circle down outline' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 4)}><Icon name='arrow alternate circle left outline' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 5)}><Icon name='arrow alternate circle right outline' size='large'/></Button>
+
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 6)}>1</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 7)}>2</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 8)}>3</Button>
+              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 9)}>4</Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 10)}><Icon name='th large' size='large'/></Button>
+              <Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 11)}><Icon name='edit' size='large'/></Button>
+              <Button icon className='funcBtn' hidden={!editing} onClick={this.handleFuncButton.bind(this, 12)}><Icon name='window close outline' size='large'/></Button>
               <Button className='funcBtn' onClick={this.goBack.bind(this)}>2D</Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 4)}>1</Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 5)}>2</Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 6)}>3</Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 7)}>4</Button>
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 8)}><Icon name='th large' size='large'/></Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 9)}>rx</Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 10)}>ry</Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 11)}>rz</Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 12)}>tx</Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 13)}>ty</Button>
-              <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 14)}>tz</Button>
 
             </Button.Group>
           </Menu.Item>
@@ -1031,7 +1492,22 @@ class ViewerPanel extends Component {
                              sagittalActorVolumes={sagittalActorVolumes}
                              onRef={(ref) => {this.segView3D = ref}}/>
                 </div>
-                <div className="loading-list" hidden={loadingNum === 0} style={canvasStyle}>
+                <div className="segment-content" style={canvasStyle}>
+                  <div className="segment-content-block segment-content-3d" style={selectionStyles[0]}>3d</div>
+                  <div className="segment-content-block segment-content-axial" style={selectionStyles[1]}>
+                    <div className="segment-content-row segment-content-row-axial" hidden={!editing} style={axialRowStyle}></div>
+                    <div className="segment-content-column segment-content-column-axial" hidden={!editing} style={axialColumnStyle}></div>
+                  </div>
+                  <div className="segment-content-block segment-content-coronal" style={selectionStyles[2]}>
+                    <div className="segment-content-row segment-content-row-coronal" hidden={!editing} style={coronalRowStyle}></div>
+                    <div className="segment-content-column segment-content-column-coronal" hidden={!editing} style={coronalColumnStyle}></div>
+                  </div>
+                  <div className="segment-content-block segment-content-sagittal" style={selectionStyles[3]}>
+                    <div className="segment-content-row segment-content-row-sagittal" hidden={!editing} style={sagittalRowStyle}></div>
+                    <div className="segment-content-column segment-content-column-sagittal" hidden={!editing} style={sagittalColumnStyle}></div>
+                  </div>
+                </div>
+                <div className="loading-list" hidden={true} style={canvasStyle}>
                   {loadingList}
                 </div>
               </div>
