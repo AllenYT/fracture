@@ -475,9 +475,9 @@ class ViewerPanel extends Component {
         //     metaDataMap
         // );
         //
-        const xSpacing = img.columnPixelSpacing;
-        const ySpacing = img.rowPixelSpacing;
-        const zSpacing = 0;
+        // const xSpacing = img.columnPixelSpacing;
+        // const ySpacing = img.rowPixelSpacing;
+        // const zSpacing = 0;
         imageData.setDirection(direction);
         imageData.setDimensions(512, 512, 512);
         // imageData.setSpacing(xSpacing, ySpacing, zSpacing);
@@ -636,6 +636,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
+        that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -671,6 +672,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
+        that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -707,6 +709,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
+        that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -742,6 +745,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
+        that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -779,6 +783,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
+        that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -814,6 +819,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
+        that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -859,12 +865,39 @@ class ViewerPanel extends Component {
           this.selectByNum(selectedNum)
           imageData.modified()
           this.updateVolumeActor()
+
           this.setState({
             pointActors: [actor]
           })
         }
       }
     }
+  }
+  updatePointActorByOrigin(origin){
+    if(!origin){
+      origin = this.state.origin
+    }
+    const picked = []
+    const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
+    picked[0] = xMax - (origin[0] * (xMax - xMin ) / 512)
+    picked[1] = yMin + (origin[1] * (yMax - yMin) / 512)
+    picked[2] = zMax - (origin[2] * (zMax - zMin) / this.state.imageIds.length)
+    sphereSource.setRadius(5)
+    sphereSource.setCenter(picked)
+    const mapper = vtkMapper.newInstance({
+      scalarVisibility: false
+    })
+    mapper.setInputData(sphereSource.getOutputData());
+    const actor = vtkActor.newInstance();
+    actor.setMapper(mapper);
+
+    this.setState({
+      pointActors: [actor]
+    })
+
+    // (xMax - x) = origin[0] * (xMax - xMin ) / 512
+    // (y - yMin) = origin[1] * (yMax - yMin) / 512
+    // (zMax - z) = origin[2] * (zMax - zMin) / this.state.imageIds.length
   }
   dblclick(e){
     const paths = e.path
@@ -1441,8 +1474,8 @@ class ViewerPanel extends Component {
               {/*<Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='reply' size='large'/></Button>*/}
               {/*<Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='share' size='large'/></Button>*/}
 
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='arrow alternate circle up outline' size='large'/></Button>
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='arrow alternate circle down outline' size='large'/></Button>
+              {/*<Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='arrow alternate circle up outline' size='large'/></Button>*/}
+              {/*<Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='arrow alternate circle down outline' size='large'/></Button>*/}
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 4)}><Icon name='arrow alternate circle left outline' size='large'/></Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 5)}><Icon name='arrow alternate circle right outline' size='large'/></Button>
 
