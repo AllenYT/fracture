@@ -9,9 +9,9 @@
 
 #filelist-tab{
     width: 800px;
-    height: 600px;
+
     background-color: #021c3800;
-    margin: 0 auto;
+    /* margin: 0 auto; */
     text-align: center;
 }
 
@@ -20,6 +20,8 @@
     color: white;
     text-align: left;
     font-size:medium;
+    max-height: 700px;
+    overflow-y:auto;
 }
 
 #file_btn{
