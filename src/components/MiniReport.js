@@ -78,7 +78,7 @@ class MiniReport extends Component{
         }
         // console.log('boxes changed',prevProps.boxes,this.props.boxes,prevState.boxes,this.state.boxes)
         if(prevProps.boxes !== this.props.boxes){
-            console.log('boxes changed',prevProps.boxes,this.props.boxes)
+            // console.log('boxes changed',prevProps.boxes,this.props.boxes)
             const params = {
                 caseId: this.state.caseId,
                 username: this.state.username
