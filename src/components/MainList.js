@@ -220,16 +220,18 @@ class MainList extends Component {
         )
         else
             return (
-                <div style={{paddingTop: "60px"}}>
-                    <div class="sk-chase">
-                        <div class="sk-chase-dot"></div>
-                        <div class="sk-chase-dot"></div>
-                        <div class="sk-chase-dot"></div>
-                        <div class="sk-chase-dot"></div>
-                        <div class="sk-chase-dot"></div>
-                        <div class="sk-chase-dot"></div>
+                <Grid centered>
+                    <div style={{paddingTop: "60px"}}>
+                        <div class="sk-chase">
+                            <div class="sk-chase-dot"></div>
+                            <div class="sk-chase-dot"></div>
+                            <div class="sk-chase-dot"></div>
+                            <div class="sk-chase-dot"></div>
+                            <div class="sk-chase-dot"></div>
+                            <div class="sk-chase-dot"></div>
+                        </div>
                     </div>
-                </div>
+                </Grid>
             )
     }
 }

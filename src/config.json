@@ -1,90 +1,91 @@
 {
     "data": {
-        "getDataListForCaseId": "http://data.deepln.deepx.machineilab.org/data/getDataListForCaseId",
-        "getDataListForCov19CaseId":"http://data.deepln.deepx.machineilab.org/data/getCovidMaskListForCaseId",
-        "getSingleJpg":"http://data.deepln.deepx.machineilab.org/data/covidMask",
-        "getHist":"http://data.deepln.deepx.machineilab.org/covid/getHist",
-        "uploadMutiply":"http://data.deepln.deepx.machineilab.org/data/uploadMutiply",
-        "preprocess":"http://data.deepln.deepx.machineilab.org/preprocess/exec"
+        "getDataListForCaseId": "https://data.deepln.deepx.machineilab.org/data/getDataListForCaseId",
+        "getDataListForCov19CaseId":"https://data.deepln.deepx.machineilab.org/data/getCovidMaskListForCaseId",
+        "getSingleJpg":"https://data.deepln.deepx.machineilab.org/data/covidMask",
+        "getHist":"https://data.deepln.deepx.machineilab.org/covid/getHist",
+        "uploadMutiply":"https://data.deepln.deepx.machineilab.org/data/uploadMutiply",
+
+        "preprocess":"https://data.deepln.deepx.machineilab.org/preprocess/exec"
     },
 
     "user": {
-        "get_statistics": "http://data.deepln.deepx.machineilab.org/user/getStatistics/",
-        "get_session": "http://data.deepln.deepx.machineilab.org/user/getSessionUser/",
-        "validUser": "http://data.deepln.deepx.machineilab.org/user/loginAction/",
-        "signoutUser": "http://data.deepln.deepx.machineilab.org/user/signoutUser",
-        "get_sexData":" http://data.deepln.deepx.machineilab.org/patient/getPatientSexRatio"
+        "get_statistics": "https://data.deepln.deepx.machineilab.org/user/getStatistics/",
+        "get_session": "https://data.deepln.deepx.machineilab.org/user/getSessionUser/",
+        "validUser": "https://data.deepln.deepx.machineilab.org/user/loginAction/",
+        "signoutUser": "https://data.deepln.deepx.machineilab.org/user/signoutUser",
+        "get_sexData":" https://data.deepln.deepx.machineilab.org/patient/getPatientSexRatio"
     },
 
     "record": {
-        "getMainList": "http://data.deepln.deepx.machineilab.org/record/getMainListForPage",
-        "getSubList": "http://data.deepln.deepx.machineilab.org/record/getSubListForMainItem",
-        "getSubListForMainItem_front": "http://data.deepln.deepx.machineilab.org/record/getSubListForMainItem_front",
-        "getPatientListForCond": "http://data.deepln.deepx.machineilab.org/record/getPatientListForCond",
-        "getTotalPages": "http://data.deepln.deepx.machineilab.org/record/getTotalPages",
-        "getPatientInfo": "http://data.deepln.deepx.machineilab.org/record/getPatientInfo",
-        "filterNodules":"http://data.deepln.deepx.machineilab.org/nodule/filterNodules",
-        "getNodulesAtPage":"http://data.deepln.deepx.machineilab.org/nodule/getNodulesAtPage",
-        "filterNodulesMulti":"http://data.deepln.deepx.machineilab.org/nodule/filterNodulesMulti",
-        "getNodulesAtPageMulti":"http://data.deepln.deepx.machineilab.org/nodule/getNodulesAtPageMulti",
-        "getCov19List":"http://data.deepln.deepx.machineilab.org/covid/getCovidlist",
-        "getMainListForSubset":"http://data.deepln.deepx.machineilab.org/record/getMainListForSubset",
-        "getTotalPagesForSubset":"http://data.deepln.deepx.machineilab.org/record/getTotalPagesForSubset"
+        "getMainList": "https://data.deepln.deepx.machineilab.org/record/getMainListForPage",
+        "getSubList": "https://data.deepln.deepx.machineilab.org/record/getSubListForMainItem",
+        "getSubListForMainItem_front": "https://data.deepln.deepx.machineilab.org/record/getSubListForMainItem_front",
+        "getPatientListForCond": "https://data.deepln.deepx.machineilab.org/record/getPatientListForCond",
+        "getTotalPages": "https://data.deepln.deepx.machineilab.org/record/getTotalPages",
+        "getPatientInfo": "https://data.deepln.deepx.machineilab.org/record/getPatientInfo",
+        "filterNodules":"https://data.deepln.deepx.machineilab.org/nodule/filterNodules",
+        "getNodulesAtPage":"https://data.deepln.deepx.machineilab.org/nodule/getNodulesAtPage",
+        "filterNodulesMulti":"https://data.deepln.deepx.machineilab.org/nodule/filterNodulesMulti",
+        "getNodulesAtPageMulti":"https://data.deepln.deepx.machineilab.org/nodule/getNodulesAtPageMulti",
+        "getCov19List":"https://data.deepln.deepx.machineilab.org/covid/getCovidlist",
+        "getMainListForSubset":"https://data.deepln.deepx.machineilab.org/record/getMainListForSubset",
+        "getTotalPagesForSubset":"https://data.deepln.deepx.machineilab.org/record/getTotalPagesForSubset"
 
     },
 
     "draft": {
-        "submitDraft": "http://data.deepln.deepx.machineilab.org/draft/submitDraft",
-        "deSubmitDraft": "http://data.deepln.deepx.machineilab.org/draft/deSubmitDraft",
-        "updateRects":"http://data.deepln.deepx.machineilab.org/draft/updateRects",
-        "getMyAnnos": "http://data.deepln.deepx.machineilab.org/draft/getMyAnnos",
-        "getRectsForCaseIdAndUsername": "http://data.deepln.deepx.machineilab.org/draft/getRectsForCaseIdAndUsername",
-        "getModelResults": "http://data.deepln.deepx.machineilab.org/draft/getModelResults",
-        "getAnnoResults": "http://data.deepln.deepx.machineilab.org/draft/getAnnoResults",
-        "getDataPath": "http://data.deepln.deepx.machineilab.org/draft/getDataPath",
-        "readonly":"http://data.deepln.deepx.machineilab.org/draft/isReadonly",
-        "createNewDraft":"http://data.deepln.deepx.machineilab.org/draft/createNewDraft",
-        "removeDraft": "http://data.deepln.deepx.machineilab.org/draft/removeDraft",
-        "structedReport":"http://data.deepln.deepx.machineilab.org/draft/getReportInfoForCaseIdAndUsername",
-        "createUser":"http://data.deepln.deepx.machineilab.org/draft/createUserDraftFromModel"
+        "submitDraft": "https://data.deepln.deepx.machineilab.org/draft/submitDraft",
+        "deSubmitDraft": "https://data.deepln.deepx.machineilab.org/draft/deSubmitDraft",
+        "updateRects":"https://data.deepln.deepx.machineilab.org/draft/updateRects",
+        "getMyAnnos": "https://data.deepln.deepx.machineilab.org/draft/getMyAnnos",
+        "getRectsForCaseIdAndUsername": "https://data.deepln.deepx.machineilab.org/draft/getRectsForCaseIdAndUsername",
+        "getModelResults": "https://data.deepln.deepx.machineilab.org/draft/getModelResults",
+        "getAnnoResults": "https://data.deepln.deepx.machineilab.org/draft/getAnnoResults",
+        "getDataPath": "https://data.deepln.deepx.machineilab.org/draft/getDataPath",
+        "readonly":"https://data.deepln.deepx.machineilab.org/draft/isReadonly",
+        "createNewDraft":"https://data.deepln.deepx.machineilab.org/draft/createNewDraft",
+        "removeDraft": "https://data.deepln.deepx.machineilab.org/draft/removeDraft",
+        "structedReport":"https://data.deepln.deepx.machineilab.org/draft/getReportInfoForCaseIdAndUsername",
+        "createUser":"https://data.deepln.deepx.machineilab.org/draft/createUserDraftFromModel"
     },
 
     "review": {
-        "isOkayForReview": "http://data.deepln.deepx.machineilab.org/review/isOkayForReview",
-        "getReviewResults": "http://data.deepln.deepx.machineilab.org/review/getReviewResults"
+        "isOkayForReview": "https://data.deepln.deepx.machineilab.org/review/isOkayForReview",
+        "getReviewResults": "https://data.deepln.deepx.machineilab.org/review/getReviewResults"
     },
 
     "cart": {
-        "saveCart": "http://data.deepln.deepx.machineilab.org/cart/saveCart",
-        "getCart": "http://data.deepln.deepx.machineilab.org/cart/getCart",
-        "downloadCart": "http://data.deepln.deepx.machineilab.org/cart/downloadCart"
+        "saveCart": "https://data.deepln.deepx.machineilab.org/cart/saveCart",
+        "getCart": "https://data.deepln.deepx.machineilab.org/cart/getCart",
+        "downloadCart": "https://data.deepln.deepx.machineilab.org/cart/downloadCart"
     },
 
     "nodule":{
-        "totalMalDist":"http://data.deepln.deepx.machineilab.org/nodule/totalMalDist",
-        "totalAgeDist":"http://data.deepln.deepx.machineilab.org/patient/totalAgeDist",
-        "totalDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/totalDiameterDist",
-        "characterDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/characterDiameterDist",
-        "nonSpiculationDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/nonSpiculationDiameterDist",
-        "nonCalcificationDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/nonCalcificationDiameterDist",
-        "nonLobulationDiameterDist":" http://data.deepln.deepx.machineilab.org/nodule/nonLobulationDiameterDist",
-        "nonTextureDiameterDist":"http://data.deepln.deepx.machineilab.org/nodule/nonTextureDiameterDist",
-        "spiculationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/spiculationMalDist",
-        "calcificationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/calcificationMalDist",
-        "lobulationMalDist":"http://data.deepln.deepx.machineilab.org/nodule/lobulationMalDist",
-        "textureMalDist":"http://data.deepln.deepx.machineilab.org/nodule/textureMalDist",
-        "pinMalDist":"http://data.deepln.deepx.machineilab.org/nodule/pinMalDist",
-        "cavMalDist":"http://data.deepln.deepx.machineilab.org/nodule/cavMalDist",
-        "vssMalDist":"http://data.deepln.deepx.machineilab.org/nodule/vssMalDist",
-        "beaMalDist":"http://data.deepln.deepx.machineilab.org/nodule/beaMalDist",
-        "broMalDist":"http://data.deepln.deepx.machineilab.org/nodule/broMalDist"
+        "totalMalDist":"https://data.deepln.deepx.machineilab.org/nodule/totalMalDist",
+        "totalAgeDist":"https://data.deepln.deepx.machineilab.org/patient/totalAgeDist",
+        "totalDiameterDist":"https://data.deepln.deepx.machineilab.org/nodule/totalDiameterDist",
+        "characterDiameterDist":"https://data.deepln.deepx.machineilab.org/nodule/characterDiameterDist",
+        "nonSpiculationDiameterDist":"https://data.deepln.deepx.machineilab.org/nodule/nonSpiculationDiameterDist",
+        "nonCalcificationDiameterDist":"https://data.deepln.deepx.machineilab.org/nodule/nonCalcificationDiameterDist",
+        "nonLobulationDiameterDist":" https://data.deepln.deepx.machineilab.org/nodule/nonLobulationDiameterDist",
+        "nonTextureDiameterDist":"https://data.deepln.deepx.machineilab.org/nodule/nonTextureDiameterDist",
+        "spiculationMalDist":"https://data.deepln.deepx.machineilab.org/nodule/spiculationMalDist",
+        "calcificationMalDist":"https://data.deepln.deepx.machineilab.org/nodule/calcificationMalDist",
+        "lobulationMalDist":"https://data.deepln.deepx.machineilab.org/nodule/lobulationMalDist",
+        "textureMalDist":"https://data.deepln.deepx.machineilab.org/nodule/textureMalDist",
+        "pinMalDist":"https://data.deepln.deepx.machineilab.org/nodule/pinMalDist",
+        "cavMalDist":"https://data.deepln.deepx.machineilab.org/nodule/cavMalDist",
+        "vssMalDist":"https://data.deepln.deepx.machineilab.org/nodule/vssMalDist",
+        "beaMalDist":"https://data.deepln.deepx.machineilab.org/nodule/beaMalDist",
+        "broMalDist":"https://data.deepln.deepx.machineilab.org/nodule/broMalDist"
     },
 
     "subset":{
-        "createQueue":"http://data.deepln.deepx.machineilab.org/subset/create",
-        "getQueue":"http://data.deepln.deepx.machineilab.org/subset/get",
-        "getQueuePatientIds":"http://data.deepln.deepx.machineilab.org/subset/getPatienIds",
-        "deleteQueue":"http://data.deepln.deepx.machineilab.org/subset/delete",
-        "updateQueue":"http://data.deepln.deepx.machineilab.org/subset/update"
+        "createQueue":"https://data.deepln.deepx.machineilab.org/subset/create",
+        "getQueue":"https://data.deepln.deepx.machineilab.org/subset/get",
+        "getQueuePatientIds":"https://data.deepln.deepx.machineilab.org/subset/getPatienIds",
+        "deleteQueue":"https://data.deepln.deepx.machineilab.org/subset/delete",
+        "updateQueue":"https://data.deepln.deepx.machineilab.org/subset/update"
     }
 }

@@ -20,7 +20,7 @@ import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
 import axios from "axios"
-import { Slider,Select } from "antd"
+import { Slider, Select, notification, Sapce } from "antd"
 // import { Slider, RangeSlider } from 'rsuite'
 import MiniReport from './MiniReport'
 // import { Dropdown } from "antd"
@@ -237,6 +237,7 @@ class CornerstoneElement extends Component {
             slideSpan:0,
             windowHeight:1080,
             preListActiveIdx:-1,
+            currentImage: null,
         }
         this.nextPath = this
             .nextPath
@@ -440,6 +441,15 @@ class CornerstoneElement extends Component {
         this.drawBidirection = this
             .drawBidirection
             .bind(this)
+        this.segmentsIntr = this
+            .segmentsIntr
+            .bind(this)
+        this.invertHandles = this
+            .invertHandles
+            .bind(this)
+        this.pixeldataSort = this
+            .pixeldataSort
+            .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
     }
 
@@ -459,7 +469,7 @@ class CornerstoneElement extends Component {
         viewport.voi.windowWidth = value
         cornerstone.setViewport(this.element, viewport)
         this.setState({viewport})
-        // console.log("to media", viewport)
+        console.log("to media", viewport)
     }
 
     //antv
@@ -933,11 +943,11 @@ class CornerstoneElement extends Component {
     }
 
     disableAllTools(element){
-        cornerstoneTools.setToolDisabledForElement(element, 'Pan',
-        {
-            mouseButtonMask: 4, //middle mouse button
-        },
-        ['Mouse'])
+        // cornerstoneTools.setToolDisabledForElement(element, 'Pan',
+        // {
+        //     mouseButtonMask: 4, //middle mouse button
+        // },
+        // ['Mouse'])
         cornerstoneTools.setToolDisabledForElement(
             element,
             'Wwwc',
@@ -946,7 +956,6 @@ class CornerstoneElement extends Component {
             },
             ['Mouse']
         )
-        cornerstoneTools.setToolDisabledForElement(element, 'Bidirectional')
     }
 
     startAnnos(){
@@ -969,6 +978,7 @@ class CornerstoneElement extends Component {
     wwwcCustom(){
         this.setState({leftButtonTools:2,menuTools:'wwwc'})
         const element = document.querySelector('#origin-canvas')
+        this.disableAllTools(element)
         cornerstoneTools.addToolForElement(element, wwwc)
                 cornerstoneTools.setToolActiveForElement(
                     element,
@@ -1008,6 +1018,7 @@ class CornerstoneElement extends Component {
         // cornerstoneTools.length.activate(element,4);
 
     }
+
 
     featureAnalysis(idx,e){
         console.log("特征分析")
@@ -2665,78 +2676,111 @@ class CornerstoneElement extends Component {
         this.refreshImage(false, this.state.imageIds[e-1], e-1)
     }
 
+    pixeldataSort(a,b){
+        return a-b
+    }
+
+
     createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
         console.log('coor',x1, x2, y1, y2)
         let pixelArray = []
         const imageId = this.state.imageIds[slice_idx]
         console.log('image',imageId)
-        // cornerstone
-        // .loadAndCacheImage(imageId)
-        // .then(image => {
-        //     console.log(image)
-        //     const pixeldata = image.getPixelData()
-        //     var asc = function(a,b){return a-b}
-        //     pixeldata.sort(asc)
-        //     console.log('pixeldata',pixeldata)
-        //     for(var i=~~x1;i<=x2;i++){
-        //         for(var j=~~y1;j<=y2;j++){
-        //             pixelArray.push(pixeldata[512*j+i] - 1024)
-        //         }
+        const currentImage = this.state.currentImage
+        console.log('currentImage',currentImage)
+        
+        const imageTag = currentImage.data
+        const pixeldata = currentImage.getPixelData()
+        const intercept = imageTag.string('x00281052')
+        const slope = imageTag.string('x00281053')
+        console.log('createBoxHist',intercept,slope)
+        // var asc = function(a,b){return a-b}
+        // let sortedPixel = pixeldata
+        // sortedPixel.sort(this.pixeldataSort)
+        // console.log('pixeldata',sortedPixel === currentImage.getPixelData())
+        // for(var i=~~x1;i<=x2;i++){
+        //     for(var j=~~y1;j<=y2;j++){
+        //         pixelArray.push(slope * pixeldata[512*j+i] + intercept)
         //     }
-            
-        //     // console.log('array',pixelArray)
-        //     const data = pixelArray
-        //     data.sort(asc)
-        //     // console.log('data',data)
-        //     var map = {}
-        //     for (var i = 0; i < data.length; i++) {
-        //         var key = data[i]
-        //         if (map[key]) {
-        //             map[key] += 1
-        //         } else {
-        //             map[key] = 1
-        //         }
+        // }
+        
+        // // console.log('array',pixelArray)
+        // const data = pixelArray
+        // data.sort(asc)
+        // // console.log('data',data)
+        // var map = {}
+        // for (var i = 0; i < data.length; i++) {
+        //     var key = data[i]
+        //     if (map[key]) {
+        //         map[key] += 1
+        //     } else {
+        //         map[key] = 1
         //     }
-        //     console.log('map',map)
-        //     var ns = []
-        //     var bins = []
-        //     for(var key in map){
-        //         bins.push(parseInt(key))
-        //         ns.push(map[key])
-        //     }
-        //     console.log('bins',bins,ns)
-        //     var obj = {}
-        //     obj.bins = bins
-        //     obj.n = ns
-        //     var nodule_hist = []
-        //     nodule_hist.push(obj)
-            const newBox = {
-                // "calcification": [], "lobulation": [],
-                "malignancy": -1,
-                "nodule_no": nodule_idx,
-                "patho": "",
-                "place": "",
-                "probability": 1,
-                "slice_idx": slice_idx,
-                // "nodule_hist":obj,
-                // "spiculation": [], "texture": [],
-                "x1": x1,
-                "x2": x2,
-                "y1": y1,
-                "y2": y2,
-                "highlight": false,
-                "diameter":0.00,
-                "place":0,
-                "modified":1,
-            }
-            let boxes = this.state.boxes
-            console.log("newBox", newBox)
-            boxes.push(newBox)
-            this.setState({boxes: boxes})
-            console.log("Boxes", this.state.boxes)
+        // }
+        // console.log('map',map)
+        // var ns = []
+        // var bins = []
+        // for(var key in map){
+        //     bins.push(parseInt(key))
+        //     ns.push(map[key])
+        // }
+        // console.log('bins',bins,ns)
+        // var obj = {}
+        // obj.bins = bins
+        // obj.n = ns
+        // var nodule_hist = []
+        // nodule_hist.push(obj)
+        const newBox = {
+            // "calcification": [], "lobulation": [],
+            "malignancy": -1,
+            "nodule_no": nodule_idx,
+            "patho": "",
+            "place": "",
+            "probability": 1,
+            "slice_idx": slice_idx,
+            // "nodule_hist":obj,
+            // "spiculation": [], "texture": [],
+            "x1": x1,
+            "x2": x2,
+            "y1": y1,
+            "y2": y2,
+            "highlight": false,
+            "diameter":0.00,
+            "place":0,
+            "modified":1,
+        }
+        let boxes = this.state.boxes
+        console.log("newBox", newBox)
+        boxes.push(newBox)
+        this.setState({boxes: boxes})
+        console.log("Boxes", this.state.boxes)
             
         // })
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)    
+    }
+
+    invertHandles(curBox){
+        var x1 = curBox.measure.x1
+        var y1 = curBox.measure.y1
+        var x2 = curBox.measure.x2
+        var y2 = curBox.measure.y2
+        var x3 = curBox.measure.x3
+        var y3 = curBox.measure.y3
+        var x4 = curBox.measure.x4
+        var y4 = curBox.measure.y4
+        var length = Math.sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2))
+        var width = Math.sqrt((x3 - x4)*(x3 - x4) + (y3 - y4)*(y3 - y4))
+        if(width > length){
+            curBox.measure.x1 = x3
+            curBox.measure.y1 = y3
+            curBox.measure.x2 = x4
+            curBox.measure.y2 = y4
+            curBox.measure.x3 = x2
+            curBox.measure.y3 = y2
+            curBox.measure.x4 = x1
+            curBox.measure.y4 = y1
+        }
+        return curBox
     }
 
 //    createBidirectBox(x1, x2, y1, y2, slice_idx, nodule_idx){
@@ -2798,25 +2842,8 @@ class CornerstoneElement extends Component {
             this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
 
         }
-        // if(newCurrentIdx - cacheSize < 0){
-        //     for(var i = 0;i < newCurrentIdx + cacheSize ;i++){
-        //         if(i === newCurrentIdx) continue
-        //         this.cacheImage(this.state.imageIds[i])
-        //     }
-        // }
-        // else if(newCurrentIdx + cacheSize > this.state.imageIds.length){
-        //     for(var i = this.state.imageIds.length - 1;i > newCurrentIdx - cacheSize ;i--){
-        //         if(i === newCurrentIdx) continue
-        //         this.cacheImage(this.state.imageIds[i])
-        //     }
-        // }
-        // else{
-        //     for(var i = newCurrentIdx - cacheSize;i < newCurrentIdx + cacheSize ;i++){
-        //         if(i === newCurrentIdx) continue
-        //         this.cacheImage(this.state.imageIds[i])
-        //     }
-        // }
-        }else{//向上滚动
+        }
+        else{//向上滚动
             let newCurrentIdx = this.state.currentIdx - 1
             if (newCurrentIdx >= 0) {
                 this.refreshImage(false, this.state.imageIds[newCurrentIdx], newCurrentIdx)
@@ -2841,6 +2868,35 @@ class CornerstoneElement extends Component {
             // }
         }
     }
+
+    segmentsIntr(a, b, c, d){  
+  
+        // 三角形abc 面积的2倍  
+        var area_abc = (a.x - c.x) * (b.y - c.y) - (a.y - c.y) * (b.x - c.x);  
+      
+        // 三角形abd 面积的2倍  
+        var area_abd = (a.x - d.x) * (b.y - d.y) - (a.y - d.y) * (b.x - d.x);   
+      
+        // 面积符号相同则两点在线段同侧,不相交 (对点在线段上的情况,本例当作不相交处理);  
+        if ( area_abc*area_abd>=0 ) {  
+            return false;  
+        }  
+      
+        // 三角形cda 面积的2倍  
+        var area_cda = (c.x - a.x) * (d.y - a.y) - (c.y - a.y) * (d.x - a.x);  
+        // 三角形cdb 面积的2倍  
+        // 注意: 这里有一个小优化.不需要再用公式计算面积,而是通过已知的三个面积加减得出.  
+        var area_cdb = area_cda + area_abc - area_abd ;  
+        if (  area_cda * area_cdb >= 0 ) {  
+            return false;  
+        }  
+      
+        //计算交点坐标  
+        var t = area_cda / ( area_abd- area_abc );  
+        var dx= t*(b.x - a.x),  
+            dy= t*(b.y - a.y);  
+        return { x: a.x + dx , y: a.y + dy };  
+    }  
 
     onMouseMove(event) {
         // console.log('onmouse Move')
@@ -3006,44 +3062,184 @@ class CornerstoneElement extends Component {
                 console.log('tmpBox',tmpBox)
                 tmpBox.measure = {}
                 let tmpCoord = this.state.tmpCoord
-                // console.log('xy',x,y)
+                var longLength = Math.sqrt((tmpCoord.x1 - x) * (tmpCoord.x1 - x) + (tmpCoord.y1 - y) * (tmpCoord.y1 - y))
+                var shortLength = longLength / 2
+                var newIntersect_x = (x + tmpCoord.x1) / 2
+                var newIntersect_y = (y + tmpCoord.y1) / 2
+                var vector_length = Math.sqrt((newIntersect_x - tmpCoord.x1) * (newIntersect_x - tmpCoord.x1) + (newIntersect_y - tmpCoord.y1) * (newIntersect_y - tmpCoord.y1))
+                var vector_x = (tmpCoord.x1 - newIntersect_x) / vector_length
+                var vector_y = (tmpCoord.y1 - newIntersect_y) / vector_length
+
                 tmpBox.measure.x1 = tmpCoord.x1
                 tmpBox.measure.y1 = tmpCoord.y1
                 tmpBox.measure.x2 = x
                 tmpBox.measure.y2 = y
-                tmpBox.measure.intersec_x = (x + tmpCoord.x1) / 2
-                tmpBox.measure.intersec_y = (y + tmpCoord.y1) / 2
-                tmpBox.measure.x3 = (tmpBox.measure.intersec_x + tmpCoord.x1) / 2
-                tmpBox.measure.y3 = (y + tmpBox.measure.intersec_y) / 2
-                tmpBox.measure.x4 = (x + tmpBox.measure.intersec_x) / 2
-                tmpBox.measure.y4 = (tmpBox.measure.intersec_y + tmpBox.measure.y1) / 2
+                tmpBox.measure.intersec_x = newIntersect_x
+                tmpBox.measure.intersec_y = newIntersect_y
+                tmpBox.measure.x3 = newIntersect_x + vector_y * shortLength / 2
+                tmpBox.measure.y3 = newIntersect_y - vector_x * shortLength / 2
+                tmpBox.measure.x4 = newIntersect_x - vector_y * shortLength / 2
+                tmpBox.measure.y4 = newIntersect_y + vector_x * shortLength / 2
+                // tmpBox.measure.x3 = (tmpBox.measure.intersec_x + tmpCoord.x1) / 2
+                // tmpBox.measure.y3 = (y + tmpBox.measure.intersec_y) / 2
+                // tmpBox.measure.x4 = (x + tmpBox.measure.intersec_x) / 2
+                // tmpBox.measure.y4 = (tmpBox.measure.intersec_y + tmpBox.measure.y1) / 2
                 this.setState({tmpBox:tmpBox})
                 console.log('tmpBox',tmpBox)
                 this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
-            } else if (this.state.clicked && this.state.clickedArea.box !== -1 && this.state.clickedArea.m_pos !== 'om') { //mousedown && mouse is inside the annos && inside the measure
+            } 
+            else if (this.state.clicked && this.state.clickedArea.box !== -1 && this.state.clickedArea.m_pos !== 'om') { //mousedown && mouse is inside the annos && inside the measure
                 let boxes = this.state.boxes
                 let currentBox = boxes[this.state.clickedArea.box]
                 if(this.state.clickedArea.m_pos === 'sl'){
-                    currentBox.measure.x1 = x
-                    currentBox.measure.y1 = y
-                    currentBox.measure.intersec_x =  currentBox.measure.x2 - x
-                    currentBox.measure.intersec_y = currentBox.measure.y2 - y
-                    // currentBox.measure.x3 = currentBox.measure.intersec_x
+                    var fixedPoint_x = currentBox.measure.x2 
+                    var fixedPoint_y = currentBox.measure.y2
+                    var perpendicularStart_x = currentBox.measure.x3
+                    var perpendicularStart_y = currentBox.measure.y3
+                    var perpendicularEnd_x = currentBox.measure.x4
+                    var perpendicularEnd_y = currentBox.measure.y4
+                    var oldIntersect_x = currentBox.measure.intersec_x
+                    var oldIntersect_y = currentBox.measure.intersec_y
+
+                    // update intersection point
+                    var distanceToFixed = Math.sqrt((oldIntersect_x - fixedPoint_x) * (oldIntersect_x - fixedPoint_x) + (oldIntersect_y - fixedPoint_y) * (oldIntersect_y - fixedPoint_y))
+                    var newLineLength = Math.sqrt((x - fixedPoint_x) * (x - fixedPoint_x) + (y - fixedPoint_y) * (y - fixedPoint_y))
+                    if (newLineLength > distanceToFixed) {
+                        var distanceRatio = distanceToFixed / newLineLength
+                        // console.log("distanceRatio",distanceRatio)
+                        var newIntersect_x = fixedPoint_x + (x - fixedPoint_x) * distanceRatio
+                        var newIntersect_y = fixedPoint_y + (y - fixedPoint_y) * distanceRatio
+                        currentBox.measure.intersec_x = newIntersect_x
+                        currentBox.measure.intersec_y = newIntersect_y
+
+                        //update perpendicular point
+                        var distancePS = Math.sqrt((perpendicularStart_x - oldIntersect_x) * (perpendicularStart_x - oldIntersect_x) + (perpendicularStart_y - oldIntersect_y) * (perpendicularStart_y - oldIntersect_y))
+                        var distancePE = Math.sqrt((perpendicularEnd_x - oldIntersect_x) * (perpendicularEnd_x - oldIntersect_x) + (perpendicularEnd_y - oldIntersect_y) * (perpendicularEnd_y - oldIntersect_y))
+                        var vector_length = Math.sqrt((newIntersect_x - fixedPoint_x) * (newIntersect_x - fixedPoint_x) + (newIntersect_y - fixedPoint_y) * (newIntersect_y - fixedPoint_y))
+                        var vector_x = (fixedPoint_x - newIntersect_x) / vector_length
+                        var vector_y = (fixedPoint_y - newIntersect_y) / vector_length
+                        currentBox.measure.x3 = newIntersect_x - vector_y * distancePS
+                        currentBox.measure.y3 = newIntersect_y + vector_x * distancePS
+                        currentBox.measure.x4 = newIntersect_x + vector_y * distancePE
+                        currentBox.measure.y4 = newIntersect_y - vector_x * distancePE
+                        currentBox.measure.x1 = x
+                        currentBox.measure.y1 = y
+                    }
+                    
                 }
                 else if(this.state.clickedArea.m_pos === 'el'){
+                    var fixedPoint_x = currentBox.measure.x1 
+                    var fixedPoint_y = currentBox.measure.y1
+                    var perpendicularStart_x = currentBox.measure.x3
+                    var perpendicularStart_y = currentBox.measure.y3
+                    var perpendicularEnd_x = currentBox.measure.x4
+                    var perpendicularEnd_y = currentBox.measure.y4
+                    var oldIntersect_x = currentBox.measure.intersec_x
+                    var oldIntersect_y = currentBox.measure.intersec_y
 
+                    // update intersection point
+                    var distanceToFixed = Math.sqrt((oldIntersect_x - fixedPoint_x) * (oldIntersect_x - fixedPoint_x) + (oldIntersect_y - fixedPoint_y) * (oldIntersect_y - fixedPoint_y))
+                    var newLineLength = Math.sqrt((x - fixedPoint_x) * (x - fixedPoint_x) + (y - fixedPoint_y) * (y - fixedPoint_y))
+                    if (newLineLength > distanceToFixed) {
+                         var distanceRatio = distanceToFixed / newLineLength
+                        // console.log("distanceRatio",distanceRatio)
+                        var newIntersect_x = fixedPoint_x + (x - fixedPoint_x) * distanceRatio
+                        var newIntersect_y = fixedPoint_y + (y - fixedPoint_y) * distanceRatio
+                        currentBox.measure.intersec_x = newIntersect_x
+                        currentBox.measure.intersec_y = newIntersect_y
+
+                        //update perpendicular point
+                        var distancePS = Math.sqrt((perpendicularStart_x - oldIntersect_x) * (perpendicularStart_x - oldIntersect_x) + (perpendicularStart_y - oldIntersect_y) * (perpendicularStart_y - oldIntersect_y))
+                        var distancePE = Math.sqrt((perpendicularEnd_x - oldIntersect_x) * (perpendicularEnd_x - oldIntersect_x) + (perpendicularEnd_y - oldIntersect_y) * (perpendicularEnd_y - oldIntersect_y))
+                        var vector_length = Math.sqrt((newIntersect_x - fixedPoint_x) * (newIntersect_x - fixedPoint_x) + (newIntersect_y - fixedPoint_y) * (newIntersect_y - fixedPoint_y))
+                        var vector_x = (fixedPoint_x - newIntersect_x) / vector_length
+                        var vector_y = (fixedPoint_y - newIntersect_y) / vector_length
+                        currentBox.measure.x3 = newIntersect_x + vector_y * distancePS
+                        currentBox.measure.y3 = newIntersect_y - vector_x * distancePS
+                        currentBox.measure.x4 = newIntersect_x - vector_y * distancePE
+                        currentBox.measure.y4 = newIntersect_y + vector_x * distancePE
+                        currentBox.measure.x2 = x
+                        currentBox.measure.y2 = y
+                    }
+                   
                 }
                 else if(this.state.clickedArea.m_pos === 'ss'){
+                    var fixedPoint_x = currentBox.measure.x4
+                    var fixedPoint_y = currentBox.measure.y4
+                    var start_x = currentBox.measure.x1
+                    var start_y = currentBox.measure.y1
+                    var oldIntersect_x = currentBox.measure.intersec_x
+                    var oldIntersect_y = currentBox.measure.intersec_y
+                    var vector_length = Math.sqrt((start_x - oldIntersect_x) * (start_x - oldIntersect_x) + (start_y - oldIntersect_y) * (start_y - oldIntersect_y))
+                    var vector_x = (start_x - oldIntersect_x) / vector_length
+                    var vector_y = (start_y - oldIntersect_y) / vector_length
                     
+                    //getHelperLine
+                    var highNumber = Number.MAX_SAFE_INTEGER; 
+                    var helperLine = {
+                        start: {x: x,y: y},
+                        end: {
+                          x: x - vector_y * highNumber,
+                          y: y + vector_x * highNumber
+                        }
+                      }
+                    var longLine = {
+                        start: {x: start_x,y: start_y},
+                        end: {x:currentBox.measure.x2, y: currentBox.measure.y2}
+                    }
+                    var newIntersection = this.segmentsIntr(helperLine.start,helperLine.end,longLine.start,longLine.end)
+                    console.log('newIntersection',newIntersection)
+                    var distanceToFixed = Math.sqrt((oldIntersect_x - fixedPoint_x) * (oldIntersect_x - fixedPoint_x) + (oldIntersect_y - fixedPoint_y) * (oldIntersect_y - fixedPoint_y))
+                    if (newIntersection) {
+                        currentBox.measure.x3 = x
+                        currentBox.measure.y3 = y
+                        currentBox.measure.x4 = newIntersection.x - vector_y * distanceToFixed
+                        currentBox.measure.y4 = newIntersection.y + vector_x * distanceToFixed
+                        currentBox.measure.intersec_x = newIntersection.x
+                        currentBox.measure.intersec_y = newIntersection.y
+                    }
                 }
                 else if(this.state.clickedArea.m_pos === 'es'){
+                    var fixedPoint_x = currentBox.measure.x3
+                    var fixedPoint_y = currentBox.measure.y3
+                    var start_x = currentBox.measure.x1
+                    var start_y = currentBox.measure.y1
+                    var oldIntersect_x = currentBox.measure.intersec_x
+                    var oldIntersect_y = currentBox.measure.intersec_y
+                    var vector_length = Math.sqrt((start_x - oldIntersect_x) * (start_x - oldIntersect_x) + (start_y - oldIntersect_y) * (start_y - oldIntersect_y))
+                    var vector_x = (start_x - oldIntersect_x) / vector_length
+                    var vector_y = (start_y - oldIntersect_y) / vector_length
                     
+                    //getHelperLine
+                    var highNumber = Number.MAX_SAFE_INTEGER; 
+                    var helperLine = {
+                        start: {x: x,y: y},
+                        end: {
+                          x: x + vector_y * highNumber,
+                          y: y - vector_x * highNumber
+                        }
+                      }
+                    var longLine = {
+                        start: {x: start_x,y: start_y},
+                        end: {x:currentBox.measure.x2, y: currentBox.measure.y2}
+                    }
+                    var newIntersection = this.segmentsIntr(helperLine.start,helperLine.end,longLine.start,longLine.end)
+                    console.log('newIntersection',newIntersection)
+                    var distanceToFixed = Math.sqrt((oldIntersect_x - fixedPoint_x) * (oldIntersect_x - fixedPoint_x) + (oldIntersect_y - fixedPoint_y) * (oldIntersect_y - fixedPoint_y))
+                    if (newIntersection) {
+                        currentBox.measure.x3 = newIntersection.x + vector_y * distanceToFixed
+                        currentBox.measure.y3 = newIntersection.y - vector_x * distanceToFixed
+                        currentBox.measure.x4 = x
+                        currentBox.measure.y4 = y
+                        currentBox.measure.intersec_x = newIntersection.x
+                        currentBox.measure.intersec_y = newIntersection.y
+                    }
                 }
                 else if(this.state.clickedArea.m_pos === 'cm'){
-                    const oldCenterX = (currentBox.measure.x1 + currentBox.measure.x2) / 2
-                    const oldCenterY = (currentBox.measure.y1 + currentBox.measure.y2) / 2
-                    const xOffset = x - oldCenterX
-                    const yOffset = y - oldCenterY
+                    var oldCenterX = (currentBox.measure.x1 + currentBox.measure.x2) / 2
+                    var oldCenterY = (currentBox.measure.y1 + currentBox.measure.y2) / 2
+                    var xOffset = x - oldCenterX
+                    var yOffset = y - oldCenterY
                     currentBox.measure.x1 += xOffset
                     currentBox.measure.x2 += xOffset
                     currentBox.measure.x3 += xOffset
@@ -3243,6 +3439,15 @@ class CornerstoneElement extends Component {
             this.setState({boxes:boxes})
             this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
             console.log('box',this.state.boxes)
+        }
+
+        if(this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3 && event.button === 0 && this.state.clickedArea.m_pos !== 'om'){
+            const boxes = this.state.boxes
+            let currentBox = boxes[this.state.clickedArea.box]
+            var invertBox = this.invertHandles(currentBox)
+            boxes[this.state.clickedArea.box] = invertBox
+            this.setState({boxes:boxes})
+            this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
         }
      
         this.setState({
@@ -3628,15 +3833,18 @@ class CornerstoneElement extends Component {
         if (this.state.showNodules === true && this.state.caseId === window.location.pathname.split('/')[2]) {
             for (let i = 0; i < this.state.boxes.length; i++) {
                 // if (this.state.boxes[i].slice_idx == this.state.currentIdx && this.state.immersive == false) 
-                if (this.state.boxes[i].slice_idx == this.state.currentIdx) 
-                    this.drawBoxes(this.state.boxes[i])
-                    this.drawBidirection(this.state.boxes[i])
+                if (this.state.boxes[i].slice_idx == this.state.currentIdx){
+                     this.drawBoxes(this.state.boxes[i])
+                     this.drawBidirection(this.state.boxes[i])
+                }
+                   
             }
 
         }
 
         // if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.immersive == false) {
         // if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.isbidirectionnal === false) {
+        console.log('bool',this.state.clicked && this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3)
         if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.leftButtonTools == 0) { 
             this.drawBoxes(this.state.tmpBox)
         }
@@ -3676,9 +3884,7 @@ class CornerstoneElement extends Component {
             console.log(cornerstone.getEnabledElement(element))
         }
         // console.log('imageLoader',cornerstone.loadImage(imageId))
-        let loadImage = cornerstone.loadImage(imageId)
-        console.log('loadImage', loadImage)
-        let imageobject = cornerstone
+        cornerstone
             .loadAndCacheImage(imageId)
             .then(image => {
                 // if(this.state.TagFlag === false){
@@ -3698,11 +3904,10 @@ class CornerstoneElement extends Component {
 
                 }
                 if(element !== undefined){
-                
                     cornerstone.displayImage(element, image)
                 }
                 
-                
+                this.setState({currentImage: image})
                 // var manager = globalImageIdSpecificToolStateManager.getImageIdToolState(image,'Bidirectional')
                 // console.log('manager',manager)
                
@@ -3757,7 +3962,7 @@ class CornerstoneElement extends Component {
                 // window.addEventListener("resize", this.onWindowResize) if (!initial) {
                 // this.setState({currentIdx: newIdx}) }
             })
-            console.log('imageobject',imageobject)
+            // console.log('imageobject',imageobject)
     }
 
     cacheImage(imageId){

@@ -89,6 +89,7 @@ class DisplayPanel extends Component {
             noduleNo: noduleNo,
             dicomTag:dicomtag
           }
+          
           this.setState({stack: stack, show: true})
             })
          
