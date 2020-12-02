@@ -590,7 +590,7 @@ class MiniReport extends Component{
                                                 <Divider/>
                                                 <div>&nbsp;</div>
                                                 <div style={{fontSize:20,color:'#6495ED'}} id='noduleDivide'>结节 {index+1}</div>
-                                                <Table celled>
+                                                <Table celled textAlign='center'>
                                                     <Table.Header>
                                                         <Table.Row>
                                                             <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
@@ -647,12 +647,12 @@ class MiniReport extends Component{
                                                         </Table.Row>
                                                         <Table.Row>
                                                             <Table.Cell>结节部分</Table.Cell>
-                                                            <Table.Cell><div id={nodule_id} style={{width:'300px',height:'250px'}}></div></Table.Cell>
+                                                            <Table.Cell><div id={nodule_id} style={{width:'300px',height:'250px',margin:'0 auto'}}></div></Table.Cell>
                                                             {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
                                                         </Table.Row>
                                                         <Table.Row>
                                                             <Table.Cell>直方图</Table.Cell>
-                                                            <Table.Cell><div id={visualId} ></div></Table.Cell>
+                                                            <Table.Cell><div id={visualId} style={{margin:'0 auto'}}></div></Table.Cell>
                                                         </Table.Row>
                                                     </Table.Body>
                                                 </Table>

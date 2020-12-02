@@ -123,7 +123,7 @@ class Main extends Component {
         const mainMenus = (
             <>
                 <Menu.Item onClick={this.handleItemClick} as={Link} to='/dataCockpit' name='home'>
-                    DeepLN肺癌全周期智能管理影像数据平台
+                    DeepLN肺癌全周期影像数据智能管理平台
                 </Menu.Item>
 
                 <Menu.Item
@@ -258,7 +258,7 @@ class Main extends Component {
                 logButtonPlace = (
                     <Menu id="header" pointing secondary>
                         <Menu.Item onClick={this.handleItemClick} as={Link} to='/' name='home'>
-                            DeepLN肺癌全周期智能管理影像数据平台
+                            DeepLN肺癌全周期影像数据智能管理平台
                         </Menu.Item>
                       
                         <Menu.Item position='right'>
