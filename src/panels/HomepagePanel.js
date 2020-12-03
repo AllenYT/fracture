@@ -64,34 +64,70 @@ class HomepagePanel extends Component {
         const files = []
         let fileList = this.state.fileList
         console.log('filelist',fileList)
-        const formdata = new FormData()
+
         for(var i=0;i<fileList.length;i++){
-            console.log(fileList[i].content)
-            // files.push(fileList[i].content)
+            const formdata = new FormData()
             formdata.append('files',fileList[i].content)
-        }
-        // formdata.append('files',files)
-        const params = {
-             files : files
-        }
-        console.log('params',formdata)
-        axios.post(dataConfig.uploadMutiply, formdata).then(res => {
-            console.log(res.data)
-            const successList = res.data.success
-            if (successList !== null) {
-                
-                for(var i=0;i<successList.length;i++){
-                    for(var j=0;j<fileList.length;j++){
-                        if(successList[i] === fileList[j].fileName){
-                            fileList.splice(j, 1)
+            // let isLastFile = 0
+            // if(i === fileList.length - 1){
+            //     isLastFile = 1
+            // }
+            
+            // const url = dataConfig.uploadMutiply +'/test/' + isLastFile
+
+            // const url = {
+            //     token:'test',
+            //     isLastFile : isLastFile
+            // }
+            // console.log('url',url)
+            axios.post(dataConfig.uploadMutiply, formdata).then(res => {
+                console.log(res.data)
+                const successList = res.data.success
+                if (successList !== null) {
+                    
+                    for(var i=0;i<successList.length;i++){
+                        for(var j=0;j<fileList.length;j++){
+                            if(successList[i] === fileList[j].fileName){
+                                fileList.splice(j, 1)
+                            }
                         }
                     }
+                    this.setState({fileList:fileList})
                 }
-                this.setState({fileList:fileList})
-            }
-        }).catch(err => {
-            console.log('err: ' + err)
-        })
+            }).catch(err => {
+                console.log('err: ' + err)
+            })
+        }
+
+
+        // const formdata = new FormData()
+        // for(var i=0;i<fileList.length;i++){
+        //     // console.log(fileList[i].content)
+        //     // files.push(fileList[i].content)
+        //     formdata.append('files',fileList[i].content)
+        // }
+        // // formdata.append('files',files)
+        // const params = {
+        //      files : fileList
+        // }
+        // console.log('params',params)
+        // axios.post(dataConfig.uploadMutiply, formdata).then(res => {
+        //     console.log(res.data)
+        //     const successList = res.data.success
+        //     if (successList !== null) {
+                
+        //         for(var i=0;i<successList.length;i++){
+        //             for(var j=0;j<fileList.length;j++){
+        //                 if(successList[i] === fileList[j].fileName){
+        //                     fileList.splice(j, 1)
+        //                 }
+        //             }
+        //         }
+        //         this.setState({fileList:fileList})
+        //     }
+        // }).catch(err => {
+        //     console.log('err: ' + err)
+        // })
     }
 
     getFileSize(fileByte) {
@@ -109,33 +145,66 @@ class HomepagePanel extends Component {
       }
 
     singlefile(e){
-        const current_file = e.target.files[0]
+        // const current_file = e.target.files[0]
+        // console.log('cur',current_file)
+        // if(current_file != undefined){
+        //     let newfile_no = 0
+        //     let filesize = 0
+        //     let filename = ''
+        //     let fileList = this.state.fileList
+        //     for (var i = 0; i < fileList.length; i++) {
+        //         const current_file_no = parseInt(fileList[i].file_no)
+        //         if (current_file_no > newfile_no) {
+        //             newfile_no = current_file_no
+        //         }
+        //     }
+        //     filesize = this.getFileSize(current_file.size)
+        //     filename = current_file.name
+        //     const newfile = {
+        //         "file_no": (1 + newfile_no).toString(),
+        //         "fileName":filename,
+        //         "fileSize":filesize,
+        //         "content":current_file
+        //     }
+        //     console.log("newfile",newfile)
+        //     fileList.push(newfile)
+        //     this.setState({fileList:fileList})
+        // }
+        const current_file = e.target.files
         console.log('cur',current_file)
-        if(current_file != undefined){
-            let newfile_no = 0
-            let filesize = 0
-            let filename = ''
-            let fileList = this.state.fileList
-            for (var i = 0; i < fileList.length; i++) {
-                const current_file_no = parseInt(fileList[i].file_no)
-                if (current_file_no > newfile_no) {
-                    newfile_no = current_file_no
+        for(var i = 0;i < current_file.length ;i++){
+            if(current_file[i] != undefined){
+                let newfile_no = 0
+                let filesize = 0
+                let filename = ''
+                let fileList = this.state.fileList
+                for (var i = 0; i < fileList.length; i++) {
+                    const current_file_no = parseInt(fileList[i].file_no)
+                    if (current_file_no > newfile_no) {
+                        newfile_no = current_file_no
+                    }
                 }
+                if(current_file[i].size !== undefined){
+                    filesize = this.getFileSize(current_file[i].size)
+                }
+                else{
+                    filesize = 0
+                }
+                
+                filename = current_file[i].name
+                const newfile = {
+                    "file_no": (1 + newfile_no).toString(),
+                    "fileName":filename,
+                    "fileSize":filesize,
+                    "content":current_file[i]
+                }
+                console.log("newfile",newfile)
+                fileList.push(newfile)
+                this.setState({fileList:fileList})
             }
-            filesize = this.getFileSize(current_file.size)
-            filename = current_file.name
-            const newfile = {
-                "file_no": (1 + newfile_no).toString(),
-                "fileName":filename,
-                "fileSize":filesize,
-                "content":current_file
-            }
-            console.log("newfile",newfile)
-            fileList.push(newfile)
-            this.setState({fileList:fileList})
         }
-        
     }
+
 
     filepath(e){
         const cur_file = e.target.files
@@ -290,6 +359,8 @@ class HomepagePanel extends Component {
                                     <input type="file" name="files" id="singlefile" ref='single' onChange={this.singlefile} style={{display:'none'}} />
                                     <input type="file" name="files" id="filepath" ref='path' onChange={this.filepath} style={{display:'none'}} />
                                     <input type='file' name='files' id='filefolder' ref='multi' onChange={this.multifile}  style={{display:'none'}}/>
+
+                                    
                                     </Form.Field>
                                     
                                     <div class="filefield">
