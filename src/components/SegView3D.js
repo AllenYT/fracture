@@ -64,15 +64,15 @@ class SegView3D extends Component{
 
         this.renderer1 = vtkRenderer.newInstance()
         this.renderer1.setViewport(normalVpList[1][0], normalVpList[1][1], normalVpList[1][2], normalVpList[1][3])
-        this.renderer1.setBackground([0,0,0])
+        this.renderer1.setBackground([1,0,1])
 
         this.renderer2 = vtkRenderer.newInstance()
         this.renderer2.setViewport(normalVpList[0][0], normalVpList[0][1], normalVpList[0][2], normalVpList[0][3])
-        this.renderer2.setBackground([0,0,0])
+        this.renderer2.setBackground([0,1,1])
 
         this.renderer3 = vtkRenderer.newInstance()
         this.renderer3.setViewport(normalVpList[2][0], normalVpList[2][1], normalVpList[2][2], normalVpList[2][3])
-        this.renderer3.setBackground([0,0,0])
+        this.renderer3.setBackground([1,1,0])
 
         this.renderWindow.addRenderer(this.renderer1)
         this.renderWindow.addRenderer(this.renderer2)
@@ -182,34 +182,6 @@ class SegView3D extends Component{
     }
     reRenderAll(){
         this.renderer.resetCamera()
-        this.renderWindow.render()
-    }
-    magnifyView(){
-        this.camera.dolly(1.1)
-        this.renderer.resetCameraClippingRange()
-        this.renderWindow.render()
-        // this.camera.setParallelScale(this.camera.getParallelScale() / 0.9)
-        // this.renderer.updateLightsGeometryToFollowCamera();
-    }
-    reductView(){
-        this.camera.dolly(0.9)
-        this.renderer.resetCameraClippingRange()
-        this.renderWindow.render()
-    }
-    turnUp(){
-        console.log("focal", this.camera.getFocalPoint())
-        console.log("position", this.camera.getPosition())
-        this.renderWindow.render()
-    }
-    turnDown(){
-        this.renderWindow.render()
-    }
-    turnLeft(){
-        this.camera.azimuth(90)
-        this.renderWindow.render()
-    }
-    turnRight(){
-        this.camera.azimuth(-90)
         this.renderWindow.render()
     }
 

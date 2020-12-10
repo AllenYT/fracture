@@ -1,12 +1,10 @@
 import React, { Component, useCallback } from "react";
 import { vec3 , mat4} from 'gl-matrix';
 import { useRef, createRef } from "react";
-import CornerstoneElement from "../components/CornerstoneElement";
 import * as cornerstone from "cornerstone-core";
 import axios from "axios";
 import qs from "qs";
 import classnames from "classnames";
-import dicomParser from "dicom-parser";
 import SegView3D from "../components/SegView3D";
 import vtkActor from "vtk.js/Sources/Rendering/Core/Actor";
 import vtkMapper from "vtk.js/Sources/Rendering/Core/Mapper";
@@ -23,23 +21,16 @@ import vtkXMLPolyDataReader from "vtk.js/Sources/IO/XML/XMLPolyDataReader";
 import HttpDataAccessHelper from "vtk.js/Sources/IO/Core/DataAccessHelper/HttpDataAccessHelper";
 
 import {
-  List,
-  Grid,
-  Accordion,
-  Checkbox,
-  Rating,
-  Progress,
-  Button,
-  Icon,
-  Menu,
-  Radio, Image, Dropdown
+  List, Grid, Checkbox, Progress, Button, Icon, Menu, Image, Dropdown, Loader
 } from "semantic-ui-react";
+
+
 import PropTypes from "prop-types";
 import "../css/cornerstone.css";
 import "../css/segview.css";
-import vtkPiecewiseFunction from "vtk.js/Sources/Common/DataModel/PiecewiseFunction";
 import StudyBrowserList from "../components/StudyBrowserList";
 import src1 from "../images/scu-logo.jpg";
+import VTKViewer from "../components/VTKViewer";
 // import SegView3D from '../vtk-viewport/VTKViewport/View3D'
 // import View3D from '../vtk-viewport/index'
 // import createLabelPipeline from '../vtk-viewport/VTKViewport/createLabelPipeline'
@@ -65,19 +56,6 @@ const dictList = {
   6:{class:1, label:"lobe_4",name:"左肺上叶",color:{c1:111, c2:184, c3:210}},
   7:{class:1, label:"lobe_5",name:"右肺上叶",color:{c1:216, c2:101, c3:79}}
 }
-
-const contentUnselectedStyles =[
-    {position: "absolute"},
-    {position: "absolute"},
-  {position: "absolute"},
-  {position: "absolute"}
-]
-const contentSelectedStyles = [
-  {position: "absolute"},
-  {position: "absolute"},
-  {position: "absolute"},
-  {position: "absolute"}
-]
 
 class ViewerPanel extends Component {
   constructor(props) {
@@ -107,16 +85,16 @@ class ViewerPanel extends Component {
       listsOpacityChangeable: [],
       optVisible:false,
       optSelected:[1,1,1,1],
-      loading: false,
-      listLoading:[],
       percent: [],
       volumes: [],
-      origin: [140,240,10],
+      origin: [140,240,0],
+      position:[],
       axialActorVolumes: [],
       coronalActorVolumes: [],
       sagittalActorVolumes: [],
       pointActors: [],
       editing: false,
+      painting: false,
       selected: false,
       selectedNum: 0,
       selectionStyles:[],
@@ -211,7 +189,7 @@ class ViewerPanel extends Component {
     // imageReslice.setScalarScale(65535 / 255);
     console.log("axes", imageReslice.getResliceAxes())
     const obliqueSlice = imageReslice.getOutputData();
-    obliqueSlice.setDimensions(cols,rows,10)
+    obliqueSlice.setDimensions(cols,rows,20)
 
     const mapper = vtkVolumeMapper.newInstance();
     mapper.setInputData(obliqueSlice)
@@ -362,7 +340,6 @@ class ViewerPanel extends Component {
         const tmp_opacity = Object.keys(tmp_urls).map((key) => 0.5);
         const tmp_listsActive = Object.keys(tmp_urls).map((key) => 0);
         const tmp_listsOpacityChangeable = Object.keys(tmp_urls).map((key) => 0);
-        const tmp_listLoading = Object.keys(tmp_urls).map((key) => false);
         console.log("urls", urls);
         console.log("tmp_urls", tmp_urls);
         this.setState({
@@ -373,12 +350,11 @@ class ViewerPanel extends Component {
           opacity: tmp_opacity,
           listsActive: tmp_listsActive,
           listsOpacityChangeable: tmp_listsOpacityChangeable,
-          listLoading: tmp_listLoading
         });
 
-        tmp_urls.forEach((inside, idx) =>{
-          this.DownloadSegment(idx)
-        })
+        // tmp_urls.forEach((inside, idx) =>{
+        //   this.DownloadSegment(idx)
+        // })
 
       })
       .catch((error) => {
@@ -394,10 +370,26 @@ class ViewerPanel extends Component {
     window.addEventListener('dblclick' , this.dblclick.bind(this))
     window.addEventListener('click', this.click.bind(this))
     window.addEventListener('mousedown', this.mousedown.bind(this))
+    window.addEventListener('mousewheel', this.mousewheel.bind(this))
 
     // window.addEventListener('mouseup', this.mouseUp.bind(this))
     // window.addEventListener('mousemove', this.mouseMove.bind(this))
     // window.addEventListener('mousewheel', this.mouseWheel.bind(this))
+
+    const position = []
+    for(let i = 0;i<512;i++){
+      position[i] = []
+      for(let j = 0;j<512;j++){
+        position[i][j] = []
+        for(let k = 0;k<512;k++){
+          position[i][j][k] = 0
+        }
+      }
+    }
+    this.setState({
+      position: position
+    })
+
     const imageIdPromise = new Promise((resolve, reject) => {
       axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams), {headers})
           .then((res) => {
@@ -498,7 +490,6 @@ class ViewerPanel extends Component {
           scalarData[destIdx] = pixelValue;
         }
         this.createMPRImageReslice()
-
         this.updateVolumeActor()
         resolve({metaData0, imageMetaData})
       },reject)
@@ -506,7 +497,7 @@ class ViewerPanel extends Component {
     const {metaData0, imageMetaData} = await metaDataPromise
     console.log("this is ", metaData0)
     console.log("this is ", imageMetaData)
-    imageIds.splice(0,1)
+    imageIds.splice(50,imageIds.length - 1)
     imageIds.forEach((item, idx)=>{
       cornerstone.loadAndCacheImage(item).then(img=>{
         const pixeldata = img.getPixelData()
@@ -541,68 +532,30 @@ class ViewerPanel extends Component {
     window.removeEventListener('resize', this.resize3DView.bind(this))
     window.removeEventListener('dblclick', this.dblclick.bind(this))
     window.removeEventListener('click', this.click.bind(this))
+    window.removeEventListener('mousewheel', this.mousewheel.bind(this))
   }
   componentDidUpdate(prevProps, prevState, snapshot) {
-    const listLoading = this.state.listLoading
-    if(this.state.loading){
-      let tmp_loading = false;
-      listLoading.forEach(item => {
-        if(item){
-          tmp_loading = true
-        }
-      })
-      if(!tmp_loading){
-        this.setState({
-            loading: tmp_loading
-          }
-        )
-      }
-    }else{
-      let tmp_loading = false;
-      listLoading.forEach(item => {
-        if(item){
-          tmp_loading = true
-        }
-      })
-      if(tmp_loading){
-        this.setState({
-              loading: tmp_loading
-            }
-        )
-      }
-    }
 
   }
-  getRatio(first){
-    //for first parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
-    const selectedNum = this.state.selectedNum
-    const volLength = 600
-    const length = 512
-    let ratio
-    if(selectedNum === 0){
-      ratio = length / (volLength / 2)
-    }else if(selectedNum === 1){
-      ratio = length / (volLength / 3)
-    }else if(selectedNum === 2){
-      if(first === 0){
-        ratio = length / volLength
-      }else{
-        ratio = length / (volLength / 3)
-      }
-    }else if(selectedNum === 3){
-      if(first === 1){
-        ratio = length / volLength
-      }else{
-        ratio = length / (volLength / 3)
-      }
-    }else if(selectedNum === 4){
-      if(first === 2){
-        ratio = length / volLength
-      }else{
-        ratio = length / (volLength / 3)
-      }
+  mousewheel(e){
+    //- represents magnify, + represents reduct
+    const wheelValue = (e.wheelDelta / 120 ) * 5
+    const origin = this.state.origin
+    if(e.path[0].className === "segment-content-block segment-content-axial"){
+      origin[2] = origin[2] + wheelValue
+      imageData.modified()
+      this.updateVolumeActor(origin)
     }
-    return ratio
+    if(e.path[0].className === "segment-content-block segment-content-coronal"){
+      origin[1] = origin[1] + wheelValue
+      imageData.modified()
+      this.updateVolumeActor(origin)
+    }
+    if(e.path[0].className === "segment-content-block segment-content-sagittal"){
+      origin[0] = origin[0] + wheelValue
+      imageData.modified()
+      this.updateVolumeActor(origin)
+    }
   }
   mousedown(e){
     if(e.path[0].className === "segment-content-row segment-content-row-axial"){
@@ -636,7 +589,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
-        that.updatePointActorByOrigin(finalOrigin)
+        //that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -672,7 +625,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
-        that.updatePointActorByOrigin(finalOrigin)
+        //that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -709,7 +662,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
-        that.updatePointActorByOrigin(finalOrigin)
+        //that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -745,7 +698,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
-        that.updatePointActorByOrigin(finalOrigin)
+        //that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -783,7 +736,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
-        that.updatePointActorByOrigin(finalOrigin)
+        //that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -819,7 +772,7 @@ class ViewerPanel extends Component {
       function up(e){
         imageData.modified()
         that.updateVolumeActor(finalOrigin)
-        that.updatePointActorByOrigin(finalOrigin)
+        //that.updatePointActorByOrigin(finalOrigin)
         that.setState({
           origin: finalOrigin
         })
@@ -829,19 +782,13 @@ class ViewerPanel extends Component {
     }
   }
   click(e){
+    console.log("click", e)
     if(this.state.editing){
       if(e.path[0].className === "segment-content-block segment-content-3d"){
+        //not used
         console.log("e.offsetX", e.offsetX)
         console.log("e.offsetY", e.offsetY)
-        const {viewerWidth, selectedNum} = this.state
-        let picked
-        if(selectedNum === 0){
-          picked = this.segView3D.click(e.offsetX + viewerWidth / 2, e.offsetY)
-        }else if(selectedNum === 1){
-          picked = this.segView3D.click(e.offsetX, e.offsetY)
-        }else{
-          picked = this.segView3D.click(e.offsetX + 0.67 * viewerWidth, e.offsetY)
-        }
+        const picked = this.viewer.click3DViewer(e.offsetX, e.offsetY)
         console.log("picked ", picked)
         if(picked){
           sphereSource.setRadius(5)
@@ -871,7 +818,340 @@ class ViewerPanel extends Component {
           })
         }
       }
+      if(e.path[1].className === "segment-content-block segment-content-axial" && e.path[0].id === "canvas-axial"){
+        const origin = this.state.origin
+        const ratio = this.getRatio(0)
+        const {x, y} = this.getTopLeftOffset(0)
+        const xNow = e.offsetX
+        const yNow = e.offsetY
+        origin[1] = 512 - (yNow - y) * ratio
+        origin[0] = 512 - (xNow - x) * ratio
+        const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = this.getRowAndColumnStyle()
+        this.setState({
+          axialRowStyle: axialRowStyle,
+          axialColumnStyle: axialColumnStyle,
+          coronalRowStyle: coronalRowStyle,
+          coronalColumnStyle: coronalColumnStyle,
+          sagittalRowStyle: sagittalRowStyle,
+          sagittalColumnStyle: sagittalColumnStyle
+        })
+        imageData.modified()
+        this.updateVolumeActor()
+      }
+      if(e.path[1].className === "segment-content-block segment-content-coronal" && e.path[0].id === "canvas-coronal"){
+        const origin = this.state.origin
+        const ratio = this.getRatio(1)
+        const {x, y} = this.getTopLeftOffset(1)
+        const xNow = e.offsetX
+        const yNow = e.offsetY
+        origin[2] = (yNow - y) * ratio
+        origin[0] = 512 - (xNow - x) * ratio
+        const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = this.getRowAndColumnStyle()
+        this.setState({
+          axialRowStyle: axialRowStyle,
+          axialColumnStyle: axialColumnStyle,
+          coronalRowStyle: coronalRowStyle,
+          coronalColumnStyle: coronalColumnStyle,
+          sagittalRowStyle: sagittalRowStyle,
+          sagittalColumnStyle: sagittalColumnStyle
+        })
+        imageData.modified()
+        this.updateVolumeActor()
+      }
+      if(e.path[1].className === "segment-content-block segment-content-sagittal" && e.path[0].id === "canvas-sagittal"){
+        const origin = this.state.origin
+        const ratio = this.getRatio(2)
+        const {x, y} = this.getTopLeftOffset(2)
+        const xNow = e.offsetX
+        const yNow = e.offsetY
+        origin[2] = (yNow - y) * ratio
+        origin[1] = (xNow - x) * ratio
+        const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = this.getRowAndColumnStyle()
+        this.setState({
+          axialRowStyle: axialRowStyle,
+          axialColumnStyle: axialColumnStyle,
+          coronalRowStyle: coronalRowStyle,
+          coronalColumnStyle: coronalColumnStyle,
+          sagittalRowStyle: sagittalRowStyle,
+          sagittalColumnStyle: sagittalColumnStyle
+        })
+        imageData.modified()
+        this.updateVolumeActor()
+      }
     }
+    if(this.state.painting){
+      if(e.path[1].className === "segment-content-block segment-content-axial" && e.path[0].id === "canvas-axial"){
+        const origin = this.state.origin
+        const ratio = this.getRatio(0)
+        const {x, y} = this.getTopLeftOffset(0)
+        const xNow = e.offsetX
+        const yNow = e.offsetY
+        const pNow = []
+        pNow[2] = origin[2]
+        pNow[1] = 512 - (yNow - y) * ratio
+        pNow[0] = 512 - (xNow - x) * ratio
+        this.pickUp(pNow[0], pNow[1], pNow[2], 0, 20)
+        this.updateCanvas()
+      }
+      if(e.path[1].className === "segment-content-block segment-content-coronal" && e.path[0].id === "canvas-coronal"){
+        const origin = this.state.origin
+        const ratio = this.getRatio(1)
+        const {x, y} = this.getTopLeftOffset(1)
+        const xNow = e.offsetX
+        const yNow = e.offsetY
+        const pNow = []
+        pNow[2] = (yNow - y) * ratio
+        pNow[1] = origin[1]
+        pNow[0] = 512 - (xNow - x) * ratio
+        this.pickUp(pNow[0], pNow[1], pNow[2], 1, 20)
+        this.updateCanvas()
+      }
+      if(e.path[1].className === "segment-content-block segment-content-sagittal" && e.path[0].id === "canvas-sagittal"){
+        const origin = this.state.origin
+        const ratio = this.getRatio(2)
+        const {x, y} = this.getTopLeftOffset(2)
+        const xNow = e.offsetX
+        const yNow = e.offsetY
+        const pNow = []
+        pNow[2] = (yNow - y) * ratio
+        pNow[1] = (xNow - x) * ratio
+        pNow[0] = origin[0]
+        this.pickUp(pNow[0], pNow[1], pNow[2], 2, 20)
+        this.updateCanvas()
+      }
+    }
+  }
+  pickUp(x, y, z, model, radius){
+    //model 0 represents axial, model 1 represents coronal, model 2 represents sagittal
+    const position = this.state.position
+    if(model === 0){
+      for(let i = 0; i < radius; i++){
+        for(let j = 0; j < radius; j++){
+          const xNow = Math.round(x - radius/2 + j)
+          const yNow = Math.round(y - radius/2 + i)
+          if(xNow >= 0 && xNow < 512 && yNow >= 0 && xNow < 512){
+            position[z][yNow][xNow] = 1
+          }
+        }
+      }
+    }else if(model === 1){
+      for(let i = 0; i < radius; i++){
+        for(let j = 0; j < radius; j++){
+          const xNow = Math.round(x - radius/2 + j)
+          const zNow = Math.round(z - radius/2 + i)
+          if(xNow >= 0 && xNow < 512 && zNow >= 0 && zNow < 512){
+            position[zNow][y][xNow] = 1
+          }
+        }
+      }
+    }else if(model === 2){
+      for(let i = 0; i < radius; i++){
+        for(let j = 0; j < radius; j++){
+          const yNow = Math.round(y - radius/2 + j)
+          const zNow = Math.round(z - radius/2 + i)
+          if(yNow >= 0 && yNow < 512 && zNow >= 0 && zNow < 512){
+            position[zNow][yNow][x] = 1
+          }
+        }
+      }
+    }
+  }
+  erase(x, y, z, model, radius){
+
+  }
+  updateCanvas(position){
+    if(!position){
+      position = this.state.position
+    }
+    const ctxAxial=document.getElementById('canvas-axial').getContext('2d')
+    // const widthAxial = document.getElementById('canvas-axial').width
+    // const heightAxial = document.getElementById('canvas-axial').height
+    // const imageDataAxial = ctxAxial.getImageData(0,0,widthAxial,heightAxial)
+    const ctxCoronal=document.getElementById('canvas-coronal').getContext('2d')
+    const ctxSagittal=document.getElementById('canvas-sagittal').getContext('2d')
+
+    const origin = this.state.origin
+    const oS = origin[0]
+    const oC = origin[1]
+    const oA = origin[2]
+    const x0 = this.getTopLeftOffset(0)
+    const x1 = this.getTopLeftOffset(1)
+    const x2 = this.getTopLeftOffset(2)
+    const xA = x0.x
+    const yA = x0.y
+    const xC = x1.x
+    const yC = x1.y
+    const xS = x2.x
+    const yS = x2.y
+    const rA = this.getRatio(0)
+    const rC = this.getRatio(1)
+    const rS = this.getRatio(2)
+
+    ctxSagittal.beginPath();
+    ctxSagittal.strokeStyle='yellow';        //颜色
+    ctxSagittal.lineWidth=5;               //线宽
+    ctxSagittal.lineCap='square';           //端点
+    ctxSagittal.lineJoin='round';
+    let firstSagittal = true
+    for(let i = 0; i < 512; i++){
+      for(let j = 0; j < 512; j++){
+        const pNow = position[i][j][oS]
+        if(pNow === 1){
+          const xOffset = Math.round(j/rS + xS)
+          const yOffset = Math.round(i/rS + yS)
+          if(firstSagittal){
+            firstSagittal = false
+            ctxSagittal.moveTo(xOffset,yOffset)
+          }else{
+            ctxSagittal.lineTo(xOffset,yOffset)
+          }
+        }
+      }
+    }
+    ctxSagittal.closePath();
+    ctxSagittal.stroke();
+
+    ctxCoronal.beginPath();
+    ctxCoronal.strokeStyle='green';        //颜色
+    ctxCoronal.lineWidth=5;               //线宽
+    ctxCoronal.lineCap='square';           //端点
+    ctxCoronal.lineJoin='round';
+    let firstCoronal = true
+    for(let i = 0; i < 512; i++){
+      for(let j = 0; j < 512; j++){
+        const pNow = position[i][oC][j]
+        if(pNow === 1){
+          const xOffset =  Math.round((512-j)/rC + xC)
+          const yOffset =  Math.round(i/rC + yC)
+          if(firstCoronal){
+            firstCoronal = false
+            ctxCoronal.moveTo(xOffset,yOffset)
+          }else{
+            ctxCoronal.lineTo(xOffset,yOffset)
+          }
+        }
+      }
+    }
+    ctxCoronal.closePath();
+    ctxCoronal.stroke();
+
+    ctxAxial.beginPath();
+    ctxAxial.strokeStyle='red';        //颜色
+    ctxAxial.lineWidth=5;               //线宽
+    ctxAxial.lineCap='square';           //端点
+    ctxAxial.lineJoin='round';           //拐点
+    let firstAxial = true
+    for(let i = 0; i < 512; i++){
+      for(let j = 0; j < 512; j++){
+        const pNow = position[oA][i][j]
+        if(pNow === 1){
+          const xOffset = Math.round((512-j)/rA + xA)
+          const yOffset = Math.round((512-i)/rA + yA)
+          if(firstAxial){
+            firstAxial = false
+            ctxAxial.moveTo(xOffset,yOffset)
+          }else{
+            ctxAxial.lineTo(xOffset,yOffset)
+          }
+          // imageDataAxial[xOffset * 4 + yOffset * widthAxial * 4] = 120
+          // imageDataAxial[xOffset * 4 + yOffset * widthAxial * 4 + 1] = 120
+          // imageDataAxial[xOffset * 4 + yOffset * widthAxial * 4 + 2] = 120
+          // imageDataAxial[xOffset * 4 + yOffset * widthAxial * 4 + 3] = 255
+        }
+      }
+    }
+    ctxAxial.closePath();
+    ctxAxial.stroke();
+
+    // ctxAxial.putImageData(imageDataAxial, 0, 0)
+    // console.log("imageData", imageDataAxial)
+  }
+  getRatio(model){
+    //switch pixel to origin
+    //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
+    const selectedNum = this.state.selectedNum
+    const volLength = 600
+    const length = 512
+    let ratio
+    if(selectedNum === 0){
+      ratio = length / (volLength / 2)
+    }else if(selectedNum === 1){
+      ratio = length / (volLength / 3)
+    }else if(selectedNum === 2){
+      if(model === 0){
+        ratio = length / volLength
+      }else{
+        ratio = length / (volLength / 3)
+      }
+    }else if(selectedNum === 3){
+      if(model === 1){
+        ratio = length / volLength
+      }else{
+        ratio = length / (volLength / 3)
+      }
+    }else if(selectedNum === 4){
+      if(model === 2){
+        ratio = length / volLength
+      }else{
+        ratio = length / (volLength / 3)
+      }
+    }
+    return ratio
+  }
+  getTopLeftOffset(model){
+    //volume's top left, not viewer's top left
+    //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
+    const {selectedNum, viewerWidth, viewerHeight} = this.state
+    const volLength = 600
+    const length = 512
+    let x
+    let y
+    if(selectedNum === 0){
+      x = (viewerWidth/2  - volLength/2)/2
+      y = (viewerHeight/2 - volLength/2)/2
+    }else if(selectedNum === 1){
+      if(model === 2){
+        x = (0.33 * viewerWidth - volLength/3)/2
+        y = (0.34 * viewerHeight - volLength/3)/2
+      }else{
+        x = (0.33 * viewerWidth - volLength/3)/2
+        y = (0.33 * viewerHeight - volLength/3)/2
+      }
+    }else if(selectedNum === 2){
+      if(model === 0){
+        x = (0.67 * viewerWidth - volLength)/2
+        y = (viewerHeight - volLength)/2
+      }else if(model === 1){
+        x = (0.33 * viewerWidth - volLength/3)/2
+        y = (0.33 * viewerHeight - volLength/3)/2
+      }else if(model === 2){
+        x = (0.33 * viewerWidth - volLength/3)/2
+        y = (0.34 * viewerHeight - volLength/3)/2
+      }
+    }else if(selectedNum === 3){
+      if(model === 1){
+        x = (0.67 * viewerWidth - volLength)/2
+        y = (viewerHeight - volLength)/2
+      }else if(model === 0){
+        x = (0.33 * viewerWidth - volLength/3)/2
+        y = (0.33 * viewerHeight - volLength/3)/2
+      }else if(model === 2){
+        x = (0.33 * viewerWidth - volLength/3)/2
+        y = (0.34 * viewerHeight - volLength/3)/2
+      }
+    }else if(selectedNum === 4){
+      if(model === 2){
+        x = (0.67 * viewerWidth - volLength)/2
+        y = (viewerHeight - volLength)/2
+      }else if(model === 0){
+        x = (0.33 * viewerWidth - volLength/3)/2
+        y = (0.33 * viewerHeight - volLength/3)/2
+      }else if(model === 1){
+        x = (0.33 * viewerWidth - volLength/3)/2
+        y = (0.34 * viewerHeight - volLength/3)/2
+      }
+    }
+    return {x, y}
   }
   updatePointActorByOrigin(origin){
     if(!origin){
@@ -913,25 +1193,9 @@ class ViewerPanel extends Component {
         this.selectByNum(1)
       }
     }
-    // if(this.state.editing){
-    //
-    // }else{
-    //   if(e.path[0].nodeName === 'CANVAS'){
-    //     const selectedNum = this.segView3D.dblclick(e.offsetX, e.offsetY)
-    //     if(selectedNum === 1){
-    //       this.selectByNum(1)
-    //     }else if(selectedNum === 2){
-    //       this.selectByNum(2)
-    //     }else if(selectedNum === 3){
-    //       this.selectByNum(3)
-    //     }else if(selectedNum === 4){
-    //       this.selectByNum(4)
-    //     }
-    //   }
-    // }
   }
   selectByNum(selectedNum){
-    this.segView3D.selectByNum(selectedNum)
+    this.viewer.selectByNum(selectedNum)
     const selectionStyles = this.getSelectionStyles(selectedNum)
     const {axialRowStyle, axialColumnStyle, coronalRowStyle, coronalColumnStyle, sagittalRowStyle, sagittalColumnStyle} = this.getRowAndColumnStyle(selectedNum)
     this.setState({
@@ -950,6 +1214,9 @@ class ViewerPanel extends Component {
     //num 3 represents selection of coronal, num 4 represents selection of sagittal
     if(!origin){
       origin = this.state.origin
+    }
+    if(!selectedNum){
+      selectedNum = this.state.selectedNum
     }
     const {viewerWidth, viewerHeight, imageIds} = this.state
     const length = imageIds.length
@@ -1079,7 +1346,8 @@ class ViewerPanel extends Component {
         viewerHeight: clientHeight,
         selectionStyles: selectionStyles
       })
-      this.segView3D.setContainerSize(clientWidth, clientHeight)
+      // this.segView3D.setContainerSize(clientWidth, clientHeight)
+      this.viewer.setContainerSize(clientWidth, clientHeight)
     }
   }
 
@@ -1102,21 +1370,12 @@ class ViewerPanel extends Component {
           tmp_segments[idx] = actor
           let tmp_segVisible = this.state.segVisible
           tmp_segVisible[idx] = 1
-          let tmp_listLoading = this.state.listLoading
-          tmp_listLoading[idx] = false
           this.setState({
             segments: tmp_segments,
             segVisible:tmp_segVisible,
-            listLoading: tmp_listLoading
             // segments_list: this.state.segments_list.concat(actor),
           })
         })
-    let tmp_listLoading = this.state.listLoading
-    tmp_listLoading[idx] = true
-    this.setState({
-        listLoading: tmp_listLoading
-      }
-    )
   }
   nextPath(path) {
     this.props.history.push(path);
@@ -1169,17 +1428,17 @@ class ViewerPanel extends Component {
 
   handleFuncButton(idx, e){
     switch (idx){
-      case 0:this.segView3D.magnifyView()
+      case 0:this.viewer.magnifyView()
         break
-      case 1:this.segView3D.reductView()
+      case 1:this.viewer.reductView()
         break
-      case 2:this.segView3D.turnUp()
+      case 2:this.viewer.turnUp()
         break
-      case 3:this.segView3D.turnDown()
+      case 3:this.viewer.turnDown()
         break
-      case 4:this.segView3D.turnLeft()
+      case 4:this.viewer.turnLeft()
         break
-      case 5:this.segView3D.turnRight()
+      case 5:this.viewer.turnRight()
         break
       case 6:this.selectByNum(1)
             break
@@ -1195,17 +1454,26 @@ class ViewerPanel extends Component {
             break
       case 12:this.endEdit()
             break
+      case 13:this.startPaint()
+            break
     }
   }
   startEdit(){
     const selectedNum = this.state.selectedNum
     this.selectByNum(selectedNum)
     this.setState({
-      editing: true
+      editing: true,
+      painting: false,
     })
   }
   endEdit(){
     this.setState({
+      editing: false
+    })
+  }
+  startPaint(){
+    this.setState({
+      painting: true,
       editing: false
     })
   }
@@ -1247,9 +1515,7 @@ class ViewerPanel extends Component {
 
   }
   translateZ(){
-    this.segView3D.reRenderAll()
   }
-
 
   handleListClick(idx, e, data) {
     console.log("handle click:", data);
@@ -1321,12 +1587,37 @@ class ViewerPanel extends Component {
       optSelected: tmp_optSelected
     })
   }
-
+  getCanvasStyle(){
+    const selectionStyles = this.state.selectionStyles
+    const canvasAStyle = {width:0, height:0, w:0, h:0}
+    const canvasCStyle = {width:0, height:0, w:0, h:0}
+    const canvasSStyle = {width:0, height:0, w:0, h:0}
+    if(selectionStyles[1]){
+      canvasAStyle.width = selectionStyles[1].width
+      canvasAStyle.height = selectionStyles[1].height
+      canvasAStyle.w = selectionStyles[1].width.replace("px","")
+      canvasAStyle.h = selectionStyles[1].height.replace("px","")
+    }
+    if(selectionStyles[2]){
+      canvasCStyle.width = selectionStyles[2].width
+      canvasCStyle.height = selectionStyles[2].height
+      canvasCStyle.w = selectionStyles[2].width.replace("px","")
+      canvasCStyle.h = selectionStyles[2].height.replace("px","")
+    }
+    if(selectionStyles[3]){
+      canvasSStyle.width = selectionStyles[3].width
+      canvasSStyle.height = selectionStyles[3].height
+      canvasSStyle.w = selectionStyles[3].width.replace("px","")
+      canvasSStyle.h = selectionStyles[3].height.replace("px","")
+    }
+    return {canvasAStyle, canvasCStyle, canvasSStyle}
+  }
   render() {
     const nameList = ['肺','肺叶','支气管','结节']
     const welcome = '欢迎您，' + localStorage.realname;
     let sgList = [];
     let loadingList = [];
+    let newLoadingList = [];
     let optList = [];
     const {
         segVisible,
@@ -1334,7 +1625,6 @@ class ViewerPanel extends Component {
         listsOpacityChangeable,
         optVisible,
         optSelected,
-        loading,
         pointActors,
         percent,
         segments,
@@ -1355,8 +1645,8 @@ class ViewerPanel extends Component {
       sagittalColumnStyle
     } = this.state;
     const canvasStyle ={width:`${viewerWidth}px`, height:`${viewerHeight}px`}
+    const {canvasAStyle, canvasCStyle, canvasSStyle} = this.getCanvasStyle()
 
-    let count = 0;
     let noduleNum = 0;
     if (this.state.urls) {
       sgList = this.state.urls.map((inside, idx) => {
@@ -1429,25 +1719,46 @@ class ViewerPanel extends Component {
           }
         }
       });
-      var loadingNum = 0;
-      loadingList = this.state.urls.map((inside, idx) => {
+      let loadingNum = 0;
+      // loadingList = this.state.urls.map((inside, idx) => {
+      //   if(loadingNum <= 4){
+      //     if(inside[1].length > 0 && percent[idx] > 0 && percent[idx] < 100){
+      //       loadingNum = loadingNum + 1
+      //       let info = dictList[inside[0]]
+      //       let segmentName = info.name
+      //       return (
+      //           <div key = {idx} className='loading-list-progress-container'>
+      //             {segmentName}
+      //             <Progress className='loading-list-progress' percent={percent[idx]} progress='percent' color='green' active/>
+      //           </div>
+      //       )
+      //     }
+      //   }
+      // });
+      newLoadingList = this.state.urls.map((inside, idx) => {
+        let loading
         if(loadingNum <= 4){
-          if(inside[1].length > 0 && percent[idx] > 0 && percent[idx] < 100){
+          if(inside[1].length > 0){
+            if(percent[idx] > 0 && percent[idx] < 100){
+              loading = true
+            }else{
+              loading = false
+            }
             loadingNum = loadingNum + 1
             let info = dictList[inside[0]]
             let segmentName = info.name
-            if(inside[0] === 2){
-              segmentName = segmentName + (idx + 1)
-            }
             return (
-                <div key = {idx} className='loading-list-progress-container'>
-                  {segmentName}
-                  <Progress className='loading-list-progress' percent={percent[idx]} progress='percent' color='green' active/>
+                <div className="loading-container">
+                  <Loader active inline className="loading-loader" size="medium" style={loading?{visibility: "visible"}:{visibility: "hidden"}}/>
+                  <div className="loading-ticker" hidden={loading}/>
+                  <div className="loading-ticker-hidden" hidden={loading}/>
+                  <div className="loading-circle" hidden={loading}/>
+                  <div className="loading-circle-hidden" hidden={loading}/>
                 </div>
             )
           }
         }
-      });
+      })
     }
     optList = nameList.map((inside, idx) =>{
       return (
@@ -1484,11 +1795,18 @@ class ViewerPanel extends Component {
               <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 8)}>3</Button>
               <Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 9)}>4</Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 10)}><Icon name='th large' size='large'/></Button>
-              <Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 11)}><Icon name='edit' size='large'/></Button>
+              <Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 11)}><Icon name='hand point down outline' size='large'/></Button>
               <Button icon className='funcBtn' hidden={!editing} onClick={this.handleFuncButton.bind(this, 12)}><Icon name='window close outline' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 13)}><Icon name='paint brush' size='large'/></Button>
+
               <Button className='funcBtn' onClick={this.goBack.bind(this)}>2D</Button>
 
             </Button.Group>
+          </Menu.Item>
+          <Menu.Item position='right'>
+            <div className="loading-list">
+
+            </div>
           </Menu.Item>
           <Menu.Item position='right'>
             <Dropdown text={welcome}>
@@ -1510,39 +1828,40 @@ class ViewerPanel extends Component {
             </Grid.Column>
             {/* 中间部分 */}
             <Grid.Column width={11}>
-              {/* <div id="seg3d-canvas"
-                ref={input => {
-                  this.container.current = input
-                }} style={style} /> */}
               <div className="segment-container" id="segment-container">
-                <div className="segment-canvas"  style={canvasStyle}>
-                  <SegView3D id="3d-viewer"
-                             loading={loading}
-                             pointActors={pointActors}
-                             actors={segments} volumes={volumes}
-                             axialActorVolumes={axialActorVolumes}
-                             coronalActorVolumes={coronalActorVolumes}
-                             sagittalActorVolumes={sagittalActorVolumes}
-                             onRef={(ref) => {this.segView3D = ref}}/>
-                </div>
-                <div className="segment-content" style={canvasStyle}>
-                  <div className="segment-content-block segment-content-3d" style={selectionStyles[0]}>3d</div>
+                <VTKViewer
+                    id="vtk-viewer"
+                    actors={segments}
+                    pointActors={pointActors}
+                    axialVolumes={axialActorVolumes}
+                    coronalVolumes={coronalActorVolumes}
+                    sagittalVolumes={sagittalActorVolumes}
+                    onRef={(ref) => {this.viewer = ref}}
+                />
+
+                {/*</div>*/}
+                  <div className="segment-content-block segment-content-3d" style={selectionStyles[0]}/>
                   <div className="segment-content-block segment-content-axial" style={selectionStyles[1]}>
-                    <div className="segment-content-row segment-content-row-axial" hidden={!editing} style={axialRowStyle}></div>
-                    <div className="segment-content-column segment-content-column-axial" hidden={!editing} style={axialColumnStyle}></div>
+                    <canvas id="canvas-axial" style={canvasAStyle} width={canvasAStyle.w} height={canvasAStyle.h}/>
+                    <div className="segment-content-row segment-content-row-axial" hidden={!editing} style={axialRowStyle}/>
+                    <div className="segment-content-column segment-content-column-axial" hidden={!editing} style={axialColumnStyle}/>
                   </div>
                   <div className="segment-content-block segment-content-coronal" style={selectionStyles[2]}>
-                    <div className="segment-content-row segment-content-row-coronal" hidden={!editing} style={coronalRowStyle}></div>
-                    <div className="segment-content-column segment-content-column-coronal" hidden={!editing} style={coronalColumnStyle}></div>
+                    <canvas id="canvas-coronal" style={canvasCStyle} width={canvasCStyle.w} height={canvasCStyle.h}/>
+                    <div className="segment-content-row segment-content-row-coronal" hidden={!editing} style={coronalRowStyle}/>
+                    <div className="segment-content-column segment-content-column-coronal" hidden={!editing} style={coronalColumnStyle}/>
                   </div>
                   <div className="segment-content-block segment-content-sagittal" style={selectionStyles[3]}>
-                    <div className="segment-content-row segment-content-row-sagittal" hidden={!editing} style={sagittalRowStyle}></div>
-                    <div className="segment-content-column segment-content-column-sagittal" hidden={!editing} style={sagittalColumnStyle}></div>
+                    <canvas id="canvas-sagittal" style={canvasSStyle} width={canvasSStyle.w} height={canvasSStyle.h}/>
+                    <div className="segment-content-row segment-content-row-sagittal" hidden={!editing} style={sagittalRowStyle}/>
+                    <div className="segment-content-column segment-content-column-sagittal" hidden={!editing} style={sagittalColumnStyle}/>
                   </div>
-                </div>
-                <div className="loading-list" hidden={true} style={canvasStyle}>
-                  {loadingList}
-                </div>
+                {/*<div className="segment-content" hidden={!editing} style={canvasStyle}>*/}
+                {/*</div>*/}
+
+                {/*<div className="loading-list" hidden={true} style={canvasStyle}>*/}
+                {/*  {loadingList}*/}
+                {/*</div>*/}
               </div>
             </Grid.Column>
             {/* 右边部分 */}
@@ -1563,9 +1882,6 @@ class ViewerPanel extends Component {
               <List className="segment-list" selection>
                 {sgList}
               </List>
-              {/*<Accordion styled id="segment-accordion" fluid>*/}
-              {/*  {segmentList}*/}
-              {/*</Accordion>*/}
             </Grid.Column>
           </Grid.Row>
         </Grid>
