@@ -3577,7 +3577,8 @@ class CornerstoneElement extends Component {
             cornerstone.getEnabledElement(element)
             console.log(cornerstone.getEnabledElement(element))
         }
-        // console.log('imageLoader',cornerstone.loadImage(imageId))
+        console.log('imageLoader',imageId)
+
         let loadImage = cornerstone.loadImage(imageId)
         console.log('loadImage', loadImage)
         let imageobject = cornerstone
@@ -3711,6 +3712,7 @@ class CornerstoneElement extends Component {
     }
 
     cacheImage(imageId){
+
         cornerstone.loadAndCacheImage(imageId)
         // cornerstone.ImageCache(imageId)
         console.log('info',cornerstone.imageCache.getCacheInfo(),imageId)

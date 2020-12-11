@@ -989,3 +989,7 @@
 [0929/104808.695:ERROR:crash_report_database_win.cc(428)] unexpected header
 [0929/110308.696:ERROR:crash_report_database_win.cc(428)] unexpected header
 [0929/111223.242:ERROR:crash_report_database_win.cc(428)] unexpected header
+[1023/151639.547:ERROR:directory_reader_win.cc(43)] FindFirstFile: 系统找不到指定的路径。 (0x3)
+[1023/153625.419:ERROR:directory_reader_win.cc(43)] FindFirstFile: 系统找不到指定的路径。 (0x3)
+[1023/203418.695:ERROR:directory_reader_win.cc(43)] FindFirstFile: 系统找不到指定的路径。 (0x3)
+[1029/200029.101:ERROR:directory_reader_win.cc(43)] FindFirstFile: 系统找不到指定的路径。 (0x3)
