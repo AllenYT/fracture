@@ -158,10 +158,18 @@ class SubList extends Component {
                 }
                 // console.log('MAINITEM', this.props.mainItem)
                 if (totalDates > 0 && totalStudies > 0) {
-                    this.setState({
-                        // hint: '当前病人包含共' + totalDates + '个日期的' + totalStudies + '次检查'
-                        hint: '当前病人包含共' + totalDates + '次检查'
-                    })
+                    if (this.props.type === 'date'){
+                        this.setState({
+                            // hint: '当前病人包含共' + totalDates + '个日期的' + totalStudies + '次检查'
+                            hint: '当前日期包含共' + totalStudies + '次检查'
+                        })
+                    }
+                    else{
+                        this.setState({
+                            // hint: '当前病人包含共' + totalDates + '个日期的' + totalStudies + '次检查'
+                            hint: '当前病人包含共' + totalDates + '次检查'
+                        })
+                    }
                 } else {
                     this.setState({hint: ''})
                 }

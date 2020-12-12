@@ -160,11 +160,11 @@ export class SearchNodulePanel extends Component {
                 if(data[idx]['volume']===undefined){
                     console.log(data[idx])
                 }
-                sequence['病人ID']=data[idx]['patienId']
+                sequence['病人ID']=data[idx]['patienId']===undefined?'':data[idx]['patienId']
                 sequence['性别']=data[idx]['patientSex']==='M'?'男':'女';
-                sequence['年龄']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
+                sequence['年龄']=data[idx]['patientBirth']===undefined?'':2020-parseInt(data[idx]['patientBirth'].slice(0,4))
                 sequence['结节体积(cm³)']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
-                sequence['结节直径(cm)']=Math.floor(data[idx]['diameter'] * 100) / 100
+                sequence['结节直径(cm)']=data[idx]['diameter']===undefined?'':Math.floor(data[idx]['diameter'] * 100) / 100
                 sequence['危险程度']=data[idx]['malignancy']==2?'高危':'低危'
                 sequence['分叶征']=data[idx]['lobulation']==2?'是':'否'
                 sequence['毛刺征']=data[idx]['spiculation']==2?'是':'否'
@@ -190,7 +190,7 @@ export class SearchNodulePanel extends Component {
     savetoExcel(){
       //要导出的json数据
       const params = {
-        malignancy: this.state.malignancy,
+            malignancy: this.state.malignancy,
             calcification: this.state.calcification,
             spiculation: this.state.spiculation,
             lobulation:this.state.lobulation,
@@ -204,7 +204,7 @@ export class SearchNodulePanel extends Component {
             vss:this.state.vss,
             bea:this.state.bea,
             bro:this.state.bro
-    }
+        }
     
     axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
         let datalists=[]
@@ -221,11 +221,11 @@ export class SearchNodulePanel extends Component {
                 if(data[idx]['volume']===undefined){
                     console.log(data[idx])
                 }
-                sequence['病人ID']=data[idx]['patienId']
+                sequence['病人ID']=data[idx]['patienId']===undefined?'':data[idx]['patienId']
                 sequence['性别']=data[idx]['patientSex']==='M'?'男':'女';
-                sequence['年龄']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
+                sequence['年龄']=data[idx]['patientBirth']===undefined?'':2020-parseInt(data[idx]['patientBirth'].slice(0,4))
                 sequence['结节体积(cm³)']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
-                sequence['结节直径(cm)']=Math.floor(data[idx]['diameter'] * 100) / 100
+                sequence['结节直径(cm)']=data[idx]['diameter']===undefined?'':Math.floor(data[idx]['diameter'] * 100) / 100
                 sequence['危险程度']=data[idx]['malignancy']==2?'高危':'低危'
                 sequence['分叶征']=data[idx]['lobulation']==2?'是':'否'
                 sequence['毛刺征']=data[idx]['spiculation']==2?'是':'否'
