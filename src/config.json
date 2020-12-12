@@ -5,7 +5,6 @@
         "getSingleJpg":"https://data.deepln.deepx.machineilab.org/data/covidMask",
         "getHist":"https://data.deepln.deepx.machineilab.org/covid/getHist",
         "uploadMutiply":"https://data.deepln.deepx.machineilab.org/data/uploadMutiply",
-
         "preprocess":"https://data.deepln.deepx.machineilab.org/preprocess/exec"
     },
 
