@@ -31,6 +31,14 @@ class VTKMPRViewer extends Component{
         this.interactor = this.renderWindow.getInteractor()
         this.camera = this.renderer.getActiveCamera()
         this.camera.azimuth(180)
+        if(this.props.type === 1){
+            //axial
+            this.camera.setViewUp(0, -1, 0)
+        }
+        if(this.props.type === 3){
+            //sagittal
+            this.camera.setViewUp(1, 0, 0)
+        }
         //this.camera.azimuth(180)
         this.renderWindow.render()
     }
@@ -38,7 +46,7 @@ class VTKMPRViewer extends Component{
         if (prevProps.volumes !== this.props.volumes){
             if (this.props.volumes.length) {
                 console.log("update volumes")
-                this.props.volumes.forEach(this.renderer.addVolume);
+                this.props.volumes.forEach(this.renderer.addVolume)
             } else {
                 // TODO: Remove all volumes
             }
@@ -58,7 +66,22 @@ class VTKMPRViewer extends Component{
             this.renderWindow.render()
         }
     }
-
+    resetView(){
+        this.renderer.resetCamera()
+        this.renderWindow.render()
+    }
+    magnifyView(){
+        this.camera.dolly(1.1)
+        this.renderer.resetCameraClippingRange()
+        this.renderWindow.render()
+        // this.camera.setParallelScale(this.camera.getParallelScale() / 0.9)
+        // this.renderer.updateLightsGeometryToFollowCamera();
+    }
+    reductView(){
+        this.camera.dolly(0.9)
+        this.renderer.resetCameraClippingRange()
+        this.renderWindow.render()
+    }
     render() {
         const {
             viewerWidth,

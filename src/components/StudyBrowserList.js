@@ -126,7 +126,7 @@ class StudyBrowserList extends Component{
                         let previewId='preview-'+index
                         // console.log('render',previewId)
                         return(
-                            <Card onClick={(e)=>this.props.handleClickScreen(e,serie.href)}>
+                            <Card key={index} onClick={(e)=>this.props.handleClickScreen(e,serie.href)}>
                                 <div className='preview-canvas' id={previewId}>
                                 </div>
                                 <Card.Content>
