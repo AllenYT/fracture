@@ -268,10 +268,10 @@ class MiniReport extends Component{
     template(){
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
         let segments={
-        'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
-        'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
-        'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
-        'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
+            'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
+            'S6':'右肺下叶-背段','S7':'右肺下叶-内基底段','S8':'右肺下叶-前基底段','S9':'右肺下叶-外基底段','S10':'右肺下叶-后基底段',
+            'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-背段',
+            'S16':'左肺下叶-内前基底段','S17':'左肺下叶-外基底段','S18':'左肺下叶-后基底段'}
         if(this.props.type==='影像所见'){
             let texts=''
             if (this.props.activeItem===-1){
@@ -306,6 +306,9 @@ class MiniReport extends Component{
                     if(this.state.boxes[i]['texture']===2){
                         texture='的实性结节，'
                     }
+                    else if(this.state.boxes[i]['texture']===3){
+                        texture='的半实性结节，'
+                    }
                     else{
                         texture='的磨玻璃结节，'
                     }
@@ -315,8 +318,11 @@ class MiniReport extends Component{
                     else{
                         calcification='无钙化成分，'
                     }
-                    if(this.state.boxes[i]['malignancy']===2){
+                    if(this.state.boxes[i]['malignancy']===3){
                         malignancy='风险较高。'
+                    }
+                    else if(this.state.boxes[i]['malignancy']===2){
+                        malignancy='风险中等。'
                     }
                     else{
                         malignancy='风险较低。'
@@ -355,6 +361,9 @@ class MiniReport extends Component{
                 if(this.state.boxes[this.props.activeItem]['texture']===2){
                     texture='的实性结节，'
                 }
+                else if(this.state.boxes[this.props.activeItem]['texture']===3){
+                    texture='的半实性结节，'
+                }
                 else{
                     texture='的磨玻璃结节，'
                 }
@@ -364,8 +373,11 @@ class MiniReport extends Component{
                 else{
                     calcification='无钙化成分，'
                 }
-                if(this.state.boxes[this.props.activeItem]['malignancy']===2){
+                if(this.state.boxes[this.props.activeItem]['malignancy']===3){
                     malignancy='风险较高。'
+                }
+                else if(this.state.boxes[this.props.activeItem]['malignancy']===2){
+                    malignancy='风险中等。'
                 }
                 else{
                     malignancy='风险较低。'
@@ -432,10 +444,10 @@ class MiniReport extends Component{
     render(){
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
         let segments={
-        'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
-        'S6':'右肺下叶-上段','S7':'右肺下叶-内底段','S8':'右肺下叶-前底段','S9':'右肺下叶-外侧底段','S10':'右肺下叶-后底段',
-        'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-上段',
-        'S16':'左肺下叶-前底段','S17':'左肺下叶-外侧底段','S18':'左肺下叶-后底段'}
+            'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
+            'S6':'右肺下叶-背段','S7':'右肺下叶-内基底段','S8':'右肺下叶-前基底段','S9':'右肺下叶-外基底段','S10':'右肺下叶-后基底段',
+            'S11':'左肺上叶-尖后段','S12':'左肺上叶-前段','S13':'左肺上叶-上舌段','S14':'左肺上叶-下舌段','S15':'左肺下叶-背段',
+            'S16':'左肺下叶-内前基底段','S17':'左肺下叶-外基底段','S18':'左肺下叶-后基底段'}
         const {windowWidth} = this.state
         
         // console.log('type',this.props.type)
