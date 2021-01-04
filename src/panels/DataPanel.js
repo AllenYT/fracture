@@ -3,6 +3,7 @@ import {Pagination, Input, Grid, Checkbox, Button} from 'semantic-ui-react'
 import MainList from '../components/MainList'
 import Statistics from '../components/Statistics'
 import DataCockpit from '../panels/DataCockpit'
+import LowerAuth from '../components/LowerAuth'
 import '../css/dataPanel.css'
 import axios from 'axios';
 import qs from 'qs'
@@ -109,7 +110,6 @@ class DataPanel extends Component {
     // }
 
     render() {
-
         const {activePage} = this.state
         const isChecked = this.state.checked
         let type = "pid"
@@ -119,6 +119,7 @@ class DataPanel extends Component {
         }
 
         return (
+            JSON.parse(localStorage.getItem('auths')).indexOf("stat")>-1?
             <div className='banner'>
                 <Grid>
                     <Grid.Row >
@@ -136,71 +137,10 @@ class DataPanel extends Component {
                         {/* <Grid.Column width={2}></Grid.Column> */}
                     </Grid.Row>
                 </Grid>
-                
-
-                {/* <DataCockpit/> */}
-                {/* <Grid>
-                    <Grid.Row className="banner">
-                        <Grid.Column width={2}></Grid.Column>
-                        <Grid.Column width={12}>
-                            <Statistics/>
-                        </Grid.Column>
-                        <Grid.Column width={2}></Grid.Column>
-                    </Grid.Row>
-                    <Grid.Row className="data-content">
-                        <Grid.Column width={2}></Grid.Column>
-
-                        <Grid.Column width={12}>
-
-                            <div id="container">
-                                <div className="searchBar">
-                                    <Input
-                                        name="pid"
-                                        value={this.state.pidKeyword}
-                                        onChange={this.handleInputChange}
-                                        id="patient-search"
-                                        icon='user'
-                                        iconPosition='left'
-                                        placeholder="病人ID"/>
-
-                                    <span id="type-slider"><Checkbox
-                                        slider
-                                        onChange={this.handleCheckbox}
-                                        defaultChecked={this.state.checked}/></span>
-
-                                    <Input
-                                        name="date"
-                                        value={this.state.dateKeyword}
-                                        onChange={this.handleInputChange}
-                                        id="date-search"
-                                        icon='calendar'
-                                        iconPosition='left'
-                                        placeholder="检查时间"/>
-                                </div>
-
-                                <div className="patientList">
-                                    <MainList 
-                                        type={type}
-                                        currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
-                                        pidKeyword={this.state.pidKeyword}
-                                        dateKeyword={this.state.dateKeyword}/>
-                                </div>
-                                <div className="pagination-component">
-                                    <Pagination
-                                        id="pagination"
-                                        onPageChange={this.handlePaginationChange}
-                                        activePage={this.state.activePage}
-                                        totalPages={this.state.totalPage}/>
-                                </div>
-                            </div>
-
-                        </Grid.Column>
-
-                        <Grid.Column width={2}></Grid.Column>
-                    </Grid.Row>
-                </Grid> */}
 
             </div>
+            :
+            <LowerAuth></LowerAuth>
         )
     }
 }

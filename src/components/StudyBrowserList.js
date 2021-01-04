@@ -49,7 +49,6 @@ class StudyBrowserList extends Component{
             } else {
                 const subList = data.subList
                 let theList = []
-                console.log('subList',data)
                 // const params={caseId:this.state.caseId}
                 Object.keys(subList).map((key,value)=>{
                     // console.log('leftkey',key)

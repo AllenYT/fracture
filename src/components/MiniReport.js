@@ -12,6 +12,12 @@ import { Chart } from '@antv/g2'
 import DataSet from '@antv/data-set'
 import '../css/cornerstone.css'
 
+import echarts from 'echarts/lib/echarts';
+import  'echarts/lib/chart/bar';
+import 'echarts/lib/component/tooltip';
+import 'echarts/lib/component/title';
+import 'echarts/lib/component/toolbox'
+
 const config = require('../config.json')
 const draftConfig=config.draft
 let buttonflag=0
@@ -63,7 +69,6 @@ class MiniReport extends Component{
         }
         axios.post(draftConfig.structedReport, qs.stringify(params)).then((response) => {
             const data = response.data
-            console.log('report:',data,params)
             this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
                 patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
            
@@ -72,7 +77,7 @@ class MiniReport extends Component{
     }
 
     componentDidUpdate(prevProps,prevState){
-        if(prevProps.activeItem !== this.props.activeItem){
+        if(prevProps.activeItem !== this.props.activeItem || prevState.dealchoose !== this.state.dealchoose){
             // console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
             this.template()
         }
@@ -131,80 +136,137 @@ class MiniReport extends Component{
                 nodules.map((nodule,index)=>{
                     // console.log('nodules1',nodule)
                     const visId = 'visual' + index
-                // console.log(visId)
-            document.getElementById(visId).innerHTML=''
-            const hist_data=nodule.nodule_hist
-            if(hist_data!==undefined){
-                let bins=hist_data.bins
-                let ns=hist_data.n
-                // console.log('bins',bins)
-                // console.log('ns',ns)
-                var histogram = []
-                var line=[]
-                for (var i = 0; i < bins.length-1; i++) {
-                    var obj = {}
-                    obj.value = [bins[i],bins[i+1]]
-                    obj.count=ns[i]
-                    histogram.push(obj)
-                    
-                    // var obj2={}
-                    // obj2.value=bins[i]
-                    // obj2.count=ns[i]
-                    // line.push(obj2)
-                }
-                // console.log('histogram',histogram)
-                // console.log('line',line)
-                const ds = new DataSet();
-                const dv = ds.createView().source(histogram)
-                
-                const chart = new Chart({
-                    container: visId,
-                    // forceFit: true,
-                    forceFit:true,
-                    height: 300,
-                    width:250
-                    // padding: [30,30,'auto',30]
-                });
-                
-                let view1=chart.view()
-                // view1.axis(false)
-                view1.source(dv, {
-                    value: {
-                    //   nice: true,
-                        minLimit: bins[0]-50,
-                        maxLimit:bins[bins.length-1]+50,
-                    //   tickCount:10
-                    },
-                    count: {
-                    //   max: 350000,
-                      tickInterval:1
-                        // tickCount:10
+                    var dom = document.getElementById(visId);
+                    dom.style.display = ''
+                    dom.style.height = '300px'
+                    dom.style.width = '450px'
+                    let myChart = echarts.init(dom)
+                        // console.log(visId)
+                    // document.getElementById(visId).innerHTML=''
+                    const hist_data=nodule.nodule_hist
+                    if(hist_data!==undefined){
+                        let bins=hist_data.bins
+                        let ns=hist_data.n
+                        console.log('bins',bins)
+                        console.log('ns',ns)
+                        // var histogram = []
+                        // var line=[]
+                        // for (var i = 0; i < bins.length-1; i++) {
+                        //     var obj = {}
+                        //     obj.value = [bins[i],bins[i+1]]
+                        //     obj.count=ns[i]
+                        //     histogram.push(obj)
+                            
+                        //     // var obj2={}
+                        //     // obj2.value=bins[i]
+                        //     // obj2.count=ns[i]
+                        //     // line.push(obj2)
+                        // }
+                        // const ds = new DataSet();
+                        // const dv = ds.createView().source(histogram)
+                        
+                        // const chart = new Chart({
+                        //     container: visId,
+                        //     // forceFit: true,
+                        //     forceFit:true,
+                        //     height: 300,
+                        //     width:250
+                        //     // padding: [30,30,'auto',30]
+                        // });
+                        
+                        // let view1=chart.view()
+                        // // view1.axis(false)
+                        // view1.source(dv, {
+                        //     value: {
+                        //     //   nice: true,
+                        //         minLimit: bins[0]-50,
+                        //         maxLimit:bins[bins.length-1]+50,
+                        //     //   tickCount:10
+                        //     },
+                        //     count: {
+                        //     //   max: 350000,
+                        //       tickInterval:1
+                        //         // tickCount:10
+                        //     }
+                        //     })
+                        // // view1.source(dv)
+                        // view1.interval().position('value*count')
+            
+                        // // var view2 = chart.view()
+                        // // view2.axis(false)
+                        // // // view2.source(line)
+                        // // view2.source(line,{
+                        // //     value: {
+                        // //         // nice: true,
+                        // //         minLimit: bins[0]-50,
+                        // //         maxLimit:bins[bins.length-1]+50,
+                        // //         // tickCount:10
+                        // //         },
+                        // //         count: {
+                        // //         // max: 350000,
+                        // //         tickCount:10
+                        // //         }
+                        // // })
+                        // // view2.line().position('value*count').style({
+                        // //     stroke: 'grey',
+                            
+                        // //     }).shape('smooth')
+                        // chart.render()
+                        myChart.setOption({
+                            color: ['#00FFFF'],
+                            tooltip: {
+                                trigger: 'axis',
+                                axisPointer: {            // 坐标轴指示器，坐标轴触发有效
+                                    type: 'shadow'        // 默认为直线，可选为：'line' | 'shadow' 
+                                },
+                            },
+                            toolbox: {
+                                feature: {
+                                    saveAsImage: {}
+                                }
+                            },
+                            grid: {
+                                left: '15%',
+                                right: '4%',
+                                bottom: '3%',
+                                top: '10%',
+                                containLabel: true
+                            },
+                            xAxis: [
+                                {
+                                    type: 'category',
+                                    scale:'true',
+                                    data: bins,
+                                    // min: minValue,
+                                    // max: maxValue,
+                                    axisTick: {
+                                        alignWithLabel: true
+                                    },
+                                    axisLabel: {
+                                        color: "rgb(191,192,195)"
+                                    },
+                                }
+                            ],
+                            yAxis: [
+                                {
+                                    type: 'value',
+                                    
+                                    axisLabel: {
+                                        color: "rgb(191,192,195)"
+                                    },
+                                    minInterval: 1
+                                }
+                            ],
+                            series: [
+                                {
+                                    name: 'count',
+                                    type: 'bar',
+                                    barWidth: '60%',
+                                    data: ns,
+                                }
+                            ]
+                        });
                     }
-                    })
-                // view1.source(dv)
-                view1.interval().position('value*count')
-    
-                // var view2 = chart.view()
-                // view2.axis(false)
-                // // view2.source(line)
-                // view2.source(line,{
-                //     value: {
-                //         // nice: true,
-                //         minLimit: bins[0]-50,
-                //         maxLimit:bins[bins.length-1]+50,
-                //         // tickCount:10
-                //         },
-                //         count: {
-                //         // max: 350000,
-                //         tickCount:10
-                //         }
-                // })
-                // view2.line().position('value*count').style({
-                //     stroke: 'grey',
-                    
-                //     }).shape('smooth')
-                chart.render()
-            }
                     nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
                     const element = document.getElementById(nodule_id)
                     let imageId = imageIds[nodule.slice_idx]
@@ -286,7 +348,14 @@ class MiniReport extends Component{
                     let malignancy=''
                     if(this.state.boxes[i]['place']===0 || this.state.boxes[i]['place']===undefined || 
                     this.state.boxes[i]['place']===""){
-                        place='未知位置'
+                        if(this.state.boxes[i]['segment']===undefined || this.state.boxes[i]['segment']===""|| 
+                        this.state.boxes[i]['segment']==='None'){
+                            place='未知位置'
+                        }
+                        else{
+                            place=segments[this.state.boxes[i]['segment']]
+                        }
+                        
                     }
                     else{
                         if(this.state.boxes[i]['segment']===undefined || this.state.boxes[i]['segment']===""|| 
@@ -338,10 +407,15 @@ class MiniReport extends Component{
                 let texture=''
                 let calcification=''
                 let malignancy=''
-                console.log('minireport-boxes',this.state.boxes,this.state.boxes[this.props.activeItem],this.props.activeItem)
                 if(this.state.boxes[this.props.activeItem]['place']===0 || this.state.boxes[this.props.activeItem]['place']===undefined || 
                 this.state.boxes[this.props.activeItem]['place']===""){
-                    place='未知位置'
+                    if(this.state.boxes[this.props.activeItem]['segment']===undefined || this.state.boxes[this.props.activeItem]['segment']===""|| 
+                        this.state.boxes[this.props.activeItem]['segment']==='None'){
+                            place='未知位置'
+                        }
+                        else{
+                            place=segments[this.state.boxes[this.props.activeItem]['segment']]
+                        }
                 }
                 else{
                     if(this.state.boxes[this.props.activeItem]['segment']===undefined || this.state.boxes[this.props.activeItem]['segment']===""|| 
@@ -387,53 +461,280 @@ class MiniReport extends Component{
             }
         }
         else{
-            let malignancy=[]
-            for(let i=0;i<this.state.boxes.length;i++){
-                if(this.state.boxes[i]['malignancy']==2){
-                    malignancy.push(this.state.boxes[i]['diameter'])
-                }
-            }
-            if(malignancy.length==0){//良性概率高
-                let maxDiameter=this.state.boxes[0]['diameter']
+            if(this.state.dealchoose==='中华共识'){
+                let weight=0
+
                 for(let i=0;i<this.state.boxes.length;i++){
-                    if(this.state.boxes[i]['diameter']>maxDiameter){
-                        maxDiameter=this.state.boxes[i]['diameter']
+                    if(this.state.boxes[i]['malignancy']===3){
+                        if(this.state.boxes[i]['diameter']>8){
+                            weight=20
+                            break
+                        }
+                        else if(this.state.boxes[i]['diameter']>6 && this.state.boxes[i]['diameter']<=8){
+                            weight=weight>=15?weight:15
+                        }
+                        else if(this.state.boxes[i]['diameter']>=4 && this.state.boxes[i]['diameter']<=6){
+                            weight=weight>=10?weight:10
+                        }
+                        else{
+                            weight=weight>=5?weight:5
+                        }
+                    }
+                    else{
+                        if(this.state.boxes[i]['diameter']>8){
+                            weight=20
+                            break
+                        }
+                        else if(this.state.boxes[i]['diameter']>6 && this.state.boxes[i]['diameter']<=8){
+                            weight=weight>=10?weight:10
+                        }
+                        else if(this.state.boxes[i]['diameter']>=4 && this.state.boxes[i]['diameter']<=6){
+                            weight=weight>=5?weight:5
+                        }
+                        // else{
+                        //     weight=weight>=5?weight:5
+                        // }
                     }
                 }
-                if(maxDiameter>=8){
-                    // return '根据PET评估结节结果判断手术切除或非手术活检'
-                    this.setState({templateText:'根据PET评估结节结果判断手术切除或非手术活检'})
-                }
-                if(maxDiameter>=6 &&maxDiameter<8){
-                    this.setState({templateText:'6~12、18~24个月，如稳定，年度随访'})
-                    // return '6~12、18~24个月，如稳定，年度随访'
-                }
-                else if(maxDiameter>=4 &&maxDiameter<6){
-                    this.setState({templateText:'12个月，如稳定，年度随访'})
-                    // return '12个月，如稳定，年度随访'
-                }
-                else if(maxDiameter<4){
-                    this.setState({templateText:'选择性随访'})
-                    // return '选择性随访'
+                switch(weight){
+                    case 20:
+                        this.setState({templateText:'根据PET评估结节结果判断手术切除或非手术活检'});break
+                    case 15:
+                        this.setState({templateText:'3~6、9~12及24个月，如稳定，年度随访'});break
+                    case 10:
+                        this.setState({templateText:'6~12、18~24个月，如稳定，年度随访'});break
+                    case 5:
+                        this.setState({templateText:'12个月，如稳定，年度随访'});break
+                    case 0:
+                        this.setState({templateText:'选择性随访'});break
                 }
             }
-            else{//恶性概率高
-                let maxDiameter=Math.max(...malignancy)
-                if(maxDiameter>=8){
-                    this.setState({templateText:'根据标准分析评估结果判断放化疗或手术切除'})
-                    // return '根据标准分析评估结果判断放化疗或手术切除'
+            else if(this.state.dealchoose==='Fleischner'){
+                let weight=0
+
+                for(let i=0;i<this.state.boxes.length;i++){
+                    if(this.state.boxes[i]['texture']===2){
+                        if(this.state.boxes[i]['diameter']>8){
+                            weight=25
+                            break
+                        }
+                        else if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<=8){
+                            weight=weight>=15?weight:15
+                        }
+                        else{
+                            if(this.state.boxes[i]['malignancy']===3){
+                                weight=weight>=5?weight:5
+                            }
+                            // else{
+                            //     weight=weight>=0?weight:0
+                            // }
+                        }
+                    }
+                    else if(this.state.boxes[i]['texture']===3){
+                        if(this.state.boxes[i]['diameter']>=6){
+                            weight=weight>=20?weight:20
+                        }
+                        // else{
+                        //     weight=weight>=0?weight:0
+                        // }
+                    }
+                    else{
+                        if(this.state.boxes[i]['diameter']>=6){
+                            weight=weight>=10?weight:10
+                        }
+                        // else{
+                        //     weight=0
+                        // }
+                    }
                 }
-                if(maxDiameter>=6 &&maxDiameter<8){
-                    this.setState({templateText:'3~6、9~12及24个月，如稳定，年度随访'})
-                    // return '3~6、9~12及24个月，如稳定，年度随访'
+                switch(weight){
+                    case 25:
+                        this.setState({templateText:'3个月考虑CT、PET/CT，或组织样本'});break
+                    case 20:
+                        this.setState({templateText:'3-6月行CT确定稳定性。若未改变，并且实性成分<6mm，应每年行CT至5年'});break
+                    case 15:
+                        this.setState({templateText:'6-12个月行CT，之后18-24个月考虑CT'});break
+                    case 10:
+                        this.setState({templateText:'6-12月行CT确定稳定性，之后每2年行CT至5年'});break
+                    case 5:
+                        this.setState({templateText:'最好在12个月行CT'});break
+                    case 0:
+                        this.setState({templateText:'无常规随访'});break
                 }
-                else if(maxDiameter>=4 &&maxDiameter<6){
-                    this.setState({templateText:'6~12、18~24个月，如稳定，年度随访'})
-                    // return '6~12、18~24个月，如稳定，年度随访'
+            }
+            else if(this.state.dealchoose==='NCCN'){
+                let weight=0
+
+                for(let i=0;i<this.state.boxes.length;i++){
+                    if(this.state.boxes[i]['texture']===2){
+                        if(this.state.boxes[i]['diameter']>=15){
+                            weight=15
+                            break
+                        }
+                        else if(this.state.boxes[i]['diameter']>=7 && this.state.boxes[i]['diameter']<15){
+                            weight=weight>=10?weight:10
+                        }
+                        else if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<7){
+                            weight=weight>=5?weight:5
+                        }
+                        // else{
+                        //     weight=0
+                        // }
+                    }
+                    else if(this.state.boxes[i]['texture']===3){
+                        if(this.state.boxes[i]['diameter']>=8){
+                            weight=15
+                            break
+                        }
+                        else if(this.state.boxes[i]['diameter']>=7 && this.state.boxes[i]['diameter']<8){
+                            weight=weight>=10?weight:10
+                        }
+                        else if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<7){
+                            weight=weight>=5?weight:5
+                        }
+                        // else{
+                        //     weight=0
+                        // }
+                    }
+                    else{
+                        if(this.state.boxes[i]['diameter']>=20){
+                            weight=weight>=5?weight:5
+                        }
+                        // else{
+                        //     weight=0
+                        // }
+                    }
                 }
-                else if(maxDiameter<4){
-                    this.setState({templateText:'12个月，如稳定，年度随访'})
-                    // return '12个月，如稳定，年度随访'
+                switch(weight){
+                    case 15:
+                        this.setState({templateText:'胸部增强CT和/或PET/CT'});break
+                    case 10:
+                        this.setState({templateText:'3个月后复查LDCT或考虑PET/CT'});break
+                    case 5:
+                        this.setState({templateText:'6个月后复查LDCT'});break
+                    case 0:
+                        this.setState({templateText:'每年复查LDCT，直至患者不再是肺癌潜在治疗对象'});break
+                }
+            }
+            else if(this.state.dealchoose==='Lung-RADS'){
+                let weight=0
+
+                for(let i=0;i<this.state.boxes.length;i++){
+                    if(this.state.boxes[i]['malignancy']===1 || this.state.boxes[i]['malignancy']===2){
+                        if(this.state.boxes[i]['texture']===2){
+                            if(this.state.boxes[i]['diameter']<6){
+                                weight=weight>=0?weight:0
+                            }
+                            else{
+                                weight=weight>=5?weight:5
+                            }
+                        }
+                        else if(this.state.boxes[i]['texture']===3){
+                            if(this.state.boxes[i]['diameter']<6){
+                                weight=weight>=0?weight:0
+                            }
+                            else{
+                                weight=weight>=5?weight:5
+                            }
+                        }
+                        else{
+                            if(this.state.boxes[i]['diameter']<20){
+                                weight=weight>=0?weight:0
+                            }
+                            else{
+                                weight=weight>=5?weight:5
+                            }
+                        }
+                    }
+                    else{
+                        if(this.state.boxes[i]['texture']===2){
+                            if(this.state.boxes[i]['diameter']>=8 && this.state.boxes[i]['diameter']<15){
+                                weight=weight>=10?weight:10
+                            }
+                            else{
+                                weight=15
+                                break
+                            }
+                        }
+                        else if(this.state.boxes[i]['texture']===3){
+                            if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<8){
+                                weight=weight>=10?weight:10
+                            }
+                            else{
+                                weight=15
+                                break
+                            }
+                        }
+                        else{
+                            weight=weight>=5?weight:5
+                        }
+                    }
+                }
+                switch(weight){
+                    case 15:
+                        this.setState({templateText:'胸部CT增强或平扫；根据恶性的概率和并发症，选择性进行PET/CT和/或组织活检；存在≥8mm的实性成分时，需进行PET/CT检查'});break
+                    case 10:
+                        this.setState({templateText:'3个月低剂量胸部CT筛查；存在≥8mm的实性成分时需PET/CT检查'});break
+                    case 5:
+                        this.setState({templateText:'6个月内低剂量胸部CT筛查'});break
+                    case 0:
+                        this.setState({templateText:'12个月内继续年度低剂量胸部CT筛查'});break
+                }
+            }
+            else if(this.state.dealchoose==='亚洲共识'){
+                let weight=0
+
+                for(let i=0;i<this.state.boxes.length;i++){
+                    if(this.state.boxes[i]['texture']===2){
+                        if(this.state.boxes[i]['diameter']>8){
+                            weight=25
+                            break
+                        }
+                        else if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<=8){
+                            weight=weight>=15?weight:15
+                        }
+                        // else if(this.state.boxes[i]['diameter']>=4 && this.state.boxes[i]['diameter']<6){
+                        //     weight=weight>=15?weight:15
+                        // }
+                        // else{
+                        //     if(this.state.boxes[i]['malignancy']===3){
+                        //         weight=weight>=5?weight:5
+                        //     }
+                        //     // else{
+                        //     //     weight=weight>=0?weight:0
+                        //     // }
+                        // }
+                    }
+                    else if(this.state.boxes[i]['texture']===1){
+                        if(this.state.boxes[i]['diameter']>5){
+                            weight=weight>=5?weight:5
+                        }
+                        // else{
+                        //     weight=weight>=0?weight:0
+                        // }
+                    }
+                    else{
+                        if(this.state.boxes[i]['diameter']<=8){
+                            weight=weight>=10?weight:10
+                        }
+                        else{
+                            weight=weight>=15?weight:15
+                        }
+                    }
+                }
+                switch(weight){
+                    case 25:
+                        this.setState({templateText:'应转介多学科团队到中心进行管理。该中心的诊断能力应包括CT/PET扫描、良性疾病检测和活检'});break
+                    case 20:
+                        this.setState({templateText:'3个月后复查CT，如果检测时认为临床合适，考虑经验性抗菌治疗'});break
+                    case 10:
+                        this.setState({templateText:'在大约6个月-12个月和18个月-24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测'});break
+                    case 15:
+                        this.setState({templateText:'在大约3个月、12个月和24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测'});break
+                    case 5:
+                        this.setState({templateText:'每年进行CT监测，持续3年;然后根据临床判断，考虑每年进行CT监测'});break
+                    case 0:
+                        this.setState({templateText:'根据临床判断，考虑每年进行CT监测'});break
                 }
             }
         }
@@ -686,21 +987,27 @@ class MiniReport extends Component{
                 :
                 // 处理建议
                 <Grid.Row verticalAlign='middle' columns={3} style={{height:40}}> 
-                    <Grid.Column width={7}>
+                    <Grid.Column width={6}>
 
                     </Grid.Column>
-                    <Grid.Column widescreen={4} computer={5} textAlign='right'>
+                    <Grid.Column widescreen={5} computer={6} textAlign='right'>
                         {windowWidth < 1600 ?
                         <Dropdown style={{background:'none',fontSize:14}} text={this.state.dealchoose} id='dealchoose'>
                             <Dropdown.Menu>
                                 <Dropdown.Item onClick={this.dealChoose}>中华共识</Dropdown.Item>
                                 <Dropdown.Item onClick={this.dealChoose}>Fleischner</Dropdown.Item>
+                                <Dropdown.Item onClick={this.dealChoose}>NCCN</Dropdown.Item>
+                                <Dropdown.Item onClick={this.dealChoose}>Lung-RADS</Dropdown.Item>
+                                <Dropdown.Item onClick={this.dealChoose}>亚洲共识</Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>:
                         <Dropdown style={{background:'none',fontSize:16}} text={this.state.dealchoose} id='dealchoose'>
                             <Dropdown.Menu>
                                 <Dropdown.Item onClick={this.dealChoose}>中华共识</Dropdown.Item>
                                 <Dropdown.Item onClick={this.dealChoose}>Fleischner</Dropdown.Item>
+                                <Dropdown.Item onClick={this.dealChoose}>NCCN</Dropdown.Item>
+                                <Dropdown.Item onClick={this.dealChoose}>Lung-RADS</Dropdown.Item>
+                                <Dropdown.Item onClick={this.dealChoose}>亚洲共识</Dropdown.Item>
                             </Dropdown.Menu>
                         </Dropdown>
                         }

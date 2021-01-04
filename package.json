@@ -37,6 +37,7 @@
     "react-router-dom": "^5.2.0",
     "react-scripts": "^3.4.1",
     "react-viewerbase": "^0.17.6",
+    "redux": "^4.0.5",
     "rsuite": "^4.8.3",
     "semantic-ui-css": "^2.4.1",
     "semantic-ui-react": "^0.87.3",
@@ -44,7 +45,7 @@
     "xlsx": "^0.16.3"
   },
   "scripts": {
-    "start": "PORT=8096 react-scripts start",
+    "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

@@ -188,6 +188,7 @@ class preprocess extends Component {
     }
 
     render() {
+        
         let tableContent = ""
         const { activeItem } = this.state
         tableContent = this
@@ -203,7 +204,7 @@ class preprocess extends Component {
                                 {inside.fileName}
                             </Table.Cell>
                             <Table.Cell>
-                               {inside.fileSize}
+                                {inside.fileSize}
                             </Table.Cell>
                             <Table.Cell><a onClick={this.delFile} id={delId}>删除</a></Table.Cell>
                             
@@ -216,8 +217,8 @@ class preprocess extends Component {
                     <Grid divided='vertically'>
                         <Grid.Row stretched id='homepageMenu'>
                             <Grid.Column width='12'>
-                               <div id='upload'>
-                                 <Form enctype="multipart/form-data" >
+                                <div id='upload'>
+                                    <Form enctype="multipart/form-data" >
                                     <Form.Field>
                                     {/* <label>First Name</label> */}
                                     <div id='filelist-tab'>
@@ -255,14 +256,14 @@ class preprocess extends Component {
                                         <Header size='huge' color='white' inverted>{this.state.status}</Header>
                                     </div>
                                 </Form>
-                               </div>
-                               
+                                </div>
+                                
                             </Grid.Column>
                         </Grid.Row>
                     </Grid>
                 
             </div>
-        )
+        ) 
     }
     componentDidUpdate(prevProps, prevState){
         

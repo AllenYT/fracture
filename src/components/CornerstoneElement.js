@@ -15,12 +15,12 @@ import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Checkbox, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu,Label, Card, Header,Progress } from 'semantic-ui-react'
+import {  Grid, Table, Icon, Button, Accordion, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu,Label, Card, Header,Progress } from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
 // import { config } from "rxjs"
 import axios from "axios"
-import { Slider, Select, notification, Sapce } from "antd"
+import { Slider, Select, notification, Sapce, Space, Checkbox } from "antd"
 // import { Slider, RangeSlider } from 'rsuite'
 import MiniReport from './MiniReport'
 // import { Dropdown } from "antd"
@@ -238,6 +238,9 @@ class CornerstoneElement extends Component {
             windowHeight:1080,
             preListActiveIdx:-1,
             currentImage: null,
+            selectTexture:-1,
+            selectTiny:0,
+            selectBoxes:props.stack.boxes===""?[]:props.stack.boxes
         }
         this.nextPath = this
             .nextPath
@@ -513,6 +516,7 @@ class CornerstoneElement extends Component {
     visualize(hist_data,idx){
         const visId = 'visual-' + idx
         // document.getElementById(visId).innerHTML=''
+        console.log('visualize',idx)
         var dom = document.getElementById(visId);
         dom.style.display = ''
         dom.style.height = '300px'
@@ -1021,7 +1025,7 @@ class CornerstoneElement extends Component {
 
     featureAnalysis(idx,e){
         console.log("特征分析")
-        const boxes = this.state.boxes
+        const boxes = this.state.selectBoxes
         console.log('boxes',boxes, e.target.value)
         if (boxes[idx] !== undefined){
             console.log('boxes',boxes[idx])
@@ -1088,17 +1092,30 @@ class CornerstoneElement extends Component {
             })
     }
 
-    addSign(slice_idx,e){
-        // document.getElementById('slice-slider').value=slice_idx
-        // $('#slice-slider::-webkit-slider-runnable-track').css('background','linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)')
-        // $('input[type=range]').css('background','linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)')
-        // document.querySelector('input[type=range]').style.background='linear-gradient(90deg,#0033FF 0%,#000033 '+ slice_idx*100/this.state.imageIds.length+'%)'
-        // $('head').append("<style>.input[type='range']::-webkit-slider-runnable-track{ background:linear-gradient(90deg,#0033FF 0%,#000033 "+ slice_idx*100/this.state.imageIds.length+"%)"+ "}</style>");
-        // $('#slice-slider').append("<style>.input[type='range']::-webkit-slider-runnable-track{ background:red}</style>");
-        // let style = $("<style>", {type:"text/css"}).appendTo("head");
-        // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (slice_idx+1)*100/this.state.imageIds.length+'%)}');
-        this.refreshImage(false, this.state.imageIds[slice_idx - 1], slice_idx - 1)
+    tinyNodules(e){
+        if(e.target.checked){
+            this.setState({selectTiny:1})
+        }
+        else{
+            this.setState({selectTiny:0})
+        }
     }
+
+    chooseDensity(value){
+        if(value==="实性"){
+            this.setState({selectTexture:2})
+        }
+        else if(value==="半实性"){
+            this.setState({selectTexture:3})
+        }
+        else if(value==="磨玻璃"){
+            this.setState({selectTexture:1})
+        }
+        else{
+            this.setState({selectTexture:-1})
+        }
+    }
+
 
     render() {
         let sliderMarks={}
@@ -1123,9 +1140,6 @@ class CornerstoneElement extends Component {
                 imageIds={this.state.imageIds} boxes={this.state.boxes} activeItem={this.state.doubleClick===true?'all':this.state.listsActiveIndex}/></Tab.Pane> },
             { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
           ]
-        // sessionStorage.clear()
-        // console.log('boxes', this.state.boxes)
-        // console.log('boxes', this.state.username)
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, 
             wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth, windowHeight, slideSpan} = this.state
         if(windowWidth <= 1600 && windowWidth > 1440){
@@ -1449,10 +1463,9 @@ class CornerstoneElement extends Component {
             )
 
         if (!this.state.immersive) {
-                
                 tableContent = this
                     .state
-                    .boxes
+                    .selectBoxes
                     .map((inside, idx) => {
                         // console.log('inside',inside)
                         let representArray=[]
@@ -1463,7 +1476,12 @@ class CornerstoneElement extends Component {
                         const malId = 'malSel-' + inside.nodule_no
                         const texId = 'texSel-' + inside.nodule_no
                         const placeId = 'place-' + inside.nodule_no
-                        const visualId = 'visual-' + inside.nodule_no
+                        // const visualId = 'visual-' + inside.nodule_no
+                        // const delId = 'del-' + idx
+                        // const malId = 'malSel-' + idx
+                        // const texId = 'texSel-' + idx
+                        // const placeId = 'place-' + idx
+                        const visualId = 'visual-' + idx
                         if(inside.lobulation===2){
                             representArray.push('分叶')
                         }
@@ -1491,21 +1509,20 @@ class CornerstoneElement extends Component {
                         if(inside.bro===2){
                             representArray.push('支气管充气')
                         }
-                        if(1){
-                            if(inside.segment!==undefined
-                            && inside.segment!==null && inside.segment!=="None" && inside.segment!==""){
-                                dropdownText=segments[inside.segment]
+                        if(inside.segment!==undefined
+                        && inside.segment!==null && inside.segment!=="None" && inside.segment!==""){
+                            dropdownText=segments[inside.segment]
+                        }
+                        else{
+                            if(inside.place!==undefined
+                                && inside.place!==null && inside.place!=="None" && inside.place!==""){
+                                dropdownText=places[inside.place]
                             }
                             else{
-                                if(inside.place!==undefined
-                                    && inside.place!==null && inside.place!=="None" && inside.place!==""){
-                                    dropdownText=places[inside.place]
-                                }
-                                else{
-                                    dropdownText='选择位置'
-                                }
+                                dropdownText='选择位置'
                             }
                         }
+                        
                         if(inside.malignancy === -1){
                             if(this.state.readonly){
                                 malignancyContnt = (
@@ -1638,7 +1655,12 @@ class CornerstoneElement extends Component {
                                         <Grid>
                                             <Grid.Row>
                                                 <Grid.Column width={1}>
-                                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
+                                                    {
+                                                        inside.modified===undefined?
+                                                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{idx+1}</div>
+                                                        :
+                                                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large',color:'#dbce12'}}>{idx+1}</div>
+                                                    }
                                                     
                                                 </Grid.Column>
                                                 
@@ -1838,10 +1860,9 @@ class CornerstoneElement extends Component {
                                                 </Grid.Column>
                                                 <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}}>表征:</Grid.Column>
                                                 <Grid.Column width={11} style={{paddingLeft:'0px',paddingRight:'0px'}}>
-                                                    {/* <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name='represent' 
-                                                    defaultValue={representArray} onClick={this.representChange.bind(this),document.getElementsByName('represent')}/> */}
+                                
                                                     <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name={'dropdown'+idx}
-                                                    defaultValue={representArray} onChange={this.representChange.bind(this)} />
+                                                    value={representArray} onChange={this.representChange.bind(this)} />
                                                 </Grid.Column>
                                             </Grid.Row>
                                         </Grid>
@@ -1859,7 +1880,12 @@ class CornerstoneElement extends Component {
                                             <Grid>
                                             <Grid.Row>
                                                 <Grid.Column width={1}>
-                                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{parseInt(inside.nodule_no)+1}</div>
+                                                    {
+                                                        inside.modified===undefined?
+                                                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{idx+1}</div>
+                                                        :
+                                                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large',color:'#dbce12'}}>{idx+1}</div>
+                                                    }
                                                 </Grid.Column>
                                                 
                                                 <Grid.Column widescreen={6} computer={7} textAlign='center'>
@@ -2048,7 +2074,7 @@ class CornerstoneElement extends Component {
                                                 <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}} textAlign='center'>表征</Grid.Column>
                                                 <Grid.Column width={14} style={{paddingLeft:'0px',paddingRight:'0px'}}>
                                                     <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name={'dropdown'+idx}
-                                                    defaultValue={representArray} onChange={this.representChange.bind(this)} />
+                                                    value={representArray} onChange={this.representChange.bind(this)} />
                                                     {/* <Select mode='multiple' placeholder='请选择表征' allowClear 
                                                     defaultValue={['分叶']} onChange={this.representChange.bind(this)}
                                                     style={{ width: '90%' }}>
@@ -2320,7 +2346,17 @@ class CornerstoneElement extends Component {
                                         </Grid.Column>
                                         <Grid.Column widescreen={4} computer={4}> 
                                             <div id='listTitle'>
-                                                <div style={{display:'inline-block',marginLeft:'10px',marginTop:'15px'}}>可疑结节：{this.state.boxes.length}个</div>
+                                                <Space align="baseline">
+                                                    <Select defaultValue="全部密度" onChange={this.chooseDensity.bind(this)} bordered={false} 
+                                                    style={{backgroundColor:'#021C38',color:'#F5F5F5',fontSize:'12pt'}}>
+                                                        <Option value="全部密度" >全部密度</Option>
+                                                        <Option value="实性" >实性</Option>
+                                                        <Option value="半实性" >半实性</Option>
+                                                        <Option value="磨玻璃" >磨玻璃</Option> 
+                                                    </Select>
+                                                    <Checkbox onChange={this.tinyNodules.bind(this)} style={{backgroundColor:'#021C38',color:'#F5F5F5',fontSize:'12pt'}}>微小结节</Checkbox>
+                                                    
+                                                </Space>
                                             </div>
                                         
                                             {/* <h3 id="annotator-header">标注人：{window
@@ -4136,6 +4172,42 @@ class CornerstoneElement extends Component {
                 for(var i = currentIdx - cacheSize;i < currentIdx + cacheSize ;i++){
                     if(i === currentIdx) continue
                     this.cacheImage(this.state.imageIds[i])
+                }
+            }
+        }
+        if(prevState.selectTexture !== this.state.selectTexture || prevState.selectTiny !== this.state.selectTiny){
+            if(this.state.selectTiny===0){
+                if(this.state.selectTexture===-1){
+                    this.setState({selectBoxes:this.state.boxes})
+                }
+                else{
+                    let tempBox=[]
+                    for(let i=0;i<this.state.boxes.length;i++){
+                        if(this.state.boxes[i].texture===this.state.selectTexture){
+                            tempBox.push(this.state.boxes[i])
+                        }
+                    }
+                    this.setState({selectBoxes:tempBox})
+                }
+            }
+            else{
+                let tempBox=[]
+                for(let i=0;i<this.state.boxes.length;i++){
+                    if(parseInt(this.state.boxes[i].diameter)<3){
+                        tempBox.push(this.state.boxes[i])
+                    }
+                }
+                if(this.state.selectTexture===-1){
+                    this.setState({selectBoxes:tempBox})
+                }
+                else{
+                    let temp2temp=[]
+                    for(let i=0;i<tempBox.length;i++){
+                        if(tempBox[i].texture===this.state.selectTexture){
+                            temp2temp.push(tempBox[i])
+                        }
+                    }
+                    this.setState({selectBoxes:temp2temp})
                 }
             }
         }

@@ -6,7 +6,8 @@ import axios from 'axios';
 import Statistics from '../components/Statistics'
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'
-import Info from '../components/Info'
+// import Info from '../components/Info'
+import LowerAuth from '../components/LowerAuth'
 
 const config = require('../config.json')
 const recordConfig = config.record
@@ -28,13 +29,14 @@ export class SearchPanel extends Component {
             totalPage: 1,
             pidKeyword: '',
             dateKeyword: '',
-            searchResults: true,
+            // searchResults: true,
             queue:[],
             chooseQueue:'不限队列',
             activeQueue:[],
             activePageQueue:1,
             totalPageQueue:1,
-            searchQueue:[]
+            searchQueue:[],
+            search:false
         }
         this.handlePaginationChange = this
             .handlePaginationChange
@@ -59,36 +61,41 @@ export class SearchPanel extends Component {
     componentDidMount() {
         this.getTotalPages()
         this.getQueue()
+        document.addEventListener("keydown",this.onKeyDown.bind(this))
+    }
+
+    componentWillUnmount(){
+        document.removeEventListener("keydown",this.onKeyDown.bind(this))
     }
 
     componentDidUpdate(prevProps, prevState) {
-        console.log('pidkeyword',this.state.pidKeyword.length)
-        if (prevState.pidKeyword !== this.state.pidKeyword){
-            if(this.state.pidKeyword.length >= 3 || this.state.pidKeyword.length == 0){
-                // console.log("call get total pages")
-                this.setState({searchResults: true})
-                this.getTotalPages()
+        // console.log('pidkeyword',this.state.pidKeyword.length)
+        // if (prevState.pidKeyword !== this.state.pidKeyword){
+        //     if(this.state.pidKeyword.length >= 3 || this.state.pidKeyword.length == 0){
+        //         // console.log("call get total pages")
+        //         this.setState({searchResults: true})
+        //         this.getTotalPages()
 
-            } else {
-                this.setState({searchResults: false})
-            }
-        }
+        //     } else {
+        //         this.setState({searchResults: false})
+        //     }
+        // }
         
-        if(prevState.dateKeyword !== this.state.dateKeyword){
-            if(this.state.dateKeyword.length >= 4 || this.state.dateKeyword.length == 0){
-                this.setState({searchResults: true})
-                this.getTotalPages()
-            } else {
-                this.setState({searchResults: false})
-            }
-        }
+        // if(prevState.dateKeyword !== this.state.dateKeyword){
+        //     if(this.state.dateKeyword.length >= 4 || this.state.dateKeyword.length == 0){
+        //         this.setState({searchResults: true})
+        //         this.getTotalPages()
+        //     } else {
+        //         this.setState({searchResults: false})
+        //     }
+        // }
         if(prevState.chooseQueue !== this.state.chooseQueue){
             this.getTotalPages()
         }
 
         if(prevState.checked !== this.state.checked){
             // console.log('true')
-            this.setState({searchResults: true})
+            // this.setState({searchResults: true})
             this.getTotalPages()
         }
         if(prevState.activePageQueue != this.state.activePageQueue){
@@ -103,6 +110,16 @@ export class SearchPanel extends Component {
             this.setState({activeQueue:activeQueue})
         }
     }
+
+    onKeyDown(event){
+        // console.log('enter',event.which)
+        if(event.which===13){
+            this.setState({search:true})
+            this.getTotalPages()
+            this.setState({search:false})
+        }
+    }
+
     getQueue(){
         const params={
             username:localStorage.getItem('username')
@@ -153,7 +170,7 @@ export class SearchPanel extends Component {
                     window.location.href = '/'
                 } else {
                     const totalPage = data.count
-                    // console.log(totalPage)
+                    console.log(totalPage)
                     this.setState({totalPage: totalPage})
                 }
             }).catch((error) => console.log(error))
@@ -270,161 +287,175 @@ export class SearchPanel extends Component {
         if (isChecked) {
             type = "date"
         }
-        let searchResults
-        if (this.state.searchResults) {
-            searchResults = (
-                <div>
-                    <div className="patientList" style={{minHeight:500}}>
-                        <MainList 
-                            type={type}
-                            currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
-                            pidKeyword={this.state.pidKeyword}
-                            dateKeyword={this.state.dateKeyword}
-                            subsetName={this.state.chooseQueue}/>
-                            <div className='exportButton'>
-                                <Button inverted color='blue' onClick={this.startDownload}>导出</Button>
-                            </div>
-                    </div>
+        // let searchResults
+        // if (this.state.searchResults) {
+        //     searchResults = (
+        //         <div>
+        //             <div className="patientList" style={{minHeight:500}}>
+        //                 <MainList 
+        //                     type={type}
+        //                     currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
+        //                     pidKeyword={this.state.pidKeyword}
+        //                     dateKeyword={this.state.dateKeyword}
+        //                     subsetName={this.state.chooseQueue}/>
+        //                     <div className='exportButton'>
+        //                         <Button inverted color='blue' onClick={this.startDownload}>导出</Button>
+        //                     </div>
+        //             </div>
                     
-                    <div className="pagination-component">
-                        <Pagination
-                            id="pagination"
-                            onPageChange={this.handlePaginationChange}
-                            activePage={this.state.activePage}
-                            totalPages={this.state.totalPage}/>
-                    </div>
-                </div>
-            )
-        } else {
-            searchResults = (
-                <Info type='1' />
-            )
-        }
-        if (localStorage.getItem('token') == null) {
-            return(
-                <div style={style}>
-                    <Icon name='user secret' color='teal' size='huge'></Icon>
-                    <Header as='h1' color='teal'>请先登录</Header>
-                </div>
-            )
-        }
-        else{
-            return (
-                <div>
+        //             <div className="pagination-component">
+        //                 <Pagination
+        //                     id="pagination"
+        //                     onPageChange={this.handlePaginationChange}
+        //                     activePage={this.state.activePage}
+        //                     totalPages={this.state.totalPage}/>
+        //             </div>
+        //         </div>
+        //     )
+        // } else {
+        //     searchResults = (
+        //         <Info type='1' />
+        //     )
+        // }
+        return (
+            JSON.parse(localStorage.getItem('auths')).indexOf("data_search")>-1?
+            <div>
 
-                <Grid className="banner">
-                    {/* <Grid.Row>
-                            <Grid.Column width={2}></Grid.Column>
-                            <Grid.Column width={12}>
-                                <Statistics/>
-                            </Grid.Column>
-                            <Grid.Column width={2}></Grid.Column>
-                    </Grid.Row> */}
-                    <Grid.Row >
-                            <Grid.Column width={2}></Grid.Column>
-                            <Grid.Column width={12} id='queuestyle'>
-                                <Grid>
-                                    <Grid.Row>
-
-                                    </Grid.Row>
-                                    <Grid.Row>
-                                        <Dropdown id='queueDropdown' placeholder='搜索队列' search icon='search' text={this.state.chooseQueue} 
-                                        selection options={this.state.searchQueue} onChange={this.getQueueIds.bind(this)}></Dropdown>
-                                    </Grid.Row>
-                                    <Grid.Row columns={7}>
-                                        <Grid.Column floated='left'>
-                                        <Button inverted color='green' size='small' icon='caret left' floated='left' onClick={this.left}></Button>
-                                        </Grid.Column>
-                                        {this.state.activeQueue.map((content,index)=>{
-                                            return(
-                                                <Grid.Column >
-                                                    {
-                                                        content===''?
-                                                        <Button fluid inverted color='green' size='large' onClick={this.buttonQueue.bind(this)} style={{visibility:'hidden'}}>{content}</Button>
-                                                        :
-                                                        <Button fluid inverted color='green' size='large' onClick={this.buttonQueue.bind(this)}>{content}</Button>
-                                                    }
-                        
-                                                </Grid.Column>
-                                            )
-                                        })}
-                                        <Grid.Column floated='right'>
-                                        <Button inverted color='green' size='small' icon='caret right' floated='right' onClick={this.right}></Button>
-                                        </Grid.Column>
-                                    </Grid.Row>
-                                    <Grid.Row>
-                                        
-                                    </Grid.Row>
-                                </Grid>
-                                
-                            </Grid.Column>
-                            <Grid.Column width={2}></Grid.Column>
-                    </Grid.Row>
-                    {/* <Grid.Row className="data-content"> */}
-                    <Grid.Row>
+            <Grid className="banner">
+                {/* <Grid.Row>
                         <Grid.Column width={2}></Grid.Column>
-
                         <Grid.Column width={12}>
-
-                            <div id="container">
-                                <div className="searchBar">
-                                    <Input
-                                        name="pid"
-                                        value={this.state.pidKeyword}
-                                        onChange={this.handleInputChange}
-                                        id="patient-search"
-                                        icon='user'
-                                        iconPosition='left'
-                                        placeholder="病人ID"
-                                        disabled={this.state.checked}/>
-
-                                    <span id="type-slider"><Checkbox
-                                        slider
-                                        onChange={this.handleCheckbox}
-                                        defaultChecked={this.state.checked}/></span>
-
-                                    <Input
-                                        name="date"
-                                        value={this.state.dateKeyword}
-                                        onChange={this.handleInputChange}
-                                        id="date-search"
-                                        icon='calendar'
-                                        iconPosition='left'
-                                        placeholder="检查时间"
-                                        disabled={!this.state.checked}/>
-                                </div>
-                                <div id="show-search-content">
-                                    {searchResults}
-                                </div>
-                                {/* <div className="patientList" style={{minHeight:500}}>
-                                    <MainList
-                                        type={type}
-                                        currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
-                                        pidKeyword={this.state.pidKeyword}
-                                        dateKeyword={this.state.dateKeyword}/>
-                                        <div className='exportButton'>
-                                            <Button inverted color='blue' onClick={this.startDownload}>导出</Button>
-                                        </div>
-                                </div>
-                                
-                                <div className="pagination-component">
-                                    <Pagination
-                                        id="pagination"
-                                        onPageChange={this.handlePaginationChange}
-                                        activePage={this.state.activePage}
-                                        totalPages={this.state.totalPage}/>
-                                </div> */}
-                            </div>
-
+                            <Statistics/>
                         </Grid.Column>
-
                         <Grid.Column width={2}></Grid.Column>
-                    </Grid.Row>
-                </Grid>
-                </div>
-            )
-        }
-        
+                </Grid.Row> */}
+                <Grid.Row >
+                        <Grid.Column width={2}></Grid.Column>
+                        <Grid.Column width={12} id='queuestyle'>
+                            <Grid>
+                                <Grid.Row>
+
+                                </Grid.Row>
+                                <Grid.Row>
+                                    <Dropdown id='queueDropdown' placeholder='搜索队列' search icon='search' text={this.state.chooseQueue} 
+                                    selection options={this.state.searchQueue} onChange={this.getQueueIds.bind(this)}></Dropdown>
+                                </Grid.Row>
+                                <Grid.Row columns={7}>
+                                    <Grid.Column floated='left'>
+                                    <Button inverted color='green' size='small' icon='caret left' floated='left' onClick={this.left}></Button>
+                                    </Grid.Column>
+                                    {this.state.activeQueue.map((content,index)=>{
+                                        return(
+                                            <Grid.Column >
+                                                {
+                                                    content===''?
+                                                    <Button fluid inverted color='green' size='large' onClick={this.buttonQueue.bind(this)} style={{visibility:'hidden'}}>{content}</Button>
+                                                    :
+                                                    <Button fluid inverted color='green' size='large' onClick={this.buttonQueue.bind(this)}>{content}</Button>
+                                                }
+                    
+                                            </Grid.Column>
+                                        )
+                                    })}
+                                    <Grid.Column floated='right'>
+                                    <Button inverted color='green' size='small' icon='caret right' floated='right' onClick={this.right}></Button>
+                                    </Grid.Column>
+                                </Grid.Row>
+                                <Grid.Row>
+                                    
+                                </Grid.Row>
+                            </Grid>
+                            
+                        </Grid.Column>
+                        <Grid.Column width={2}></Grid.Column>
+                </Grid.Row>
+                {/* <Grid.Row className="data-content"> */}
+                <Grid.Row>
+                    <Grid.Column width={2}></Grid.Column>
+
+                    <Grid.Column width={12}>
+
+                        <div id="container">
+                            <div className="searchBar">
+                                <Input
+                                    name="pid"
+                                    value={this.state.pidKeyword}
+                                    onChange={this.handleInputChange}
+                                    id="patient-search"
+                                    icon='user'
+                                    iconPosition='left'
+                                    placeholder="病人ID"
+                                    disabled={this.state.checked}/>
+
+                                <span id="type-slider"><Checkbox
+                                    slider
+                                    onChange={this.handleCheckbox}
+                                    defaultChecked={this.state.checked}/></span>
+
+                                <Input
+                                    name="date"
+                                    value={this.state.dateKeyword}
+                                    onChange={this.handleInputChange}
+                                    id="date-search"
+                                    icon='calendar'
+                                    iconPosition='left'
+                                    placeholder="检查时间"
+                                    disabled={!this.state.checked}/>
+                            </div>
+                            <div id="show-search-content">
+                                {/* {searchResults} */}
+                                <div>
+                                    <div className="patientList" style={{minHeight:500}}>
+                                        <MainList 
+                                            type={type}
+                                            currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
+                                            pidKeyword={this.state.pidKeyword}
+                                            dateKeyword={this.state.dateKeyword}
+                                            subsetName={this.state.chooseQueue}
+                                            search={this.state.search}/>
+                                            <div className='exportButton'>
+                                                <Button inverted color='blue' onClick={this.startDownload}>导出</Button>
+                                            </div>
+                                    </div>
+                                    
+                                    <div className="pagination-component">
+                                        <Pagination
+                                            id="pagination"
+                                            onPageChange={this.handlePaginationChange}
+                                            activePage={this.state.activePage}
+                                            totalPages={this.state.totalPage}/>
+                                    </div>
+                                </div>
+                            </div>
+                            {/* <div className="patientList" style={{minHeight:500}}>
+                                <MainList
+                                    type={type}
+                                    currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
+                                    pidKeyword={this.state.pidKeyword}
+                                    dateKeyword={this.state.dateKeyword}/>
+                                    <div className='exportButton'>
+                                        <Button inverted color='blue' onClick={this.startDownload}>导出</Button>
+                                    </div>
+                            </div>
+                            
+                            <div className="pagination-component">
+                                <Pagination
+                                    id="pagination"
+                                    onPageChange={this.handlePaginationChange}
+                                    activePage={this.state.activePage}
+                                    totalPages={this.state.totalPage}/>
+                            </div> */}
+                        </div>
+
+                    </Grid.Column>
+
+                    <Grid.Column width={2}></Grid.Column>
+                </Grid.Row>
+            </Grid>
+            </div>
+            :
+            <LowerAuth></LowerAuth>
+        )
     }
 }
 

@@ -48,21 +48,28 @@ class LoginPanel extends Component {
             username: this.state.username,
             password: this.state.password
         }
-
-        axios.post(userConfig.validUser, qs.stringify(user))
-        .then((response) => {
-            console.log(response.data)
-            if (response.data.status === 'failed') {
+        const auth={
+            username: this.state.username
+        }
+        Promise.all([
+            axios.post(userConfig.validUser, qs.stringify(user)),
+            axios.post(userConfig.getAuthsForUser, qs.stringify(auth))
+        ])
+        
+        .then(([loginResponse,authResponse]) => {
+            console.log(authResponse.data)
+            if (loginResponse.data.status === 'failed') {
                 this.setState({messageVisible: true})
             } else {
-                localStorage.setItem('token', response.data.token)
-                localStorage.setItem('realname', response.data.realname)
-                localStorage.setItem('username',  response.data.username)
-                localStorage.setItem('privilege', response.data.privilege)
-                localStorage.setItem('allPatientsPages', response.data.allPatientsPages)
-                localStorage.setItem('totalPatients', response.data.totalPatients)
-                localStorage.setItem('totalRecords', response.data.totalRecords)
-                localStorage.setItem('modelProgress', response.data.modelProgress)
+                localStorage.setItem('token', loginResponse.data.token)
+                localStorage.setItem('realname', loginResponse.data.realname)
+                localStorage.setItem('username',  loginResponse.data.username)
+                localStorage.setItem('privilege', loginResponse.data.privilege)
+                localStorage.setItem('allPatientsPages', loginResponse.data.allPatientsPages)
+                localStorage.setItem('totalPatients', loginResponse.data.totalPatients)
+                localStorage.setItem('totalRecords', loginResponse.data.totalRecords)
+                localStorage.setItem('modelProgress', loginResponse.data.modelProgress)
+                localStorage.setItem('auths',JSON.stringify(authResponse.data))
                 if(sessionStorage.getItem('location')!=undefined){
                     window.location.href=sessionStorage.getItem('location')
                     // this.props.history.push(sessionStorage.getItem('location')+'deepln')
