@@ -106,7 +106,7 @@ class DownloadPanel extends Component {
 
 
     render() {
-        if(JSON.parse(localStorage.getItem('auths')).indexOf("download")>-1){
+        if(localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("download")>-1){
             const content = Array.from(this.state.cart)
 
             if (this.state.loading) {

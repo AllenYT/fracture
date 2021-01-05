@@ -318,7 +318,7 @@ export class SearchPanel extends Component {
         //     )
         // }
         return (
-            JSON.parse(localStorage.getItem('auths')).indexOf("data_search")>-1?
+            localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("data_search")>-1?
             <div>
 
             <Grid className="banner">

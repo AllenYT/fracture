@@ -119,7 +119,7 @@ class DataPanel extends Component {
         }
 
         return (
-            JSON.parse(localStorage.getItem('auths')).indexOf("stat")>-1?
+            localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("stat")>-1?
             <div className='banner'>
                 <Grid>
                     <Grid.Row >

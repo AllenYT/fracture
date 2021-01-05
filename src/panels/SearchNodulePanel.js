@@ -670,7 +670,7 @@ export class SearchNodulePanel extends Component {
         // console.log('diameters',diaMeters)
         
         return(
-            JSON.parse(localStorage.getItem('auths')).indexOf("nodule_search")>-1?
+            localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("nodule_search")>-1?
             <div>
                 <Grid >
                     <Grid.Row className="conlabel">
