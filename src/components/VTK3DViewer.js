@@ -29,19 +29,23 @@ class VTK3DViewer extends Component{
         this.renderWindow = this.genericRenderWindow.getRenderWindow()
         this.renderer = this.genericRenderWindow.getRenderer()
         this.renderer.setViewport(0,0,1,1)
-        this.renderer.setBackground([0,0,0])
+        this.renderer.setBackground([0.59,0.60,0.81])
+        // this.renderer.setBackground([1, 1, 1])
 
         this.interactor = this.renderWindow.getInteractor()
         this.camera = this.renderer.getActiveCamera()
         this.camera.elevation(-90)
         //this.camera.elevation(-90)
 
-        // this.light = vtkLight.newInstance();
-        // this.light.setColor(1.0,0.0,0.0);//设置环境光为红色
-        // this.renderer.addLight(this.light);//将灯光加入渲染器
-        // this.light.setFocalPoint(this.camera.getFocalPoint())
-        // this.light.setPosition(this.camera.getPosition())
-
+        this.light = vtkLight.newInstance();
+        this.light.setColor(0.5,0.5,1.0);//设置环境光为红色
+        this.renderer.addLight(this.light);//将灯光加入渲染器
+        this.light.setFocalPoint(this.camera.getFocalPoint())
+        this.light.setPosition(this.camera.getPosition())
+        this.light.setShadowAttenuation(1)
+        // this.light.setDiffuse(0.5)
+        // this.light.setSpecular(0.5)
+        console.log('light', this.light)
         this.renderWindow.render()
     }
     componentDidUpdate(prevProps, prevState, snapshot) {

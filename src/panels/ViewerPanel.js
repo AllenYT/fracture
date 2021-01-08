@@ -49,6 +49,7 @@ const sImageReslice = vtkImageReslice.newInstance();
 const dictList = {
   0:{class:0, label:"lung",  name:"肺",color:{c1:197, c2:165, c3:145}},
   1:{class:2, label:"airway",name:"支气管",color:{c1:182, c2:228, c3:255}},
+  // 1: { class: 2, label: "airway", name: "支气管", color: { c1: 0, c2: 0, c3: 255 } },
   2:{class:3, label:"nodule",name:"结节", color:{c1:178, c2:34, c3:34}},
   3:{class:1, label:"lobe_1",name:"左肺下叶",color:{c1:128, c2:174, c3:128}},
   4:{class:1, label:"lobe_2",name:"右肺中叶",color:{c1:241, c2:214, c3:145}},
@@ -180,7 +181,21 @@ class ViewerPanel extends Component {
     // }
     const info = dictList[type]
     actor.getProperty().setColor(info.color.c1/255,info.color.c2/255,info.color.c3/255)
+    actor.getProperty().setDiffuse(0.25)
+    actor.getProperty().setAmbient(0.5)
+    actor.getProperty().setSpecular(0.125)
+  
     mapper.setInputData(source);
+
+    // const rgbTransferFunction = actor.getProperty().getRGBTransferFunction(0);
+    // const range = rgbTransferFunction.getMappingRange();
+    //  const light2 = gc.registerResource(vtkLight.newInstance());
+    //  light2.setColor(1, 1, 0);
+    //  light2.setPosition(0, 1, 0);
+    //  renderer.addLight(light2);
+    // console.log('light is done!')
+    // const windowWidth = range[0] + range[1];
+    // const windowCenter = range[0] + windowWidth / 2;
 
     return actor;
   }
@@ -204,7 +219,8 @@ class ViewerPanel extends Component {
         .getProperty()
         .getRGBTransferFunction(0)
         .setRange(range[0], range[1]);
-
+    actor.getProperty().setDiffuse(0.5)
+    actor.getProperty().setSpecular(0.5)
     return actor
     // const sampleDistance =
     //     1.2 *
@@ -352,9 +368,11 @@ class ViewerPanel extends Component {
           listsOpacityChangeable: tmp_listsOpacityChangeable,
         });
 
-        // tmp_urls.forEach((inside, idx) =>{
-        //   this.DownloadSegment(idx)
-        // })
+        tmp_urls.forEach((inside, idx) =>{
+          // if(inside[0] == 1){
+            this.DownloadSegment(idx)
+          // }
+        })
 
       })
       .catch((error) => {
@@ -1766,11 +1784,11 @@ class ViewerPanel extends Component {
       )
     })
 
-    // let segments_list = [];
-    // for (let cur_idx in segments) {
-    //   segments_list.push(segments[cur_idx]);
-    // }
-    // console.log('render segments:', segments)
+    let segments_list = [];
+    for (let cur_idx in segments) {
+      segments_list.push(segments[cur_idx]);
+    }
+    console.log('render segments:', segments)
     return (
       <div id="viewer">
         <Menu className="corner-header">
