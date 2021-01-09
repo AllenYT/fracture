@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import {Pagination, Input, Grid, Checkbox, Button, Icon, Header, Dropdown} from 'semantic-ui-react'
 import MainList from '../components/MainList'
-import '../css/dataPanel.css'
+import '../css/searchCasePanel.css'
 import axios from 'axios';
 import Statistics from '../components/Statistics'
 import qs from 'qs'

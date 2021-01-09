@@ -51,7 +51,6 @@ class LoginPanel extends Component {
 
         axios.post(userConfig.validUser, qs.stringify(user))
         .then((response) => {
-            console.log(response.data)
             if (response.data.status === 'failed') {
                 this.setState({messageVisible: true})
             } else {
@@ -63,6 +62,8 @@ class LoginPanel extends Component {
                 localStorage.setItem('totalPatients', response.data.totalPatients)
                 localStorage.setItem('totalRecords', response.data.totalRecords)
                 localStorage.setItem('modelProgress', response.data.modelProgress)
+                localStorage.setItem('BCRecords',response.data.BCRecords)
+                localStorage.setItem('HCRecords',response.data.HCRecords)
                 if(sessionStorage.getItem('location')!=undefined){
                     window.location.href=sessionStorage.getItem('location')
                     // this.props.history.push(sessionStorage.getItem('location')+'deepln')

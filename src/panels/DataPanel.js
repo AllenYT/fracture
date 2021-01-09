@@ -3,7 +3,7 @@ import {Pagination, Input, Grid, Checkbox, Button} from 'semantic-ui-react'
 import MainList from '../components/MainList'
 import Statistics from '../components/Statistics'
 import DataCockpit from '../panels/DataCockpit'
-import '../css/dataPanel.css'
+// import '../css/dataPanel.css'
 import axios from 'axios';
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'

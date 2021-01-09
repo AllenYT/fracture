@@ -417,6 +417,32 @@ option {
   color:gray !important;
   font-size: medium;
 }
+
+.nodule-card-container .ant-tabs-card.ant-tabs-top>.ant-tabs-nav .ant-tabs-tab, .ant-tabs-card.ant-tabs-top>div>.ant-tabs-nav .ant-tabs-tab {
+  background-color:rgba(10, 31, 53, 0.997); 
+  border-color: rgba(1, 27, 56, 0.997);
+  color: white;
+  border-bottom: white;
+  /* padding: 16px; */
+}
+
+.nodule-card-container > .ant-tabs-card .ant-tabs-tab-active {
+  background-color:rgba(1, 23, 46, 0.997) !important; 
+  border-color: rgba(1, 23, 46, 0.997) !important;
+  color: white;
+}
+
+/* .nodule-card-container > .ant-tabs-card .ant-tabs-tab{
+  background-color:rgba(55, 145, 67, 0.997);
+  border-color: rgba(1, 23, 46, 0.997);
+  color: white;
+} */
+
+.nodule-card-container .ant-tabs-card.ant-tabs-top > .ant-tabs-nav::before, .ant-tabs-bottom > .ant-tabs-nav::before, .ant-tabs-top > div > .ant-tabs-nav::before, .ant-tabs-bottom > div > .ant-tabs-nav::before{
+  border-bottom: none;
+}
+
+
 textarea:focus, input:focus{
   outline: none;
 }
