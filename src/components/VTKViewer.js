@@ -17,7 +17,7 @@ class VTKViewer extends Component{
         this.state = {
             viewerWidth:0,
             viewerHeight:0,
-            selectedNum:0,
+            selectedNum:-1,
             selectionStyles:[],
         }
         this.container = React.createRef()
@@ -75,7 +75,12 @@ class VTKViewer extends Component{
             viewerHeight = this.state.viewerHeight
         }
         const selectionStyles = []
-        if(selectedNum === 0){
+        if(selectedNum === -1){
+            selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${viewerWidth}px`, height:`${viewerHeight}px`})
+            selectionStyles.push({position:"absolute", top:"0", left:"0", width:"0", height:"0"})
+            selectionStyles.push({position:"absolute", top:"0", left:"0", width:"0", height:"0"})
+            selectionStyles.push({position:"absolute", top:"0", left:"0", width:"0", height:"0"})
+        }else if(selectedNum === 0){
             selectionStyles.push({position:"absolute", top:"0", left:`${viewerWidth/2}px`, width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
             selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
             selectionStyles.push({position:"absolute", top:`${viewerHeight/2}px`, left:"0", width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
@@ -163,6 +168,10 @@ class VTKViewer extends Component{
     }
     click3DViewer(x, y){
         const picked = this.viewer3D.getPicked(x, y)
+        return picked
+    }
+    clickMPR(x, y){
+        const picked = this.viewerAxial.getPicked(x, y)
         return picked
     }
     clearPointActor(){
