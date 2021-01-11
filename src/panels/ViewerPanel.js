@@ -361,17 +361,17 @@ class ViewerPanel extends Component {
     ofun.addPoint(6000.0, 0.9)
     actor.getProperty().setScalarOpacity(0, ofun)
 
-    actor.getProperty().setScalarOpacityUnitDistance(0, 4.5)
-    actor.getProperty().setInterpolationTypeToLinear()
-    actor.getProperty().setUseGradientOpacity(0, true)
-    actor.getProperty().setGradientOpacityMinimumValue(0, 15)
-    actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0)
-    actor.getProperty().setGradientOpacityMaximumValue(0, 100)
-    actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0)
-    actor.getProperty().setAmbient(0.7)
-    actor.getProperty().setDiffuse(0.7)
-    actor.getProperty().setSpecular(0.3)
-    actor.getProperty().setSpecularPower(8.0)
+    // actor.getProperty().setScalarOpacityUnitDistance(0, 4.5)
+    // actor.getProperty().setInterpolationTypeToLinear()
+    // actor.getProperty().setUseGradientOpacity(0, true)
+    // actor.getProperty().setGradientOpacityMinimumValue(0, 15)
+    // actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0)
+    // actor.getProperty().setGradientOpacityMaximumValue(0, 100)
+    // actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0)
+    // actor.getProperty().setAmbient(0.7)
+    // actor.getProperty().setDiffuse(0.7)
+    // actor.getProperty().setSpecular(0.3)
+    // actor.getProperty().setSpecularPower(8.0)
 
     const cfun = vtkColorTransferFunction.newInstance()
     // cfun.addRGBPoint(0, 0, 0, 0)
@@ -2391,10 +2391,10 @@ class ViewerPanel extends Component {
             <Button.Group style={{marginLeft:"10px"}} hidden={selectedNum === -1}>
               <Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 5)} title="选中"><Icon name='hand point down outline' size='large'/></Button>
               {/*<Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 17)} title="涂画"><Icon name='paint brush' size='large'/></Button>*/}
-              <Button icon className='funcBtn' active={painting && !isEraser} onClick={this.handleFuncButton.bind(this, 14)} title="标记"><Icon name='pencil alternate' size='large'/></Button>
-              <Button icon className='funcBtn' hidden={!painting} active={isEraser} onClick={this.handleFuncButton.bind(this, 15)} title="擦除"><Icon name='eraser' size='large'/></Button>
-              <Button icon className='funcBtn' hidden={!editing} onClick={this.handleFuncButton.bind(this, 13)} title="停止选中"><Icon name='window close outline' size='large'/></Button>
-              <Button icon className='funcBtn' hidden={!painting} onClick={this.handleFuncButton.bind(this, 16)} title="停止标记"><Icon name='window close outline' size='large'/></Button>
+              <Button icon className='funcBtn' active={painting && !isEraser} onClick={this.handleFuncButton.bind(this, 6)} title="标记"><Icon name='pencil alternate' size='large'/></Button>
+              <Button icon className='funcBtn' hidden={!painting} active={isEraser} onClick={this.handleFuncButton.bind(this, 7)} title="擦除"><Icon name='eraser' size='large'/></Button>
+              <Button icon className='funcBtn' hidden={!editing} onClick={this.handleFuncButton.bind(this, 8)} title="停止选中"><Icon name='window close outline' size='large'/></Button>
+              <Button icon className='funcBtn' hidden={!painting} onClick={this.handleFuncButton.bind(this, 9)} title="停止标记"><Icon name='window close outline' size='large'/></Button>
             </Button.Group>
             <Button.Group style={{marginLeft:"10px"}}>
               <Button className='funcBtn' onClick={this.goBack.bind(this)}>2D</Button>
