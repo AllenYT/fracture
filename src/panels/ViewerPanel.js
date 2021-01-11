@@ -5,11 +5,12 @@ import * as cornerstone from "cornerstone-core";
 import axios from "axios";
 import qs from "qs";
 import classnames from "classnames";
-import SegView3D from "../components/SegView3D";
 import vtkActor from "vtk.js/Sources/Rendering/Core/Actor";
+import vtkActor2D from "vtk.js/Sources/Rendering/Core/Actor2D";
 import vtkMapper from "vtk.js/Sources/Rendering/Core/Mapper";
 import vtkColorMaps from "vtk.js/Sources/Rendering/Core/ColorTransferFunction/ColorMaps";
 import vtkColorTransferFunction from "vtk.js/Sources/Rendering/Core/ColorTransferFunction";
+import vtkPiecewiseFunction from "vtk.js/Sources/Common/DataModel/PiecewiseFunction";
 import vtkDataArray from 'vtk.js/Sources/Common/Core/DataArray';
 import vtkImageData from 'vtk.js/Sources/Common/DataModel/ImageData';
 import vtkSphereSource from 'vtk.js/Sources/Filters/Sources/SphereSource';
@@ -46,14 +47,14 @@ const aImageReslice = vtkImageReslice.newInstance();
 const sImageReslice = vtkImageReslice.newInstance();
 
 const dictList = {
-  0:{class:0, label:"lung",  name:"肺",color:{c1:197, c2:165, c3:145}},
-  1:{class:2, label:"airway",name:"支气管",color:{c1:182, c2:228, c3:255}},
-  2:{class:3, label:"nodule",name:"结节", color:{c1:178, c2:34, c3:34}},
-  3:{class:1, label:"lobe_1",name:"左肺下叶",color:{c1:128, c2:174, c3:128}},
-  4:{class:1, label:"lobe_2",name:"右肺中叶",color:{c1:241, c2:214, c3:145}},
-  5:{class:1, label:"lobe_3",name:"右肺下叶",color:{c1:177, c2:122, c3:101}},
-  6:{class:1, label:"lobe_4",name:"左肺上叶",color:{c1:111, c2:184, c3:210}},
-  7:{class:1, label:"lobe_5",name:"右肺上叶",color:{c1:216, c2:101, c3:79}}
+  0:{class:3, label:"lung",  name:"肺",color:{c1:197, c2:165, c3:145}},
+  1:{class:1, label:"airway",name:"支气管",color:{c1:182, c2:228, c3:255}},
+  2:{class:2, label:"nodule",name:"结节", color:{c1:178, c2:34, c3:34}},
+  3:{class:0, label:"lobe_1",name:"右肺中叶",color:{c1:128, c2:174, c3:128}},
+  4:{class:0, label:"lobe_2",name:"右肺上叶",color:{c1:241, c2:214, c3:145}},
+  5:{class:0, label:"lobe_3",name:"右肺下叶",color:{c1:177, c2:122, c3:101}},
+  6:{class:0, label:"lobe_4",name:"左肺上叶",color:{c1:111, c2:184, c3:210}},
+  7:{class:0, label:"lobe_5",name:"左肺下叶",color:{c1:216, c2:101, c3:79}}
 }
 
 class ViewerPanel extends Component {
@@ -70,6 +71,8 @@ class ViewerPanel extends Component {
       urls: [],
       show: false,
       segments: [],
+      voi:{windowWidth: 1600, windowCenter: -600},
+      metaData0: {},
       segRange: {
         xMax:-Infinity,
         yMax:-Infinity,
@@ -83,18 +86,19 @@ class ViewerPanel extends Component {
       listsActive: [],
       listsOpacityChangeable: [],
       optVisible:false,
-      optSelected:[1,1,1,1],
+      optSelected:[true,true,true],
       percent: [],
       listLoading: [],
       volumes: [],
       volLength: 600,
       volXLength: 680,
       volYLength: 520,
-      origin: [120,120,10],
+      origin: [120,120,0],
       originXBorder: 1,
       originYBorder: 1,
       originZBorder: 1,
       position:[[[]]],
+      paintImageData:[],
       axialActorVolumes: [],
       coronalActorVolumes: [],
       sagittalActorVolumes: [],
@@ -103,7 +107,7 @@ class ViewerPanel extends Component {
       painting: false,
       isEraser: false,
       selected: false,
-      selectedNum: 1,
+      selectedNum: -1,
       selectionStyles:[],
       axialRowStyle: {},
       axialColumnStyle: {},
@@ -112,6 +116,7 @@ class ViewerPanel extends Component {
       sagittalRowStyle: {},
       sagittalColumnStyle: {},
       isCtrl: false,
+      texting: false,
     };
     this.nextPath = this.nextPath.bind(this);
     this.handleLogout = this
@@ -120,7 +125,7 @@ class ViewerPanel extends Component {
     this.toHomepage = this.toHomepage.bind(this);
   }
 
-  createPipeline(binary, type, opacity = 0.5) {
+  createPipeline(binary, color, opacity) {
     // console.log("createPipeline")
 
     const vtpReader = vtkXMLPolyDataReader.newInstance()
@@ -149,8 +154,7 @@ class ViewerPanel extends Component {
     const actor = vtkActor.newInstance();
     actor.getProperty().setOpacity(opacity);
     actor.setMapper(mapper);
-    const info = dictList[type]
-    actor.getProperty().setColor(info.color.c1/255,info.color.c2/255,info.color.c3/255)
+    actor.getProperty().setColor(color.c1/255,color.c2/255,color.c3/255)
     mapper.setInputData(source);
 
     return actor;
@@ -191,24 +195,25 @@ class ViewerPanel extends Component {
     // mat4.multiply(sagittalAxes, sagittalAxes, translate)
     aImageReslice.setInputData(imageData)
     aImageReslice.setOutputDimensionality(2);
-    aImageReslice.setOutputScalarType('Uint16Array');
+    aImageReslice.setOutputScalarType('Uint16Array')
     aImageReslice.setResliceAxes(axialAxes)
 
     cImageReslice.setInputData(imageData)
     cImageReslice.setOutputDimensionality(2);
-    cImageReslice.setOutputScalarType('Uint16Array');
+    cImageReslice.setOutputScalarType('Uint16Array')
     cImageReslice.setResliceAxes(coronalAxes)
 
     sImageReslice.setInputData(imageData)
     sImageReslice.setOutputDimensionality(2);
-    sImageReslice.setOutputScalarType('Uint16Array');
+    sImageReslice.setOutputScalarType('Uint16Array')
     sImageReslice.setResliceAxes(sagittalAxes)
   }
 
-  updateVolumeActor(origin){
+  updateVolumeActor(origin, idx){
     if(typeof(origin) === "undefined"){
       origin = this.state.origin
     }
+
     const axialAxes = aImageReslice.getResliceAxes()
     axialAxes[14] = origin[2]
     const coronalAxes = cImageReslice.getResliceAxes()
@@ -220,36 +225,102 @@ class ViewerPanel extends Component {
     cImageReslice.setResliceAxes(coronalAxes)
     sImageReslice.setResliceAxes(sagittalAxes)
 
-    const axialActor = this.createSlicePipeline(aImageReslice)
-    const coronalActor = this.createSlicePipeline(cImageReslice)
-    coronalActor.rotateZ(-180)
-    const sagittalActor = this.createSlicePipeline(sImageReslice)
+    if(typeof(idx) !== "undefined"){
+      const paintImageData = this.state.paintImageData
+      const newImageData = paintImageData[idx]
+      const aNewImageReslice = vtkImageReslice.newInstance()
+      const cNewImageReslice = vtkImageReslice.newInstance()
+      const sNewImageReslice = vtkImageReslice.newInstance()
 
-    this.setState({
-      axialActorVolumes: [axialActor],
-      coronalActorVolumes: [coronalActor],
-      sagittalActorVolumes: [sagittalActor]
-    })
+      aNewImageReslice.setInputData(newImageData)
+      aNewImageReslice.setOutputDimensionality(2);
+      aNewImageReslice.setOutputScalarType('Uint16Array')
+      aNewImageReslice.setResliceAxes(axialAxes)
+
+      cNewImageReslice.setInputData(newImageData)
+      cNewImageReslice.setOutputDimensionality(2);
+      cNewImageReslice.setOutputScalarType('Uint16Array')
+      cNewImageReslice.setResliceAxes(coronalAxes)
+
+      sNewImageReslice.setInputData(newImageData)
+      sNewImageReslice.setOutputDimensionality(2);
+      sNewImageReslice.setOutputScalarType('Uint16Array')
+      sNewImageReslice.setResliceAxes(sagittalAxes)
+
+      const axialActor = this.createSlicePipeline(aImageReslice, aNewImageReslice)
+      const coronalActor = this.createSlicePipeline(cImageReslice, cNewImageReslice)
+      coronalActor.rotateZ(-180)
+      const sagittalActor = this.createSlicePipeline(sImageReslice, sNewImageReslice)
+
+      this.setState({
+        axialActorVolumes: [axialActor],
+        coronalActorVolumes: [coronalActor],
+        sagittalActorVolumes: [sagittalActor]
+      })
+    }else{
+      const axialActor = this.createSlicePipeline(aImageReslice)
+      const coronalActor = this.createSlicePipeline(cImageReslice)
+      coronalActor.rotateZ(-180)
+      const sagittalActor = this.createSlicePipeline(sImageReslice)
+
+      this.setState({
+        axialActorVolumes: [axialActor],
+        coronalActorVolumes: [coronalActor],
+        sagittalActorVolumes: [sagittalActor]
+      })
+    }
   }
 
-  createSlicePipeline(imageReslice) {
+  createSlicePipeline(imageReslice, colorReslice) {
     // imageReslice.setScalarScale(65535 / 255);
     console.log("axes", imageReslice.getResliceAxes())
     const obliqueSlice = imageReslice.getOutputData()
 
+    const actor2D = vtkActor2D.newInstance()
+
     const dimensions = obliqueSlice.getDimensions()
     const spacing = obliqueSlice.getSpacing()
+
     const scalars = obliqueSlice.getPointData().getScalars()
     const scalarData = scalars.getData()
 
     const newImageData = vtkImageData.newInstance();
     const newPixelArray = new Uint16Array(dimensions[0] * dimensions[1] * 20)
-    for (let i = 0; i < scalarData.length; i++) {
-      const pixel = scalarData[i]
-      // const pixelValue = pixel * slope + intercept
-      const pixelValue = pixel
-      newPixelArray[i] = pixelValue
+
+    if(typeof(colorReslice) !== "undefined"){
+      const colorScalarData = colorReslice.getOutputData().getPointData().getScalars().getData()
+      for (let i = 0; i < scalarData.length; i++) {
+        const pixel = scalarData[i]
+        // const pixelValue = pixel * slope + intercept
+        const pixelValue = pixel
+        if(colorScalarData[i] === 1){
+          newPixelArray[i] = pixelValue + 2500
+        }else{
+          newPixelArray[i] = pixelValue
+        }
+      }
+    }else{
+      for (let i = 0; i < scalarData.length; i++) {
+        const pixel = scalarData[i]
+        // const pixelValue = pixel * slope + intercept
+        const pixelValue = pixel
+          if(i > 85536 && i < 166608){
+            newPixelArray[i] = pixelValue
+          }else{
+            newPixelArray[i] = pixelValue
+          }
+      }
     }
+    // for (let i = 0; i < scalarData.length; i++) {
+    //   const pixel = scalarData[i]
+    //   // const pixelValue = pixel * slope + intercept
+    //   const pixelValue = pixel
+    //   if(i > 85536 && i < 166608){
+    //     newPixelArray[i + scalarData.length] = 0
+    //   }else{
+    //     newPixelArray[i + scalarData.length] = pixelValue + 1
+    //   }
+    // }
     const newScalarArray = vtkDataArray.newInstance({
       name: 'Pixels',
       values: newPixelArray
@@ -265,28 +336,55 @@ class ViewerPanel extends Component {
     const actor = vtkVolume.newInstance()
     actor.setMapper(mapper)
 
-    const range = imageData
+    const dataRange = imageData
         .getPointData()
         .getScalars()
-        .getRange();
-    actor
-        .getProperty()
-        .getRGBTransferFunction(0)
-        .setRange(range[0], range[1])
+        .getRange()
+    const sliceRange = scalars.getRange()
+    console.log("dataRange", dataRange)
+    console.log("sliceRange", sliceRange)
+
+    const voi = this.state.voi
+    const range0 = voi.windowCenter - voi.windowWidth / 2
+    const range1 = voi.windowCenter + voi.windowWidth / 2
+
+    const rgbTransferFunction = actor.getProperty().getRGBTransferFunction(0);
+    rgbTransferFunction.setMappingRange(range0, range1)
+
+    const ofun = vtkPiecewiseFunction.newInstance()
+    // ofun.addSegment(0, 0, 1, 0)
+    // ofun.addSegment(1, 1, sliceRange[1], 1)
+    // ofun.addSegment(2500, 0, 2501, 0)
+    // ofun.addSegment(2501, 1, sliceRange[1] + 2500, 1)
+    ofun.addPoint(0.0, 0.0)
+    ofun.addPoint(1000.0, 0.3)
+    ofun.addPoint(6000.0, 0.9)
+    actor.getProperty().setScalarOpacity(0, ofun)
+
+    actor.getProperty().setScalarOpacityUnitDistance(0, 4.5)
+    actor.getProperty().setInterpolationTypeToLinear()
+    actor.getProperty().setUseGradientOpacity(0, true)
+    actor.getProperty().setGradientOpacityMinimumValue(0, 15)
+    actor.getProperty().setGradientOpacityMinimumOpacity(0, 0.0)
+    actor.getProperty().setGradientOpacityMaximumValue(0, 100)
+    actor.getProperty().setGradientOpacityMaximumOpacity(0, 1.0)
+    actor.getProperty().setAmbient(0.7)
+    actor.getProperty().setDiffuse(0.7)
+    actor.getProperty().setSpecular(0.3)
+    actor.getProperty().setSpecularPower(8.0)
+
+    const cfun = vtkColorTransferFunction.newInstance()
+    // cfun.addRGBPoint(0, 0, 0, 0)
+    // cfun.addRGBPoint(sliceRange[1], 1, 1, 1)
+    // cfun.addRGBPoint(sliceRange[1] + 1, 0, 0, 0)
+    // cfun.addRGBPoint(2500, 0, 0, 0)
+    // cfun.addRGBPoint(sliceRange[1]+ 2500, 0.7, 0.7, 1)
+    // cfun.addRGBPoint(sliceRange[1]+ 2501, 0, 0, 0)
+    cfun.addRGBPoint(range0, 0.4, 0.2, 0.0)
+    cfun.addRGBPoint(range1, 1.0, 1.0, 1.0)
+    actor.getProperty().setRGBTransferFunction(0, cfun)
 
     return actor
-
-    // const ctfun = vtkColorTransferFunction.newInstance();
-    // ctfun.addRGBPoint(200, 1, 1, 1);
-    // ctfun.addRGBPoint(2000.0, 0, 0, 0);
-    // ctfun.addRGBPoint(-1000, 0.3, 0.3, 1);
-    // ctfun.addRGBPoint(-600, 0, 0, 1);
-    // ctfun.addRGBPoint(-530, 0.134704, 0.781726, 0.0724558);
-    // ctfun.addRGBPoint(-460, 0.929244, 1, 0.109473);
-    // ctfun.addRGBPoint(-400, 0.888889, 0.254949, 0.0240258);
-    // ctfun.addRGBPoint(2952, 1, 0.3, 0.3);
-
-    // actor.getProperty().setRGBTransferFunction(0, ctfun);
   }
 
   async componentDidMount() {
@@ -309,35 +407,57 @@ class ViewerPanel extends Component {
         // console.log(res.data)
         console.log("res_data", res.data);
         const urls = Object.keys(res.data).map((key) => [key, res.data[key]])
-        const tmp_urls = [];
+        const tmp_urls = []
+
         urls.forEach(item => {
           const label = item[0]
           const array = item[1]
           array.forEach((it, idx)=> {
-            let type = 0;
+            let type = 0
+            let cl = 0
+            let name = ''
+            let color = {}
             if(label === "lung"){
               type = 0
+              cl = dictList[type].class
+              name = dictList[type].name
+              color = dictList[type].color
             }else if(label === "airway"){
               type = 1
+              cl = dictList[type].class
+              name = dictList[type].name
+              color = dictList[type].color
             }else if(label === "nodule"){
               type = 2
+              cl = dictList[type].class
+              name = dictList[type].name + Math.round(it[it.length - 5])
+              color = dictList[type].color
             }else if(label === "lobe"){
-              type = 3 + idx
+              type = 2 + Math.round(it[it.length - 5])
+              cl = dictList[type].class
+              name = dictList[type].name
+              color = dictList[type].color
             }
-            tmp_urls.push([type, it]) //urls[0] is type, urls[1] is url
+            if(type !== 0){
+              tmp_urls.push({
+                url: it,
+                class: cl,
+                name: name,
+                color: color
+              })
+            }
           })
         })
-        tmp_urls.splice(0,1)
 
         const tmp_segments = Object.keys(tmp_urls).map((key) => null)
         const tmp_percent = Object.keys(tmp_urls).map((key) => 0)
-        const tmp_segVisible = Object.keys(tmp_urls).map((key) => 1)
         const tmp_opacity = Object.keys(tmp_urls).map((key) => 0.5)
-        const tmp_listsActive = Object.keys(tmp_urls).map((key) => 0)
-        const tmp_listsOpacityChangeable = Object.keys(tmp_urls).map((key) => 0)
+        const tmp_listsActive = Object.keys(tmp_urls).map((key) => false)
+        const tmp_segVisible = Object.keys(tmp_urls).map((key) => true)
+        const tmp_listsOpacityChangeable = Object.keys(tmp_urls).map((key) => false)
         const tmp_listLoading = Object.keys(tmp_urls).map((key) => true)
-        console.log("urls", urls);
-        console.log("tmp_urls", tmp_urls);
+
+        console.log("tmp_urls", tmp_urls)
         this.setState({
           urls: tmp_urls,
           segments: tmp_segments,
@@ -374,7 +494,6 @@ class ViewerPanel extends Component {
             const imageIds = res.data
             resolve(imageIds)
           },reject)
-
     })
     const imageIds = await imageIdPromise
     console.log("imageIds", imageIds.length)
@@ -507,31 +626,36 @@ class ViewerPanel extends Component {
     const {metaData0, imageMetaData} = await metaDataPromise
     console.log("this is ", metaData0)
     console.log("this is ", imageMetaData)
-    // imageIds.splice(50,imageIds.length - 1)
+    this.setState({
+      metaData0: metaData0
+    })
+    //imageIds.splice(1,imageIds.length - 1)
     imageIds.forEach((item, idx)=>{
-      cornerstone.loadAndCacheImage(item).then(img=>{
+      cornerstone.loadAndCacheImage(item).then(img => {
         const pixeldata = img.getPixelData()
         const {intercept, slope} = img
-        const scalars = imageData.getPointData().getScalars();
-        const scalarData = scalars.getData();
+        const scalars = imageData.getPointData().getScalars()
+        const scalarData = scalars.getData()
         const sliceLength = pixeldata.length
         const totalLength = scalarData.length
         for (let pixelIndex = 0; pixelIndex < pixeldata.length; pixelIndex++) {
           // const destIdx = totalLength - 1 - (pixelIndex + idx * sliceLength);
-          const destIdx = (pixelIndex + idx * sliceLength);
-          const pixel = pixeldata[pixelIndex];
+          const destIdx = (pixelIndex + idx * sliceLength)
+          const pixel = pixeldata[pixelIndex]
           const pixelValue = pixel
 
-          scalarData[destIdx] = pixelValue;
+          scalarData[destIdx] = pixelValue
         }
-        if(idx === imageIds.length - 1){
-          imageData.modified()
-          this.updateVolumeActor()
-        }else{
-          if(idx % 20 === 0){
-            console.log("modified")
+        if(this.state.selectedNum !== -1){
+          if (idx === imageIds.length - 1) {
             imageData.modified()
             this.updateVolumeActor()
+          } else {
+            if (idx % 20 === 0) {
+              console.log("modified")
+              imageData.modified()
+              this.updateVolumeActor()
+            }
           }
         }
       })
@@ -916,12 +1040,16 @@ class ViewerPanel extends Component {
         }
       }
       if(e.path[1].className === "segment-content-block segment-content-axial" && e.path[0].id === "canvas-axial"){
+        const selectionStyles = this.state.selectionStyles
+        const height = selectionStyles[1].height.replace("px", "")
         const {origin, originXBorder, originYBorder, originZBorder} = this.state
         const ratioX = this.getRatio(0, 0)
         const ratioY = this.getRatio(0, 1)
         const {x, y} = this.getTopLeftOffset(0)
         const xNow = e.offsetX
         const yNow = e.offsetY
+        // const picked = this.viewer.clickMPR(e.offsetX, height - e.offsetY)
+        // console.log("new", picked)
         const o1 = (yNow - y) * ratioY
         const o0 = (xNow - x) * ratioX
         if(o1 >= 0 && o1 <= originYBorder && o0 >= 0 && o0 <= originXBorder){
@@ -1019,6 +1147,48 @@ class ViewerPanel extends Component {
         this.updateCanvas()
       }
     }
+    // if(this.state.texting){
+    //   if(e.path[1].className === "segment-content-block segment-content-axial" && e.path[0].id === "canvas-axial"){
+    //     const origin = this.state.origin
+    //     const ratioX = this.getRatio(0, 0)
+    //     const ratioY = this.getRatio(0, 1)
+    //     const {x, y} = this.getTopLeftOffset(0)
+    //     const xNow = e.offsetX
+    //     const yNow = e.offsetY
+    //     const pNow = []
+    //     pNow[2] = Math.round(origin[2])
+    //     pNow[1] = Math.round((yNow - y) * ratioY)
+    //     pNow[0] = Math.round((xNow - x) * ratioX)
+    //     console.log("origin", pNow[0], pNow[1], pNow[2])
+    //     this.pickup2(pNow[0], pNow[1], pNow[2], 0, 20)
+    //   }
+    //   if(e.path[1].className === "segment-content-block segment-content-coronal" && e.path[0].id === "canvas-coronal"){
+    //     const origin = this.state.origin
+    //     const ratioX = this.getRatio(1, 0)
+    //     const ratioZ = this.getRatio(1, 2)
+    //     const {x, y} = this.getTopLeftOffset(1)
+    //     const xNow = e.offsetX
+    //     const yNow = e.offsetY
+    //     const pNow = []
+    //     pNow[2] = Math.round((yNow - y) * ratioZ)
+    //     pNow[1] = Math.round(origin[1])
+    //     pNow[0] = Math.round((xNow - x) * ratioX)
+    //     this.pickup2(pNow[0], pNow[1], pNow[2], 1, 20)
+    //   }
+    //   if(e.path[1].className === "segment-content-block segment-content-sagittal" && e.path[0].id === "canvas-sagittal"){
+    //     const origin = this.state.origin
+    //     const ratioY = this.getRatio(2, 1)
+    //     const ratioZ = this.getRatio(2, 2)
+    //     const {x, y} = this.getTopLeftOffset(2)
+    //     const xNow = e.offsetX
+    //     const yNow = e.offsetY
+    //     const pNow = []
+    //     pNow[2] = Math.round((yNow - y) * ratioZ)
+    //     pNow[1] = Math.round((xNow - x) * ratioY)
+    //     pNow[0] = Math.round(origin[0])
+    //     this.pickup2(pNow[0], pNow[1], pNow[2], 2, 20)
+    //   }
+    // }
   }
   dblclick(e){
     console.log("dblclick", e)
@@ -1092,6 +1262,57 @@ class ViewerPanel extends Component {
       //     }
       //   }
       // }
+    }
+  }
+  pickup2(x, y, z, model, radius){
+    //model 0 represents axial, model 1 represents coronal, model 2 represents sagittal
+    const {originXBorder, originYBorder, originZBorder, metaData0} = this.state
+    const rowPixelSpacing = metaData0.rowPixelSpacing
+    const columnPixelSpacing = metaData0.columnPixelSpacing
+    const paintImageData = this.state.paintImageData
+    const newImageData = paintImageData[0]
+    console.log("this scalarData", newImageData.getDimensions())
+    const scalarData = newImageData.getPointData().getScalars().getData()
+    if(model === 0){
+      for(let i = 0; i < radius; i++){
+        for(let j = 0; j < radius; j++){
+          const xNow = Math.round(x - radius/2 + j)
+          const yNow = Math.round(y - radius/2 + i)
+          if(xNow >= 0 && xNow < originXBorder && yNow >= 0 && yNow < originYBorder){
+            const index = Math.round(xNow / columnPixelSpacing) + Math.round(yNow / rowPixelSpacing) * 512 + z * 512 * 512
+            console.log("index", index)
+            scalarData[index] = 1
+          }
+        }
+      }
+      newImageData.modified()
+      paintImageData[0] = newImageData
+      this.setState({
+        paintImageData:paintImageData
+      })
+      this.updateVolumeActor(this.state.origin, 0)
+    }else if(model === 1){
+      for(let i = 0; i < radius; i++){
+        for(let j = 0; j < radius; j++){
+          const xNow = Math.round(x - radius/2 + j)
+          const zNow = Math.round(z - radius/2 + i)
+          if(xNow >= 0 && xNow < originXBorder && zNow >= 0 && zNow < originZBorder){
+            const index = Math.round(xNow / columnPixelSpacing) + Math.round(y / rowPixelSpacing) * 512 + zNow * 512 * 512
+            scalarData[index] = 1
+          }
+        }
+      }
+    }else if(model === 2){
+      for(let i = 0; i < radius; i++){
+        for(let j = 0; j < radius; j++){
+          const yNow = Math.round(y - radius/2 + j)
+          const zNow = Math.round(z - radius/2 + i)
+          if(yNow >= 0 && yNow < originYBorder && zNow >= 0 && zNow < originZBorder){
+            const index = Math.round(x / columnPixelSpacing) + Math.round(yNow / rowPixelSpacing) * 512 + zNow * 512 * 512
+            scalarData[index] = 1
+          }
+        }
+      }
     }
   }
   erase(x, y, z, model, radius){
@@ -1626,7 +1847,12 @@ class ViewerPanel extends Component {
       viewerHeight = this.state.viewerHeight
     }
     const selectionStyles = []
-    if(selectedNum === 0){
+    if(selectedNum === -1){
+      selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${viewerWidth}px`, height:`${viewerHeight}px`})
+      selectionStyles.push({position:"absolute", top:"0", left:"0", width:"0", height:"0"})
+      selectionStyles.push({position:"absolute", top:"0", left:"0", width:"0", height:"0"})
+      selectionStyles.push({position:"absolute", top:"0", left:"0", width:"0", height:"0"})
+    }else if(selectedNum === 0){
       selectionStyles.push({position:"absolute", top:"0", left:`${viewerWidth/2}px`, width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
       selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
       selectionStyles.push({position:"absolute", top:`${viewerHeight/2}px`, left:"0", width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
@@ -1662,11 +1888,12 @@ class ViewerPanel extends Component {
       tmp_percent[idx] = percent
       this.setState({ percent: tmp_percent})
     }
-    const type = this.state.urls[idx][0]
-    const cur_url = this.state.urls[idx][1] + '?caseId=' + this.state.caseId
+    const opacity = this.state.opacity[idx]
+    const color = this.state.urls[idx].color
+    const cur_url = this.state.urls[idx].url + '?caseId=' + this.state.caseId
     HttpDataAccessHelper.fetchBinary(cur_url, { progressCallback,} )
         .then((binary) => {
-          const actor = this.createPipeline(binary,type)
+          const actor = this.createPipeline(binary,color,opacity)
           const tmp_segments = []
           this.state.segments.forEach((item, idx) =>{
             tmp_segments[idx] = item
@@ -1758,32 +1985,20 @@ class ViewerPanel extends Component {
         break
       case 3:this.viewer.turnRight()
         break
-      case 4:this.viewer.changeMode(0)
+      case 4:this.selectByNum(0)
         break
-      case 5:this.viewer.changeMode(1)
+      case 5:this.startEdit()
         break
-      case 6:this.viewer.changeMode(2)
+      case 6:this.startPaint()
         break
-      case 7:this.selectByNum(1)
+      case 7:this.useEraser()
         break
-      case 8:this.selectByNum(2)
+      case 8:this.endEdit()
         break
-      case 9:this.selectByNum(3)
+      case 9:this.endPaint()
         break
-      case 10:this.selectByNum(4)
+      case 17:this.startPaint2()
         break
-      case 11:this.selectByNum(0)
-        break
-      case 12:this.startEdit()
-            break
-      case 13:this.endEdit()
-            break
-      case 14:this.startPaint()
-            break
-      case 15:this.useEraser()
-            break
-      case 16:this.endPaint()
-            break
     }
   }
   startEdit(){
@@ -1825,7 +2040,39 @@ class ViewerPanel extends Component {
     })
     this.clearCanvas()
   }
+  startPaint2(){
+    const paintImageData = this.state.paintImageData
+    const newImageData = this.createImageData()
+    paintImageData.push(newImageData)
+    this.setState({
+      texting: true,
+      paintImageData: paintImageData
+    })
+    // this.updateVolumeActor(0)
+  }
+  createImageData(){
+    const newImageData = vtkImageData.newInstance()
+    const pixelArray = new Uint16Array(512 * 512 * this.state.imageIds.length)
+    const scalarArray = vtkDataArray.newInstance({
+      name: 'Pixels',
+      values: pixelArray
+    })
+    const metaData0 = this.state.metaData0
+    const rowCosineVec = vec3.fromValues(...metaData0.rowCosines)
+    const colCosineVec = vec3.fromValues(...metaData0.columnCosines)
+    const scanAxisNormal = vec3.cross([], rowCosineVec, colCosineVec)
+    const direction = [...rowCosineVec, ...colCosineVec, ...scanAxisNormal]
+    // const {originXBorder, originYBorder, originZBorder} = this.state
+    const xSpacing = metaData0.columnPixelSpacing
+    const ySpacing = metaData0.rowPixelSpacing
+    const zSpacing = 1.0
+    newImageData.setDirection(direction)
+    newImageData.setDimensions(512, 512, this.state.imageIds.length)
+    newImageData.setSpacing(xSpacing, ySpacing, zSpacing)
+    newImageData.getPointData().setScalars(scalarArray)
 
+    return newImageData
+  }
   resetOrigin(model){
     //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
     if(model === 0){
@@ -1861,27 +2108,31 @@ class ViewerPanel extends Component {
       this.updateCanvas()
     }
   }
-  handleListClick(idx, e, data) {
-    console.log("handle click:", data);
-    let tmp_listsActive = this.state.listsActive;
-    for (let cur_idx in tmp_listsActive) {
-      if (tmp_listsActive[cur_idx] === 1) {
-        tmp_listsActive[cur_idx] = 0;
+  handleListClick(idx) {
+    let tmp_listsActive = this.state.listsActive
+    if(tmp_listsActive[idx]){
+      tmp_listsActive[idx] = false
+    }else{
+      for (let cur_idx in tmp_listsActive) {
+        if (tmp_listsActive[cur_idx]) {
+          tmp_listsActive[cur_idx] = false
+        }
       }
+      tmp_listsActive[idx] = true
     }
-    tmp_listsActive[idx] = 1;
-    this.setState({ listsActive: tmp_listsActive });
+
+    this.setState({ listsActive: tmp_listsActive })
   }
   handleVisibleButton(idx, e) {
-    e.stopPropagation();
-    let tmp_segVisible = this.state.segVisible;
-    tmp_segVisible[idx] = tmp_segVisible[idx] === 1 ? 0 : 1;
+    e.stopPropagation()
+    let tmp_segVisible = this.state.segVisible
+    tmp_segVisible[idx] = !tmp_segVisible[idx]
 
     let tmp_segments = []
     this.state.segments.forEach((item, i) =>{
       tmp_segments[i] = item
     })
-    if(tmp_segVisible[idx] === 0){
+    if(!tmp_segVisible[idx]){
       tmp_segments[idx].getProperty().setOpacity(0)
     }else{
       tmp_segments[idx].getProperty().setOpacity(this.state.opacity[idx])
@@ -1893,15 +2144,15 @@ class ViewerPanel extends Component {
     });
   }
   handleOpacityButton(idx, e) {
-    e.stopPropagation();
-    let tmp_listsOpacityChangeable = this.state.listsOpacityChangeable;
-    tmp_listsOpacityChangeable[idx] = tmp_listsOpacityChangeable[idx] === 1 ? 0 : 1;
-    this.setState({ listsOpacityChangeable: tmp_listsOpacityChangeable });
+    e.stopPropagation()
+    let tmp_listsOpacityChangeable = this.state.listsOpacityChangeable
+    tmp_listsOpacityChangeable[idx] = !tmp_listsOpacityChangeable[idx]
+    this.setState({ listsOpacityChangeable: tmp_listsOpacityChangeable })
   }
   changeOpacity(idx, e) {
-    e.stopPropagation();
-    let tmp_opacity = this.state.opacity;
-    tmp_opacity[idx] = e.target.value;
+    e.stopPropagation()
+    let tmp_opacity = this.state.opacity
+    tmp_opacity[idx] = e.target.value
 
     let tmp_segments = []
     this.state.segments.forEach((item, i) =>{
@@ -1914,19 +2165,20 @@ class ViewerPanel extends Component {
     this.setState({
       opacity: tmp_opacity,
       segments: tmp_segments
-    });
+    })
   }
   handleOptButton(e){
-    e.stopPropagation();
-    let tmp_optVisible = this.state.optVisible;
-    tmp_optVisible = !tmp_optVisible;
+    e.stopPropagation()
+    let tmp_optVisible = this.state.optVisible
+    tmp_optVisible = !tmp_optVisible
     this.setState({
       optVisible: tmp_optVisible
     })
   }
-  changeOptSelection(idx){
+  changeOptSelection(idx, e){
+    e.stopPropagation()
     let tmp_optSelected = this.state.optSelected;
-    tmp_optSelected[idx] = tmp_optSelected[idx] === 1 ? 0 : 1;
+    tmp_optSelected[idx] = !tmp_optSelected[idx]
     this.setState({
       optSelected: tmp_optSelected
     })
@@ -1966,12 +2218,12 @@ class ViewerPanel extends Component {
     return loadingStyle
   }
   render() {
-    const nameList = ['肺','肺叶','支气管','结节']
-    const welcome = '欢迎您，' + localStorage.realname;
-    let sgList = [];
-    let loadingList = [];
-    let newLoadingList = [];
-    let optList = [];
+    const nameList = ['肺叶','支气管','结节']
+    const welcome = '欢迎您，' + localStorage.realname
+    let sgList = []
+    let loadingList = []
+    let newLoadingList = []
+    let optList = []
     const {
       origin,
       originXBorder,
@@ -1996,6 +2248,7 @@ class ViewerPanel extends Component {
       editing,
       painting,
       isEraser,
+      selectedNum,
       selectionStyles,
       axialRowStyle,
       axialColumnStyle,
@@ -2010,30 +2263,12 @@ class ViewerPanel extends Component {
     let noduleNum = 0;
     if (this.state.urls) {
       sgList = this.state.urls.map((inside, idx) => {
-        if(inside[1].length > 0){
-          let info = dictList[inside[0]]
-          let sgClass = info.class
-          if(optSelected[sgClass] === 1){
-            let sgName = info.name
-            if(inside[0] === 2){
-              noduleNum = noduleNum + 1
-              sgName = sgName + noduleNum
-            }
-            let isActive = true
-            let isChangeOpacity = true
-            if(listsActive[idx] === 1){
-              isActive = true
-            }else{
-              isActive = false
-            }
-            if(listsOpacityChangeable[idx] === 1){
-              isChangeOpacity = true
-            }else{
-              isChangeOpacity = false
-            }
+        if(inside.url.length > 0){
+          if(optSelected[inside.class]){
+            let sgName = inside.name
             let itemClass = classnames({
               'segment-list-item': true,
-              'segment-list-item-active': isActive
+              'segment-list-item-active': listsActive[idx]
             })
             const inputRangeStyle={
               backgroundSize:opacity[idx] * 100 + '%'
@@ -2049,18 +2284,18 @@ class ViewerPanel extends Component {
                       <div className='segment-list-content-block segment-list-content-info'>
                         info
                       </div>
-                      <div className='segment-list-content-block segment-list-content-tool' hidden={!isActive}>
+                      <div className='segment-list-content-block segment-list-content-tool' hidden={!listsActive[idx]}>
                         {/*content={segVisible[idx] === 1?'隐藏':'显示'}*/}
                         <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-visible'
-                                onClick={this.handleVisibleButton.bind(this, idx)} hidden={segVisible[idx] === 0}>隐藏</Button>
+                                onClick={this.handleVisibleButton.bind(this, idx)} hidden={!segVisible[idx]}>隐藏</Button>
                         <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-visible'
-                                onClick={this.handleVisibleButton.bind(this, idx)} hidden={segVisible[idx] === 1}>显示</Button>
+                                onClick={this.handleVisibleButton.bind(this, idx)} hidden={segVisible[idx]}>显示</Button>
                         <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-opacity'
-                                onClick={this.handleOpacityButton.bind(this, idx)} hidden={isChangeOpacity}>调整透明度</Button>
+                                onClick={this.handleOpacityButton.bind(this, idx)} hidden={listsOpacityChangeable[idx]}>调整透明度</Button>
                         <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-opacity'
-                                onClick={this.handleOpacityButton.bind(this, idx)} hidden={!isChangeOpacity}>调整完毕</Button>
+                                onClick={this.handleOpacityButton.bind(this, idx)} hidden={!listsOpacityChangeable[idx]}>调整完毕</Button>
                       </div>
-                      <div className='segment-list-content-block' className='segment-list-content-input' hidden={!(isActive && isChangeOpacity)}>
+                      <div className='segment-list-content-block' className='segment-list-content-input' hidden={!(listsActive[idx] && listsOpacityChangeable[idx])}>
                         {opacity[idx] * 100}%
                         <input
                             style={inputRangeStyle}
@@ -2098,15 +2333,14 @@ class ViewerPanel extends Component {
       newLoadingList = this.state.urls.map((inside, idx) => {
         let loading
         if(loadingNum <= 5){
-          if(inside[1].length > 0){
+          if(inside.url.length > 0){
             if(percent[idx] === 100){
               loading = false
             }else{
               loading = true
             }
             loadingNum = loadingNum + 1
-            let info = dictList[inside[0]]
-            let segmentName = info.name
+            let segmentName = inside.name
             return (
                 <div key={idx} className="loading-list-item" hidden={!listLoading[idx]}>
                   <div  className="loading-container">
@@ -2127,7 +2361,7 @@ class ViewerPanel extends Component {
     }
     optList = nameList.map((inside, idx) =>{
       return (
-          <List.Item key = {idx}><Checkbox label={inside} checked={optSelected[idx] === 1} onChange={this.changeOptSelection.bind(this, idx)}/></List.Item>
+          <List.Item key = {idx}><Checkbox label={inside} checked={optSelected[idx]} onChange={this.changeOptSelection.bind(this, idx)}/></List.Item>
       )
     })
 
@@ -2152,18 +2386,12 @@ class ViewerPanel extends Component {
               {/*<Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='share' size='large'/></Button>*/}
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)} title="左旋"><Icon name='arrow alternate circle left outline' size='large'/></Button>
               <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)} title="右旋"><Icon name='arrow alternate circle right outline' size='large'/></Button>
-              {/*<Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 4)}>A</Button>*/}
-              {/*<Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 5)}>C</Button>*/}
-              {/*<Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 6)}>S</Button>*/}
-              {/*<Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 7)}>1</Button>*/}
-              {/*<Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 8)}>2</Button>*/}
-              {/*<Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 9)}>3</Button>*/}
-              {/*<Button className='funcBtn' onClick={this.handleFuncButton.bind(this, 10)}>4</Button>*/}
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 11)} title="四等分"><Icon name='th large' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 4)} title="MPR"><Icon name='th large' size='large'/></Button>
             </Button.Group>
-            <Button.Group style={{marginLeft:"10px"}}>
-              <Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 12)} title="选中"><Icon name='hand point down outline' size='large'/></Button>
-              <Button icon className='funcBtn' active={painting && !isEraser} onClick={this.handleFuncButton.bind(this, 14)} title="标记"><Icon name='paint brush' size='large'/></Button>
+            <Button.Group style={{marginLeft:"10px"}} hidden={selectedNum === -1}>
+              <Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 5)} title="选中"><Icon name='hand point down outline' size='large'/></Button>
+              {/*<Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 17)} title="涂画"><Icon name='paint brush' size='large'/></Button>*/}
+              <Button icon className='funcBtn' active={painting && !isEraser} onClick={this.handleFuncButton.bind(this, 14)} title="标记"><Icon name='pencil alternate' size='large'/></Button>
               <Button icon className='funcBtn' hidden={!painting} active={isEraser} onClick={this.handleFuncButton.bind(this, 15)} title="擦除"><Icon name='eraser' size='large'/></Button>
               <Button icon className='funcBtn' hidden={!editing} onClick={this.handleFuncButton.bind(this, 13)} title="停止选中"><Icon name='window close outline' size='large'/></Button>
               <Button icon className='funcBtn' hidden={!painting} onClick={this.handleFuncButton.bind(this, 16)} title="停止标记"><Icon name='window close outline' size='large'/></Button>
@@ -2205,7 +2433,7 @@ class ViewerPanel extends Component {
                     {newLoadingList}
                   </div>
                   <div className="segment-content-block segment-content-3d" style={selectionStyles[0]}/>
-                  <div className="segment-content-block segment-content-axial" style={selectionStyles[1]}>
+                  <div className="segment-content-block segment-content-axial" style={selectionStyles[1]} hidden={selectedNum === -1}>
                     <canvas id="canvas-axial" style={canvasAStyle} width={canvasAStyle.w} height={canvasAStyle.h}/>
                     <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 0)}/>
                     <Slider className="segment-content-origin" vertical reverse defaultValue={0} value={origin[2]} min={1} step={1} max={originZBorder}
@@ -2214,7 +2442,7 @@ class ViewerPanel extends Component {
                     <div className="segment-content-row segment-content-row-axial" hidden={!editing} style={axialRowStyle}/>
                     <div className="segment-content-column segment-content-column-axial" hidden={!editing} style={axialColumnStyle}/>
                   </div>
-                  <div className="segment-content-block segment-content-coronal" style={selectionStyles[2]}>
+                  <div className="segment-content-block segment-content-coronal" style={selectionStyles[2]} hidden={selectedNum === -1}>
                     <canvas id="canvas-coronal" style={canvasCStyle} width={canvasCStyle.w} height={canvasCStyle.h}/>
                     <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 0)}/>
                     <Slider className="segment-content-origin" vertical reverse defaultValue={0} value={origin[1]} min={1} step={1} max={originYBorder}
@@ -2223,7 +2451,7 @@ class ViewerPanel extends Component {
                     <div className="segment-content-row segment-content-row-coronal" hidden={!editing} style={coronalRowStyle}/>
                     <div className="segment-content-column segment-content-column-coronal" hidden={!editing} style={coronalColumnStyle}/>
                   </div>
-                  <div className="segment-content-block segment-content-sagittal" style={selectionStyles[3]}>
+                  <div className="segment-content-block segment-content-sagittal" style={selectionStyles[3]} hidden={selectedNum === -1}>
                     <canvas id="canvas-sagittal" style={canvasSStyle} width={canvasSStyle.w} height={canvasSStyle.h}/>
                     <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 0)}/>
                     <Slider className="segment-content-origin" vertical reverse defaultValue={0} value={origin[0]} min={1} step={1} max={originXBorder}

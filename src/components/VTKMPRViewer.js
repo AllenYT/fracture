@@ -1,7 +1,7 @@
 import React,{Component} from "react"
-import SegView3D from "./SegView3D";
 import PropTypes from "prop-types";
 import vtkGenericRenderWindow from "vtk.js/Sources/Rendering/Misc/GenericRenderWindow";
+import vtkPicker from "vtk.js/Sources/Rendering/Core/Picker";
 
 class VTKMPRViewer extends Component{
     static propTypes = {
@@ -45,8 +45,9 @@ class VTKMPRViewer extends Component{
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (prevProps.volumes !== this.props.volumes){
             if (this.props.volumes.length) {
-                console.log("update volumes")
+                prevProps.volumes.forEach(this.renderer.removeVolume)
                 this.props.volumes.forEach(this.renderer.addVolume)
+                // console.log("update volumes", this.renderer.getVolumes())
             } else {
                 // TODO: Remove all volumes
             }
@@ -66,9 +67,16 @@ class VTKMPRViewer extends Component{
             this.renderWindow.render()
         }
     }
+
     resetView(){
         this.renderer.resetCamera()
         this.renderWindow.render()
+    }
+    getPicked(x, y){
+        const movePicker = vtkPicker.newInstance()
+        movePicker.pick([x, y, 0], this.renderer)
+        const picked = movePicker.getPickedPositions()[0]
+        return picked
     }
     magnifyView(){
         this.camera.dolly(1.1)
