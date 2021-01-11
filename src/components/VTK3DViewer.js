@@ -29,7 +29,6 @@ class VTK3DViewer extends Component{
         this.glWindow = this.genericRenderWindow.getOpenGLRenderWindow()
         this.renderWindow = this.genericRenderWindow.getRenderWindow()
         this.renderer = this.genericRenderWindow.getRenderer()
-        this.renderer.setViewport(0,0,1,1)
         // this.renderer.setBackground([0,0,0])
         this.renderer.setBackground([0.59,0.60,0.81])
         this.interactor = this.renderWindow.getInteractor()
@@ -60,17 +59,7 @@ class VTK3DViewer extends Component{
             }
         })
 
-//         this.interactor.onLeftButtonRelease((callback) => {
-//             console.log("Release inter:", callback)
-//             // if(this.picker){
-//             //     this.picker.pick([callback.position.x, callback.position.y, callback.position.z], callback.pokedRenderer)
-//             //     let picked = this.picker.getPickedPositions()
-//             //     console.log("picked " + this.picker.getPickedPositions()[0])
-//             // }
-//             this.light.setFocalPoint(this.camera.getFocalPoint())
-//             this.light.setPosition(this.camera.getPosition())
-//             this.renderWindow.render()
-//         })
+
         this.renderWindow.render()
     }
     componentDidUpdate(prevProps, prevState, snapshot) {

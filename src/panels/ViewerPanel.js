@@ -154,8 +154,30 @@ class ViewerPanel extends Component {
     const actor = vtkActor.newInstance();
     actor.getProperty().setOpacity(opacity);
     actor.setMapper(mapper);
+
     actor.getProperty().setColor(color.c1/255,color.c2/255,color.c3/255)
+
+    // let color="";
+    // function Viewcolor(item){
+    //      if(colorName==item.name){
+    //       actor.getProperty().setColor(item.colorvalue)
+    //      }
+    // }
+    actor.getProperty().setDiffuse(0.25)
+    actor.getProperty().setAmbient(0.5)
+    actor.getProperty().setSpecular(0.125)
+
     mapper.setInputData(source);
+
+    // const rgbTransferFunction = actor.getProperty().getRGBTransferFunction(0);
+    // const range = rgbTransferFunction.getMappingRange();
+    //  const light2 = gc.registerResource(vtkLight.newInstance());
+    //  light2.setColor(1, 1, 0);
+    //  light2.setPosition(0, 1, 0);
+    //  renderer.addLight(light2);
+    // console.log('light is done!')
+    // const windowWidth = range[0] + range[1];
+    // const windowCenter = range[0] + windowWidth / 2;
 
     return actor;
   }
@@ -2365,11 +2387,11 @@ class ViewerPanel extends Component {
       )
     })
 
-    // let segments_list = [];
-    // for (let cur_idx in segments) {
-    //   segments_list.push(segments[cur_idx]);
-    // }
-    // console.log('render segments:', segments)
+    let segments_list = [];
+    for (let cur_idx in segments) {
+      segments_list.push(segments[cur_idx]);
+    }
+    console.log('render segments:', segments)
     return (
       <div id="viewer">
         <Menu className="corner-header">
