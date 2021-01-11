@@ -473,7 +473,7 @@ class ViewerPanel extends Component {
 
         const tmp_segments = Object.keys(tmp_urls).map((key) => null)
         const tmp_percent = Object.keys(tmp_urls).map((key) => 0)
-        const tmp_opacity = Object.keys(tmp_urls).map((key) => 0.5)
+        const tmp_opacity = Object.keys(tmp_urls).map((key) => 1)
         const tmp_listsActive = Object.keys(tmp_urls).map((key) => false)
         const tmp_segVisible = Object.keys(tmp_urls).map((key) => true)
         const tmp_listsOpacityChangeable = Object.keys(tmp_urls).map((key) => false)
