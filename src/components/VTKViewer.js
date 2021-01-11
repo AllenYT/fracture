@@ -17,7 +17,7 @@ class VTKViewer extends Component{
         this.state = {
             viewerWidth:0,
             viewerHeight:0,
-            selectedNum:0,
+            selectedNum:-1,
             selectionStyles:[],
         }
         this.container = React.createRef()
@@ -30,12 +30,12 @@ class VTKViewer extends Component{
 
     }
 
-    setContainerSize(width, height){
-        const selectedNum = this.state.selectedNum
+    setContainerSize(selectedNum, width, height){
         const selectionStyles = this.getSelectionStyles(selectedNum, width ,height)
         this.setState({
             viewerWidth: width,
             viewerHeight: height,
+            selectedNum: selectedNum,
             selectionStyles: selectionStyles
         })
         this.viewer3D.setContainerSize(selectionStyles[0].width.replace("px",""), selectionStyles[0].height.replace("px",""))
@@ -65,14 +65,22 @@ class VTKViewer extends Component{
 
         //[0] represents style of 3d, [1] represents style of axial,
         //[2] represents style of coronal, [3] represents style of sagittal
-        if(!viewerWidth){
+        if(typeof(selectedNum) == "undefined"){
+            selectedNum = this.state.selectedNum
+        }
+        if(typeof(viewerWidth) == "undefined"){
             viewerWidth = this.state.viewerWidth
         }
-        if(!viewerHeight){
+        if(typeof(viewerHeight) == "undefined"){
             viewerHeight = this.state.viewerHeight
         }
         const selectionStyles = []
-        if(selectedNum === 0){
+        if(selectedNum === -1){
+            selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${viewerWidth}px`, height:`${viewerHeight}px`})
+            selectionStyles.push({position:"absolute", top:"0", left:"0", width:"0", height:"0"})
+            selectionStyles.push({position:"absolute", top:"0", left:"0", width:"0", height:"0"})
+            selectionStyles.push({position:"absolute", top:"0", left:"0", width:"0", height:"0"})
+        }else if(selectedNum === 0){
             selectionStyles.push({position:"absolute", top:"0", left:`${viewerWidth/2}px`, width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
             selectionStyles.push({position:"absolute", top:"0", left:"0", width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
             selectionStyles.push({position:"absolute", top:`${viewerHeight/2}px`, left:"0", width:`${viewerWidth/2}px`, height:`${viewerHeight/2}px`})
@@ -101,28 +109,76 @@ class VTKViewer extends Component{
         return selectionStyles
     }
 
-    click3DViewer(offsetX, offsetY){
-        const picked = this.viewer3D.getPicked(offsetX, offsetY)
-        return picked
+    resetView(type){
+        if(type === 0){
+            this.viewer3D.resetView()
+        }else if(type === 1){
+            this.viewerAxial.resetView()
+        }else if(type === 2){
+            this.viewerCoronal.resetView()
+        }else if(type === 3){
+            this.viewerSagittal.resetView()
+        }
     }
-
-    magnifyView(){
-        this.viewer3D.magnifyView()
+    magnifyView(type, num){
+        if(!num){
+            num = 0
+        }
+        // for type parameter, 0 represents 3d, 1 represents axial, 2 represents coronal, 3 represents sagittal
+        if(type === 0){
+            this.viewer3D.magnifyView()
+        }else if(type === 1){
+            for(let i = 0; i < num; i++){
+                this.viewerAxial.magnifyView()
+            }
+        }else if(type === 2){
+            for(let i = 0; i < num; i++){
+                this.viewerCoronal.magnifyView()
+            }
+        }else if(type === 3){
+            for(let i = 0; i < num; i++){
+                this.viewerSagittal.magnifyView()
+            }
+        }
         // this.camera.setParallelScale(this.camera.getParallelScale() / 0.9)
         // this.renderer.updateLightsGeometryToFollowCamera();
     }
-    reductView(){
-        this.viewer3D.reductView()
-    }
-    turnUp(){
-    }
-    turnDown(){
+    reductView(type, num){
+        if(type === 0){
+            this.viewer3D.reductView()
+        }else if(type === 1){
+            for(let i = 0; i < num; i++){
+                this.viewerAxial.reductView()
+            }
+        }else if(type === 2){
+            for(let i = 0; i < num; i++){
+                this.viewerCoronal.reductView()
+            }
+        }else if(type === 3){
+            for(let i = 0; i < num; i++){
+                this.viewerSagittal.reductView()
+            }
+        }
     }
     turnLeft(){
         this.viewer3D.turnLeft()
     }
     turnRight(){
         this.viewer3D.turnRight()
+    }
+    click3DViewer(x, y){
+        const picked = this.viewer3D.getPicked(x, y)
+        return picked
+    }
+    clickMPR(x, y){
+        const picked = this.viewerAxial.getPicked(x, y)
+        return picked
+    }
+    clearPointActor(){
+        this.viewer3D.clearPointActor()
+    }
+    changeMode(model){
+        this.viewer3D.changeMode(model)
     }
 
     render() {
@@ -147,21 +203,25 @@ class VTKViewer extends Component{
                              viewerStyle={selectionStyles[0]}
                              actors={actors}
                              pointActors={pointActors}
+                             type={0}
                              onRef={(ref) => {this.viewer3D = ref}}
                 />
                 <VTKMPRViewer id="viewer-axial"
                               viewerStyle={selectionStyles[1]}
                               volumes={axialVolumes}
+                              type={1}
                               onRef={(ref) => {this.viewerAxial = ref}}
                 />
                 <VTKMPRViewer id="viewer-coronal"
                               viewerStyle={selectionStyles[2]}
                               volumes={coronalVolumes}
+                              type={2}
                               onRef={(ref) => {this.viewerCoronal = ref}}
                 />
                 <VTKMPRViewer id="viewer-sagittal"
                               viewerStyle={selectionStyles[3]}
                               volumes={sagittalVolumes}
+                              type={3}
                               onRef={(ref) => {this.viewerSagittal = ref}}
                 />
             </div>

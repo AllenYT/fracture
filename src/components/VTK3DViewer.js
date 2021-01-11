@@ -16,6 +16,7 @@ class VTK3DViewer extends Component{
         this.state = {
             viewerWidth:0,
             viewerHeight:0,
+            model: -1
         }
         this.container = React.createRef()
     }
@@ -28,30 +29,43 @@ class VTK3DViewer extends Component{
         this.glWindow = this.genericRenderWindow.getOpenGLRenderWindow()
         this.renderWindow = this.genericRenderWindow.getRenderWindow()
         this.renderer = this.genericRenderWindow.getRenderer()
-        this.renderer.setViewport(0,0,1,1)
+        // this.renderer.setBackground([0,0,0])
         this.renderer.setBackground([0.59,0.60,0.81])
-        // this.renderer.setBackground([1, 1, 1])
-
         this.interactor = this.renderWindow.getInteractor()
         this.camera = this.renderer.getActiveCamera()
         this.camera.elevation(-90)
-        //this.camera.elevation(-90)
 
-        this.light = vtkLight.newInstance();
-        this.light.setColor(0.5,0.5,1.0);//设置环境光为红色
-        this.renderer.addLight(this.light);//将灯光加入渲染器
-        this.light.setFocalPoint(this.camera.getFocalPoint())
-        this.light.setPosition(this.camera.getPosition())
-        this.light.setShadowAttenuation(1)
-        // this.light.setDiffuse(0.5)
-        // this.light.setSpecular(0.5)
-        console.log('light', this.light)
+        // this.light = vtkLight.newInstance();
+        // this.light.setColor(1.0,0.0,0.0);//设置环境光为红色
+        // this.renderer.addLight(this.light);//将灯光加入渲染器
+        // this.light.setFocalPoint(this.camera.getFocalPoint())
+        // this.light.setPosition(this.camera.getPosition())
+//         this.light = vtkLight.newInstance();
+// //         this.light.setColor(0.5,0.5,1.0);//设置环境光为红色
+//         this.light.setColor(1,1,1.0);
+//         this.renderer.addLight(this.light);//将灯光加入渲染器
+//         this.light.setFocalPoint(this.camera.getFocalPoint())
+//         this.light.setPosition(this.camera.getPosition())
+//         this.light.setShadowAttenuation(1)
+//         this.light.setIntensity(0.3)
+
+        this.picker = vtkPicker.newInstance()
+        this.interactor.onLeftButtonPress((callback) => {
+            console.log("inter:", callback)
+            if(this.picker){
+                this.picker.pick([callback.position.x, callback.position.y, callback.position.z], callback.pokedRenderer)
+                let picked = this.picker.getPickedPositions()
+                console.log("picked " + this.picker.getPickedPositions()[0])
+            }
+        })
+
+
         this.renderWindow.render()
     }
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (prevProps.actors !== this.props.actors){
             if (this.props.actors.length) {
-                this.props.actors.forEach(this.renderer.addActor);
+                this.props.actors.forEach(this.renderer.addActor)
             } else {
                 // TODO: Remove all volumes
             }
@@ -62,13 +76,13 @@ class VTK3DViewer extends Component{
         if (prevProps.pointActors !== this.props.pointActors){
             // console.log("this.pointActors",this.props.pointActors)
             if (this.props.pointActors.length){
-                prevProps.pointActors.forEach(this.renderer.removeActor);
-                this.props.pointActors.forEach(this.renderer.addActor);
+                prevProps.pointActors.forEach(this.renderer.removeActor)
+                this.props.pointActors.forEach(this.renderer.addActor)
                 console.log("this.actors",this.renderer.getActors())
             }else{
 
             }
-            this.renderWindow.render();
+            this.renderWindow.render()
         }
     }
 
@@ -84,15 +98,10 @@ class VTK3DViewer extends Component{
         }
     }
 
-    getPicked(offsetX, offsetY){
-        const x = offsetX
-        const y = offsetY
-        const movePicker = vtkPicker.newInstance()
-        movePicker.pick([x, y, 0], this.renderer)
-        const picked = movePicker.getPickedPositions()[0]
-        return picked
+    resetView(){
+        this.renderer.resetCamera()
+        this.renderWindow.render()
     }
-
     magnifyView(){
         this.camera.dolly(1.1)
         this.renderer.resetCameraClippingRange()
@@ -105,14 +114,6 @@ class VTK3DViewer extends Component{
         this.renderer.resetCameraClippingRange()
         this.renderWindow.render()
     }
-    turnUp(){
-        console.log("focal", this.camera.getFocalPoint())
-        console.log("position", this.camera.getPosition())
-        this.renderWindow.render()
-    }
-    turnDown(){
-        this.renderWindow.render()
-    }
     turnLeft(){
         this.camera.azimuth(90)
         this.renderWindow.render()
@@ -120,6 +121,30 @@ class VTK3DViewer extends Component{
     turnRight(){
         this.camera.azimuth(-90)
         this.renderWindow.render()
+    }
+    getPicked(x, y){
+        const movePicker = vtkPicker.newInstance()
+        movePicker.pick([x, y, 0], this.renderer)
+        const picked = movePicker.getPickedPositions()[0]
+        return picked
+    }
+    clearPointActor(){
+        this.props.pointActors.forEach(this.renderer.removeActor)
+    }
+    changeMode(model){
+        // for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
+        if(model === 0){
+            this.camera.setViewUp(0, -1, 0)
+        }else if(model === 1){
+            this.camera.setViewUp(0, 0, 1)
+        }else if(model === 2){
+            this.camera.setViewUp(1, 0, 0)
+        }
+        this.renderer.resetCamera()
+        this.renderWindow.render()
+        this.setState({
+            model: model
+        })
     }
 
     render() {

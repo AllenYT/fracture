@@ -1,7 +1,7 @@
 import React,{Component} from "react"
-import SegView3D from "./SegView3D";
 import PropTypes from "prop-types";
 import vtkGenericRenderWindow from "vtk.js/Sources/Rendering/Misc/GenericRenderWindow";
+import vtkPicker from "vtk.js/Sources/Rendering/Core/Picker";
 
 class VTKMPRViewer extends Component{
     static propTypes = {
@@ -31,14 +31,23 @@ class VTKMPRViewer extends Component{
         this.interactor = this.renderWindow.getInteractor()
         this.camera = this.renderer.getActiveCamera()
         this.camera.azimuth(180)
+        if(this.props.type === 1){
+            //axial
+            this.camera.setViewUp(0, -1, 0)
+        }
+        if(this.props.type === 3){
+            //sagittal
+            this.camera.setViewUp(1, 0, 0)
+        }
         //this.camera.azimuth(180)
         this.renderWindow.render()
     }
     componentDidUpdate(prevProps, prevState, snapshot) {
         if (prevProps.volumes !== this.props.volumes){
             if (this.props.volumes.length) {
-                console.log("update volumes")
-                this.props.volumes.forEach(this.renderer.addVolume);
+                prevProps.volumes.forEach(this.renderer.removeVolume)
+                this.props.volumes.forEach(this.renderer.addVolume)
+                // console.log("update volumes", this.renderer.getVolumes())
             } else {
                 // TODO: Remove all volumes
             }
@@ -59,6 +68,28 @@ class VTKMPRViewer extends Component{
         }
     }
 
+    resetView(){
+        this.renderer.resetCamera()
+        this.renderWindow.render()
+    }
+    getPicked(x, y){
+        const movePicker = vtkPicker.newInstance()
+        movePicker.pick([x, y, 0], this.renderer)
+        const picked = movePicker.getPickedPositions()[0]
+        return picked
+    }
+    magnifyView(){
+        this.camera.dolly(1.1)
+        this.renderer.resetCameraClippingRange()
+        this.renderWindow.render()
+        // this.camera.setParallelScale(this.camera.getParallelScale() / 0.9)
+        // this.renderer.updateLightsGeometryToFollowCamera();
+    }
+    reductView(){
+        this.camera.dolly(0.9)
+        this.renderer.resetCameraClippingRange()
+        this.renderWindow.render()
+    }
     render() {
         const {
             viewerWidth,
