@@ -51,13 +51,9 @@ class LoginPanel extends Component {
         const auth={
             username: this.state.username
         }
-        Promise.all([
-            axios.post(userConfig.validUser, qs.stringify(user)),
-            axios.post(userConfig.getAuthsForUser, qs.stringify(auth))
-        ])
         
-        .then(([loginResponse,authResponse]) => {
-            console.log(authResponse.data)
+        axios.post(userConfig.validUser, qs.stringify(user))
+        .then((loginResponse) => {
             if (loginResponse.data.status === 'failed') {
                 this.setState({messageVisible: true})
             } else {
@@ -69,7 +65,6 @@ class LoginPanel extends Component {
                 localStorage.setItem('totalPatients', loginResponse.data.totalPatients)
                 localStorage.setItem('totalRecords', loginResponse.data.totalRecords)
                 localStorage.setItem('modelProgress', loginResponse.data.modelProgress)
-                localStorage.setItem('auths',JSON.stringify(authResponse.data))
                 if(sessionStorage.getItem('location')!=undefined){
                     window.location.href=sessionStorage.getItem('location')
                     // this.props.history.push(sessionStorage.getItem('location')+'deepln')

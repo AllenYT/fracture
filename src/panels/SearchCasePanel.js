@@ -318,7 +318,6 @@ export class SearchPanel extends Component {
         //     )
         // }
         return (
-            localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("data_search")>-1?
             <div>
 
             <Grid className="banner">
@@ -453,8 +452,6 @@ export class SearchPanel extends Component {
                 </Grid.Row>
             </Grid>
             </div>
-            :
-            <LowerAuth></LowerAuth>
         )
     }
 }
