@@ -106,9 +106,11 @@ class MyQueuePanel extends Component {
     }
 
     componentDidMount() {
-        //请求第一页队列
-        this.loadQueueList()
-        document.getElementById('queue-popup').style.display = 'none'
+        
+            //请求第一页队列
+            this.loadQueueList()
+            document.getElementById('queue-popup').style.display = 'none'
+        
     }
 
     componentDidUpdate(prevProps, prevState) {
@@ -659,6 +661,7 @@ class MyQueuePanel extends Component {
 }
 
     render() {
+        
             const {leftpidList,rightpidList,queueList,open,patientList} = this.state
             return (
                 <div>
@@ -1064,7 +1067,7 @@ class MyQueuePanel extends Component {
                 
                 </div>
             )
-       
+        
     }
 }
 

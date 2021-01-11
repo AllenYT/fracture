@@ -1,13 +1,16 @@
 import React, { Component, useState } from 'react'
-import { Form, Radio ,Grid, Image, Button, Icon, Header} from 'semantic-ui-react'
+import { Form, Radio ,Grid, Image, Button, Icon, Header, Card, Progress} from 'semantic-ui-react'
+// import { Progress } from 'antd'
 import G2 from '@antv/g2'
 import {DataSet} from '@antv/data-set'
 import '../css/DataCockpit.css'
 import axios from 'axios'
+import {withRouter} from 'react-router-dom'
 import { loadOptions } from '@babel/core'
 
 const config = require('../config.json')
 const noduleConfig = config.nodule
+const userConfig = config.user
 const _DataSet = DataSet,
     DataView = _DataSet.DataView;
 const _G = G2,
@@ -314,11 +317,8 @@ const vacuole = [
   {type:'非空泡', value:15}
 ]
 
-//支气管 air-bronchogram
-const airbronchogram = [
-  {type:'支气管充气', value:10},
-  {type:'非支气管充气', value:15}
-]
+
+const sexData={"female":6,"male":1}
 
 
 class DataCockpit extends Component {
@@ -326,6 +326,12 @@ class DataCockpit extends Component {
     constructor(props) {
         super(props)
         this.state = {
+          totalPatients: localStorage.getItem('totalPatients')===null?0:localStorage.getItem('totalPatients'),
+          totalRecords: localStorage.getItem('totalRecords')===null?0:localStorage.getItem('totalRecords'),
+          modelProgress: localStorage.getItem('modelProgress')===null?0:localStorage.getItem('modelProgress'),
+          sexlist:localStorage.getItem('sexData')===null?JSON.stringify(sexData):localStorage.getItem('sexData'),
+          BCRecords:localStorage.getItem('BCRecords')===null?0:localStorage.getItem('BCRecords'),
+          HCRecords:localStorage.getItem('HCRecords')===null?0:localStorage.getItem('HCRecords'),
           totalMalDist:localStorage.getItem('totalMalDist')===null?JSON.stringify(benmaliData):localStorage.getItem('totalMalDist'),
           totalDiameterDist:localStorage.getItem('totalDiameterDist')===null?JSON.stringify(diaTotalData):localStorage.getItem('totalDiameterDist'),
           characterDiameterDist:localStorage.getItem('characterDiameterDist')===null?JSON.stringify(diaDistributionData):localStorage.getItem('characterDiameterDist'),
@@ -341,14 +347,15 @@ class DataCockpit extends Component {
           pleuralDist:localStorage.getItem('pleuralDist')===null?JSON.stringify(pleuralData):localStorage.getItem('pleuralDist'),
           cavityDist:localStorage.getItem('cavityDist')===null?JSON.stringify(cavity):localStorage.getItem('cavityDist'),
           vcsDist:localStorage.getItem('vcsDist')===null?JSON.stringify(vcs):localStorage.getItem('vcsDist'),
-          vacuoleDist:localStorage.getItem('vacuoleDist')===null?JSON.stringify(vacuole):localStorage.getItem('vacuoleDist'),
-          airbronchogramDist:localStorage.getItem('airbronchogramDist')===null?JSON.stringify(airbronchogram):localStorage.getItem('airbronchogramDist')
+          vacuoleDist:localStorage.getItem('vacuoleDist')===null?JSON.stringify(vacuole):localStorage.getItem('vacuoleDist')
         }
         this.visualize = this.visualize.bind(this)
         this.typeChange = this.typeChange.bind(this)
     }
     componentWillMount() {
       Promise.all([
+          axios.get(userConfig.get_statistics),
+          axios.get(userConfig.get_sexData),
           axios.get(noduleConfig.totalMalDist),
           axios.get(noduleConfig.totalDiameterDist),
           axios.get(noduleConfig.characterDiameterDist),
@@ -368,7 +375,14 @@ class DataCockpit extends Component {
           axios.get(noduleConfig.broMalDist)
           
       ])
-      .then(([restm,restd,rescd,resns,resnc,resta,resld,resntd,ressm,rescm,reslm,resttm,respin,rescav,resvss,resbea,resbro]) => {
+      .then(([ressta, ressex, restm, restd, rescd, resns, resnc, resta, resld, resntd, ressm, rescm, reslm, resttm, respin, rescav, resvss, resbea, resbro]) => {
+        const tp = ressta.data.totalPatients
+        const tr = ressta.data.totalRecords
+        const mp = ressta.data.modelProgress
+        const sd = ressex.data
+        const sdj = JSON.stringify(sd) //JSON格式
+
+
         const total_mal = JSON.stringify(restm.data['data'])
         const total_dia = JSON.stringify(restd.data['data'])
         const total_character = JSON.stringify(rescd.data['data'])
@@ -389,7 +403,13 @@ class DataCockpit extends Component {
         const vssMal = JSON.stringify(resvss.data['data'])
         const beaMal = JSON.stringify(resbea.data['data'])
         const broMal = JSON.stringify(resbro.data['data'])
-        console.log('beaMal',beaMal)
+        console.log('total_character', total_character)
+
+        localStorage.setItem('totalPatients', tp)
+        localStorage.setItem('totalRecords', tr)
+        localStorage.setItem('modelProgress', mp)
+        localStorage.setItem('sexData',sdj)
+
         localStorage.setItem('totalMalDist',total_mal)
         localStorage.setItem('totalDiameterDist',total_dia)
         localStorage.setItem('characterDiameterDist',total_character)
@@ -409,11 +429,10 @@ class DataCockpit extends Component {
         localStorage.setItem('cavityDist',cavMal)
         localStorage.setItem('vcsDist',vssMal)
         localStorage.setItem('vacuoleDist',beaMal)
-        localStorage.setItem('airbronchogramDist',broMal)
-        this.setState({totalMalDist:total_mal,totalDiameterDist:total_dia,characterDiameterDist:total_character,
-          nonSpiculationDiameterDist:nonSpiDia,nonCalcificationDiameterDist:nonCalDia,totalAgeDist:total_age,nonLobulationDiameterDist:nonLubDia,
-          nonTextureDiameterDist:nonGGODia,spiculationMalDist:spiMali,calcificationMalDist:calMali,lobulationMalDist:lubeMali,textureMalDist:textMal,
-        pleuralDist:pinMal,cavityDist:cavMal,vcsDist:vssMal,vacuoleDist:beaMal,airbronchogramDist:broMal})
+        this.setState({totalPatients: tp, totalRecords: tr, modelProgress: mp, sexlist:sdj, totalMalDist:total_mal,totalDiameterDist:total_dia,
+          characterDiameterDist:total_character, nonSpiculationDiameterDist:nonSpiDia,nonCalcificationDiameterDist:nonCalDia,totalAgeDist:total_age,
+          nonLobulationDiameterDist:nonLubDia, nonTextureDiameterDist:nonGGODia,spiculationMalDist:spiMali,calcificationMalDist:calMali,lobulationMalDist:lubeMali,
+          textureMalDist:textMal, pleuralDist:pinMal,cavityDist:cavMal,vcsDist:vssMal,vacuoleDist:beaMal})
       })
       .catch((error) => {
         console.log("ERRRRROR", error);
@@ -456,10 +475,9 @@ class DataCockpit extends Component {
           const ageTotalData1 = JSON.parse(ageD)
           const ageTotalchart = new G2.Chart({
               container: 'ageTotal',
-              forceFit: false,
-              height: 240,
-              width:400,
-              // width:100,
+              forceFit: true,
+              height: 280,
+              // width:400,
               padding: [30,'auto','auto','auto']
             });
             ageTotalchart.source(ageTotalData1);
@@ -499,10 +517,13 @@ class DataCockpit extends Component {
           });
           var diaTotal2chart = new G2.Chart({
             container: 'ageTotal2',
-            forceFit: false,
-            height: 220,
-            width:520,
-            padding: [35,20,35,20],
+            forceFit: true,
+            height:280,
+            // autoFit: true,
+            // height: 250,
+            // height: 270,
+            // width: 320,
+            padding: 'auto',
             animate:true
           });
           diaTotal2chart.source(dv2, {
@@ -513,20 +534,24 @@ class DataCockpit extends Component {
               }
             }
           });
-          diaTotal2chart.coord('theta');
+          diaTotal2chart.coord('theta', {
+            radius: 0.75,
+            innerRadius: 0.6,
+          });
+          // diaTotal2chart.coord('theta');
           diaTotal2chart.tooltip({
             showTitle: false,
             itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>'
           });
           // ['#188B8E','#002687', '#BB7329','#3C1E74', '#061846']/['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3']
           // diaTotal2chart.legend(false)
-          diaTotal2chart.intervalStack().position('value').color('type', ['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3']).opacity(1).label('value', function(val) {
+          diaTotal2chart.intervalStack().position('value').color('type', ['#00E2F7','#50b0ec','#8b8ae4','#9d5ee3','#FD9F21']).opacity(1).label('value', function(val) {
             return {
               formatter: (text, item) => {
                 const point = item.point; // 每个弧度对应的点
                 let percent = point['percent'];
                 percent = (percent * 100).toFixed(2) + '%';
-                const showTitle = point.value == 0 ?  null:point.type+'：'+percent 
+                const showTitle = point.value == 0 ?  null:point.type+' : '+percent
                 return showTitle
               },
               textStyle: {
@@ -553,10 +578,9 @@ class DataCockpit extends Component {
           const diaTotalData1 = JSON.parse(DiaD)
           const diaTotalchart = new G2.Chart({
             container: 'diaTotal',
-            forceFit: false,
-            height: 240,
-            width:400,
-            // width:100,
+            forceFit: true,
+            height: 280,
+            // width:400,
             padding: [30,'auto','auto','auto']
           });
           diaTotalchart.source(diaTotalData1);
@@ -596,10 +620,10 @@ class DataCockpit extends Component {
           });
           var diaTotal2chart = new G2.Chart({
             container: 'diaTotal2',
-            forceFit: false,
-            height: 220,
-            width:520,
-            padding: [35,20,35,20],
+            forceFit:true,
+            height: 280,
+            // width:400,
+            padding: 'auto',
             animate:true
           });
           diaTotal2chart.source(dv6, {
@@ -610,7 +634,10 @@ class DataCockpit extends Component {
               }
             }
           });
-          diaTotal2chart.coord('theta');
+          diaTotal2chart.coord('theta', {
+            radius: 0.75,
+            innerRadius: 0.6,
+          });
           diaTotal2chart.tooltip({
             showTitle: false
           });
@@ -621,7 +648,7 @@ class DataCockpit extends Component {
                 const point = item.point; // 每个弧度对应的点
                 let percent = point['percent'];
                 percent = (percent * 100).toFixed(2) + '%';
-                return point.type+':'+percent;
+                return point.type+' : '+percent;
               },
               textStyle: {
                 fill: '#fff'
@@ -631,9 +658,119 @@ class DataCockpit extends Component {
           diaTotal2chart.render();
         }
         
+        //模型进度
+        document.getElementById('modelProgress').innerHTML=''
+        const pregressValue = parseInt(this.state.modelProgress) > 100?100:parseInt(this.state.modelProgress)
+        const pregressData = [
+          {
+            item: '模型进度',
+            value: pregressValue
+          }
+        ];
+        const ProgressChart = new G2.Chart({
+          container: 'modelProgress',
+          forceFit: true,
+          height: 260,
+          padding: [0, 45, 20, 45]
+        });
+        ProgressChart.source(pregressData, {
+          value: {
+            min: 0,
+            max: 100
+          }
+        });
+        ProgressChart.legend(false);
+        ProgressChart.axis(false);
+        ProgressChart.interval()
+          .position('item*value')
+          .color('item','#50b0ec')
+          .shape('liquid-fill-gauge')
+          .style({
+            lineWidth: 10,
+            opacity: 0.5
+          });
+        
+        pregressData.forEach(row => {
+          ProgressChart.guide().text({
+              top: true,
+              position: {
+                item: row.item,
+                value: 50
+              },
+              content: `${row.value}%`,
+              style: {
+                fill:'#fff',
+                opacity: 0.75,
+                fontSize: 30,
+                textAlign: 'center'
+              }
+            });
+        });
+        ProgressChart.render();
 
-        //良恶性分布情况
-        document.getElementById('benmali').innerHTML=''
+        //薄厚层分布情况
+        document.getElementById('thicknessDist').innerHTML = ''
+        const thicknessDist = [
+          {"type":"BC","value":parseInt(this.state.BCRecords)},
+          {"type":"HC","value":parseInt(this.state.HCRecords)}
+        ]
+        console.log('thick',thicknessDist)
+        if(!this.isEmpty(thicknessDist)){
+          const thickDV = new DataView()
+          thickDV.source(thicknessDist).transform({
+            type: 'percent',
+            field: 'value',
+            dimension: 'type',
+            as: 'percent'
+          });
+          var thicknessChart = new G2.Chart({
+            container: 'thicknessDist',
+            forceFit: true,
+            height: 260,
+            padding: [0, 50, 20, 50],
+            animate:true
+          });
+          thicknessChart.source(thickDV,{
+            percent: {
+              formatter: function formatter(val) {
+                val = (val * 100).toFixed(1) + '%';
+                return val;
+            }
+        }
+      });
+
+      thicknessChart.coord('theta', {
+        radius: 0.75,
+        innerRadius: 0.6
+      });
+
+          thicknessChart.tooltip({
+            showTitle: false,
+            itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+          });
+          thicknessChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FFD26F 1:#F79059']).label('percent', {
+            offset: 40,
+            autoRotate: false,
+            textStyle: {
+              textAlign: 'center',
+              shadowBlur: 2,
+              shadowColor: 'rgba(0, 0, 0, .45)',
+              fill:'#fff'
+            },
+            formatter: function formatter(val, item) {
+              return item.point.type +' : ' + val;
+          }
+          }).tooltip('type*value', function(item, value) {
+            // percent = (percent * 100).toFixed(1) + '%';
+            return {
+              name: item,
+              value: value
+            };
+          });
+          thicknessChart.render();
+        }
+        //危险程度分布情况
+        document.getElementById('benmali').innerHTML = ''
         const benmaliD = this.state.totalMalDist
         // if(benmaliD !==undefined){
           console.log("benmaliD",benmaliD)
@@ -650,7 +787,7 @@ class DataCockpit extends Component {
           var benmaliChart = new G2.Chart({
             container: 'benmali',
             forceFit: true,
-              height: 240,
+              height: 260,
               padding: [0, 50, 20, 50],
               animate:true
           });
@@ -663,14 +800,16 @@ class DataCockpit extends Component {
         }
       });
           benmaliChart.coord('theta', {
-            radius: 0.75
+            radius: 0.75,
+            innerRadius: 0.6
           });
           benmaliChart.tooltip({
             showTitle: false,
             itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
           });
-          benmaliChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
-            offset: -40,
+          // {"colors10":["#FF6B3B","#626681","#FFC100","#9FB40F","#76523B","#DAD5B5","#0E8E89","#E19348","#F383A2","#247FEA"],"colors20":["#FF6B3B","#626681","#FFC100","#9FB40F","#76523B","#DAD5B5","#0E8E89","#E19348","#F383A2","#247FEA","#2BCB95","#B1ABF4","#1D42C2","#1D9ED1","#D64BC0","#255634","#8C8C47","#8CDAE5","#8E283B","#791DC9"]}
+          benmaliChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FF6B3B 1:#FFC100']).label('percent', {
+            offset: 40,
             autoRotate: false,
             textStyle: {
               textAlign: 'center',
@@ -679,7 +818,7 @@ class DataCockpit extends Component {
               fill:'#fff'
             },
             formatter: function formatter(val, item) {
-              return item.point.type +':\n' + val;
+              return item.point.type +' : ' + val;
           }
           }).tooltip('type*value', function(item, value) {
             // percent = (percent * 100).toFixed(1) + '%';
@@ -691,6 +830,77 @@ class DataCockpit extends Component {
           benmaliChart.render();
         }
         
+
+    //性别分布情况
+    document.getElementById('sexDist').innerHTML = ''
+    const sexlist = this.state.sexlist
+    const listj = JSON.parse(sexlist)
+    const sexData=[{
+        //患者性别数据
+        item: '男性',
+        count: listj.male,
+    }, {
+        item: '女性',
+        count: listj.female,
+    }];
+    if(!this.isEmpty(sexData)){
+      const sexDV = new DataView()
+      sexDV.source(sexData).transform({
+        type: 'percent',
+        field: 'count',
+        dimension: 'item',
+        as: 'percent'
+      });
+      var sexChart = new G2.Chart({
+        container: 'sexDist',
+        forceFit: true,
+        height: 260,
+        padding: [0, 50, 20, 50],
+        animate:true
+      });
+      sexChart.source(sexDV,{
+        percent: {
+          formatter: function formatter(val) {
+            val = (val * 100).toFixed(1) + '%';
+            return val;
+        }
+      }
+    });
+
+      sexChart.coord('theta', {
+        radius: 0.75,
+        innerRadius: 0.6
+      });
+
+      sexChart.legend(false);
+      sexChart.tooltip({
+          showTitle: false,
+          itemTpl: '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>'
+      });
+      sexChart.intervalStack().position('percent').color('item',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+          offset: 25,
+          autoRotate: true,
+          textStyle: {
+          // textAlign: 'center',
+          shadowBlur: 2,
+          shadowColor: 'rgba(0, 0, 0, .45)',
+          fill:'#fff'
+          },
+          formatter: function formatter(val, item) {
+              return item.point.item +' : ' + val;
+          }
+      }).tooltip('item*percent', function(item, percent) {
+          percent = (percent * 100).toFixed(1)+ '%';
+          return {
+          name: item,
+          value: percent
+          };
+      }).style({
+          lineWidth: 0,
+          stroke: '#fff'
+      });
+      sexChart.render();
+    }
 
     //形态学分叶直径分布
     document.getElementById('diaSublobe').innerHTML=''
@@ -1079,281 +1289,105 @@ class DataCockpit extends Component {
       });
     diaGGOPie.render();
 
+  //形态学混合GGO直径分布
+    document.getElementById('diaMixGGO').innerHTML=''
+    const mixGGOchart = new G2.Chart({
+      container: 'diaMixGGO',
+      forceFit: true,
+      height: 250,
+      // width:100,
+      padding: [30,30,'auto',30]
+    });
+    const mixggodv1 = new DataView();
+    mixggodv1.source(diaDistributionData1).transform({
+        type: 'filter',
+        callback(row) { // 判断某一行是否保留，默认返回true
+          return row.type == '半实性';
+        }
+    });
+    mixGGOchart.source(mixggodv1);
+    mixGGOchart.scale('value', {
+      alias: '结节数'
+    });
+    mixGGOchart.axis('diameter', {
+      label: {
+        textStyle: {
+          fill: '#aaaaaa'
+        }
+      },
+      tickLine: {
+        alignWithLabel: false,
+        length: 0
+      }
+    });
+    mixGGOchart.tooltip({
+      share: true
+    });
+    mixGGOchart.interval().position('diameter*value').opacity(1).label('value',{
+      textStyle:{
+        fontSize:14,
+        fill:'#aaa'
+      }
+    }).color(['#00B4D8']).size(30);
+    mixGGOchart.render();
+
+    //形态学混合GGO直径分布饼图
+    document.getElementById('diaMixGGOPie').innerHTML=''
+    const mixggodv2 = new DataView();
+    mixggodv2.source(mixggodv1).transform({
+    type: 'percent',
+    field: 'value',
+    dimension: 'diameter',
+    as: 'percent'
+    });
+    const mixGGOPie = new G2.Chart({
+    container: 'diaMixGGOPie',
+    forceFit: false,
+    height: 250,
+    width:400,
+    padding:[45,30,45,30],
+    animate: false
+    });
+    mixGGOPie.source(mixggodv2, {
+    percent: {
+      formatter: val => {
+        val = (val * 100).toFixed(2) + '%';
+        return val;
+      }
     }
-    
-    
+    });
+    mixGGOPie.coord('theta', {
+    radius:1,
+    innerRadius: 0.7
+    });
+    mixGGOPie.tooltip({
+    showTitle: false,
+    itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
+    });
+    mixGGOPie.intervalStack()
+    .position('value')
+    .color('diameter',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
+    .label('percent', {
+      formatter: (val, item) => {
+        const showTitle = item.point.value == 0 ?  null:item.point.diameter + ': ' + val 
+        return showTitle
+      },
+      textStyle: {
+        fill: '#fff'
+      }
+    })
+    .tooltip('diameter*percent', (item, percent) => {
+      percent = (percent * 100).toFixed(2) + '%';
+      return {
+        name: item,
+        value: percent
+      };
+    });
+    mixGGOPie.render();
 
-    
-    //形态学非分叶直径分布
-//     document.getElementById('diaNonSublobe').innerHTML=''
-//     const nonLubD = this.state.nonLobulationDiameterDist
-//     const diaNonSublobeData1 = JSON.parse(nonLubD)
-//     const diaNonSublobechart = new G2.Chart({
-//       container: 'diaNonSublobe',
-//       forceFit: true,
-//       height: 250,
-//       // width:100,
-//       padding: [30,30,'auto',30]
-//     });
-//     diaNonSublobechart.source(diaNonSublobeData1);
-//     diaNonSublobechart.scale('value', {
-//       alias: '结节数'
-//     });
-//     diaNonSublobechart.axis('type', {
-//       label: {
-//         textStyle: {
-//           fill: '#aaaaaa'
-//         }
-//       },
-//       tickLine: {
-//         alignWithLabel: false,
-//         length: 0
-//       }
-//     });
-//     diaNonSublobechart.tooltip({
-//       share: true
-//     });
-//     diaNonSublobechart.interval().position('type*value').opacity(1).label('value',{
-//       textStyle:{
-//         fontSize:14,
-//         fill:'#aaa'
-//       }
-//     }).color(['#00B4D8']).size(30);
-//     diaNonSublobechart.render();
 
-// //形态学非分叶直径分布饼图
-// document.getElementById('diaNonSublobePie').innerHTML=''
-// const dv19 = new DataView();
-//   dv19.source(diaNonSublobeData1).transform({
-//       type: 'percent',
-//       field: 'value',
-//       dimension: 'type',
-//       as: 'percent'
-//     });
-//     const diaNonSublobePie = new G2.Chart({
-//       container: 'diaNonSublobePie',
-//       forceFit: false,
-//       height: 250,
-//       width: 400,
-//       padding:[45,30,45,30],
-//       animate: false
-//     });
-//     diaNonSublobePie.source(dv19, {
-//       percent: {
-//         formatter: val => {
-//           val = (val * 100).toFixed(2) + '%';
-//           return val;
-//         }
-//       }
-//     });
-//     diaNonSublobePie.coord('theta', {
-//       radius:1,
-//       innerRadius: 0.7
-//     });
-//     diaNonSublobePie.tooltip({
-//       showTitle: false,
-//       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
-//     });
-//     diaNonSublobePie.intervalStack()
-//       .position('value')
-//       .color('type',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
-//       .label('percent', {
-//         formatter: (val, item) => {
-//           const showTitle = item.point.value == 0 ?   null:item.point.type + ': ' + val 
-//           return showTitle
-//         },
-//         textStyle: {
-//           fill: '#fff'
-//         }
-//       })
-//       .tooltip('type*value', (item, value) => {
-//         return {
-//           name: item,
-//           value: value
-//         };
-//       });
-//     diaNonSublobePie.render();
-
-//   //形态学非毛刺直径分布
-//   document.getElementById('diaNonGlitch').innerHTML=''
-//   const nonSpiD = this.state.nonSpiculationDiameterDist
-//   const diaNonGlitchData1 = JSON.parse(nonSpiD)
-//   const diaNonGlitchchart = new G2.Chart({
-//     container: 'diaNonGlitch',
-//     forceFit: true,
-//     height: 250,
-//     // width:100,
-//     padding: [30,30,'auto',30]
-//   });
-//   diaNonGlitchchart.source(diaNonGlitchData1);
-//   diaNonGlitchchart.scale('value', {
-//     alias: '结节数'
-//   });
-//   diaNonGlitchchart.axis('type', {
-//     label: {
-//       textStyle: {
-//         fill: '#aaaaaa'
-//       }
-//     },
-//     tickLine: {
-//       alignWithLabel: false,
-//       length: 0
-//     }
-//   });
-//   diaNonGlitchchart.tooltip({
-//     share: true
-//   });
-//   diaNonGlitchchart.interval().position('type*value').opacity(1).label('value',{
-//     textStyle:{
-//       fontSize:14,
-//       fill:'#aaa'
-//     }
-//   }).color(['#00B4D8']).size(30);
-//   diaNonGlitchchart.render();
-
-// //形态学非毛刺直径分布饼图
-// document.getElementById('diaNonGlitchPie').innerHTML=''
-// const dv18 = new DataView();
-//   dv18.source(diaNonGlitchData1).transform({
-//       type: 'percent',
-//       field: 'value',
-//       dimension: 'type',
-//       as: 'percent'
-//     });
-//     const diaNonGlitchPie = new G2.Chart({
-//       container: 'diaNonGlitchPie',
-//       forceFit: false,
-//       height: 250,
-//       width:400,
-//       padding:[45,30,45,30],
-//       animate: false
-//     });
-//     diaNonGlitchPie.source(dv18, {
-//       percent: {
-//         formatter: val => {
-//           val = (val * 100).toFixed(2) + '%';
-//           return val;
-//         }
-//       }
-//     });
-//     diaNonGlitchPie.coord('theta', {
-//       radius:1,
-//       innerRadius: 0.7
-//     });
-//     diaNonGlitchPie.tooltip({
-//       showTitle: false,
-//       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
-//     });
-//     diaNonGlitchPie.intervalStack()
-//       .position('value')
-//       .color('type',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
-//       .label('percent',{
-//           formatter: (val, item) => {
-//             const showTitle = item.point.value == 0 ?  null:item.point.type + ': ' + val 
-//             return showTitle
-//         },
-//         textStyle: {
-//           fill: '#fff'
-//         }
-        
-//       })
-//       .tooltip('type*value', (item, value) => {
-//         return {
-//           name: item,
-//           value: value
-//         };
-//       });
-//     diaNonGlitchPie.render();
-
-//   //形态学非钙化直径分布
-//   document.getElementById('diaNonCalcify').innerHTML=''
-//   const nonCalD = this.state.nonCalcificationDiameterDist
-//   const diaNonCalcifyData1 = JSON.parse(nonCalD)
-//   const diaNonCalcifychart = new G2.Chart({
-//     container: 'diaNonCalcify',
-//     forceFit: true,
-//     height: 250,
-//     // width:100,
-//     padding: [30,30,'auto',30]
-//   });
-//   diaNonCalcifychart.source(diaNonCalcifyData1);
-//   diaNonCalcifychart.scale('value', {
-//     alias: '结节数'
-//   });
-//   diaNonCalcifychart.axis('type', {
-//     label: {
-//       textStyle: {
-//         fill: '#aaaaaa'
-//       }
-//     },
-//     tickLine: {
-//       alignWithLabel: false,
-//       length: 0
-//     }
-//   });
-//   diaNonCalcifychart.tooltip({
-//     share: true
-//   });
-//   diaNonCalcifychart.interval().position('type*value').opacity(1).label('value',{
-//     textStyle:{
-//       fontSize:14,
-//       fill:'#aaa'
-//     }
-//   }).color(['#00B4D8']).size(30);
-//   diaNonCalcifychart.render();
-
-// //形态学非钙化直径分布饼图
-// document.getElementById('diaNonCalcifyPie').innerHTML=''
-// const dv17 = new DataView();
-//   dv17.source(diaNonCalcifyData1).transform({
-//       type: 'percent',
-//       field: 'value',
-//       dimension: 'type',
-//       as: 'percent'
-//     });
-//     const diaNonCalcifyPie = new G2.Chart({
-//       container: 'diaNonCalcifyPie',
-//       forceFit: false,
-//       height: 250,
-//       width:400,
-//       padding:[45,30,45,30],
-//       animate: false
-//     });
-//     diaNonCalcifyPie.source(dv17, {
-//       percent: {
-//         formatter: val => {
-//           val = (val * 100).toFixed(2) + '%';
-//           return val;
-//         }
-//       }
-//     });
-//     diaNonCalcifyPie.coord('theta', {
-//       radius:1,
-//       innerRadius: 0.7
-//     });
-//     diaNonCalcifyPie.tooltip({
-//       showTitle: false,
-//       itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
-//     });
-//     diaNonCalcifyPie.intervalStack()
-//       .position('value')
-//       .color('type',['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3'])
-//       .label('percent', {
-//         formatter: (val, item) => {
-//           return item.point.type + ': ' + val;
-//         },
-//         textStyle: {
-//           fill: '#fff'
-//         }
-//       })
-//       .tooltip('type*value', (item, value) => {
-//         return {
-//           name: item,
-//           value: value
-//         };
-//       });
-//     diaNonCalcifyPie.render();
-
+    }
+   
 
   //形态学实性直径分布
   document.getElementById('diaNonGGO').innerHTML=''
@@ -1469,7 +1503,7 @@ class DataCockpit extends Component {
         container: 'maliGlitch',
         forceFit: true,
         height: 200,
-        padding: 0,
+        padding: 'auto',
         animate:true
     });
     maliGlitchChart.coord('theta', {
@@ -1489,7 +1523,7 @@ class DataCockpit extends Component {
         showTitle: false,
         itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
-    maliGlitchChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+    maliGlitchChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FFD26F 1:#F79059']).label('percent', {
         offset: -20,
         autoRotate: false,
         textStyle: {
@@ -1550,7 +1584,7 @@ class DataCockpit extends Component {
         showTitle: false,
         itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
-    maliSublobeChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+    maliSublobeChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FFD26F 1:#F79059']).label('percent', {
         offset: -20,
         autoRotate: false,
         textStyle: {
@@ -1612,7 +1646,7 @@ class DataCockpit extends Component {
         itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
     //['#4682B4','#20B2AA']
-    maliCalcifyChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+    maliCalcifyChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FFD26F 1:#F79059']).label('percent', {
         offset: -20,
         autoRotate: false,
         textStyle: {
@@ -1673,7 +1707,7 @@ class DataCockpit extends Component {
         showTitle: false,
         itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
-    maliGGOChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+    maliGGOChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FFD26F 1:#F79059']).label('percent', {
         offset: -20,
         autoRotate: false,
         textStyle: {
@@ -1733,7 +1767,7 @@ class DataCockpit extends Component {
         showTitle: false,
         itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
-    pinMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+    pinMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FFD26F 1:#F79059']).label('percent', {
         offset: -20,
         autoRotate: false,
         textStyle: {
@@ -1793,7 +1827,7 @@ class DataCockpit extends Component {
         showTitle: false,
         itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
-    cavMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+    cavMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FFD26F 1:#F79059']).label('percent', {
         offset: -20,
         autoRotate: false,
         textStyle: {
@@ -1853,7 +1887,7 @@ class DataCockpit extends Component {
         showTitle: false,
         itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
-    vssMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+    vssMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FFD26F 1:#F79059']).label('percent', {
         offset: -20,
         autoRotate: false,
         textStyle: {
@@ -1911,7 +1945,7 @@ class DataCockpit extends Component {
         showTitle: false,
         itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
     });
-    beaMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
+    beaMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9','l(100) 0:#FFD26F 1:#F79059']).label('percent', {
         offset: -20,
         autoRotate: false,
         textStyle: {
@@ -1932,64 +1966,7 @@ class DataCockpit extends Component {
     });
     beaMalChart.render();
   }
-  //支气管充气征分布
-  document.getElementById('airbronchogram').innerHTML=''
-  const broMalD = this.state.airbronchogramDist
-  // if(broMalD !== undefined){
-    if(!this.isEmpty(broMalD)){
-    const broMalData = JSON.parse(broMalD)
-    const dvBroMal = new DataView();
-    dvBroMal.source(broMalData).transform({
-        type: 'percent',
-        field: 'value',
-        dimension: 'type',
-        as: 'percent'
-    });
-    const broMalChart = new G2.Chart({ 
-        container: 'airbronchogram',
-        forceFit: true,
-        height: 200,
-        padding: 0,
-        animate:true
-    });
-    broMalChart.coord('theta', {
-        radius: 0.75,
-        innerRadius: 0.5
-      });
-    broMalChart.source(dvBroMal,{
-      percent: {
-      formatter: function formatter(val) {
-          val = (val * 100).toFixed(1) + '%';
-          return val;
-      }
-    }
-    });
-    broMalChart.legend(false);
-    broMalChart.tooltip({
-        showTitle: false,
-        itemTpl: '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>'
-    });
-    broMalChart.intervalStack().position('percent').color('type',['l(100) 0:#8bc6ec 1:#9599E2','l(100) 0:#80D0C7 1:#0093E9']).label('percent', {
-        offset: -20,
-        autoRotate: false,
-        textStyle: {
-        textAlign: 'center',
-        shadowBlur: 2,
-        shadowColor: 'rgba(0, 0, 0, .45)',
-        fill:'#fff'
-        },
-        formatter: function formatter(val, item) {
-            return item.point.type +':\n' + val;
-        }
-    }).tooltip('type*value', function(item, value) {
-        // percent = (percent * 100).toFixed(1)+ '%';
-        return {
-        name: item,
-        value: value
-        };
-    });
-    broMalChart.render();
-  }
+
 }
     
     componentDidUpdate(prevProps, prevState) {
@@ -2007,14 +1984,10 @@ class DataCockpit extends Component {
           document.getElementById('calcifybt2').style.display='none'
           document.getElementById('diaGGOPie').style.display='none'
           document.getElementById('ggobt2').style.display='none'
-          // document.getElementById('diaNonGlitchPie').style.display='none'
-          // document.getElementById('nonglitchbt2').style.display='none'
-          // document.getElementById('diaNonSublobePie').style.display='none'
-          // document.getElementById('nonsublobebt2').style.display='none'
-          // document.getElementById('diaNonCalcifyPie').style.display='none'
-          // document.getElementById('noncalcifybt2').style.display='none'
           document.getElementById('diaNonGGOPie').style.display='none'
+          document.getElementById('diaMixGGOPie').style.display='none'
           document.getElementById('nonggobt2').style.display='none'
+          document.getElementById('mixggobt2').style.display='none' 
       }
   }
     componentDidMount() {
@@ -2033,18 +2006,15 @@ class DataCockpit extends Component {
           document.getElementById('calcifybt2').style.display='none'
           document.getElementById('diaGGOPie').style.display='none'
           document.getElementById('ggobt2').style.display='none'
-          // document.getElementById('diaNonGlitchPie').style.display='none'
-          // document.getElementById('nonglitchbt2').style.display='none'
-          // document.getElementById('diaNonSublobePie').style.display='none'
-          // document.getElementById('nonsublobebt2').style.display='none'
-          // document.getElementById('diaNonCalcifyPie').style.display='none'
-          // document.getElementById('noncalcifybt2').style.display='none'
           document.getElementById('diaNonGGOPie').style.display='none'
-          document.getElementById('nonggobt2').style.display='none'  
+          document.getElementById('diaMixGGOPie').style.display='none'
+          document.getElementById('nonggobt2').style.display='none'
+          document.getElementById('mixggobt2').style.display='none' 
         }
     }
     
     render() {
+
       if (localStorage.getItem('token') == null) {
         return (
           // <div style={style}>
@@ -2059,24 +2029,62 @@ class DataCockpit extends Component {
             <div class='VisualCanvas'>
                 <div class='total'>
                   <div class='totalcontnt'>
+                    <h2 className="sta-header">当前数据</h2>
+                    <Button inverted color='green' icon>
+                        <Icon name='sync' />
+                    </Button>
                     <Grid centered>
-                      <Grid.Row>
-                        <Grid.Column width={4} className='totalbg'>
+                      <Grid.Row columns={4}>
+                        <Grid.Column width={3}>
+                          <Grid centered>
+                            <Grid.Row>
+                              <Card raised>
+                                <Card.Header>患者总人数</Card.Header>
+                                <Card.Content description={this.state.totalPatients}></Card.Content>
+                              </Card>
+                            </Grid.Row>
+                            <Grid.Row>
+                              <Card raised>
+                                <Card.Header>检查总数</Card.Header>
+                                <Card.Content description={this.state.totalRecords}></Card.Content>
+                              </Card>
+                            </Grid.Row>
+                            <Grid.Row>
+                               
+                            </Grid.Row>
+                          </Grid>
+                        </Grid.Column>
+                        <Grid.Column width={4}>
                           <div class='tit'>
-                            <h2 class='tit2'>良恶性分布</h2>
+                            <h2 class='tit2'>模型进度</h2>
+                          </div>
+                          <div id='modelProgress'></div>
+                        </Grid.Column>
+                        <Grid.Column width={4}>
+                          {/* 薄厚层 */}
+                          <div class='tit'>
+                            <h2 class='tit2'>薄厚层分布</h2>
+                          </div>
+                          <div id='thicknessDist'></div>
+                        </Grid.Column>
+                        <Grid.Column width={4}>
+                          <div class='tit'>
+                            <h2 class='tit2'>结节危险程度</h2>
                           </div>
                           <div id='benmali'></div>
+                        </Grid.Column>                           
+                      </Grid.Row>
+                      <Grid.Row columns={4}>
+                        <Grid.Column width={3}>
+                          
                         </Grid.Column>
-                        <Grid.Column width={5} className='totalbg'>
+                        <Grid.Column width={4}>
                           <div class='tit'>
-                            <h2 class='tit2'>总体结节直径分布</h2>
-                            <div class='tit1' id='diabt1'><Button icon onClick={this.typeChange} value='diabar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit1' id='diabt2'><Button icon onClick={this.typeChange} value='diapie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                            <h2 class='tit2'>性别分布</h2>
                           </div>
-                          <div id='diaTotal'></div>
-                          <div id='diaTotal2'></div>
+                          <div id='sexDist'></div>
                         </Grid.Column>
-                        <Grid.Column width={5} className='totalbg'>
+                        <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>总体年龄占比</h2>
                             <div class='tit1' id='agebt1'><Button icon onClick={this.typeChange} value='agebar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
@@ -2085,6 +2093,15 @@ class DataCockpit extends Component {
                           <div id='ageTotal'></div>
                           <div id='ageTotal2'></div>
                         </Grid.Column>
+                        <Grid.Column width={4}>
+                          <div class='tit'>
+                            <h2 class='tit2'>总体结节直径分布</h2>
+                            <div class='tit1' id='diabt1'><Button icon onClick={this.typeChange} value='diabar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit1' id='diabt2'><Button icon onClick={this.typeChange} value='diapie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                          </div>
+                          <div id='diaTotal'></div>
+                          <div id='diaTotal2'></div>
+                        </Grid.Column>
                       </Grid.Row>
                     </Grid>
                   </div>
@@ -2092,17 +2109,10 @@ class DataCockpit extends Component {
 
                 <div class='iconography'>
                   <div class='iconContnt'>
-                    <Grid centered>
-                      <Grid.Row>
-                        <Grid.Column width={4}>
-                          <div class='tit'>
-                            <h2 class='tit2'>钙化直径分布</h2>
-                            <div class='tit3' id='calcifybt1'><Button icon onClick={this.typeChange} value='calcifybar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit3' id='calcifybt2'><Button icon onClick={this.typeChange} value='calcifypie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                          </div>
-                          <div id='diaCalcify'></div>
-                          <div id='diaCalcifyPie'></div>
-                        </Grid.Column>
+                    <h2 className="sta-header">结节直径分布统计</h2>
+                    <Grid centered divided>
+                      <Grid.Row columns={4}>
+                        <Grid.Column width={3}></Grid.Column>
                         <Grid.Column width={4}>
                           <div class='tit'>
                             <h2 class='tit2'>磨玻璃直径分布</h2>
@@ -2120,12 +2130,31 @@ class DataCockpit extends Component {
                             </div>
                             <div id='diaNonGGO'></div>
                             <div id='diaNonGGOPie'></div>
-                          </Grid.Column>
-                      </Grid.Row>
-                      <Grid.Row>
-                      <Grid.Column width={4}>
+                        </Grid.Column>
+                        <Grid.Column width={4}>
                           <div class='tit'>
-                            <h2 class='tit2'>毛刺直径分布</h2>  
+                            <h2 class='tit2'>半实性(混合磨玻璃)直径分布</h2>
+                            <div class='tit3' id='mixggobt1'><Button icon onClick={this.typeChange} value='mixggobar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='mixggobt2'><Button icon onClick={this.typeChange} value='mixggopie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                          </div>
+                          <div id='diaMixGGO'></div>
+                          <div id='diaMixGGOPie'></div>
+                        </Grid.Column>
+                      </Grid.Row>
+                      <Grid.Row columns={4}>
+                      <Grid.Column width={3}></Grid.Column>
+                        <Grid.Column width={4}>
+                          <div class='tit'>
+                            <h2 class='tit2'>钙化征直径分布</h2>
+                            <div class='tit3' id='calcifybt1'><Button icon onClick={this.typeChange} value='calcifybar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
+                            <div class='tit3' id='calcifybt2'><Button icon onClick={this.typeChange} value='calcifypie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
+                          </div>
+                          <div id='diaCalcify'></div>
+                          <div id='diaCalcifyPie'></div>
+                        </Grid.Column>
+                        <Grid.Column width={4}>
+                          <div class='tit'>
+                            <h2 class='tit2'>毛刺征直径分布</h2>  
                             <div class='tit3' id='glitchbt1'><Button icon onClick={this.typeChange} value='glitchbar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
                             <div class='tit3' id='glitchbt2'><Button icon onClick={this.typeChange} value='glitchpie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
@@ -2134,80 +2163,58 @@ class DataCockpit extends Component {
                         </Grid.Column>
                         <Grid.Column width={4}>
                           <div class='tit'>
-                            <h2 class='tit2'>分叶直径分布</h2>
+                            <h2 class='tit2'>分叶征直径分布</h2>
                             <div class='tit3' id='sublobebt1'><Button icon onClick={this.typeChange} value='sublobebar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
                             <div class='tit3' id='sublobebt2'><Button icon onClick={this.typeChange} value='sublobepie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
                           </div>
                           <div id='diaSublobe'></div>
                           <div id='diaSublobePie'></div>
                         </Grid.Column>
-                        {/* <Grid.Column width={4}>
-                          <div class='tit'>
-                            <h2 class='tit2'>非毛刺直径分布</h2>  
-                            <div class='tit3' id='nonglitchbt1'><Button icon onClick={this.typeChange} value='nonglitchbar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                            <div class='tit3' id='nonglitchbt2'><Button icon onClick={this.typeChange} value='nonglitchpie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                          </div>
-                            <div id='diaNonGlitch'></div>
-                            <div id='diaNonGlitchPie'></div>
-                          </Grid.Column>
-                          <Grid.Column width={4}>
-                            <div class='tit'>
-                              <h2 class='tit2'>非分叶直径分布</h2>
-                              <div class='tit3' id='nonsublobebt1'><Button icon onClick={this.typeChange} value='nonsublobebar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                              <div class='tit3' id='nonsublobebt2'><Button icon onClick={this.typeChange} value='nonsublobepie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            </div>
-                            <div id='diaNonSublobe'></div>
-                            <div id='diaNonSublobePie'></div>
-                          </Grid.Column>
-                          <Grid.Column width={4}>
-                            <div class='tit'>
-                              <h2 class='tit2'>非钙化直径分布</h2>
-                              <div class='tit3' id='noncalcifybt1'><Button icon onClick={this.typeChange} value='noncalcifybar' circular basic color='blue' size='tiny'><Icon name='chart pie'></Icon></Button></div>
-                              <div class='tit3' id='noncalcifybt2'><Button icon onClick={this.typeChange} value='noncalcifypie' circular basic color='blue' size='tiny'><Icon name='chart bar outline'></Icon></Button></div>
-                            </div>
-                            <div id='diaNonCalcify'></div>
-                            <div id='diaNonCalcifyPie'></div>
-                          </Grid.Column> */}
-                          
                       </Grid.Row>
+                      </Grid>
+                    </div>
+                  </div>
+
+                  <div class='iconography'>
+                    <div class='iconContnt'>
+                    <h2 className="sta-header">特征危险程度统计</h2>
+                    <Grid centered divided> 
                       <Grid.Row>
-                        <Grid.Column width={4}>
-                          <h2 class='tit2'>毛刺良恶性分布</h2>
+                        <Grid.Column width={3}></Grid.Column>
+                        <Grid.Column width={3}>
+                          <h2 class='tit2'>毛刺征危险程度</h2>
                           <div id='maliGlitch'></div>
                         </Grid.Column>
-                        <Grid.Column width={4}>
-                          <h2 class='tit2'>分叶良恶性分布</h2>
+                        <Grid.Column width={3}>
+                          <h2 class='tit2'>分叶征危险程度</h2>
                           <div id='maliSublobe'></div>
                         </Grid.Column>
-                        <Grid.Column width={4}>
-                          <h2 class='tit2'>钙化良恶性分布</h2>
+                        <Grid.Column width={3}>
+                          <h2 class='tit2'>钙化征危险程度</h2>
                           <div id='maliCalcify'></div>
                         </Grid.Column>
-                        <Grid.Column width={4}>
-                          <h2 class='tit2'>磨玻璃良恶性分布</h2>
+                        <Grid.Column width={3}>
+                          <h2 class='tit2'>磨玻璃征危险程度</h2>
                           <div id='maliGGO'></div>
                         </Grid.Column>
                       </Grid.Row>
                       <Grid.Row>
+                      <Grid.Column width={3}></Grid.Column>
                         <Grid.Column width={3}>
-                          <h2 class='tit2'>胸膜凹陷征分布</h2>
+                          <h2 class='tit2'>胸膜凹陷征危险程度</h2>
                           <div id='pleural'></div>
                         </Grid.Column>
                         <Grid.Column width={3}>
-                          <h2 class='tit2'>空洞征分布</h2>
+                          <h2 class='tit2'>空洞征危险程度</h2>
                           <div id='cavity'></div>
                         </Grid.Column>
                         <Grid.Column width={3}>
-                          <h2 class='tit2'>血管集束征分布</h2>
+                          <h2 class='tit2'>血管集束征危险程度</h2>
                           <div id='vcs'></div>
                         </Grid.Column>
                         <Grid.Column width={3}>
-                          <h2 class='tit2'>空泡征分布</h2>
+                          <h2 class='tit2'>空泡征危险程度</h2>
                           <div id='vacuole'></div>
-                        </Grid.Column>
-                        <Grid.Column width={3}>
-                          <h2 class='tit2'>支气管充气征</h2>
-                          <div id='airbronchogram'></div>
                         </Grid.Column>
                       </Grid.Row>
                     </Grid>
@@ -2219,6 +2226,7 @@ class DataCockpit extends Component {
       }
         
     }
+
     typeChange(e,{value}){
       this.setState({ value:value })
       if(value=='diabar'){
@@ -2285,7 +2293,7 @@ class DataCockpit extends Component {
         document.getElementById('diaGGO').style.display='none'
         document.getElementById('diaGGOPie').style.display='block'
         document.getElementById('ggobt1').style.display='none'
-        document.getElementById('ggobt2').style={btstyle}
+        document.getElementById('ggobt2').style={btstyle} 
       }
       else if(value=='ggopie'){
         document.getElementById('diaGGO').style.display='block'
@@ -2293,43 +2301,6 @@ class DataCockpit extends Component {
         document.getElementById('ggobt1').style={btstyle}
         document.getElementById('ggobt2').style.display='none'
       }
-      //非
-      // else if(value=='nonglitchbar'){
-      //   document.getElementById('diaNonGlitch').style.display='none'
-      //   document.getElementById('diaNonGlitchPie').style.display='block'
-      //   document.getElementById('nonglitchbt1').style.display='none'
-      //   document.getElementById('nonglitchbt2').style={btstyle}
-      // }
-      // else if(value=='nonglitchpie'){
-      //   document.getElementById('diaNonGlitch').style.display='block'
-      //   document.getElementById('diaNonGlitchPie').style.display='none'
-      //   document.getElementById('nonglitchbt1').style={btstyle}
-      //   document.getElementById('nonglitchbt2').style.display='none'
-      // }
-      // else if(value=='nonsublobebar'){
-      //   document.getElementById('diaNonSublobe').style.display='none'
-      //   document.getElementById('diaNonSublobePie').style.display='block'
-      //   document.getElementById('nonsublobebt1').style.display='none'
-      //   document.getElementById('nonsublobebt2').style={btstyle}
-      // }
-      // else if(value=='nonsublobepie'){
-      //   document.getElementById('diaNonSublobe').style.display='block'
-      //   document.getElementById('diaNonSublobePie').style.display='none'
-      //   document.getElementById('nonsublobebt1').style={btstyle}
-      //   document.getElementById('nonsublobebt2').style.display='none'
-      // }
-      // else if(value=='noncalcifybar'){
-      //   document.getElementById('diaNonCalcify').style.display='none'
-      //   document.getElementById('diaNonCalcifyPie').style.display='block'
-      //   document.getElementById('noncalcifybt1').style.display='none'
-      //   document.getElementById('noncalcifybt2').style={btstyle}
-      // }
-      // else if(value=='noncalcifypie'){
-      //   document.getElementById('diaNonCalcify').style.display='block'
-      //   document.getElementById('diaNonCalcifyPie').style.display='none'
-      //   document.getElementById('noncalcifybt1').style={btstyle}
-      //   document.getElementById('noncalcifybt2').style.display='none'
-      // }
       else if(value=='nonggobar'){
         document.getElementById('diaNonGGO').style.display='none'
         document.getElementById('diaNonGGOPie').style.display='block'
@@ -2342,7 +2313,20 @@ class DataCockpit extends Component {
         document.getElementById('nonggobt1').style={btstyle}
         document.getElementById('nonggobt2').style.display='none'
       }
+      else if(value=='mixggobar'){
+        document.getElementById('diaMixGGO').style.display='none'
+        document.getElementById('diaMixGGOPie').style.display='block'
+        document.getElementById('mixggobt1').style.display='none'
+        document.getElementById('mixggobt2').style={btstyle}
+      }
+      else if(value=='mixggopie'){
+        document.getElementById('diaMixGGO').style.display='block'
+        document.getElementById('diaMixGGOPie').style.display='none'
+        document.getElementById('mixggobt1').style={btstyle}
+        document.getElementById('mixggobt2').style.display='none'
+      }
+
   }
 }
 
-export default DataCockpit
+export default withRouter(DataCockpit)

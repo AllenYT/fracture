@@ -48,21 +48,25 @@ class LoginPanel extends Component {
             username: this.state.username,
             password: this.state.password
         }
-
+        const auth={
+            username: this.state.username
+        }
+        
         axios.post(userConfig.validUser, qs.stringify(user))
-        .then((response) => {
-            console.log(response.data)
-            if (response.data.status === 'failed') {
+        .then((loginResponse) => {
+            if (loginResponse.data.status === 'failed') {
                 this.setState({messageVisible: true})
             } else {
-                localStorage.setItem('token', response.data.token)
-                localStorage.setItem('realname', response.data.realname)
-                localStorage.setItem('username',  response.data.username)
-                localStorage.setItem('privilege', response.data.privilege)
-                localStorage.setItem('allPatientsPages', response.data.allPatientsPages)
-                localStorage.setItem('totalPatients', response.data.totalPatients)
-                localStorage.setItem('totalRecords', response.data.totalRecords)
-                localStorage.setItem('modelProgress', response.data.modelProgress)
+                localStorage.setItem('token', loginResponse.data.token)
+                localStorage.setItem('realname', loginResponse.data.realname)
+                localStorage.setItem('username',  loginResponse.data.username)
+                localStorage.setItem('privilege', loginResponse.data.privilege)
+                localStorage.setItem('allPatientsPages', loginResponse.data.allPatientsPages)
+                localStorage.setItem('totalPatients', loginResponse.data.totalPatients)
+                localStorage.setItem('totalRecords', loginResponse.data.totalRecords)
+                localStorage.setItem('modelProgress', loginResponse.data.modelProgress)
+                localStorage.setItem('BCRecords',loginResponse.data.BCRecords)
+                localStorage.setItem('HCRecords',loginResponse.data.HCRecords)
                 if(sessionStorage.getItem('location')!=undefined){
                     window.location.href=sessionStorage.getItem('location')
                     // this.props.history.push(sessionStorage.getItem('location')+'deepln')
@@ -106,7 +110,7 @@ class LoginPanel extends Component {
                             DEEPLN
                         </div>
                         <div id='left-align1' >
-                            肺癌全周期智能管理影像数据平台
+                            肺癌全周期影像数据智能管理平台
                         </div>
                     </Grid.Column>
                     <Grid.Column width={8}>

@@ -36,6 +36,15 @@ class DisplayPanel extends Component {
     
   }
 
+  sliceIdxSort(prop){
+    return function(a,b){
+        var value1 = a[prop];
+        var value2 = b[prop];
+        return value1 - value2;
+    }
+}
+
+
   componentDidUpdate(prevProps,prevState){
     if(prevState.caseId !== this.state.caseId){
       console.log(prevState.caseId,this.state.caseId)
@@ -80,6 +89,7 @@ class DisplayPanel extends Component {
             noduleNo: noduleNo,
             dicomTag:dicomtag
           }
+          
           this.setState({stack: stack, show: true})
             })
          
@@ -98,9 +108,6 @@ class DisplayPanel extends Component {
           axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParams)),
           axios.post(draftConfig.readonly, qs.stringify(readonlyParams), {headers})
         ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
-          // console.log(dataResponse.data)
-          // console.log(draftResponse.data)
-          // console.log(readonlyResponse.data)
           const readonly = readonlyResponse.data.readonly === 'true'
           // const readonly = false
           cornerstone
@@ -112,11 +119,18 @@ class DisplayPanel extends Component {
             const dicomtag = image.data
             let draftStatus = -1
             // if (!readonly)
-              draftStatus = readonlyResponse.data.status
+            draftStatus = readonlyResponse.data.status
+            let boxes = draftResponse.data
+            boxes.sort(this.sliceIdxSort('slice_idx'))
+            for (var i = 0; i < boxes.length; i++) {
+              boxes[i].nodule_no= ""+i
+              boxes[i].rect_no = "a00" + i
+            } 
+            console.log('boxidx',boxes)
             const stack = {
               imageIds: dataResponse.data,
               caseId: this.state.caseId,
-              boxes: draftResponse.data,
+              boxes: boxes,
               readonly: readonly,
               draftStatus: draftStatus,
               noduleNo: noduleNo,
@@ -197,33 +211,36 @@ class DisplayPanel extends Component {
         axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParams)),
         axios.post(draftConfig.readonly, qs.stringify(readonlyParams), {headers})
       ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
-        // console.log(dataResponse.data)
-        // console.log(draftResponse.data)
-        // console.log(readonlyResponse.data)
         const readonly = readonlyResponse.data.readonly === 'true'
         // const readonly = false
         cornerstone
         .loadAndCacheImage(dataResponse.data[0])
         .then(image => {
-          // const readonly = readonlyResponse.data.readonly === 'true'
           console.log('image info',image.data)
-          // console.log('parse',dicomParser.parseDicom(image))
           const dicomtag = image.data
           let draftStatus = -1
-          // if (!readonly)
-            draftStatus = readonlyResponse.data.status
+          draftStatus = readonlyResponse.data.status
+          let boxes = draftResponse.data
+          boxes.sort(this.sliceIdxSort('slice_idx'))
+          for (var i = 0; i < boxes.length; i++) {
+            boxes[i].nodule_no= ""+i
+            boxes[i].rect_no = "a00" + i
+          } 
+          console.log('boxidx',boxes)
+
           const stack = {
             imageIds: dataResponse.data,
             caseId: this.state.caseId,
-            boxes: draftResponse.data,
+            boxes: boxes,
             readonly: readonly,
             draftStatus: draftStatus,
             noduleNo: noduleNo,
             dicomTag:dicomtag
           }
-          console.log('readonly',readonlyResponse)
-          console.log('draftdata',draftResponse,draftParams)
-          console.log('dataResponse',dataResponse)
+
+          // console.log('readonly',readonlyResponse)
+          // console.log('draftdata',draftResponse,draftParams)
+          // console.log('dataResponse',dataResponse)
           this.setState({stack: stack, show: true})
           })
        
