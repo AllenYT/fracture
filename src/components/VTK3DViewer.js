@@ -30,8 +30,8 @@ class VTK3DViewer extends Component{
         this.renderWindow = this.genericRenderWindow.getRenderWindow()
         this.renderer = this.genericRenderWindow.getRenderer()
         this.renderer.setViewport(0,0,1,1)
-        this.renderer.setBackground([0,0,0])
-
+        // this.renderer.setBackground([0,0,0])
+        this.renderer.setBackground([0.59,0.60,0.81])
         this.interactor = this.renderWindow.getInteractor()
         this.camera = this.renderer.getActiveCamera()
         this.camera.elevation(-90)
@@ -41,6 +41,14 @@ class VTK3DViewer extends Component{
         // this.renderer.addLight(this.light);//将灯光加入渲染器
         // this.light.setFocalPoint(this.camera.getFocalPoint())
         // this.light.setPosition(this.camera.getPosition())
+//         this.light = vtkLight.newInstance();
+// //         this.light.setColor(0.5,0.5,1.0);//设置环境光为红色
+//         this.light.setColor(1,1,1.0);
+//         this.renderer.addLight(this.light);//将灯光加入渲染器
+//         this.light.setFocalPoint(this.camera.getFocalPoint())
+//         this.light.setPosition(this.camera.getPosition())
+//         this.light.setShadowAttenuation(1)
+//         this.light.setIntensity(0.3)
 
         this.picker = vtkPicker.newInstance()
         this.interactor.onLeftButtonPress((callback) => {
@@ -51,6 +59,18 @@ class VTK3DViewer extends Component{
                 console.log("picked " + this.picker.getPickedPositions()[0])
             }
         })
+
+//         this.interactor.onLeftButtonRelease((callback) => {
+//             console.log("Release inter:", callback)
+//             // if(this.picker){
+//             //     this.picker.pick([callback.position.x, callback.position.y, callback.position.z], callback.pokedRenderer)
+//             //     let picked = this.picker.getPickedPositions()
+//             //     console.log("picked " + this.picker.getPickedPositions()[0])
+//             // }
+//             this.light.setFocalPoint(this.camera.getFocalPoint())
+//             this.light.setPosition(this.camera.getPosition())
+//             this.renderWindow.render()
+//         })
         this.renderWindow.render()
     }
     componentDidUpdate(prevProps, prevState, snapshot) {

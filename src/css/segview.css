@@ -143,7 +143,7 @@ loading: 1
   width: 32px;
   height: 32px;
   border-radius: 32px;
-  background-color: black;
+  background-color:#9699CE;
 }
 .loading-ticker{
   position: absolute;
@@ -167,7 +167,7 @@ loading: 1
   z-index: 3;
   /*border-radius: 32px;*/
   animation: tickerMove 1.5s linear forwards;
-  background-color: black;
+  background-color:#9699CE;
   visibility: visible;
 }
 @keyframes tickerMove{
