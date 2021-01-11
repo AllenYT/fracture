@@ -69,6 +69,8 @@ class LoginPanel extends Component {
                 localStorage.setItem('totalPatients', loginResponse.data.totalPatients)
                 localStorage.setItem('totalRecords', loginResponse.data.totalRecords)
                 localStorage.setItem('modelProgress', loginResponse.data.modelProgress)
+                localStorage.setItem('BCRecords',loginResponse.data.BCRecords)
+                localStorage.setItem('HCRecords',loginResponse.data.HCRecords)
                 localStorage.setItem('auths',JSON.stringify(authResponse.data))
                 if(sessionStorage.getItem('location')!=undefined){
                     window.location.href=sessionStorage.getItem('location')
