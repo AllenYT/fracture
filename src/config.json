@@ -5,7 +5,6 @@
         "getSingleJpg":"http://192.168.7.198:8095/data/covidMask",
         "getHist":"http://192.168.7.198:8095/covid/getHist",
         "uploadMutiply":"http://192.168.7.198:8095/data/uploadMutiply",
-
         "preprocess":"http://192.168.7.198:8095/preprocess/exec"
     },
 
@@ -14,7 +13,9 @@
         "get_session": "http://192.168.7.198:8095/user/getSessionUser/",
         "validUser": "http://192.168.7.198:8095/user/loginAction/",
         "signoutUser": "http://192.168.7.198:8095/user/signoutUser",
-        "get_sexData":" http://192.168.7.198:8095/patient/getPatientSexRatio"
+        "get_sexData":" http://192.168.7.198:8095/patient/getPatientSexRatio",
+        "getAuthsForUser":"http://192.168.7.198:8095/user/getAuthsForUser",
+        "getRolesForUser":"http://192.168.7.198:8095/user/getRolesForUser"
     },
 
     "record": {

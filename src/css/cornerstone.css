@@ -478,6 +478,7 @@ textarea:focus, input:focus{
   color:white;
   font-size:x-large;
   height:45px;
+  display: flex;
 }
 
 #line-left{

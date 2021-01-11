@@ -9,6 +9,7 @@ import {withRouter} from 'react-router-dom'
 import '../css/searchnodulePanel.css'
 // import reqwest from 'reqwest'
 import { isType } from '@babel/types'
+import LowerAuth from '../components/LowerAuth'
 
 const config = require('../config.json')
 const recordConfig = config.record
@@ -160,12 +161,12 @@ export class SearchNodulePanel extends Component {
                 if(data[idx]['volume']===undefined){
                     console.log(data[idx])
                 }
-                sequence['病人ID']=data[idx]['patienId']
+                sequence['病人ID']=data[idx]['patienId']===undefined?'':data[idx]['patienId']
                 sequence['性别']=data[idx]['patientSex']==='M'?'男':'女';
-                sequence['年龄']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
+                sequence['年龄']=data[idx]['patientBirth']===undefined?'':2020-parseInt(data[idx]['patientBirth'].slice(0,4))
                 sequence['结节体积(cm³)']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
-                sequence['结节直径(cm)']=Math.floor(data[idx]['diameter'] * 100) / 100
-                sequence['危险程度']=data[idx]['malignancy']==2?'高危':'低危'
+                sequence['结节直径(cm)']=data[idx]['diameter']===undefined?'':Math.floor(data[idx]['diameter'] * 100) / 100
+                sequence['危险程度']=data[idx]['malignancy']==2?'中危':data[idx]['malignancy']==3?'高危':'低危'
                 sequence['分叶征']=data[idx]['lobulation']==2?'是':'否'
                 sequence['毛刺征']=data[idx]['spiculation']==2?'是':'否'
                 sequence['密度']=data[idx]['texture']==2?'实性':'磨玻璃'
@@ -190,7 +191,7 @@ export class SearchNodulePanel extends Component {
     savetoExcel(){
       //要导出的json数据
       const params = {
-        malignancy: this.state.malignancy,
+            malignancy: this.state.malignancy,
             calcification: this.state.calcification,
             spiculation: this.state.spiculation,
             lobulation:this.state.lobulation,
@@ -204,7 +205,7 @@ export class SearchNodulePanel extends Component {
             vss:this.state.vss,
             bea:this.state.bea,
             bro:this.state.bro
-    }
+        }
     
     axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
         let datalists=[]
@@ -221,12 +222,12 @@ export class SearchNodulePanel extends Component {
                 if(data[idx]['volume']===undefined){
                     console.log(data[idx])
                 }
-                sequence['病人ID']=data[idx]['patienId']
+                sequence['病人ID']=data[idx]['patienId']===undefined?'':data[idx]['patienId']
                 sequence['性别']=data[idx]['patientSex']==='M'?'男':'女';
-                sequence['年龄']=2020-parseInt(data[idx]['patientBirth'].slice(0,4))
+                sequence['年龄']=data[idx]['patientBirth']===undefined?'':2020-parseInt(data[idx]['patientBirth'].slice(0,4))
                 sequence['结节体积(cm³)']=data[idx]['volume']===undefined? '':Math.floor(data[idx]['volume'] * 100) / 100
-                sequence['结节直径(cm)']=Math.floor(data[idx]['diameter'] * 100) / 100
-                sequence['危险程度']=data[idx]['malignancy']==2?'高危':'低危'
+                sequence['结节直径(cm)']=data[idx]['diameter']===undefined?'':Math.floor(data[idx]['diameter'] * 100) / 100
+                sequence['危险程度']=data[idx]['malignancy']==2?'中危':data[idx]['malignancy']==3?'高危':'低危'
                 sequence['分叶征']=data[idx]['lobulation']==2?'是':'否'
                 sequence['毛刺征']=data[idx]['spiculation']==2?'是':'否'
                 sequence['密度']=data[idx]['texture']==2?'实性':'磨玻璃'
@@ -309,6 +310,10 @@ export class SearchNodulePanel extends Component {
     handleLabelsIcon(value,e){
         switch(value){
             case '低危':
+                // console.log('value',value)
+                nums['危险']=null
+                    this.setState({malignancy:-1,activePage:'1'});break
+            case '中危':
                 // console.log('value',value)
                 nums['危险']=null
                     this.setState({malignancy:-1,activePage:'1'});break
@@ -493,8 +498,10 @@ export class SearchNodulePanel extends Component {
             switch(value){
                 case '低危':
                     this.setState({malignancy:1,activePage:'1'});break
-                case '高危':
+                case '中危':
                     this.setState({malignancy:2,activePage:'1'});break
+                case '高危':
+                    this.setState({malignancy:3,activePage:'1'});break
             }
         }
     }
@@ -663,6 +670,7 @@ export class SearchNodulePanel extends Component {
         // console.log('diameters',diaMeters)
         
         return(
+            localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("nodule_search")>-1?
             <div>
                 <Grid >
                     <Grid.Row className="conlabel">
@@ -692,6 +700,9 @@ export class SearchNodulePanel extends Component {
                                     </Grid.Column>
                                     <Grid.Column width={2} className="gridLabel">
                                         <a style={{color:'#66cfec'}} onClick={this.handleLabels}>低危</a>
+                                    </Grid.Column>
+                                    <Grid.Column width={2} className="gridLabel">
+                                        <a style={{color:'#66cfec'}} onClick={this.handleLabels}>中危</a>
                                     </Grid.Column>
                                     <Grid.Column width={2} className="gridLabel">
                                     <a style={{color:'#66cfec'}} onClick={this.handleLabels}>高危</a>
@@ -985,7 +996,8 @@ export class SearchNodulePanel extends Component {
                     </Grid>
                     
             </div>
-                
+            :
+            <LowerAuth></LowerAuth>
             )
         }
         

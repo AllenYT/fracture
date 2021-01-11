@@ -313,13 +313,13 @@ class HomepagePanel extends Component {
                                 >
                                 我的标注
                                 </Menu.Item>
-                                <Menu.Item
+                                {/* <Menu.Item
                                 name='myReviews'
                                 active={activeItem === 'myReviews'}
                                 onClick={this.handleItemClick}
                                 >
                                 我的审核
-                                </Menu.Item>
+                                </Menu.Item> */}
                                 <Menu.Item
                                 name='download'
                                 active={activeItem === 'download'}

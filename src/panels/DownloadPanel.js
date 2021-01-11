@@ -3,6 +3,7 @@ import { Header, Table, Button, Tab, Icon } from 'semantic-ui-react'
 import '../css/downloadPanel.css'
 import axios from 'axios'
 import qs from 'qs'
+import LowerAuth from '../components/LowerAuth'
 
 const config = require('../config.json')
 const cartConfig = config.cart
@@ -105,57 +106,63 @@ class DownloadPanel extends Component {
 
 
     render() {
+        if(localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("download")>-1){
+            const content = Array.from(this.state.cart)
 
-        const content = Array.from(this.state.cart)
-
-        if (this.state.loading) {
-            return (
-              <div style={style}>
-                  <Header as='h1' color='teal'>下载中，请稍候</Header>
-              </div>
-            )
+            if (this.state.loading) {
+                return (
+                  <div style={style}>
+                      <Header as='h1' color='teal'>下载中，请稍候</Header>
+                  </div>
+                )
+            }
+    
+            else {
+              if (localStorage.getItem('token') == null) {
+                return (
+                  <div style={style}>
+                      <Icon name='user secret' color='teal' size='huge'></Icon>
+                      <Header as='h1' color='teal'>请先登录</Header>
+                  </div>
+                )
+              }
+    
+              else {
+                return (
+                    <div id='download-container'>
+                        <Header as='h2' color='grey' inverted>下载列表</Header>
+                        <Table inverted singleLine id="nodule-table" fixed>
+                            <Table.Header>
+                                <Table.Row>
+                                    <Table.HeaderCell>病人ID</Table.HeaderCell>
+                                    <Table.HeaderCell>序列号</Table.HeaderCell>
+                                    <Table.HeaderCell>就诊日期</Table.HeaderCell>
+                                    <Table.HeaderCell>操作</Table.HeaderCell>
+                                </Table.Row>
+                            </Table.Header>
+                            <Table.Body>
+                                {content.map((value, idx) => {
+                                    return (
+                                        <Table.Row key={idx}>
+                                            <Table.Cell>{value.split('#')[0].split('_')[0]}</Table.Cell>
+                                            <Table.Cell>{value.split('#')[1]}</Table.Cell>
+                                            <Table.Cell>{value.split('#')[0].split('_')[1]}</Table.Cell>
+                                            <Table.Cell><a onClick={this.delCase} data-id={value}>删除</a></Table.Cell>
+                                        </Table.Row>
+                                    )
+                                })}
+                            </Table.Body>
+                        </Table>
+                        <div id='download-btn'><Button color='blue' onClick={this.startDownload}>下载</Button></div>
+                    </div>
+                )
+              }
+            }
         }
-
-        else {
-          if (localStorage.getItem('token') == null) {
-            return (
-              <div style={style}>
-                  <Icon name='user secret' color='teal' size='huge'></Icon>
-                  <Header as='h1' color='teal'>请先登录</Header>
-              </div>
+        else{
+            return(
+                <LowerAuth></LowerAuth>
             )
-          }
-
-          else {
-            return (
-                <div id='download-container'>
-                    <Header as='h2' color='grey' inverted>下载列表</Header>
-                    <Table inverted singleLine id="nodule-table" fixed>
-                        <Table.Header>
-                            <Table.Row>
-                                <Table.HeaderCell>病人ID</Table.HeaderCell>
-                                <Table.HeaderCell>序列号</Table.HeaderCell>
-                                <Table.HeaderCell>就诊日期</Table.HeaderCell>
-                                <Table.HeaderCell>操作</Table.HeaderCell>
-                            </Table.Row>
-                        </Table.Header>
-                        <Table.Body>
-                            {content.map((value, idx) => {
-                                return (
-                                    <Table.Row key={idx}>
-                                        <Table.Cell>{value.split('#')[0].split('_')[0]}</Table.Cell>
-                                        <Table.Cell>{value.split('#')[1]}</Table.Cell>
-                                        <Table.Cell>{value.split('#')[0].split('_')[1]}</Table.Cell>
-                                        <Table.Cell><a onClick={this.delCase} data-id={value}>删除</a></Table.Cell>
-                                    </Table.Row>
-                                )
-                            })}
-                        </Table.Body>
-                    </Table>
-                    <div id='download-btn'><Button color='blue' onClick={this.startDownload}>下载</Button></div>
-                </div>
-            )
-          }
         }
     }
 }

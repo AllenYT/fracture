@@ -44,8 +44,8 @@ class MainList extends Component {
             const params = {
                 page: this.props.currentPage,
                 type: this.props.type,
-                pidKeyword: this.props.pidKeyword,
-                dateKeyword: this.props.dateKeyword
+                pidKeyword:this.props.pidKeyword.toUpperCase(),
+                dateKeyword: this.props.dateKeyword.toUpperCase()
             }
     
             axios.post(recordConfig.getMainList, qs.stringify(params), {headers}).then((response) => {
@@ -65,8 +65,8 @@ class MainList extends Component {
             const params = {
                 page: this.props.currentPage,
                 type: this.props.type,
-                pidKeyword: this.props.pidKeyword,
-                dateKeyword: this.props.dateKeyword,
+                pidKeyword: this.props.pidKeyword.toUpperCase(),
+                dateKeyword: this.props.dateKeyword.toUpperCase(),
                 username:localStorage.getItem('username'),
                 subsetName:this.props.subsetName
             }
@@ -99,20 +99,24 @@ class MainList extends Component {
             this.setState({selectMainItem: '',show: false})
             this.loadMainList()
         }
+        else if(prevProps.search !==this.props.search){
+            this.setState({selectMainItem: '',show: false})
+            this.loadMainList()
+        }
 
-        else if (prevProps.pidKeyword !== this.props.pidKeyword) {
-            if(this.props.pidKeyword.length>3 || this.props.pidKeyword.length==0){
-                this.setState({selectMainItem: '',show: false})
-                this.loadMainList()
-            }
-        }
-        else if(prevProps.dateKeyword !== this.props.dateKeyword){
-            if(this.props.dateKeyword.length>3|| this.props.dateKeyword.length==0){
-                this.setState({selectMainItem: '',show: false})
-                this.loadMainList()
-            }
+        // else if (prevProps.pidKeyword !== this.props.pidKeyword) {
+        //     if(this.props.pidKeyword.length>3 || this.props.pidKeyword.length==0){
+        //         this.setState({selectMainItem: '',show: false})
+        //         this.loadMainList()
+        //     }
+        // }
+        // else if(prevProps.dateKeyword !== this.props.dateKeyword){
+        //     if(this.props.dateKeyword.length>3|| this.props.dateKeyword.length==0){
+        //         this.setState({selectMainItem: '',show: false})
+        //         this.loadMainList()
+        //     }
             
-        }
+        // }
         else if(prevProps.type !== this.props.type){
             this.setState({selectMainItem: '',show: false})
             this.loadMainList()
@@ -128,7 +132,7 @@ class MainList extends Component {
     render(props) {
 
         const elements = this.state.mainList
-        console.log(elements, this.props.type)
+        // console.log(elements, this.props.type)
         const selectMainItem = this.state.selectMainItem
         // let otherKeyword
 
