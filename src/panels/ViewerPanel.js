@@ -2130,20 +2130,22 @@ class ViewerPanel extends Component {
       this.updateCanvas()
     }
   }
-  handleListClick(idx) {
-    let tmp_listsActive = this.state.listsActive
-    if(tmp_listsActive[idx]){
-      tmp_listsActive[idx] = false
-    }else{
-      for (let cur_idx in tmp_listsActive) {
-        if (tmp_listsActive[cur_idx]) {
-          tmp_listsActive[cur_idx] = false
+  handleListClick(idx, e) {
+    if(e.target.nodeName !== "INPUT"){
+      let tmp_listsActive = this.state.listsActive
+      if (tmp_listsActive[idx]) {
+        tmp_listsActive[idx] = false
+      } else {
+        for (let cur_idx in tmp_listsActive) {
+          if (tmp_listsActive[cur_idx]) {
+            tmp_listsActive[cur_idx] = false
+          }
         }
+        tmp_listsActive[idx] = true
       }
-      tmp_listsActive[idx] = true
-    }
 
-    this.setState({ listsActive: tmp_listsActive })
+      this.setState({ listsActive: tmp_listsActive })
+    }
   }
   handleVisibleButton(idx, e) {
     e.stopPropagation()
@@ -2180,7 +2182,7 @@ class ViewerPanel extends Component {
     this.state.segments.forEach((item, i) =>{
       tmp_segments[i] = item
     })
-    if(this.state.segVisible[idx] === 1){
+    if(this.state.segVisible[idx]){
       tmp_segments[idx].getProperty().setOpacity(e.target.value)
     }
 
