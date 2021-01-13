@@ -1248,7 +1248,7 @@ class CornerstoneElement extends Component {
         let slideLabel
         let dicomTagPanel
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
-        let noduleNumTab = '结节(' + this.state.boxes.length + ')'
+        let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
         let inflammationTab = '炎症(有)'
         let lymphnodeTab = '淋巴结(0)'
         let segments={
@@ -4277,6 +4277,25 @@ class CornerstoneElement extends Component {
         // canvas_ROI.width = 500
         // origin.appendChild(canvas_ROI)
         // canvas_ROI.style.position = 'absolute'
+        let tempBox=[]
+        for(let i=0;i<this.state.boxes.length;i++){
+            if(parseInt(this.state.boxes[i].diameter)>3){
+                tempBox.push(this.state.boxes[i])
+            }
+        }
+        if(this.state.selectTexture===-1){
+            this.setState({selectBoxes:tempBox})
+        }
+        else{
+            let temp2temp=[]
+            for(let i=0;i<tempBox.length;i++){
+                if(tempBox[i].texture===this.state.selectTexture){
+                    temp2temp.push(tempBox[i])
+                }
+            }
+            this.setState({selectBoxes:temp2temp})
+        }
+        
     }
 
     componentWillUnmount() {
@@ -4347,7 +4366,7 @@ class CornerstoneElement extends Component {
             }
         }
         if(prevState.selectTexture !== this.state.selectTexture || prevState.selectTiny !== this.state.selectTiny){
-            if(this.state.selectTiny===0){
+            if(this.state.selectTiny===1){
                 if(this.state.selectTexture===-1){
                     this.setState({selectBoxes:this.state.boxes})
                 }
@@ -4364,7 +4383,7 @@ class CornerstoneElement extends Component {
             else{
                 let tempBox=[]
                 for(let i=0;i<this.state.boxes.length;i++){
-                    if(parseInt(this.state.boxes[i].diameter)<3){
+                    if(parseInt(this.state.boxes[i].diameter)>3){
                         tempBox.push(this.state.boxes[i])
                     }
                 }
