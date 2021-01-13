@@ -158,9 +158,6 @@ export class SearchNodulePanel extends Component {
                 '毛刺征':'','密度':'','钙化':'','胸膜凹陷征':'','空洞征':'','血管集束征':'','空泡征':'','支气管充气征':'',
                 'caseId':'','status':''}
                 
-                if(data[idx]['volume']===undefined){
-                    console.log(data[idx])
-                }
                 sequence['病人ID']=data[idx]['patienId']===undefined?'':data[idx]['patienId']
                 sequence['性别']=data[idx]['patientSex']==='M'?'男':'女';
                 sequence['年龄']=data[idx]['patientBirth']===undefined?'':2020-parseInt(data[idx]['patientBirth'].slice(0,4))
@@ -179,6 +176,7 @@ export class SearchNodulePanel extends Component {
                 sequence['caseId']=data[idx]['caseId']
                 sequence['noduleNo']=data[idx]['noduleNo']
                 sequence['status']=data[idx]['status']
+                sequence['username']=data[idx]['username']
                 lists.push(sequence)
             }
             console.log('lists1:',lists)
@@ -240,6 +238,7 @@ export class SearchNodulePanel extends Component {
                 sequence['caseId']=data[idx]['caseId']
                 sequence['noduleNo']=data[idx]['noduleNo']
                 sequence['status']=data[idx]['status']
+                sequence['username']=data[idx]['username']
             datalists.push(sequence)
             
         }
