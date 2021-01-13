@@ -661,7 +661,6 @@ class MyQueuePanel extends Component {
 }
 
     render() {
-        
             const {leftpidList,rightpidList,queueList,open,patientList} = this.state
             return (
                 <div>
@@ -1067,7 +1066,6 @@ class MyQueuePanel extends Component {
                 
                 </div>
             )
-        
     }
 }
 

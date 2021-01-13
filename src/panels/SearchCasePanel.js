@@ -7,7 +7,6 @@ import Statistics from '../components/Statistics'
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'
 // import Info from '../components/Info'
-import LowerAuth from '../components/LowerAuth'
 
 const config = require('../config.json')
 const recordConfig = config.record

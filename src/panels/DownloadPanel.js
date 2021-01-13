@@ -105,7 +105,6 @@ class DownloadPanel extends Component {
 
 
     render() {
-        
             const content = Array.from(this.state.cart)
 
             if (this.state.loading) {
@@ -157,6 +156,8 @@ class DownloadPanel extends Component {
                 )
               }
             }
+        
+        
     }
 }
 
