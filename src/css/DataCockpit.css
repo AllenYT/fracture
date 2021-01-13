@@ -1,11 +1,11 @@
 .VisualCanvas{
-    height: 1500px;
+    min-height: 1500px;
     /* background-image: url(../images/bg.png); */
     /* background-size: 100% 100%; */
 }
 .tit2{
     display: inline;
-    margin-right: 50%;
+    /* margin-right: 50%; */
     text-align: left;
     font-size: 18px;
     padding-top: 2.8%;
@@ -19,7 +19,7 @@
 .tit1{
     /* display: inline-block; */
     float: right;
-    margin-right: 50px;
+    margin-right: 0.2em;
 }
 
 .tit3{
@@ -32,28 +32,22 @@
     width: 90%;
     /* background: rgb(189, 214, 224);
     box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.74); */
-    background: rgba(255, 255, 255, 0.01);
+    background: rgba(255, 255, 255, 0.11);
     
-    /* box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.1); */
+    box-shadow: 1px 1px 1px 2px rgba(204, 204, 204, 0.418);
     transition: all 0.5s;
     border-radius: 5px;
 }
 
-.totalbg{
-    /* background-image: url(../images/box2.png);
-    background-size: 100% 100%; */
-}
 
-/* .totalcontnt{
-    margin: auto;
-    width: 100%;
-} */
 
 .iconography{
-    margin: 30px auto;
+    margin: 40px auto;
     width: 90%;
     /* background: rgb(189, 214, 224); */
-    background: rgba(255, 255, 255, 0.01);
+    background: rgba(255, 255, 255, 0.11);
+    
+    box-shadow: 1px 1px 1px 2px rgba(204, 204, 204, 0.418);
     /* box-shadow: 6px 6px 2px 1px rgba(139, 172, 182, 0.1); */
     transition: all 0.5s;
     border-radius: 5px;
@@ -67,4 +61,72 @@
 .statistics {
     text-align: center;
     margin-top: 40px;
+}
+
+
+.totalcontnt {
+    margin-top: 50px;
+    margin-bottom: 40px;
+    /* background: #66cfec; */
+    /* margin-left: 60px; */
+}
+
+.totalcontnt > .sta-header {
+    margin-bottom: 30px;
+    color: white;
+    display: inline-block;
+    margin-top: 20px;
+    margin-right: 20px;
+    margin-left: 20px;
+}
+
+.iconContnt > .sta-header{
+    margin-bottom: 30px;
+    color: white;
+    display: inline-block;
+    margin-top: 20px;
+    margin-right: 20px;
+    margin-left: 60px;
+}
+
+
+.totalcontnt > .grid > .row > .column  > .grid > .row > .ui.card {
+    /* background: transparent; */
+    /* width: 600px; */
+    /* background-color: rgba(72, 99, 151, 0.603) !important; */
+    border-radius: 5px !important;
+    height: 100px;
+    /* width: 400px; */
+    background-image: url(../images/card-bg.jpg) !important;  
+}
+
+
+.totalcontnt > .grid > .row > .column > .grid > .row  > .ui.card > .content {
+    flex-grow: unset;
+}
+
+.totalcontnt > .grid > .row > .column  > .grid > .row  > .ui.card  > .header {
+    color: white;
+    font-weight: bold;
+    font-size: 1.8em;
+    padding-top: 0.35em;
+    padding-bottom: 0.35em;
+    text-align: left;
+    margin-left: 0.5em;
+}
+
+
+.totalcontnt > .grid > .row > .column  > .grid > .row  > .ui.card > .content > .description {
+    font-size: 3em;
+    font-weight: bold;
+    color: #66cfec;
+    padding-top: 0.35em;
+    padding-bottom: 0.35em;
+    padding-left: 2.5em;
+
+}
+
+
+.ui.card, .ui.cards>.card{
+    box-shadow: 0 0 0 0 rgba(170, 170, 170, 0.432) !important;
 }

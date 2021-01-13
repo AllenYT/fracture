@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {Menu, Dropdown, Button, Image} from 'semantic-ui-react'
 import {withRouter, BrowserRouter as Router, Route, Link} from "react-router-dom";
 import LoginPanel from '../panels/LoginPanel'
-import DataPanel from '../panels/DataPanel'
+import DataCockpit from '../panels/DataCockpit'
 import DisplayPanel from '../panels/DisplayPanel'
 import MyAnnosPanel from '../panels/MyAnnosPanel'
 import DownloadPanel from '../panels/DownloadPanel'
@@ -284,11 +284,11 @@ class Main extends Component {
                     {/* </Menu> */}
                     <div id="main">
                         {
-                            this.state.isLoggedIn?<Route exact path="/" component={DataPanel}/>
+                            this.state.isLoggedIn?<Route exact path="/" component={DataCockpit}/>
                             :<Route exact path="/" component={LoginPanel}/>
 
                         }
-                        <Route exact path="/dataCockpit" component={DataPanel}/>
+                        <Route exact path="/dataCockpit" component={DataCockpit}/>
                         <Route path="/searchCase" component={SearchCasePanel} />
                         <Route path="/searchNodule" component={SearchNodulePanel} />
                         <Route path="/myAnnos/" component={MyAnnosPanel}/> {/* <Route path="/startAnnos" component={StartAnnosPanel} /> */}
