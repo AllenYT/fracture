@@ -50,15 +50,15 @@ class VTK3DViewer extends Component{
 //         this.light.setIntensity(0.3)
 
         this.picker = vtkPicker.newInstance()
-        this.interactor.onLeftButtonPress((callback) => {
-            console.log("inter:", callback)
+        this.interactor.onRightButtonPress((callback) => {
+            console.log("rightButtonPress", callback)
             if(this.picker){
                 this.picker.pick([callback.position.x, callback.position.y, callback.position.z], callback.pokedRenderer)
-                let picked = this.picker.getPickedPositions()
-                console.log("picked " + this.picker.getPickedPositions()[0])
+                let picked = this.picker.getPickedPositions()[0]
+                this.props.onRightClick(picked)
             }
         })
-
+        console.log("interactor", this.interactor)
 
         this.renderWindow.render()
     }
@@ -78,7 +78,7 @@ class VTK3DViewer extends Component{
             if (this.props.pointActors.length){
                 prevProps.pointActors.forEach(this.renderer.removeActor)
                 this.props.pointActors.forEach(this.renderer.addActor)
-                console.log("this.actors",this.renderer.getActors())
+                // console.log("this.actors",this.renderer.getActors())
             }else{
 
             }

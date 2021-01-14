@@ -221,7 +221,9 @@ class DisplayPanel extends Component {
           let draftStatus = -1
           draftStatus = readonlyResponse.data.status
           let boxes = draftResponse.data
-          boxes.sort(this.sliceIdxSort('slice_idx'))
+          console.log('boxes',boxes)
+          if(boxes!=='')
+            boxes.sort(this.sliceIdxSort('slice_idx'))
           for (var i = 0; i < boxes.length; i++) {
             boxes[i].nodule_no= ""+i
             boxes[i].rect_no = "a00" + i

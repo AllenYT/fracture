@@ -180,7 +180,9 @@ class VTKViewer extends Component{
     changeMode(model){
         this.viewer3D.changeMode(model)
     }
-
+    rightClick(picked){
+        this.props.onRightClick(picked)
+    }
     render() {
         const {
             viewerWidth,
@@ -204,6 +206,7 @@ class VTKViewer extends Component{
                              actors={actors}
                              pointActors={pointActors}
                              type={0}
+                             onRightClick={this.rightClick.bind(this)}
                              onRef={(ref) => {this.viewer3D = ref}}
                 />
                 <VTKMPRViewer id="viewer-axial"

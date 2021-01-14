@@ -661,7 +661,10 @@ class MyQueuePanel extends Component {
 }
 
     render() {
+<<<<<<< HEAD
         
+=======
+>>>>>>> ad517d60fa6af63cc37dfd0b8c03793248dd541a
             const {leftpidList,rightpidList,queueList,open,patientList} = this.state
             return (
                 <div>
@@ -1067,7 +1070,10 @@ class MyQueuePanel extends Component {
                 
                 </div>
             )
+<<<<<<< HEAD
         
+=======
+>>>>>>> ad517d60fa6af63cc37dfd0b8c03793248dd541a
     }
 }
 

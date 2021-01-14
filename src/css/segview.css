@@ -42,14 +42,6 @@ segment-accordion{
     line-height: normal;
     margin-right: -100px!important;
 } */
-.funcList .ui.button{
-  width: 50px;
-  height: 50px;
-  font-size: large;
-  background-color: #010c29;
-  color: rgb(212, 212, 212);
-  padding: 0;
-}
 
 .segment-container{
   position:relative;
@@ -79,6 +71,12 @@ loading: 1
   left: 10px;
   color: gray;
   cursor: pointer;
+}
+.segment-content-wwwc{
+  position: absolute;
+  bottom: 0px;
+  right: 20px;
+  color: white;
 }
 .segment-content-origin{
   position: absolute;
@@ -237,7 +235,9 @@ loading: 1
 /*}*/
 
 .segment-list{
-
+  border:1px solid #021c38;
+  border-radius: 0 0 10px 10px;
+  background:rgba(1, 23, 46, 0.997);
 }
 .segment-list-title{
   display:flex;
@@ -282,14 +282,13 @@ loading: 1
   padding:10px;
   margin-right:5px;
   text-align:center;
-  font-weight:400;
+  font-weight:700;
+  font-size: 1em;
   background-color: rgba(86,239,252,0.3);
   color: rgba(86,239,252,0.99);
-  flex:1;
 }
 .segment-list-content{
-  margin-left:10px;
-  margin-top:10px;
+  padding: 14px 0;
   display:flex;
   flex-direction: column;
   align-items: center;
@@ -298,20 +297,26 @@ loading: 1
   width: calc(100% - 70px);
 }
 .segment-list-content-block{
-  margin-bottom: 5px;
+  margin: 0;
 }
 .segment-list-content-name{
+  font-size: 1em;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 15px;
 }
 .segment-list-content-tool{
   display:flex;
   flex-direction: row;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 .segment-list-content-tool-block{
-  margin-top:5px;
+  margin:0 0 0 10px !important;
 }
 .segment-list-content-input{
-  margin-bottom: 10px;
+  margin-bottom: 0px;
   color:white;
   display:flex;
   flex-direction: row;

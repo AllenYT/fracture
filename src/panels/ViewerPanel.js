@@ -71,7 +71,7 @@ class ViewerPanel extends Component {
       urls: [],
       show: false,
       segments: [],
-      voi:{windowWidth: 1600, windowCenter: -600},
+      voi:{windowWidth: 1600, windowCenter: -600 + 1024},
       metaData0: {},
       segRange: {
         xMax:-Infinity,
@@ -125,7 +125,7 @@ class ViewerPanel extends Component {
     this.toHomepage = this.toHomepage.bind(this);
   }
 
-  createPipeline(binary, color, opacity) {
+  createPipeline(binary, color, opacity, cl) {
     // console.log("createPipeline")
 
     const vtpReader = vtkXMLPolyDataReader.newInstance()
@@ -373,15 +373,15 @@ class ViewerPanel extends Component {
     const rgbTransferFunction = actor.getProperty().getRGBTransferFunction(0);
     rgbTransferFunction.setMappingRange(range0, range1)
 
-    const ofun = vtkPiecewiseFunction.newInstance()
+    // const ofun = vtkPiecewiseFunction.newInstance()
     // ofun.addSegment(0, 0, 1, 0)
     // ofun.addSegment(1, 1, sliceRange[1], 1)
     // ofun.addSegment(2500, 0, 2501, 0)
     // ofun.addSegment(2501, 1, sliceRange[1] + 2500, 1)
-    ofun.addPoint(0.0, 0.0)
-    ofun.addPoint(1000.0, 0.3)
-    ofun.addPoint(6000.0, 0.9)
-    actor.getProperty().setScalarOpacity(0, ofun)
+    // ofun.addPoint(0.0, 0.0)
+    // ofun.addPoint(1000.0, 0.3)
+    // ofun.addPoint(6000.0, 0.9)
+    // actor.getProperty().setScalarOpacity(0, ofun)
 
     // actor.getProperty().setScalarOpacityUnitDistance(0, 4.5)
     // actor.getProperty().setInterpolationTypeToLinear()
@@ -395,16 +395,16 @@ class ViewerPanel extends Component {
     // actor.getProperty().setSpecular(0.3)
     // actor.getProperty().setSpecularPower(8.0)
 
-    const cfun = vtkColorTransferFunction.newInstance()
+    // const cfun = vtkColorTransferFunction.newInstance()
     // cfun.addRGBPoint(0, 0, 0, 0)
     // cfun.addRGBPoint(sliceRange[1], 1, 1, 1)
     // cfun.addRGBPoint(sliceRange[1] + 1, 0, 0, 0)
     // cfun.addRGBPoint(2500, 0, 0, 0)
     // cfun.addRGBPoint(sliceRange[1]+ 2500, 0.7, 0.7, 1)
     // cfun.addRGBPoint(sliceRange[1]+ 2501, 0, 0, 0)
-    cfun.addRGBPoint(range0, 0.4, 0.2, 0.0)
-    cfun.addRGBPoint(range1, 1.0, 1.0, 1.0)
-    actor.getProperty().setRGBTransferFunction(0, cfun)
+    // cfun.addRGBPoint(range0, 0.4, 0.2, 0.0)
+    // cfun.addRGBPoint(range1, 1.0, 1.0, 1.0)
+    // actor.getProperty().setRGBTransferFunction(0, cfun)
 
     return actor
   }
@@ -431,10 +431,24 @@ class ViewerPanel extends Component {
         const urls = Object.keys(res.data).map((key) => [key, res.data[key]])
         const tmp_urls = []
 
+        function sortUrl(x, y){
+          // small to big
+          if (x[x.length - 5] < y[y.length - 5]) {
+            return -1;
+          } else if (x[x.length - 5] > y[y.length - 5]) {
+            return 1;
+          } else {
+            return 0;
+          }
+        }
         urls.forEach(item => {
           const label = item[0]
           const array = item[1]
+          if(label === "nodule" || label === "lobe"){
+            array.sort(sortUrl)
+          }
           array.forEach((it, idx)=> {
+            let index = 0
             let type = 0
             let cl = 0
             let name = ''
@@ -473,7 +487,7 @@ class ViewerPanel extends Component {
 
         const tmp_segments = Object.keys(tmp_urls).map((key) => null)
         const tmp_percent = Object.keys(tmp_urls).map((key) => 0)
-        const tmp_opacity = Object.keys(tmp_urls).map((key) => 1)
+        const tmp_opacity = Object.keys(tmp_urls).map((key) => 0.5)
         const tmp_listsActive = Object.keys(tmp_urls).map((key) => false)
         const tmp_segVisible = Object.keys(tmp_urls).map((key) => true)
         const tmp_listsOpacityChangeable = Object.keys(tmp_urls).map((key) => false)
@@ -503,6 +517,7 @@ class ViewerPanel extends Component {
     // const dom = ReactDOM.findDOMNode(this.gridRef);
     document.getElementById('header').style.display = 'none'
 
+    window.addEventListener('contextmenu', this.contextmenu.bind(this))
     window.addEventListener('resize', this.resize3DView.bind(this))
     window.addEventListener('dblclick' , this.dblclick.bind(this))
     window.addEventListener('click', this.click.bind(this))
@@ -605,6 +620,8 @@ class ViewerPanel extends Component {
           originZBorder: originZBorder,
           segRange: segRange
         })
+        console.log("originXBorder", originXBorder, "originYBorder", originYBorder, "originZBorder", originZBorder)
+        console.log("segRange", segRange)
         const position = []
         for(let i = 0; i<originZBorder; i++){
           position[i] = []
@@ -673,7 +690,7 @@ class ViewerPanel extends Component {
             imageData.modified()
             this.updateVolumeActor()
           } else {
-            if (idx % 20 === 0) {
+            if (idx % 30 === 0) {
               console.log("modified")
               imageData.modified()
               this.updateVolumeActor()
@@ -687,6 +704,7 @@ class ViewerPanel extends Component {
 
   componentWillMount() {
     window.removeEventListener('resize', this.resize3DView.bind(this))
+    window.removeEventListener('contextmenu', this.contextmenu.bind(this))
     window.removeEventListener('dblclick', this.dblclick.bind(this))
     window.removeEventListener('click', this.click.bind(this))
     window.removeEventListener('mousedown', this.mousedown.bind(this))
@@ -712,6 +730,9 @@ class ViewerPanel extends Component {
       this.viewer.setContainerSize(selectedNum, clientWidth, clientHeight)
     }
   }
+  contextmenu(e){
+  
+  }
   keydown(e){
     // e.which : +/187, -/189
     if(e.ctrlKey){
@@ -721,8 +742,6 @@ class ViewerPanel extends Component {
       })
     }
     const isCtrl = this.state.isCtrl
-    if(e.which === 187 && isCtrl){
-    }
     if(e.which === 187 && isCtrl){
     }
     const that = this
@@ -809,6 +828,7 @@ class ViewerPanel extends Component {
         if(origin[2] > originZBorder){
           origin[2] = originZBorder
         }
+        this.updateNoduleMask()
         imageData.modified()
         this.updateVolumeActor()
         if(this.state.editing){
@@ -828,6 +848,7 @@ class ViewerPanel extends Component {
         if(origin[1] > originYBorder){
           origin[1] = originYBorder
         }
+        this.updateNoduleMask()
         imageData.modified()
         this.updateVolumeActor()
         if(this.state.editing){
@@ -847,6 +868,7 @@ class ViewerPanel extends Component {
         if(origin[0] > originXBorder){
           origin[0] = originXBorder
         }
+        this.updateNoduleMask()
         imageData.modified()
         this.updateVolumeActor()
         if(this.state.editing){
@@ -1034,79 +1056,61 @@ class ViewerPanel extends Component {
           console.log("e.offsetY", e.offsetY)
           const picked = this.viewer.click3DViewer(e.offsetX, height - e.offsetY)
           console.log("picked ", picked)
-          if(picked){
-            const sphereSource = vtkSphereSource.newInstance();
-            sphereSource.setRadius(5)
-            sphereSource.setCenter(picked)
-            const mapper = vtkMapper.newInstance({
-              scalarVisibility: false
-            })
-            mapper.setInputData(sphereSource.getOutputData());
-            const actor = vtkActor.newInstance();
-            actor.setMapper(mapper);
-
-            const {origin, originXBorder, originYBorder, originZBorder} = this.state
-            const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
-            console.log("segRange", this.state.segRange)
-            const x = picked[0]
-            const y = picked[1]
-            const z = picked[2]
-            origin[0] = originXBorder * (xMax - x) / (xMax - xMin)
-            origin[1] = originYBorder * (y - yMin) / (yMax - yMin)
-            origin[2] = originZBorder * (zMax - z) / (zMax - zMin)
-            this.updateAllByOrigin()
-            this.setState({
-              pointActors: [actor]
-            })
-          }
         }
       }
       if(e.path[1].className === "segment-content-block segment-content-axial" && e.path[0].id === "canvas-axial"){
-        const selectionStyles = this.state.selectionStyles
-        const height = selectionStyles[1].height.replace("px", "")
-        const {origin, originXBorder, originYBorder, originZBorder} = this.state
-        const ratioX = this.getRatio(0, 0)
-        const ratioY = this.getRatio(0, 1)
-        const {x, y} = this.getTopLeftOffset(0)
-        const xNow = e.offsetX
-        const yNow = e.offsetY
-        // const picked = this.viewer.clickMPR(e.offsetX, height - e.offsetY)
-        // console.log("new", picked)
-        const o1 = (yNow - y) * ratioY
-        const o0 = (xNow - x) * ratioX
-        if(o1 >= 0 && o1 <= originYBorder && o0 >= 0 && o0 <= originXBorder){
-          origin[1] = (yNow - y) * ratioY
-          origin[0] = (xNow - x) * ratioX
+        const {originXBorder, originYBorder, originZBorder} = this.state
+        // const ratioX = this.getRatio(0, 0)
+        // const ratioY = this.getRatio(0, 1)
+        // const {x, y} = this.getTopLeftOffset(0)
+        // const xNow = e.offsetX
+        // const yNow = e.offsetY
+        // // const picked = this.viewer.clickMPR(e.offsetX, height - e.offsetY)
+        // // console.log("new", picked)
+        // const o1 = (yNow - y) * ratioY
+        // const o0 = (xNow - x) * ratioX
+        const nowPixel = [e.offsetX, e.offsetY]
+        const origin = this.transformPixelToOrigin(nowPixel, 0)
+        if(origin[0] >= 0 && origin[0] <= originXBorder && origin[1] >= 0 && origin[1] <= originYBorder && origin[2] >= 0 && origin[2] <= originZBorder){
+          this.setState({
+            origin: origin
+          })
           this.updateAllByOrigin()
         }
       }
       if(e.path[1].className === "segment-content-block segment-content-coronal" && e.path[0].id === "canvas-coronal"){
-        const {origin, originXBorder, originYBorder, originZBorder} = this.state
-        const ratioX = this.getRatio(1, 0)
-        const ratioZ = this.getRatio(1, 2)
-        const {x, y} = this.getTopLeftOffset(1)
-        const xNow = e.offsetX
-        const yNow = e.offsetY
-        const o2 = (yNow - y) * ratioZ
-        const o0 = (xNow - x) * ratioX
-        if(o2 >= 0 && o2 <= originZBorder && o0 >= 0 && o0 <= originXBorder){
-          origin[2] = (yNow - y) * ratioZ
-          origin[0] = (xNow - x) * ratioX
+        const {originXBorder, originYBorder, originZBorder} = this.state
+        // const ratioX = this.getRatio(1, 0)
+        // const ratioZ = this.getRatio(1, 2)
+        // const {x, y} = this.getTopLeftOffset(1)
+        // const xNow = e.offsetX
+        // const yNow = e.offsetY
+        // const o2 = (yNow - y) * ratioZ
+        // const o0 = (xNow - x) * ratioX
+        const nowPixel = [e.offsetX, e.offsetY]
+        const origin = this.transformPixelToOrigin(nowPixel, 1)
+        if(origin[0] >= 0 && origin[0] <= originXBorder && origin[1] >= 0 && origin[1] <= originYBorder && origin[2] >= 0 && origin[2] <= originZBorder){
+          this.setState({
+            origin: origin
+          })
           this.updateAllByOrigin()
         }
       }
       if(e.path[1].className === "segment-content-block segment-content-sagittal" && e.path[0].id === "canvas-sagittal"){
-        const {origin, originXBorder, originYBorder, originZBorder} = this.state
-        const ratioY = this.getRatio(2, 1)
-        const ratioZ = this.getRatio(2, 2)
-        const {x, y} = this.getTopLeftOffset(2)
-        const xNow = e.offsetX
-        const yNow = e.offsetY
-        const o2 = (yNow - y) * ratioZ
-        const o1 = (xNow - x) * ratioY
-        if(o2 >= 0 && o2 <= originZBorder && o1 >= 0 && o1 <= originYBorder){
-          origin[2] = (yNow - y) * ratioZ
-          origin[1] = (xNow - x) * ratioY
+        const {originXBorder, originYBorder, originZBorder} = this.state
+        // const ratioY = this.getRatio(2, 1)
+        // const ratioZ = this.getRatio(2, 2)
+        // const {x, y} = this.getTopLeftOffset(2)
+        // const xNow = e.offsetX
+        // const yNow = e.offsetY
+        // const o2 = (yNow - y) * ratioZ
+        // const o1 = (xNow - x) * ratioY
+        const nowPixel = [e.offsetX, e.offsetY]
+        const origin = this.transformPixelToOrigin(nowPixel, 2)
+        if(origin[0] >= 0 && origin[0] <= originXBorder && origin[1] >= 0 && origin[1] <= originYBorder && origin[2] >= 0 && origin[2] <= originZBorder){
+          this.setState({
+            origin: origin
+          })
           this.updateAllByOrigin()
         }
       }
@@ -1233,8 +1237,24 @@ class ViewerPanel extends Component {
       }
     }
   }
-
+  rightClick(picked){
+    console.log("right click", picked)
+    if(this.state.editing){
+      if(picked){
+        const {originXBorder, originYBorder, originZBorder} = this.state
+        const origin = this.transform3DPickedToOrigin(picked)
+        if(origin[0] >= 0 && origin[0] <= originXBorder && origin[1] >= 0 && origin[1] <= originYBorder && origin[2] >= 0 && origin[2] <= originZBorder){
+          this.setState({
+            origin: origin
+          })
+          this.updateAllByOrigin()
+        }
+      }
+    }
+  }
   updateAllByOrigin(){
+    // when state is editing, use it
+    this.updateNoduleMask()
     this.updateRowAndColumnStyle()
     this.updatePointActor()
     imageData.modified()
@@ -1440,13 +1460,13 @@ class ViewerPanel extends Component {
         }
       }
     }
-    this.paintRect(ctxAxial, arrayAxial, 0)
-    this.paintRect(ctxCoronal, arrayCoronal, 1)
-    this.paintRect(ctxSagittal, arraySagittal, 2)
+    this.paintRegion(ctxAxial, arrayAxial, 0)
+    this.paintRegion(ctxCoronal, arrayCoronal, 1)
+    this.paintRegion(ctxSagittal, arraySagittal, 2)
     // ctxAxial.putImageData(imageDataAxial, 0, 0)
     // console.log("imageData", imageDataAxial)
   }
-  paintRect(ctx, array, model){
+  paintRegion(ctx, array, model){
     //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
     if(array.length > 0){
       ctx.beginPath()
@@ -1526,7 +1546,7 @@ class ViewerPanel extends Component {
     ctxSagittal.clearRect(0,0,widthSagittal,heightSagittal)
   }
   getRatio(model, cor){
-    //switch pixel to origin
+    //ratio for pixel to origin
     //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
     //for cor parameter, 0 represents x, 1 represents y, 2 represents z
     const {selectedNum, originXBorder, originYBorder, originZBorder, volLength, volXLength, volYLength} = this.state
@@ -1706,16 +1726,97 @@ class ViewerPanel extends Component {
     }
     return {x, y}
   }
+  transformOriginToPixel(origin){
+    // origin to pixel
+    const pixel = []
+    const axialPixel = []
+    // const ratioX = this.getRatio(0, 0)
+    // const ratioY = this.getRatio(0, 1)
+    // const {x, y} = this.getTopLeftOffset(0)
+    // const nowX = origin[0] / ratioX + x
+    // const nowY = origin[1] / ratioY + y
+    // const a = this.getTopLeftOffset(0)
+    axialPixel[0] = origin[0] / this.getRatio(0, 0) + this.getTopLeftOffset(0).x
+    axialPixel[1] = origin[1] / this.getRatio(0, 1) + this.getTopLeftOffset(0).y
+
+    const coronalPixel = []
+    // const ratioX = this.getRatio(1, 0)
+    // const ratioZ = this.getRatio(1, 2)
+    // const {x, y} = this.getTopLeftOffset(1)
+    // const nowX = origin[0] / ratioX + x
+    // const nowY = origin[2] / ratioZ + y
+    coronalPixel[0] = origin[0] / this.getRatio(1, 0) + this.getTopLeftOffset(1).x
+    coronalPixel[1] = origin[2] / this.getRatio(1, 2) + this.getTopLeftOffset(1).y
+
+    const sagittalPixel = []
+    // const ratioY = this.getRatio(2, 1)
+    // const ratioZ = this.getRatio(2, 2)
+    // const {x, y} = this.getTopLeftOffset(2)
+    // const nowX = origin[1] / ratioY + x
+    // const nowY = origin[2] / ratioZ + y
+    sagittalPixel[0] = origin[1] / this.getRatio(2, 1) + this.getTopLeftOffset(2).x
+    sagittalPixel[1] = origin[2] / this.getRatio(2, 2) + this.getTopLeftOffset(2).y
+    pixel[0] = axialPixel
+    pixel[1] = coronalPixel
+    pixel[2] = sagittalPixel
+    return pixel
+  }
+  transformPixelToOrigin(nowPixel, model){
+    // pixel to origin
+    // for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
+    const origin = []
+    if(model === 0){
+      origin[0] = (nowPixel[0] - this.getTopLeftOffset(0).x) * this.getRatio(0, 0)
+      origin[1] = (nowPixel[1] - this.getTopLeftOffset(0).y) * this.getRatio(0, 1)
+      origin[2] = this.state.origin[2]
+    }else if(model === 1){
+      origin[0] = (nowPixel[0] - this.getTopLeftOffset(1).x) * this.getRatio(1, 0)
+      origin[1] = this.state.origin[1]
+      origin[2] = (nowPixel[1] - this.getTopLeftOffset(1).y) * this.getRatio(1, 2)
+    }else if(model === 2){
+      origin[0] = this.state.origin[0]
+      origin[1] = (nowPixel[0] - this.getTopLeftOffset(2).x) * this.getRatio(2, 1)
+      origin[2] = (nowPixel[1] - this.getTopLeftOffset(2).y) * this.getRatio(2, 2)
+    }
+    return origin
+  }
+  transform3DPickedToOrigin(picked){
+    // 3D picked to origin
+    const origin = []
+    const {originXBorder, originYBorder, originZBorder} = this.state
+    const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
+    
+    const x = picked[0]
+    const y = picked[1]
+    const z = picked[2]
+    origin[0] = originXBorder * (xMax - x) / (xMax - xMin)
+    origin[1] = originYBorder * (y - yMin) / (yMax - yMin)
+    origin[2] = originZBorder * (zMax - z) / (zMax - zMin)
+    return origin
+  }
+  transformOriginTo3DPicked(origin){
+    // origin to 3D picked
+    const picked = []
+    const {originXBorder, originYBorder, originZBorder} = this.state
+    const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
+
+    picked[0] = xMax - (origin[0] * (xMax - xMin ) / originXBorder)
+    picked[1] = yMin + (origin[1] * (yMax - yMin) / originYBorder)
+    picked[2] = zMax - (origin[2] * (zMax - zMin) / originZBorder)
+    return picked
+  }
   updatePointActor(origin){
     if(typeof(origin) === "undefined"){
       origin = this.state.origin
     }
-    const picked = []
-    const {originXBorder, originYBorder, originZBorder} = this.state
-    const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
-    picked[0] = xMax - (origin[0] * (xMax - xMin ) / originXBorder)
-    picked[1] = yMin + (origin[1] * (yMax - yMin) / originYBorder)
-    picked[2] = zMax - (origin[2] * (zMax - zMin) / originZBorder)
+
+    const picked = this.transformOriginTo3DPicked(origin)
+    // const picked = []
+    // const {originXBorder, originYBorder, originZBorder} = this.state
+    // const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
+    // picked[0] = xMax - (origin[0] * (xMax - xMin ) / originXBorder)
+    // picked[1] = yMin + (origin[1] * (yMax - yMin) / originYBorder)
+    // picked[2] = zMax - (origin[2] * (zMax - zMin) / originZBorder)
 
     const sphereSource = vtkSphereSource.newInstance()
     sphereSource.setRadius(5)
@@ -1912,10 +2013,11 @@ class ViewerPanel extends Component {
     }
     const opacity = this.state.opacity[idx]
     const color = this.state.urls[idx].color
+    const cl = this.state.urls[idx].class
     const cur_url = this.state.urls[idx].url + '?caseId=' + this.state.caseId
     HttpDataAccessHelper.fetchBinary(cur_url, { progressCallback,} )
         .then((binary) => {
-          const actor = this.createPipeline(binary,color,opacity)
+          const actor = this.createPipeline(binary,color,opacity,cl)
           const tmp_segments = []
           this.state.segments.forEach((item, idx) =>{
             tmp_segments[idx] = item
@@ -1999,29 +2101,67 @@ class ViewerPanel extends Component {
 
   handleFuncButton(idx, e){
     switch (idx){
-      case 0:this.viewer.magnifyView(0)
-        break
-      case 1:this.viewer.reductView(0)
-        break
-      case 2:this.viewer.turnLeft()
-        break
-      case 3:this.viewer.turnRight()
-        break
-      case 4:this.selectByNum(0)
-        break
-      case 5:this.startEdit()
-        break
-      case 6:this.startPaint()
-        break
-      case 7:this.useEraser()
-        break
-      case 8:this.endEdit()
-        break
-      case 9:this.endPaint()
-        break
+    case "LUNG": this.toLungWindow()
+      break
+    case "BONE": this.toBoneWindow()
+      break
+    case "VENTRAL": this.toVentralWindow()
+      break
+    case "MEDIA": this.toMediaWindow()
+      break
+    case "MV":this.viewer.magnifyView(0)
+      break
+    case "RV":this.viewer.reductView(0)
+      break
+    case "TL":this.viewer.turnLeft()
+      break
+    case "TR":this.viewer.turnRight()
+      break
+    case "MPR":this.selectByNum(0)
+      imageData.modified()
+      this.updateVolumeActor()
+      break
+    case "SC":this.startEdit()
+      break
+    case "PA":this.startPaint()
+      break
+    case "EA":this.useEraser()
+      break
+    case "STSC":this.endEdit()
+      break
+    case "STPA":this.endPaint()
+      break
       case 17:this.startPaint2()
         break
     }
+  }
+  toLungWindow(){
+    const voi = this.state.voi
+    voi.windowWidth = 1600
+    voi.windowCenter = -600 + 1024
+    this.setState({voi: voi})
+    this.updateVolumeActor()
+  }
+  toBoneWindow(){
+    const voi = this.state.voi
+    voi.windowWidth = 1000
+    voi.windowCenter = 300 + 1024
+    this.setState({voi: voi})
+    this.updateVolumeActor()
+  }
+  toVentralWindow(){
+    const voi = this.state.voi
+    voi.windowWidth = 400
+    voi.windowCenter = 40 + 1024
+    this.setState({voi: voi})
+    this.updateVolumeActor()
+  }
+  toMediaWindow(){
+    const voi = this.state.voi
+    voi.windowWidth = 500
+    voi.windowCenter = 50 + 1024
+    this.setState({voi: voi})
+    this.updateVolumeActor()
   }
   startEdit(){
     this.endPaint()
@@ -2036,6 +2176,7 @@ class ViewerPanel extends Component {
       editing: false
     })
     this.clearPointActor()
+    this.updateNoduleMask()
   }
   startPaint(){
     if(this.state.painting){
@@ -2061,6 +2202,7 @@ class ViewerPanel extends Component {
       painting: false
     })
     this.clearCanvas()
+    this.updateNoduleMask()
   }
   startPaint2(){
     const paintImageData = this.state.paintImageData
@@ -2144,8 +2286,105 @@ class ViewerPanel extends Component {
         tmp_listsActive[idx] = true
       }
 
+      if(tmp_listsActive[idx] && idx >= 6 && this.state.selectedNum !== -1){
+        const segment = this.state.segments[idx]
+        const bounds = segment.getBounds()
+        console.log("nowtime bounds", bounds)
+        const firstPicked = [bounds[0], bounds[2], bounds[4]]
+        const lastPicked = [bounds[1], bounds[3], bounds[5]]
+    
+        const firstOrigin = this.transform3DPickedToOrigin(firstPicked)
+        const lastOrigin = this.transform3DPickedToOrigin(lastPicked)
+        const origin = [Math.round((firstOrigin[0] + lastOrigin[0])/2), Math.round((firstOrigin[1] + lastOrigin[1])/2), Math.round((firstOrigin[2] + lastOrigin[2])/2)]
+        console.log("nowtime origin", origin)
+        this.setState({
+          origin: origin
+        }, function(){
+          imageData.modified()
+          this.updateVolumeActor()
+          this.updateNoduleMask()
+          if(this.state.editing){
+            this.updateRowAndColumnStyle()
+            this.updatePointActor()
+          }
+          if(this.state.painting){
+            this.updateCanvas()
+          }
+        })
+
+        // const firstPixels = this.transformOriginToPixel(firstOrigin)
+        // const lastPixels = this.transformOriginToPixel(lastOrigin)
+        // console.log("actor first", firstPixels)
+        // console.log("actor last", lastPixels)
+
+        // this.clearCanvas()
+        // const ctxAxial=document.getElementById('canvas-axial').getContext('2d')
+        // // const imageDataAxial = ctxAxial.getImageData(0,0,widthAxial,heightAxial)
+        // const ctxCoronal=document.getElementById('canvas-coronal').getContext('2d')
+        // const ctxSagittal=document.getElementById('canvas-sagittal').getContext('2d')
+
+        // this.paintRect(ctxAxial, firstPixels[0], lastPixels[0])
+        // this.paintRect(ctxCoronal, firstPixels[1], lastPixels[1])
+        // this.paintRect(ctxSagittal, firstPixels[2], lastPixels[2])
+      }
       this.setState({ listsActive: tmp_listsActive })
     }
+  }
+  updateNoduleMask(){
+    this.clearCanvas()
+    const selectedNum = this.state.selectedNum
+    const segVisible = this.state.segVisible
+    const origin = this.state.origin
+    const segments = this.state.segments
+    segments.forEach((item, idx) => {
+      if(selectedNum !== -1 && idx >= 6 && segVisible[idx]){
+        const segment = item
+        const bounds = segment.getBounds()
+        const firstPicked = [bounds[0], bounds[2], bounds[4]]
+        const lastPicked = [bounds[1], bounds[3], bounds[5]]
+    
+        const firstOrigin = this.transform3DPickedToOrigin(firstPicked)
+        const lastOrigin = this.transform3DPickedToOrigin(lastPicked)
+        const nowOrigin = [Math.round((firstOrigin[0] + lastOrigin[0])/2), Math.round((firstOrigin[1] + lastOrigin[1])/2), Math.round((firstOrigin[2] + lastOrigin[2])/2)]
+
+        const firstPixels = this.transformOriginToPixel(firstOrigin)
+        const lastPixels = this.transformOriginToPixel(lastOrigin)
+        console.log("nowtime", idx, nowOrigin, origin)
+        if(nowOrigin[0] === origin[0]){
+          console.log("nowtime on sagittal")
+          const ctxSagittal=document.getElementById('canvas-sagittal').getContext('2d')
+          this.paintRect(ctxSagittal, firstPixels[2], lastPixels[2])
+        }
+        if(nowOrigin[1] === origin[1]){
+          console.log("nowtime on coronal")
+          const ctxCoronal=document.getElementById('canvas-coronal').getContext('2d')
+          this.paintRect(ctxCoronal, firstPixels[1], lastPixels[1])
+        }
+        if(nowOrigin[2] === origin[2]){
+          console.log("nowtime on axial")
+          const ctxAxial=document.getElementById('canvas-axial').getContext('2d')
+          this.paintRect(ctxAxial, firstPixels[0], lastPixels[0])
+        }
+      }
+    })
+  }
+  paintRect(ctx, firstPixel, lastPixel){
+    //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
+    ctx.beginPath()
+    ctx.strokeStyle = 'rgba(255,255,0,1)'
+    ctx.lineWidth = 1
+    const minX = Math.min(firstPixel[0], lastPixel[0]) - 10
+    const maxX = Math.max(firstPixel[0], lastPixel[0]) + 10
+    const minY = Math.min(firstPixel[1], lastPixel[1]) - 10
+    const maxY = Math.max(firstPixel[1], lastPixel[1]) + 10
+    ctx.rect(
+      minX,
+      minY,
+      maxX - minX,
+      maxY - minY
+    )
+    ctx.closePath()
+    ctx.stroke()
   }
   handleVisibleButton(idx, e) {
     e.stopPropagation()
@@ -2156,16 +2395,18 @@ class ViewerPanel extends Component {
     this.state.segments.forEach((item, i) =>{
       tmp_segments[i] = item
     })
-    if(!tmp_segVisible[idx]){
-      tmp_segments[idx].getProperty().setOpacity(0)
-    }else{
+
+    if(tmp_segVisible[idx]){
       tmp_segments[idx].getProperty().setOpacity(this.state.opacity[idx])
+    }else{
+      tmp_segments[idx].getProperty().setOpacity(0)
     }
 
     this.setState({
       segVisible: tmp_segVisible,
       segments: tmp_segments
-    });
+    })
+    this.updateNoduleMask()
   }
   handleOpacityButton(idx, e) {
     e.stopPropagation()
@@ -2273,6 +2514,7 @@ class ViewerPanel extends Component {
       painting,
       isEraser,
       selectedNum,
+      voi,
       selectionStyles,
       axialRowStyle,
       axialColumnStyle,
@@ -2306,17 +2548,17 @@ class ViewerPanel extends Component {
                         {sgName}
                       </div>
                       <div className='segment-list-content-block segment-list-content-info'>
-                        info
+                        
                       </div>
                       <div className='segment-list-content-block segment-list-content-tool' hidden={!listsActive[idx]}>
                         {/*content={segVisible[idx] === 1?'隐藏':'显示'}*/}
-                        <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-visible'
+                        <Button inverted color='blue' size = "tiny" className='segment-list-content-tool-block segment-list-content-tool-visible'
                                 onClick={this.handleVisibleButton.bind(this, idx)} hidden={!segVisible[idx]}>隐藏</Button>
-                        <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-visible'
+                        <Button inverted color='blue' size = "tiny" className='segment-list-content-tool-block segment-list-content-tool-visible'
                                 onClick={this.handleVisibleButton.bind(this, idx)} hidden={segVisible[idx]}>显示</Button>
-                        <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-opacity'
+                        <Button inverted color='blue' size = "tiny" className='segment-list-content-tool-block segment-list-content-tool-opacity'
                                 onClick={this.handleOpacityButton.bind(this, idx)} hidden={listsOpacityChangeable[idx]}>调整透明度</Button>
-                        <Button inverted color='blue' className='segment-list-content-tool-block segment-list-content-tool-opacity'
+                        <Button inverted color='blue' size = "tiny" className='segment-list-content-tool-block segment-list-content-tool-opacity'
                                 onClick={this.handleOpacityButton.bind(this, idx)} hidden={!listsOpacityChangeable[idx]}>调整完毕</Button>
                       </div>
                       <div className='segment-list-content-block' className='segment-list-content-input' hidden={!(listsActive[idx] && listsOpacityChangeable[idx])}>
@@ -2393,7 +2635,7 @@ class ViewerPanel extends Component {
     for (let cur_idx in segments) {
       segments_list.push(segments[cur_idx]);
     }
-    console.log('render segments:', segments)
+    // console.log('render segments:', segments)
     return (
       <div id="viewer">
         <Menu className="corner-header">
@@ -2401,24 +2643,36 @@ class ViewerPanel extends Component {
             <Image src={src1} avatar size='mini'/>
             <a id='sys-name' href='/searchCase'>DeepLN肺结节全周期<br/>管理数据平台</a>
           </Menu.Item>
-          <Menu.Item className='funcList'>
+          <Menu.Item className='funcolumn'>
             <Button.Group>
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 0)} title="放大"><Icon name='search plus' size='large'/></Button>
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 1)} title="缩小"><Icon name='search minus' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, "MV")} title="放大"><Icon name='search plus' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, "RV")} title="缩小"><Icon name='search minus' size='large'/></Button>
               {/*"reply" "share" "arrow alternate circle up outline" "arrow alternate circle down outline"*/}
               {/*<Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)}><Icon name='reply' size='large'/></Button>*/}
               {/*<Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)}><Icon name='share' size='large'/></Button>*/}
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 2)} title="左旋"><Icon name='arrow alternate circle left outline' size='large'/></Button>
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 3)} title="右旋"><Icon name='arrow alternate circle right outline' size='large'/></Button>
-              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, 4)} title="MPR"><Icon name='th large' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, "TL")} title="左旋"><Icon name='arrow alternate circle left outline' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, "TR")} title="右旋"><Icon name='arrow alternate circle right outline' size='large'/></Button>
+              <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, "MPR")} title="MPR"><Icon name='th large' size='large'/></Button>
             </Button.Group>
-            <Button.Group style={{marginLeft:"10px"}} hidden={selectedNum === -1}>
-              <Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 5)} title="选中"><Icon name='hand point down outline' size='large'/></Button>
+          </Menu.Item>
+          <span id='line-left' hidden={selectedNum === -1}></span>
+          <Menu.Item className='hucolumn' hidden={selectedNum === -1}>
+            <Button.Group>
+              <Button className='hubtn' onClick={this.handleFuncButton.bind(this, "LUNG")} title="肺窗" content="肺窗"></Button>
+              <Button className='hubtn' onClick={this.handleFuncButton.bind(this, "BONE")} title="骨窗" content="骨窗"></Button>
+              <Button className='hubtn' onClick={this.handleFuncButton.bind(this, "VENTRAL")} title="腹窗" content="腹窗"></Button>
+              <Button className='hubtn' onClick={this.handleFuncButton.bind(this, "MEDIA")} title="纵隔窗" content="纵隔窗"></Button>
+            </Button.Group>
+          </Menu.Item>
+          <span id='line-left' hidden={selectedNum === -1}></span>
+          <Menu.Item className='funcolumn' hidden={selectedNum === -1}>
+            <Button.Group>
+              <Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, "SC")} title="选中"><Icon name='hand point down outline' size='large'/></Button>
               {/*<Button icon className='funcBtn' hidden={editing} onClick={this.handleFuncButton.bind(this, 17)} title="涂画"><Icon name='paint brush' size='large'/></Button>*/}
-              <Button icon className='funcBtn' active={painting && !isEraser} onClick={this.handleFuncButton.bind(this, 6)} title="标记"><Icon name='pencil alternate' size='large'/></Button>
-              <Button icon className='funcBtn' hidden={!painting} active={isEraser} onClick={this.handleFuncButton.bind(this, 7)} title="擦除"><Icon name='eraser' size='large'/></Button>
-              <Button icon className='funcBtn' hidden={!editing} onClick={this.handleFuncButton.bind(this, 8)} title="停止选中"><Icon name='window close outline' size='large'/></Button>
-              <Button icon className='funcBtn' hidden={!painting} onClick={this.handleFuncButton.bind(this, 9)} title="停止标记"><Icon name='window close outline' size='large'/></Button>
+              <Button icon className='funcBtn' active={painting && !isEraser} onClick={this.handleFuncButton.bind(this, "PA")} title="标记"><Icon name='pencil alternate' size='large'/></Button>
+              <Button icon className='funcBtn' hidden={!painting} active={isEraser} onClick={this.handleFuncButton.bind(this, "EA")} title="擦除"><Icon name='eraser' size='large'/></Button>
+              <Button icon className='funcBtn' hidden={!editing} onClick={this.handleFuncButton.bind(this, "STSC")} title="停止选中"><Icon name='window close outline' size='large'/></Button>
+              <Button icon className='funcBtn' hidden={!painting} onClick={this.handleFuncButton.bind(this, "STPA")} title="停止标记"><Icon name='window close outline' size='large'/></Button>
             </Button.Group>
             <Button.Group style={{marginLeft:"10px"}}>
               <Button className='funcBtn' onClick={this.goBack.bind(this)}>2D</Button>
@@ -2449,6 +2703,7 @@ class ViewerPanel extends Component {
                     axialVolumes={axialActorVolumes}
                     coronalVolumes={coronalActorVolumes}
                     sagittalVolumes={sagittalActorVolumes}
+                    onRightClick={this.rightClick.bind(this)}
                     onRef={(ref) => {this.viewer = ref}}
                 />
 
@@ -2460,6 +2715,7 @@ class ViewerPanel extends Component {
                   <div className="segment-content-block segment-content-axial" style={selectionStyles[1]} hidden={selectedNum === -1}>
                     <canvas id="canvas-axial" style={canvasAStyle} width={canvasAStyle.w} height={canvasAStyle.h}/>
                     <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 0)}/>
+                    <div className="segment-content-wwwc">WW/WC: {voi.windowWidth} / {" "} {voi.windowCenter - 1024}</div>
                     <Slider className="segment-content-origin" vertical reverse defaultValue={0} value={origin[2]} min={1} step={1} max={originZBorder}
                             onChange={this.changeOrigin.bind(this, 0)}
                             onAfterChange={this.afterChangeOrigin.bind(this)}/>

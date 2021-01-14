@@ -51,7 +51,10 @@ class LoginPanel extends Component {
         const auth={
             username: this.state.username
         }
+<<<<<<< HEAD
         
+=======
+>>>>>>> ad517d60fa6af63cc37dfd0b8c03793248dd541a
         axios.post(userConfig.validUser, qs.stringify(user))
         .then((loginResponse) => {
             if (loginResponse.data.status === 'failed') {

@@ -178,6 +178,7 @@ export class SearchNodulePanel extends Component {
                 sequence['caseId']=data[idx]['caseId']
                 sequence['noduleNo']=data[idx]['noduleNo']
                 sequence['status']=data[idx]['status']
+                sequence['username']=data[idx]['username']
                 lists.push(sequence)
             }
             console.log('lists1:',lists)
@@ -239,6 +240,7 @@ export class SearchNodulePanel extends Component {
                 sequence['caseId']=data[idx]['caseId']
                 sequence['noduleNo']=data[idx]['noduleNo']
                 sequence['status']=data[idx]['status']
+                sequence['username']=data[idx]['username']
             datalists.push(sequence)
             
         }
@@ -280,27 +282,28 @@ export class SearchNodulePanel extends Component {
         // this.props.history.push(path, {storeCaseId: storecid})
     }
 
-    handleLinkClick(caseId,noduleNo,e) {
+    handleLinkClick(caseId,username,noduleNo,e) {
         // console.log('dataset:',e.currentTarget.dataset.id)
         // // request, api, modifier
-        const token = localStorage.getItem('token')
-        const headers = {
-            'Authorization': 'Bearer '.concat(token)
-        }
-        const params = {
-            caseId: caseId
-        }
-        axios.post(draftConfig.getDataPath, qs.stringify(params), {headers})
-        .then(res => {
-            // console.log('result from server', res.data)
-            console.log(params)
-            console.log(res.data)
-            this.nextPath('/case/' + params.caseId + '/' + res.data + '#'+noduleNo)
-            // window.location.href='/case/' + params.caseId + '/' + res.data + '#'+noduleNo
-        })
-        .catch(err => {
-            console.log(err)
-        })
+        // const token = localStorage.getItem('token')
+        // const headers = {
+        //     'Authorization': 'Bearer '.concat(token)
+        // }
+        // const params = {
+        //     caseId: caseId
+        // }
+        // axios.post(draftConfig.getDataPath, qs.stringify(params), {headers})
+        // .then(res => {
+        //     // console.log('result from server', res.data)
+        //     console.log(params)
+        //     console.log(res.data)
+        //     this.nextPath('/case/' + params.caseId + '/' + res.data + '#'+noduleNo)
+        //     // window.location.href='/case/' + params.caseId + '/' + res.data + '#'+noduleNo
+        // })
+        // .catch(err => {
+        //     console.log(err)
+        // })
+        this.nextPath('/case/' + caseId + '/' + username + '#'+noduleNo)
     }
     handlePaginationChange(e, {activePage}) {
         this.setState({activePage})
@@ -908,6 +911,7 @@ export class SearchNodulePanel extends Component {
                             <Table celled inverted textAlign='center'  id="table" >
                                 <Table.Header id='table-header'>
                                     <Table.Row>
+                                        <Table.HeaderCell >标注者</Table.HeaderCell>
                                         <Table.HeaderCell >病人ID</Table.HeaderCell>
                                         <Table.HeaderCell  >性别</Table.HeaderCell>
                                         <Table.HeaderCell  >年龄</Table.HeaderCell>
@@ -935,6 +939,7 @@ export class SearchNodulePanel extends Component {
                                         // console.log('content:',content)
                                         return (
                                             <Table.Row key={index}>
+                                                <Table.Cell >{content['username']}</Table.Cell>
                                                 <Table.Cell >{content['病人ID']}</Table.Cell>
                                                 <Table.Cell >{content['性别']}</Table.Cell>
                                                 <Table.Cell >{content['年龄']}</Table.Cell>
@@ -954,7 +959,7 @@ export class SearchNodulePanel extends Component {
                                                     <Button 
                                                         icon='right arrow'
                                                         className='ui green inverted button' 
-                                                        onClick={this.handleLinkClick.bind(this,content['caseId'],content['noduleNo'])}
+                                                        onClick={this.handleLinkClick.bind(this,content['caseId'],content['username'],content['noduleNo'])}
                                                         size='mini'
                                                         // data-id={dataset}
                                                     ></Button>
@@ -994,6 +999,10 @@ export class SearchNodulePanel extends Component {
                     </Grid>
                     
             </div>
+<<<<<<< HEAD
+=======
+            
+>>>>>>> ad517d60fa6af63cc37dfd0b8c03793248dd541a
             )
         }
         
