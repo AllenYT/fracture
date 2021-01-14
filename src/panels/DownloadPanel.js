@@ -105,10 +105,6 @@ class DownloadPanel extends Component {
 
 
     render() {
-<<<<<<< HEAD
-        
-=======
->>>>>>> ad517d60fa6af63cc37dfd0b8c03793248dd541a
             const content = Array.from(this.state.cart)
 
             if (this.state.loading) {
@@ -160,11 +156,6 @@ class DownloadPanel extends Component {
                 )
               }
             }
-<<<<<<< HEAD
-=======
-        
-        
->>>>>>> ad517d60fa6af63cc37dfd0b8c03793248dd541a
     }
 }
 

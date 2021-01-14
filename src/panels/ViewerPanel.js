@@ -2289,14 +2289,14 @@ class ViewerPanel extends Component {
       if(tmp_listsActive[idx] && idx >= 6 && this.state.selectedNum !== -1){
         const segment = this.state.segments[idx]
         const bounds = segment.getBounds()
-        console.log("nowtime bounds", bounds)
+        // console.log("nowtime bounds", bounds)
         const firstPicked = [bounds[0], bounds[2], bounds[4]]
         const lastPicked = [bounds[1], bounds[3], bounds[5]]
     
         const firstOrigin = this.transform3DPickedToOrigin(firstPicked)
         const lastOrigin = this.transform3DPickedToOrigin(lastPicked)
         const origin = [Math.round((firstOrigin[0] + lastOrigin[0])/2), Math.round((firstOrigin[1] + lastOrigin[1])/2), Math.round((firstOrigin[2] + lastOrigin[2])/2)]
-        console.log("nowtime origin", origin)
+        // console.log("nowtime origin", origin)
         this.setState({
           origin: origin
         }, function(){
@@ -2349,19 +2349,19 @@ class ViewerPanel extends Component {
 
         const firstPixels = this.transformOriginToPixel(firstOrigin)
         const lastPixels = this.transformOriginToPixel(lastOrigin)
-        console.log("nowtime", idx, nowOrigin, origin)
+        // console.log("nowtime", idx, nowOrigin, origin)
         if(nowOrigin[0] === origin[0]){
-          console.log("nowtime on sagittal")
+          // console.log("nowtime on sagittal")
           const ctxSagittal=document.getElementById('canvas-sagittal').getContext('2d')
           this.paintRect(ctxSagittal, firstPixels[2], lastPixels[2])
         }
         if(nowOrigin[1] === origin[1]){
-          console.log("nowtime on coronal")
+          // console.log("nowtime on coronal")
           const ctxCoronal=document.getElementById('canvas-coronal').getContext('2d')
           this.paintRect(ctxCoronal, firstPixels[1], lastPixels[1])
         }
         if(nowOrigin[2] === origin[2]){
-          console.log("nowtime on axial")
+          // console.log("nowtime on axial")
           const ctxAxial=document.getElementById('canvas-axial').getContext('2d')
           this.paintRect(ctxAxial, firstPixels[0], lastPixels[0])
         }
@@ -2725,6 +2725,7 @@ class ViewerPanel extends Component {
                   <div className="segment-content-block segment-content-coronal" style={selectionStyles[2]} hidden={selectedNum === -1}>
                     <canvas id="canvas-coronal" style={canvasCStyle} width={canvasCStyle.w} height={canvasCStyle.h}/>
                     <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 0)}/>
+                    <div className="segment-content-wwwc">WW/WC: {voi.windowWidth} / {" "} {voi.windowCenter - 1024}</div>
                     <Slider className="segment-content-origin" vertical reverse defaultValue={0} value={origin[1]} min={1} step={1} max={originYBorder}
                             onChange={this.changeOrigin.bind(this, 1)}
                             onAfterChange={this.afterChangeOrigin.bind(this)}/>
@@ -2734,6 +2735,7 @@ class ViewerPanel extends Component {
                   <div className="segment-content-block segment-content-sagittal" style={selectionStyles[3]} hidden={selectedNum === -1}>
                     <canvas id="canvas-sagittal" style={canvasSStyle} width={canvasSStyle.w} height={canvasSStyle.h}/>
                     <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 0)}/>
+                    <div className="segment-content-wwwc">WW/WC: {voi.windowWidth} / {" "} {voi.windowCenter - 1024}</div>
                     <Slider className="segment-content-origin" vertical reverse defaultValue={0} value={origin[0]} min={1} step={1} max={originXBorder}
                             onChange={this.changeOrigin.bind(this, 2)}
                             onAfterChange={this.afterChangeOrigin.bind(this)}/>

@@ -999,10 +999,6 @@ export class SearchNodulePanel extends Component {
                     </Grid>
                     
             </div>
-<<<<<<< HEAD
-=======
-            
->>>>>>> ad517d60fa6af63cc37dfd0b8c03793248dd541a
             )
         }
         

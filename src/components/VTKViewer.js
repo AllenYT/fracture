@@ -202,30 +202,30 @@ class VTKViewer extends Component{
         return (
             <div style={style}>
                 <VTK3DViewer id="viewer-3D"
-                             viewerStyle={selectionStyles[0]}
-                             actors={actors}
-                             pointActors={pointActors}
-                             type={0}
-                             onRightClick={this.rightClick.bind(this)}
-                             onRef={(ref) => {this.viewer3D = ref}}
+                    viewerStyle={selectionStyles[0]}
+                    actors={actors}
+                    pointActors={pointActors}
+                    type={0}
+                    onRightClick={this.rightClick.bind(this)}
+                    onRef={(ref) => {this.viewer3D = ref}}
                 />
                 <VTKMPRViewer id="viewer-axial"
-                              viewerStyle={selectionStyles[1]}
-                              volumes={axialVolumes}
-                              type={1}
-                              onRef={(ref) => {this.viewerAxial = ref}}
+                    viewerStyle={selectionStyles[1]}
+                    volumes={axialVolumes}
+                    type={1}
+                    onRef={(ref) => {this.viewerAxial = ref}}
                 />
                 <VTKMPRViewer id="viewer-coronal"
-                              viewerStyle={selectionStyles[2]}
-                              volumes={coronalVolumes}
-                              type={2}
-                              onRef={(ref) => {this.viewerCoronal = ref}}
+                    viewerStyle={selectionStyles[2]}
+                    volumes={coronalVolumes}
+                    type={2}
+                    onRef={(ref) => {this.viewerCoronal = ref}}
                 />
                 <VTKMPRViewer id="viewer-sagittal"
-                              viewerStyle={selectionStyles[3]}
-                              volumes={sagittalVolumes}
-                              type={3}
-                              onRef={(ref) => {this.viewerSagittal = ref}}
+                    viewerStyle={selectionStyles[3]}
+                    volumes={sagittalVolumes}
+                    type={3}
+                    onRef={(ref) => {this.viewerSagittal = ref}}
                 />
             </div>
         )
