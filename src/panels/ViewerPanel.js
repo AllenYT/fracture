@@ -735,7 +735,13 @@ class ViewerPanel extends Component {
   }
   keydown(e){
     // e.which : +/187, -/189
-    if(e.ctrlKey){
+    // if(e.ctrlKey){
+    //   console.log("ctrl")
+    //   this.setState({
+    //     isCtrl: true
+    //   })
+    // }
+    if(e.shiftKey){
       console.log("ctrl")
       this.setState({
         isCtrl: true
