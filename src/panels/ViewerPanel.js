@@ -93,6 +93,7 @@ class ViewerPanel extends Component {
       volLength: 600,
       volXLength: 680,
       volYLength: 520,
+      scale: [0, 0, 0],
       origin: [120,120,0],
       originXBorder: 1,
       originYBorder: 1,
@@ -132,14 +133,13 @@ class ViewerPanel extends Component {
     vtpReader.parseAsArrayBuffer(binary)
     const source = vtpReader.getOutputData()
 
-    // const lookupTable = vtkColorTransferFunction.newInstance()
-    // const lookback=vtkPiecewiseFunction.newInstance()
-    // const scalars = source.getPointData().getScalars();
-    // const dataRange = [].concat(scalars ? scalars.getRange() : [0, 1]);
-    // lookupTable.addRGBPoint(200.0,1.0,1.0,1.0)
-    // lookupTable.applyColorMap(vtkColorMaps.getPresetByName('erdc_rainbow_bright'))
-    // lookupTable.setMappingRange(dataRange[0], dataRange[1]);
-    // lookupTable.updateRange();
+    const lookupTable = vtkColorTransferFunction.newInstance()
+    const scalars = source.getPointData().getScalars();
+    const dataRange = [].concat(scalars ? scalars.getRange() : [0, 1]);
+    lookupTable.addRGBPoint(200.0,1.0,1.0,1.0)
+    lookupTable.applyColorMap(vtkColorMaps.getPresetByName('erdc_rainbow_bright'))
+    lookupTable.setMappingRange(dataRange[0], dataRange[1]);
+    lookupTable.updateRange();
     // const mapper = vtkMapper.newInstance({
     //   interpolateScalarsBeforeMapping: false, //颜色插值
     //   useLookupTableScalarRange: true,
@@ -148,6 +148,9 @@ class ViewerPanel extends Component {
     // })
 
     const mapper = vtkMapper.newInstance({
+      interpolateScalarsBeforeMapping: false, //颜色插值
+      useLookupTableScalarRange: true,
+      lookupTable,
       scalarVisibility: false
     })
 
@@ -163,21 +166,12 @@ class ViewerPanel extends Component {
     //       actor.getProperty().setColor(item.colorvalue)
     //      }
     // }
-    actor.getProperty().setDiffuse(0.25)
-    actor.getProperty().setAmbient(0.5)
-    actor.getProperty().setSpecular(0.125)
 
+    actor.getProperty().setDiffuse(0.75)
+    actor.getProperty().setAmbient(0.2)
+    actor.getProperty().setSpecular(0)
+    actor.getProperty().setSpecularPower(1);
     mapper.setInputData(source);
-
-    // const rgbTransferFunction = actor.getProperty().getRGBTransferFunction(0);
-    // const range = rgbTransferFunction.getMappingRange();
-    //  const light2 = gc.registerResource(vtkLight.newInstance());
-    //  light2.setColor(1, 1, 0);
-    //  light2.setPosition(0, 1, 0);
-    //  renderer.addLight(light2);
-    // console.log('light is done!')
-    // const windowWidth = range[0] + range[1];
-    // const windowCenter = range[0] + windowWidth / 2;
 
     return actor;
   }
@@ -487,7 +481,7 @@ class ViewerPanel extends Component {
 
         const tmp_segments = Object.keys(tmp_urls).map((key) => null)
         const tmp_percent = Object.keys(tmp_urls).map((key) => 0)
-        const tmp_opacity = Object.keys(tmp_urls).map((key) => 0.5)
+        const tmp_opacity = Object.keys(tmp_urls).map((key) => 1)
         const tmp_listsActive = Object.keys(tmp_urls).map((key) => false)
         const tmp_segVisible = Object.keys(tmp_urls).map((key) => true)
         const tmp_listsOpacityChangeable = Object.keys(tmp_urls).map((key) => false)
@@ -762,67 +756,68 @@ class ViewerPanel extends Component {
   mousewheel(e){
     //- represents magnify, + represents reduct
     const wheelValue = e.wheelDelta / 120
-    const {origin, originXBorder, originYBorder, originZBorder} = this.state
+    const {origin, scale, originXBorder, originYBorder, originZBorder} = this.state
     const isCtrl = this.state.isCtrl
     console.log("isCtrl", isCtrl)
     if(isCtrl){
       if(e.path[1].className === "segment-content-block segment-content-axial" && e.path[0].id === "canvas-axial"){
-        let volLength = this.state.volLength
+        scale[0] = scale[0] + wheelValue
         if(wheelValue > 0){
           this.viewer.magnifyView(1, wheelValue)
-          for(let i = 0; i < wheelValue; i++){
-            volLength = volLength * 1.1
-          }
         }else if(wheelValue < 0){
           this.viewer.reductView(1, -wheelValue)
-          for(let i = 0; i < -wheelValue; i++){
-            volLength = volLength * 0.9
-          }
         }
         this.setState({
-          volLength: volLength,
+          scale: scale
+        }, function(){
+          this.updateNoduleMask()
+          if(this.state.editing){
+            this.updateRowAndColumnStyle()
+            this.updatePointActor()
+          }
+          if(this.state.painting){
+            this.updateCanvas()
+          }
         })
       }
       if(e.path[1].className === "segment-content-block segment-content-coronal" && e.path[0].id === "canvas-coronal"){
-        let volXLength = this.state.volXLength
-        let volYLength = this.state.volYLength
+        scale[1] = scale[1] + wheelValue
         if(wheelValue > 0){
           this.viewer.magnifyView(2, wheelValue)
-          for(let i = 0; i < wheelValue; i++){
-            volXLength = volXLength * 1.1
-            volYLength = volYLength * 1.1
-          }
         }else if(wheelValue < 0){
           this.viewer.reductView(2, -wheelValue)
-          for(let i = 0; i < -wheelValue; i++){
-            volXLength = volXLength * 0.9
-            volYLength = volYLength * 0.9
-          }
         }
         this.setState({
-          volXLength: volXLength,
-          volYLength: volYLength
+          scale: scale
+        }, function(){
+          this.updateNoduleMask()
+          if(this.state.editing){
+            this.updateRowAndColumnStyle()
+            this.updatePointActor()
+          }
+          if(this.state.painting){
+            this.updateCanvas()
+          }
         })
       }
       if(e.path[1].className === "segment-content-block segment-content-sagittal" && e.path[0].id === "canvas-sagittal"){
-        let volXLength = this.state.volXLength
-        let volYLength = this.state.volYLength
+        scale[2] = scale[2] + wheelValue
         if(wheelValue > 0){
           this.viewer.magnifyView(3, wheelValue)
-          for(let i = 0; i < wheelValue; i++){
-            volXLength = volXLength * 1.1
-            volYLength = volYLength * 1.1
-          }
         }else if(wheelValue < 0){
           this.viewer.reductView(3, -wheelValue)
-          for(let i = 0; i < -wheelValue; i++){
-            volXLength = volXLength * 0.9
-            volYLength = volYLength * 0.9
-          }
         }
         this.setState({
-          volXLength: volXLength,
-          volYLength: volYLength
+          scale: scale
+        }, function(){
+          this.updateNoduleMask()
+          if(this.state.editing){
+            this.updateRowAndColumnStyle()
+            this.updatePointActor()
+          }
+          if(this.state.painting){
+            this.updateCanvas()
+          }
         })
       }
     }else{
@@ -1555,109 +1550,149 @@ class ViewerPanel extends Component {
     //ratio for pixel to origin
     //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
     //for cor parameter, 0 represents x, 1 represents y, 2 represents z
-    const {selectedNum, originXBorder, originYBorder, originZBorder, volLength, volXLength, volYLength} = this.state
+    const {selectedNum, originXBorder, originYBorder, originZBorder, scale} = this.state
     // const volLength = 600
     // const volXLength = 680
     // const volYLength = 520
+    let axialXLength = this.state.volLength
+    let axialYLength = this.state.volLength
+    let coronalXLength = this.state.volXLength
+    let coronalYLength = this.state.volYLength
+    let sagittalXLength = this.state.volXLength
+    let sagittalYLength = this.state.volYLength
+    if(scale[0] > 0){
+      for(let i = 0; i < scale[0]; i++){
+        axialXLength = axialXLength * 1.1
+        axialYLength = axialYLength * 1.1
+      }
+    }else if(scale[0] < 0){
+      for(let i = 0; i < -scale[0]; i++){
+        axialXLength = axialXLength * 0.9
+        axialYLength = axialYLength * 1.1
+      }
+    }
+    if(scale[1] > 0){
+      for(let i = 0; i < scale[1]; i++){
+        coronalXLength = coronalXLength * 1.1
+        coronalYLength = coronalYLength * 1.1
+      }
+    }else if(scale[1] < 0){
+      for(let i = 0; i < -scale[1]; i++){
+        coronalXLength = coronalXLength * 0.9
+        coronalYLength = coronalYLength * 0.9
+      }
+    }
+    if(scale[2] > 0){
+      for(let i = 0; i < scale[2]; i++){
+        sagittalXLength = sagittalXLength * 1.1
+        sagittalYLength = sagittalYLength * 1.1
+      }
+    }else if(scale[2] < 0){
+      for(let i = 0; i < -scale[2]; i++){
+        sagittalXLength = sagittalXLength * 0.9
+        sagittalYLength = sagittalYLength * 0.9
+      }
+    }
+
     let ratio
     if(selectedNum === 0){
       if(model === 0){
         if(cor === 0){
-          ratio = originXBorder / (volLength / 2)
+          ratio = originXBorder / (axialXLength / 2)
         }else if(cor === 1){
-          ratio = originYBorder / (volLength / 2)
+          ratio = originYBorder / (axialYLength / 2)
         }
       }else if(model === 1){
         if(cor === 0){
-          ratio = originXBorder / (volXLength / 2)
+          ratio = originXBorder / (coronalXLength / 2)
         }else if(cor === 2){
-          ratio = originZBorder / (volYLength / 2)
+          ratio = originZBorder / (coronalYLength / 2)
         }
       }else if(model === 2){
         if(cor === 1){
-          ratio = originXBorder / (volXLength / 2)
+          ratio = originYBorder / (sagittalXLength / 2)
         }else if(cor === 2){
-          ratio = originYBorder / (volYLength / 2)
+          ratio = originZBorder / (sagittalYLength / 2)
         }
       }
     }else if(selectedNum === 1){
       if(model === 0){
         if(cor === 0){
-          ratio = originXBorder / (volLength / 3)
+          ratio = originXBorder / (axialXLength / 3)
         }else if(cor === 1){
-          ratio = originYBorder / (volLength / 3)
+          ratio = originYBorder / (axialYLength / 3)
         }
       }else if(model === 1){
         if(cor === 0){
-          ratio = originXBorder / (volXLength / 3)
+          ratio = originXBorder / (coronalXLength / 3)
         }else if(cor === 2){
-          ratio = originZBorder / (volYLength / 3)
+          ratio = originZBorder / (coronalYLength / 3)
         }
       }else if(model === 2){
         if(cor === 1){
-          ratio = originYBorder / (volXLength / 3)
+          ratio = originYBorder / (sagittalXLength / 3)
         }else if(cor === 2){
-          ratio = originZBorder / (volYLength / 3)
+          ratio = originZBorder / (sagittalYLength / 3)
         }
       }
     }else if(selectedNum === 2){
       if(model === 0){
         if(cor === 0){
-          ratio = originXBorder / volLength
+          ratio = originXBorder / axialXLength
         }else if(cor === 1){
-          ratio = originYBorder / volLength
+          ratio = originYBorder / axialYLength
         }
       }else if(model === 1){
         if(cor === 0){
-          ratio = originXBorder / (volXLength / 3)
+          ratio = originXBorder / (coronalXLength / 3)
         }else if(cor === 2){
-          ratio = originZBorder / (volYLength / 3)
+          ratio = originZBorder / (coronalYLength / 3)
         }
       }else if(model === 2){
         if(cor === 1){
-          ratio = originYBorder / (volXLength / 3)
+          ratio = originYBorder / (sagittalXLength / 3)
         }else if(cor === 2){
-          ratio = originZBorder / (volYLength / 3)
+          ratio = originZBorder / (sagittalYLength / 3)
         }
       }
     }else if(selectedNum === 3){
       if(model === 0){
         if(cor === 0){
-          ratio = originXBorder / (volLength / 3)
+          ratio = originXBorder / (axialXLength / 3)
         }else if(cor === 1){
-          ratio = originYBorder / (volLength / 3)
+          ratio = originYBorder / (axialYLength / 3)
         }
       }else if(model === 1){
         if(cor === 0){
-          ratio = originXBorder / volXLength
+          ratio = originXBorder / coronalXLength
         }else if(cor === 2){
-          ratio = originZBorder / volYLength
+          ratio = originZBorder / coronalYLength
         }
       }else if(model === 2){
         if(cor === 1){
-          ratio = originYBorder / (volXLength / 3)
+          ratio = originYBorder / (sagittalXLength / 3)
         }else if(cor === 2){
-          ratio = originZBorder / (volYLength / 3)
+          ratio = originZBorder / (sagittalYLength / 3)
         }
       }
     }else if(selectedNum === 4){
       if(model === 0){
         if(cor === 0){
-          ratio = originXBorder / (volLength / 3)
+          ratio = originXBorder / (axialXLength / 3)
         }else if(cor === 1){
-          ratio = originYBorder / (volLength / 3)
+          ratio = originYBorder / (axialYLength / 3)
         }
       }else if(model === 1){
         if(cor === 0){
-          ratio = originXBorder / (volXLength / 3)
+          ratio = originXBorder / (coronalXLength / 3)
         }else if(cor === 2){
-          ratio = originZBorder / (volYLength / 3)
+          ratio = originZBorder / (coronalYLength / 3)
         }
       }else if(model === 2){
         if(cor === 1){
-          ratio = originYBorder / volXLength
+          ratio = originYBorder / sagittalXLength
         }else if(cor === 2){
-          ratio = originZBorder / volYLength
+          ratio = originZBorder / sagittalYLength
         }
       }
     }
@@ -1667,67 +1702,106 @@ class ViewerPanel extends Component {
     //volume's top left, not viewer's top left
     //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
     //for cor parameter, 0 represents x, 1 represents y, 2 represents z
-    const {selectedNum, viewerWidth, viewerHeight, volLength, volXLength, volYLength} = this.state
+    const {selectedNum, viewerWidth, viewerHeight, scale} = this.state
     // const volLength = 600
     // const volXLength = 680
     // const volYLength = 520
+    let axialXLength = this.state.volLength
+    let axialYLength = this.state.volLength
+    let coronalXLength = this.state.volXLength
+    let coronalYLength = this.state.volYLength
+    let sagittalXLength = this.state.volXLength
+    let sagittalYLength = this.state.volYLength
+    if(scale[0] > 0){
+      for(let i = 0; i < scale[0]; i++){
+        axialXLength = axialXLength * 1.1
+        axialYLength = axialYLength * 1.1
+      }
+    }else if(scale[0] < 0){
+      for(let i = 0; i < -scale[0]; i++){
+        axialXLength = axialXLength * 0.9
+        axialYLength = axialYLength * 1.1
+      }
+    }
+    if(scale[1] > 0){
+      for(let i = 0; i < scale[1]; i++){
+        coronalXLength = coronalXLength * 1.1
+        coronalYLength = coronalYLength * 1.1
+      }
+    }else if(scale[1] < 0){
+      for(let i = 0; i < -scale[1]; i++){
+        coronalXLength = coronalXLength * 0.9
+        coronalYLength = coronalYLength * 0.9
+      }
+    }
+    if(scale[2] > 0){
+      for(let i = 0; i < scale[2]; i++){
+        sagittalXLength = sagittalXLength * 1.1
+        sagittalYLength = sagittalYLength * 1.1
+      }
+    }else if(scale[2] < 0){
+      for(let i = 0; i < -scale[2]; i++){
+        sagittalXLength = sagittalXLength * 0.9
+        sagittalYLength = sagittalYLength * 0.9
+      }
+    }
 
     let x
     let y
     if(selectedNum === 0){
       if(model === 0){
-        x = (viewerWidth/2  - volLength/2)/2
-        y = (viewerHeight/2 - volLength/2)/2
+        x = (viewerWidth/2  - axialXLength/2)/2
+        y = (viewerHeight/2 - axialYLength/2)/2
       }else if(model === 1){
-        x = (viewerWidth/2  - volXLength/2)/2
-        y = (viewerHeight/2 - volYLength/2)/2
+        x = (viewerWidth/2  - coronalXLength/2)/2
+        y = (viewerHeight/2 - coronalYLength/2)/2
       }else if(model === 2){
-        x = (viewerWidth/2  - volXLength/2)/2
-        y = (viewerHeight/2 - volYLength/2)/2
+        x = (viewerWidth/2  - sagittalXLength/2)/2
+        y = (viewerHeight/2 - sagittalYLength/2)/2
       }
     }else if(selectedNum === 1){
       if(model === 0){
-        x = (0.33 * viewerWidth - volLength/3)/2
-        y = (0.33 * viewerHeight - volLength/3)/2
+        x = (0.33 * viewerWidth - axialXLength/3)/2
+        y = (0.33 * viewerHeight - axialYLength/3)/2
       }else if(model === 1){
-        x = (0.33 * viewerWidth - volXLength/3)/2
-        y = (0.33 * viewerHeight - volYLength/3)/2
+        x = (0.33 * viewerWidth - coronalXLength/3)/2
+        y = (0.33 * viewerHeight - coronalYLength/3)/2
       }else if(model === 2){
-        x = (0.33 * viewerWidth - volXLength/3)/2
-        y = (0.34 * viewerHeight - volYLength/3)/2
+        x = (0.33 * viewerWidth - sagittalXLength/3)/2
+        y = (0.34 * viewerHeight - sagittalYLength/3)/2
       }
     }else if(selectedNum === 2){
       if(model === 0){
-        x = (0.67 * viewerWidth - volLength)/2
-        y = (viewerHeight - volLength)/2
+        x = (0.67 * viewerWidth - axialXLength)/2
+        y = (viewerHeight - axialYLength)/2
       }else if(model === 1){
-        x = (0.33 * viewerWidth - volXLength/3)/2
-        y = (0.33 * viewerHeight - volYLength/3)/2
+        x = (0.33 * viewerWidth - coronalXLength/3)/2
+        y = (0.33 * viewerHeight - coronalYLength/3)/2
       }else if(model === 2){
-        x = (0.33 * viewerWidth - volXLength/3)/2
-        y = (0.34 * viewerHeight - volYLength/3)/2
+        x = (0.33 * viewerWidth - sagittalXLength/3)/2
+        y = (0.34 * viewerHeight - sagittalYLength/3)/2
       }
     }else if(selectedNum === 3){
       if(model === 1){
-        x = (0.67 * viewerWidth - volXLength)/2
-        y = (viewerHeight - volYLength)/2
+        x = (0.67 * viewerWidth - axialXLength)/2
+        y = (viewerHeight - axialYLength)/2
       }else if(model === 0){
-        x = (0.33 * viewerWidth - volLength/3)/2
-        y = (0.33 * viewerHeight - volLength/3)/2
+        x = (0.33 * viewerWidth - coronalXLength/3)/2
+        y = (0.33 * viewerHeight - coronalYLength/3)/2
       }else if(model === 2){
-        x = (0.33 * viewerWidth - volXLength/3)/2
-        y = (0.34 * viewerHeight - volYLength/3)/2
+        x = (0.33 * viewerWidth - sagittalXLength/3)/2
+        y = (0.34 * viewerHeight - sagittalYLength/3)/2
       }
     }else if(selectedNum === 4){
       if(model === 2){
-        x = (0.67 * viewerWidth - volXLength)/2
-        y = (viewerHeight - volYLength)/2
+        x = (0.67 * viewerWidth - axialXLength)/2
+        y = (viewerHeight - axialYLength)/2
       }else if(model === 0){
-        x = (0.33 * viewerWidth - volLength/3)/2
-        y = (0.33 * viewerHeight - volLength/3)/2
+        x = (0.33 * viewerWidth - coronalXLength/3)/2
+        y = (0.33 * viewerHeight - coronalYLength/3)/2
       }else if(model === 1){
-        x = (0.33 * viewerWidth - volXLength/3)/2
-        y = (0.34 * viewerHeight - volYLength/3)/2
+        x = (0.33 * viewerWidth - sagittalXLength/3)/2
+        y = (0.34 * viewerHeight - sagittalYLength/3)/2
       }
     }
     return {x, y}
@@ -1795,7 +1869,7 @@ class ViewerPanel extends Component {
     const x = picked[0]
     const y = picked[1]
     const z = picked[2]
-    origin[0] = originXBorder * (xMax - x) / (xMax - xMin)
+    origin[0] = originXBorder * (x - xMin) / (xMax - xMin)
     origin[1] = originYBorder * (y - yMin) / (yMax - yMin)
     origin[2] = originZBorder * (zMax - z) / (zMax - zMin)
     return origin
@@ -1806,7 +1880,7 @@ class ViewerPanel extends Component {
     const {originXBorder, originYBorder, originZBorder} = this.state
     const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
 
-    picked[0] = xMax - (origin[0] * (xMax - xMin ) / originXBorder)
+    picked[0] = xMin + (origin[0] * (xMax - xMin ) / originXBorder)
     picked[1] = yMin + (origin[1] * (yMax - yMin) / originYBorder)
     picked[2] = zMax - (origin[2] * (zMax - zMin) / originZBorder)
     return picked
@@ -1854,34 +1928,75 @@ class ViewerPanel extends Component {
       origin = this.state.origin
     }
     // console.log("origin",origin)
-    const {viewerWidth, viewerHeight, originXBorder, originYBorder, originZBorder, volLength, volXLength, volYLength} = this.state
+    const {viewerWidth, viewerHeight, originXBorder, originYBorder, originZBorder, scale} = this.state
     // const volLength = 600
     // const volXLength = 680
     // const volYLength = 520
+    let axialXLength = this.state.volLength
+    let axialYLength = this.state.volLength
+    let coronalXLength = this.state.volXLength
+    let coronalYLength = this.state.volYLength
+    let sagittalXLength = this.state.volXLength
+    let sagittalYLength = this.state.volYLength
+    if(scale[0] > 0){
+      for(let i = 0; i < scale[0]; i++){
+        axialXLength = axialXLength * 1.1
+        axialYLength = axialYLength * 1.1
+      }
+    }else if(scale[0] < 0){
+      for(let i = 0; i < -scale[0]; i++){
+        axialXLength = axialXLength * 0.9
+        axialYLength = axialYLength * 0.9
+      }
+    }
+    if(scale[1] > 0){
+      for(let i = 0; i < scale[1]; i++){
+        coronalXLength = coronalXLength * 1.1
+        coronalYLength = coronalYLength * 1.1
+      }
+    }else if(scale[1] < 0){
+      for(let i = 0; i < -scale[1]; i++){
+        coronalXLength = coronalXLength * 0.9
+        coronalYLength = coronalYLength * 0.9
+      }
+    }
+    if(scale[2] > 0){
+      for(let i = 0; i < scale[2]; i++){
+        sagittalXLength = sagittalXLength * 1.1
+        sagittalYLength = sagittalYLength * 1.1
+      }
+    }else if(scale[2] < 0){
+      for(let i = 0; i < -scale[2]; i++){
+        sagittalXLength = sagittalXLength * 0.9
+        sagittalYLength = sagittalYLength * 0.9
+      }
+    }
 
     //10
-    const v1 = this.calTypeB(viewerHeight/2, volLength/2, origin[1], originYBorder) //1
-    const v2 = this.calTypeB(viewerWidth/2, volLength/2, origin[0], originXBorder) //1
-    const v3 = this.calTypeB(0.33 * viewerHeight, volLength/3, origin[1], originYBorder) //3
-    const v4 = this.calTypeB(0.33 * viewerWidth, volLength/3, origin[0], originXBorder) //3
-    const v5 = this.calTypeB(0.67 * viewerWidth, volLength, origin[0], originXBorder) //1
-    const v6 = this.calTypeB(viewerHeight, volLength, origin[1], originYBorder) //1
+    const v1 = this.calTypeB(viewerHeight/2, axialYLength/2, origin[1], originYBorder) //1
+    const v2 = this.calTypeB(viewerWidth/2, axialXLength/2, origin[0], originXBorder) //1
+    const v3 = this.calTypeB(0.33 * viewerHeight, axialYLength/3, origin[1], originYBorder) //3
+    const v4 = this.calTypeB(0.33 * viewerWidth, axialXLength/3, origin[0], originXBorder) //3
+    const v5 = this.calTypeB(0.67 * viewerWidth, axialXLength, origin[0], originXBorder) //1
+    const v6 = this.calTypeB(viewerHeight, axialYLength, origin[1], originYBorder) //1
     
     //10
-    const v7 = this.calTypeB(viewerWidth/2, volXLength/2, origin[0], originXBorder) //1
-    const v8 = this.calTypeB(viewerWidth/2, volXLength/2, origin[1], originYBorder) //1
-    const v9 = this.calTypeB(0.33 * viewerWidth, volXLength/3, origin[0], originXBorder) //2
-    const v10 = this.calTypeB(0.33 * viewerWidth, volXLength/3, origin[1], originYBorder) //3
-    const v11 = this.calTypeB(0.67 * viewerWidth, volXLength, origin[0], originXBorder) //1
-    const v12 = this.calTypeB(0.33 * viewerWidth, volXLength/3, origin[0], originXBorder) //1
-    const v13 = this.calTypeB(0.67 * viewerWidth, volXLength, origin[1], originYBorder) //1
+    const v7 = this.calTypeB(viewerWidth/2, coronalXLength/2, origin[0], originXBorder) //1
+    const v8 = this.calTypeB(viewerWidth/2, sagittalXLength/2, origin[1], originYBorder) //1
+    const v9 = this.calTypeB(0.33 * viewerWidth, coronalXLength/3, origin[0], originXBorder) //2
+    const v10 = this.calTypeB(0.33 * viewerWidth, sagittalXLength/3, origin[1], originYBorder) //3
+    const v11 = this.calTypeB(0.67 * viewerWidth, coronalXLength, origin[0], originXBorder) //1
+    const v12 = this.calTypeB(0.33 * viewerWidth, coronalXLength/3, origin[0], originXBorder) //1
+    const v13 = this.calTypeB(0.67 * viewerWidth, sagittalXLength, origin[1], originYBorder) //1
     
     // 10
-    const v14 = this.calTypeB(viewerHeight/2, volYLength/2, origin[2], originZBorder) //2
-    const v15 = this.calTypeB(0.33 * viewerHeight, volYLength/3, origin[2], originZBorder) //2
-    const v16 = this.calTypeB(0.34 * viewerHeight, volYLength/3, origin[2], originZBorder) //4
-    const v17 = this.calTypeB(viewerHeight, volYLength, origin[2], originZBorder) //2
-
+    const v14 = this.calTypeB(viewerHeight/2, coronalYLength/2, origin[2], originZBorder) //1
+    const v15 = this.calTypeB(0.33 * viewerHeight, coronalYLength/3, origin[2], originZBorder) //2
+    const v16 = this.calTypeB(0.34 * viewerHeight, sagittalYLength/3, origin[2], originZBorder) //3
+    const v17 = this.calTypeB(viewerHeight, coronalYLength, origin[2], originZBorder) //1
+    const v18 = this.calTypeB(viewerHeight/2, sagittalYLength/2, origin[2], originZBorder) //1
+    const v19 = this.calTypeB(0.34 * viewerHeight, coronalYLength/3, origin[2], originZBorder) //1
+    const v20 = this.calTypeB(viewerHeight, sagittalYLength, origin[2], originZBorder) //1
 
     const colorA = "red"
     const colorC = "green"
@@ -1899,7 +2014,7 @@ class ViewerPanel extends Component {
       axialColumnStyle = {top:`${viewerHeight * 0.1/2}px`, left:`${v2}px`, height:`${viewerHeight * 0.8/2}px`, background:colorS}
       coronalRowStyle = {top:`${v14}px`, left:`${viewerWidth * 0.1/2}px`, width:`${viewerWidth * 0.8/2}px`, background:colorA}
       coronalColumnStyle = {top:`${viewerHeight * 0.1/2}px`, left:`${v7}px`, height:`${viewerHeight * 0.8/2}px`, background:colorS}
-      sagittalRowStyle = {top:`${v14}px`, left:`${viewerWidth * 0.1/2}px`, width:`${viewerWidth * 0.8/2}px`, background:colorA}
+      sagittalRowStyle = {top:`${v18}px`, left:`${viewerWidth * 0.1/2}px`, width:`${viewerWidth * 0.8/2}px`, background:colorA}
       sagittalColumnStyle = {top:`${viewerHeight * 0.1/2}px`, left:`${v8}px`, height:`${viewerHeight * 0.8/2}px`, background:colorC}
     }else if(selectedNum === 1){
       axialRowStyle = {top:`${v3}px`, left:`${0.33 * viewerWidth * 0.1}px`, width:`${0.33 * viewerWidth * 0.8}px`, background:colorC}
@@ -1925,9 +2040,9 @@ class ViewerPanel extends Component {
     }else if(selectedNum === 4){
       axialRowStyle = {top:`${v3}px`, left:`${0.33 * viewerWidth * 0.1}px`, width:`${0.33 * viewerWidth * 0.8}px`, background:colorC}
       axialColumnStyle = {top:`${0.33 * viewerHeight * 0.1}px`, left:`${v4}px`, height:`${0.33 * viewerHeight * 0.8}px`, background:colorS}
-      coronalRowStyle = {top:`${v16}px`, left:`${0.33 * viewerWidth * 0.1}px`, width:`${0.33 * viewerWidth * 0.8}px`, background:colorA}
+      coronalRowStyle = {top:`${v19}px`, left:`${0.33 * viewerWidth * 0.1}px`, width:`${0.33 * viewerWidth * 0.8}px`, background:colorA}
       coronalColumnStyle = {top:`${0.34 * viewerHeight * 0.1}px`, left:`${v12}px`, height:`${0.34 * viewerHeight * 0.8}px`, background:colorS}
-      sagittalRowStyle = {top:`${v17}px`, left:`${0.67 * viewerWidth * 0.1}px`, width:`${0.67 * viewerWidth * 0.8}px`, background:colorA}
+      sagittalRowStyle = {top:`${v20}px`, left:`${0.67 * viewerWidth * 0.1}px`, width:`${0.67 * viewerWidth * 0.8}px`, background:colorA}
       sagittalColumnStyle = {top:`${viewerHeight * 0.1}px`, left:`${v13}px`, height:`${viewerHeight * 0.8}px`, background:colorC}
     }
     this.setState({
@@ -2268,6 +2383,7 @@ class ViewerPanel extends Component {
     })
   }
   afterChangeOrigin(e){
+    this.updateNoduleMask()
     imageData.modified()
     this.updateVolumeActor()
     if(this.state.editing){
@@ -2291,8 +2407,9 @@ class ViewerPanel extends Component {
         }
         tmp_listsActive[idx] = true
       }
+      
 
-      if(tmp_listsActive[idx] && idx >= 6 && this.state.selectedNum !== -1){
+      if(tmp_listsActive[idx] && this.state.urls[idx].class === 2 && this.state.selectedNum !== -1){
         const segment = this.state.segments[idx]
         const bounds = segment.getBounds()
         // console.log("nowtime bounds", bounds)
@@ -2343,7 +2460,7 @@ class ViewerPanel extends Component {
     const origin = this.state.origin
     const segments = this.state.segments
     segments.forEach((item, idx) => {
-      if(selectedNum !== -1 && idx >= 6 && segVisible[idx]){
+      if(selectedNum !== -1 && this.state.urls[idx].class === 2 && segVisible[idx]){
         const segment = item
         const bounds = segment.getBounds()
         const firstPicked = [bounds[0], bounds[2], bounds[4]]
@@ -2355,19 +2472,16 @@ class ViewerPanel extends Component {
 
         const firstPixels = this.transformOriginToPixel(firstOrigin)
         const lastPixels = this.transformOriginToPixel(lastOrigin)
-        // console.log("nowtime", idx, nowOrigin, origin)
+        console.log("nowtime", idx, nowOrigin, origin, firstPixels, lastPixels)
         if(nowOrigin[0] === origin[0]){
-          // console.log("nowtime on sagittal")
           const ctxSagittal=document.getElementById('canvas-sagittal').getContext('2d')
           this.paintRect(ctxSagittal, firstPixels[2], lastPixels[2])
         }
         if(nowOrigin[1] === origin[1]){
-          // console.log("nowtime on coronal")
           const ctxCoronal=document.getElementById('canvas-coronal').getContext('2d')
           this.paintRect(ctxCoronal, firstPixels[1], lastPixels[1])
         }
         if(nowOrigin[2] === origin[2]){
-          // console.log("nowtime on axial")
           const ctxAxial=document.getElementById('canvas-axial').getContext('2d')
           this.paintRect(ctxAxial, firstPixels[0], lastPixels[0])
         }
@@ -2383,6 +2497,7 @@ class ViewerPanel extends Component {
     const maxX = Math.max(firstPixel[0], lastPixel[0]) + 10
     const minY = Math.min(firstPixel[1], lastPixel[1]) - 10
     const maxY = Math.max(firstPixel[1], lastPixel[1]) + 10
+    console.log("nowtime", minX, maxX, minY, maxY)
     ctx.rect(
       minX,
       minY,
@@ -2730,7 +2845,7 @@ class ViewerPanel extends Component {
                   </div>
                   <div className="segment-content-block segment-content-coronal" style={selectionStyles[2]} hidden={selectedNum === -1}>
                     <canvas id="canvas-coronal" style={canvasCStyle} width={canvasCStyle.w} height={canvasCStyle.h}/>
-                    <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 0)}/>
+                    <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 1)}/>
                     <div className="segment-content-wwwc">WW/WC: {voi.windowWidth} / {" "} {voi.windowCenter - 1024}</div>
                     <Slider className="segment-content-origin" vertical reverse defaultValue={0} value={origin[1]} min={1} step={1} max={originYBorder}
                             onChange={this.changeOrigin.bind(this, 1)}
@@ -2740,7 +2855,7 @@ class ViewerPanel extends Component {
                   </div>
                   <div className="segment-content-block segment-content-sagittal" style={selectionStyles[3]} hidden={selectedNum === -1}>
                     <canvas id="canvas-sagittal" style={canvasSStyle} width={canvasSStyle.w} height={canvasSStyle.h}/>
-                    <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 0)}/>
+                    <Icon className="segment-content-reset" name='repeat' size='large' onClick={this.resetOrigin.bind(this, 2)}/>
                     <div className="segment-content-wwwc">WW/WC: {voi.windowWidth} / {" "} {voi.windowCenter - 1024}</div>
                     <Slider className="segment-content-origin" vertical reverse defaultValue={0} value={origin[0]} min={1} step={1} max={originXBorder}
                             onChange={this.changeOrigin.bind(this, 2)}

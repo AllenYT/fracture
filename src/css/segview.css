@@ -100,20 +100,20 @@ loading: 1
 }
 .segment-content-row{
   position: absolute;
-  height: 16px;
+  height: 10px;
   /*padding: 4px 0;*/
   background-clip: padding-box !important;
-  border-top: 2px solid transparent;
-  border-bottom: 10px solid transparent;
+  /* border-top: -2px solid transparent; */
+  border-bottom: 8px solid transparent;
   z-index: 2;
 }
 .segment-content-column{
   position: absolute;
-  width: 15px;
+  width: 10px;
   /*padding: 0 4px;*/
   background-clip: padding-box !important;
-  border-left: 2px solid transparent;
-  border-right: 10px solid transparent;
+  /* border-left: -2px solid transparent; */
+  border-right: 8px solid transparent;
   z-index: 2;
 }
 

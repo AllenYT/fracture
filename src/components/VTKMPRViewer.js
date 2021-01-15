@@ -14,6 +14,7 @@ class VTKMPRViewer extends Component{
         this.state = {
             viewerWidth:0,
             viewerHeight:0,
+            scale:0
         }
         this.container = React.createRef()
     }
@@ -40,6 +41,7 @@ class VTKMPRViewer extends Component{
             this.camera.setViewUp(1, 0, 0)
         }
         //this.camera.azimuth(180)
+        this.renderer.resetCamera()
         this.renderWindow.render()
     }
     componentDidUpdate(prevProps, prevState, snapshot) {
@@ -51,7 +53,9 @@ class VTKMPRViewer extends Component{
             } else {
                 // TODO: Remove all volumes
             }
-            this.renderer.resetCamera()
+            if(prevProps.volumes.length === 0){
+                this.renderer.resetCamera()
+            }
             this.renderWindow.render()
         }
     }
