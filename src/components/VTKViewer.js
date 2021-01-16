@@ -120,44 +120,19 @@ class VTKViewer extends Component{
             this.viewerSagittal.resetView()
         }
     }
-    magnifyView(type, num){
-        if(!num){
-            num = 0
+    scaleView(type, scale){
+        if(!scale){
+            scale = 1.0
         }
         // for type parameter, 0 represents 3d, 1 represents axial, 2 represents coronal, 3 represents sagittal
         if(type === 0){
-            this.viewer3D.magnifyView()
-        }else if(type === 1){
-            for(let i = 0; i < num; i++){
-                this.viewerAxial.magnifyView()
-            }
+            this.viewer3D.scaleView()
+        }else if(type === 1){  
+            this.viewerAxial.scaleView(scale)
         }else if(type === 2){
-            for(let i = 0; i < num; i++){
-                this.viewerCoronal.magnifyView()
-            }
+            this.viewerCoronal.scaleView(scale)
         }else if(type === 3){
-            for(let i = 0; i < num; i++){
-                this.viewerSagittal.magnifyView()
-            }
-        }
-        // this.camera.setParallelScale(this.camera.getParallelScale() / 0.9)
-        // this.renderer.updateLightsGeometryToFollowCamera();
-    }
-    reductView(type, num){
-        if(type === 0){
-            this.viewer3D.reductView()
-        }else if(type === 1){
-            for(let i = 0; i < num; i++){
-                this.viewerAxial.reductView()
-            }
-        }else if(type === 2){
-            for(let i = 0; i < num; i++){
-                this.viewerCoronal.reductView()
-            }
-        }else if(type === 3){
-            for(let i = 0; i < num; i++){
-                this.viewerSagittal.reductView()
-            }
+            this.viewerSagittal.scaleView(scale)
         }
     }
     turnLeft(){

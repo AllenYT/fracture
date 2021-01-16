@@ -36,6 +36,10 @@ class VTKMPRViewer extends Component{
             //axial
             this.camera.setViewUp(0, -1, 0)
         }
+        if(this.props.type === 2){
+            //coronal
+            this.camera.setViewUp(0, -1, 0)
+        }
         if(this.props.type === 3){
             //sagittal
             this.camera.setViewUp(1, 0, 0)
@@ -82,15 +86,10 @@ class VTKMPRViewer extends Component{
         const picked = movePicker.getPickedPositions()[0]
         return picked
     }
-    magnifyView(){
-        this.camera.dolly(1.1)
-        this.renderer.resetCameraClippingRange()
-        this.renderWindow.render()
-        // this.camera.setParallelScale(this.camera.getParallelScale() / 0.9)
-        // this.renderer.updateLightsGeometryToFollowCamera();
-    }
-    reductView(){
-        this.camera.dolly(0.9)
+    scaleView(scale){
+        console.log("this scale", scale)
+        this.renderer.resetCamera()
+        this.camera.dolly(scale)
         this.renderer.resetCameraClippingRange()
         this.renderWindow.render()
     }

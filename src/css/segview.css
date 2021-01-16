@@ -78,6 +78,12 @@ loading: 1
   right: 20px;
   color: white;
 }
+.segment-content-offset{
+  position: absolute;
+  bottom: 0px;
+  left: 20px;
+  color: white;
+}
 .segment-content-origin{
   position: absolute;
   top: 0;
