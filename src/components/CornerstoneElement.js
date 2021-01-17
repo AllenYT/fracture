@@ -438,6 +438,9 @@ class CornerstoneElement extends Component {
         this.pixeldataSort = this
             .pixeldataSort
             .bind(this)
+        this.closeVisualContent = this
+            .closeVisualContent
+            .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
         this.toHideMeasures = this
             .toHideMeasures
@@ -519,15 +522,20 @@ class CornerstoneElement extends Component {
     //echarts
     visualize(hist_data,idx){
         const visId = 'visual-' + idx
+        const btnId = 'closeButton-' + idx
         // document.getElementById(visId).innerHTML=''
         console.log('visualize',idx)
         var dom = document.getElementById(visId);
+        document.getElementById('closeVisualContent').style.display =''
         dom.style.display = ''
-        dom.style.height = '300px'
-        dom.style.width = '450px'
-        let bins=hist_data.bins
-        let ns=hist_data.n
-        var myChart = echarts.init(dom);
+        dom.style.height = '200px'
+        dom.style.width = '870px'
+        let bins = hist_data.bins
+        let ns = hist_data.n
+        if(echarts.getInstanceByDom(dom)){
+            echarts.dispose(dom)
+        }
+        var myChart = echarts.init(dom)
         var minValue = bins[0] - 50
         var maxValue = bins[bins.length - 1] + 50
         console.log(bins,bins[0] - 50,bins[bins.length - 1] + 50)
@@ -542,6 +550,7 @@ class CornerstoneElement extends Component {
         }
         myChart.setOption({
         color: ['#00FFFF'],
+        lazyUpdate: false,
         tooltip: {
             trigger: 'axis',
             axisPointer: {            // 坐标轴指示器，坐标轴触发有效
@@ -554,8 +563,8 @@ class CornerstoneElement extends Component {
             }
         },
         grid: {
-            left: '15%',
-            right: '4%',
+            // left: '15%',
+            // right: '4%',
             bottom: '3%',
             top: '10%',
             containLabel: true
@@ -1061,6 +1070,16 @@ class CornerstoneElement extends Component {
         }
     }
 
+    closeVisualContent(){
+        console.log('close')
+        const visId = 'visual-' + this.state.listsActiveIndex
+        if(document.getElementById(visId) !== undefined && document.getElementById(visId) !== null){
+            document.getElementById(visId).style.display = 'none'
+            document.getElementById('closeVisualContent').style.display = 'none'
+        }
+        
+    }
+
     // downloadBar(idx,e){
     //     const visId = 'visual_' + idx
     //     console.log(visId)
@@ -1247,6 +1266,7 @@ class CornerstoneElement extends Component {
         // var element = dicomTag.elements[propertyName];
         // console.log('element',element)
         let tableContent = ""
+        let visualContent = ""
         let createDraftModal;
         let submitButton;
         let StartReviewButton;
@@ -1929,7 +1949,7 @@ class CornerstoneElement extends Component {
                                             
                                         </Grid>
                                         
-                                        <div id={visualId} className='histogram'></div>
+                                        {/* <div id={visualId} className='histogram'></div> */}
                                     </Accordion.Content>
                                 </div>
                             )
@@ -2163,13 +2183,26 @@ class CornerstoneElement extends Component {
                                             </Grid.Row>
                                         </Grid>
                                         
-                                        <div id={visualId} className='histogram'></div>
+                                        {/* <div id={visualId} className='histogram'></div> */}
                                     </Accordion.Content>
                                 </div>
                             )
                         }
                         
                     })
+
+                    visualContent =  this
+                    .state
+                    .boxes
+                    .map((inside, idx) => {
+                        const visualId = 'visual-' + inside.nodule_no
+                        const btnId = 'closeButton-' + inside.nodule_no
+                        return(
+                           <div id={visualId} className='histogram'>
+                               {/* <button id={btnId} className='closeVisualContent' onClick={this.closeVisualContent}>×</button> */}
+                           </div> 
+                        )
+                    })  
           
                 return (
                     <div id="cornerstone">
@@ -2422,6 +2455,8 @@ class CornerstoneElement extends Component {
                                                 ></Slider>
 
                                         </div>
+                                        {visualContent}
+                                        <button id='closeVisualContent' onClick={this.closeVisualContent}>×</button>
                                         </Grid.Column>
                                         <Grid.Column widescreen={4} computer={4}> 
                                             <Grid.Row>
@@ -2474,34 +2509,35 @@ class CornerstoneElement extends Component {
                                             <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
                                         </Grid.Column>
                                         <Grid.Column width={13} textAlign='center' id='canvas-column'>
-                                        <div className='canvas-style' id='canvas-border'>
-                                        <div
-                                                id="origin-canvas"
-                                                // style={divStyle}
-                                                ref={input => {
-                                                this.element = input
-                                            }}>
-                                                <canvas className="cornerstone-canvas" id="canvas"/>
-                                                {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                                                {/* {canvas} */}
-                                                {dicomTagPanel} 
-                                            </div>
+                                            <div className='canvas-style' id='canvas-border'>
+                                            <div
+                                                    id="origin-canvas"
+                                                    // style={divStyle}
+                                                    ref={input => {
+                                                    this.element = input
+                                                }}>
+                                                    <canvas className="cornerstone-canvas" id="canvas"/>
+                                                    {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
+                                                    {/* {canvas} */}
+                                                    {dicomTagPanel} 
+                                                </div>
 
-                                        </div>
-                                        <div className='antd-slider'>
-                                            <Slider 
-                                                vertical
-                                                reverse
-                                                tipFormatter={null}
-                                                marks={sliderMarks} 
-                                                value={this.state.currentIdx+1} 
-                                                onChange={this.handleRangeChange}
-                                                // onAfterChange={this.handleRangeChange.bind(this)} 
-                                                min={1}
-                                                step={1}
-                                                max={this.state.stack.imageIds.length}
-                                                ></Slider>
-                                        </div>
+                                            </div>
+                                            <div className='antd-slider'>
+                                                <Slider 
+                                                    vertical
+                                                    reverse
+                                                    tipFormatter={null}
+                                                    marks={sliderMarks} 
+                                                    value={this.state.currentIdx+1} 
+                                                    onChange={this.handleRangeChange}
+                                                    // onAfterChange={this.handleRangeChange.bind(this)} 
+                                                    min={1}
+                                                    step={1}
+                                                    max={this.state.stack.imageIds.length}
+                                                    ></Slider>
+                                            </div>
+                                            
                                         </Grid.Column>
                                     </Grid.Row>
                                     <Grid.Row className='corner-row' columns={2}>
@@ -4262,6 +4298,8 @@ class CornerstoneElement extends Component {
             document.getElementById('hideInfo').style.display='none'
         }
      
+        document.getElementById('closeVisualContent').style.display = 'none'
+
         if(this.state.imageIds.length !==0){
             const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
             this.setState({leftBtnSpeed:leftBtnSpeed})
@@ -4332,16 +4370,20 @@ class CornerstoneElement extends Component {
                 document.getElementById('hideInfo').style.display='none'
             }
         }
+        
 
         if (prevState.random !== this.state.random) {
             console.log('random change',this.state.boxes)
             this.saveToDB()
         }
+
+
         if(prevState.listsActiveIndex!==-1 && prevState.listsActiveIndex !== this.state.listsActiveIndex){
             const visId = 'visual-' + prevState.listsActiveIndex
             if(document.getElementById(visId) !== undefined && document.getElementById(visId) !== null){
                 // document.getElementById(visId).innerHTML=''
                 document.getElementById(visId).style.display='none'
+                document.getElementById('closeVisualContent').style.display = 'none'
             }
             else{
                 console.log('visId is not exist!')
