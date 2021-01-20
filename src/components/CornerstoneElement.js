@@ -2855,9 +2855,9 @@ class CornerstoneElement extends Component {
                 const x1 = box.x1
                 const y2 = box.y2
                 const x2 = box.x2
-                // console.log(x1,y1,x2,y2,box.measure)
                 if(x1 - lineOffset < x && x < x2 + lineOffset && y1 - lineOffset < y && y < y2 + lineOffset){
-                    if(box.measure){
+                    // console.log('measure',box.measure.x == undefined)
+                    if(box.measure && box.measure.x != undefined){
                         if(box.measure.x1 - lineOffset < x && x < box.measure.x1 + lineOffset && box.measure.y1 - lineOffset < y && y < box.measure.y1 + lineOffset){
                             return {box: i, pos:'ib', m_pos:'sl'}
                         }
@@ -4097,9 +4097,8 @@ class CornerstoneElement extends Component {
 
         }
 
-        // if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.immersive == false) {
-        // if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.isbidirectionnal === false) {
-        console.log('bool',this.state.clicked && this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3)
+
+        console.log('bool',this.state.clicked && this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3,this.state.clicked,this.state.clickedArea.box,this.state.leftButtonTools)
         if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.leftButtonTools == 0) { 
             this.drawBoxes(this.state.tmpBox)
         }
