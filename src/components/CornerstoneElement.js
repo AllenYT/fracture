@@ -222,10 +222,7 @@ class CornerstoneElement extends Component {
             slideSpan:0,
             windowHeight:1080,
             preListActiveIdx:-1,
-            currentImage: null,
-            selectTexture:-1,
-            selectTiny:0,
-            // selectBoxes:props.stack.boxes===""?[]:props.stack.boxes
+            currentImage: null
         }
         this.nextPath = this
             .nextPath
@@ -438,6 +435,9 @@ class CornerstoneElement extends Component {
         this.pixeldataSort = this
             .pixeldataSort
             .bind(this)
+        this.closeVisualContent = this
+            .closeVisualContent
+            .bind(this)
         // this.drawTmpBox = this.drawTmpBox.bind(this)
         this.toHideMeasures = this
             .toHideMeasures
@@ -519,15 +519,20 @@ class CornerstoneElement extends Component {
     //echarts
     visualize(hist_data,idx){
         const visId = 'visual-' + idx
+        const btnId = 'closeButton-' + idx
         // document.getElementById(visId).innerHTML=''
         console.log('visualize',idx)
         var dom = document.getElementById(visId);
+        document.getElementById('closeVisualContent').style.display =''
         dom.style.display = ''
-        dom.style.height = '300px'
-        dom.style.width = '450px'
-        let bins=hist_data.bins
-        let ns=hist_data.n
-        var myChart = echarts.init(dom);
+        dom.style.height = '200px'
+        dom.style.width = '870px'
+        let bins = hist_data.bins
+        let ns = hist_data.n
+        if(echarts.getInstanceByDom(dom)){
+            echarts.dispose(dom)
+        }
+        var myChart = echarts.init(dom)
         var minValue = bins[0] - 50
         var maxValue = bins[bins.length - 1] + 50
         console.log(bins,bins[0] - 50,bins[bins.length - 1] + 50)
@@ -542,6 +547,7 @@ class CornerstoneElement extends Component {
         }
         myChart.setOption({
         color: ['#00FFFF'],
+        lazyUpdate: false,
         tooltip: {
             trigger: 'axis',
             axisPointer: {            // 坐标轴指示器，坐标轴触发有效
@@ -554,8 +560,8 @@ class CornerstoneElement extends Component {
             }
         },
         grid: {
-            left: '15%',
-            right: '4%',
+            // left: '15%',
+            // right: '4%',
             bottom: '3%',
             top: '10%',
             containLabel: true
@@ -1062,6 +1068,16 @@ class CornerstoneElement extends Component {
         }
     }
 
+    closeVisualContent(){
+        console.log('close')
+        const visId = 'visual-' + this.state.listsActiveIndex
+        if(document.getElementById(visId) !== undefined && document.getElementById(visId) !== null){
+            document.getElementById(visId).style.display = 'none'
+            document.getElementById('closeVisualContent').style.display = 'none'
+        }
+        
+    }
+
     // downloadBar(idx,e){
     //     const visId = 'visual_' + idx
     //     console.log(visId)
@@ -1248,6 +1264,7 @@ class CornerstoneElement extends Component {
         // var element = dicomTag.elements[propertyName];
         // console.log('element',element)
         let tableContent = ""
+        let visualContent = ""
         let createDraftModal;
         let submitButton;
         let StartReviewButton;
@@ -1258,8 +1275,8 @@ class CornerstoneElement extends Component {
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
         // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
         let noduleNumTab = '结节(' + this.state.boxes.length + ')'
-        let inflammationTab = '炎症(有)'
-        let lymphnodeTab = '淋巴结(0)'
+        // let inflammationTab = '炎症(有)'
+        // let lymphnodeTab = '淋巴结(0)'
         let segments={
         'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
         'S6':'右肺下叶-背段','S7':'右肺下叶-内基底段','S8':'右肺下叶-前基底段','S9':'右肺下叶-外基底段','S10':'右肺下叶-后基底段',
@@ -1932,7 +1949,7 @@ class CornerstoneElement extends Component {
                                             
                                         </Grid>
                                         
-                                        <div id={visualId} className='histogram'></div>
+                                        {/* <div id={visualId} className='histogram'></div> */}
                                     </Accordion.Content>
                                 </div>
                             )
@@ -2166,13 +2183,26 @@ class CornerstoneElement extends Component {
                                             </Grid.Row>
                                         </Grid>
                                         
-                                        <div id={visualId} className='histogram'></div>
+                                        {/* <div id={visualId} className='histogram'></div> */}
                                     </Accordion.Content>
                                 </div>
                             )
                         }
                         
                     })
+
+                    visualContent =  this
+                    .state
+                    .boxes
+                    .map((inside, idx) => {
+                        const visualId = 'visual-' + inside.nodule_no
+                        const btnId = 'closeButton-' + inside.nodule_no
+                        return(
+                           <div id={visualId} className='histogram'>
+                               {/* <button id={btnId} className='closeVisualContent' onClick={this.closeVisualContent}>×</button> */}
+                           </div> 
+                        )
+                    })  
           
                 return (
                     <div id="cornerstone">
@@ -2425,6 +2455,8 @@ class CornerstoneElement extends Component {
                                                 ></Slider>
 
                                         </div>
+                                        {visualContent}
+                                        <button id='closeVisualContent' onClick={this.closeVisualContent}>×</button>
                                         </Grid.Column>
                                         <Grid.Column widescreen={4} computer={4}> 
                                             <Grid.Row>
@@ -2449,12 +2481,12 @@ class CornerstoneElement extends Component {
                                                                 </Accordion>
                                                             </div>   
                                                         </TabPane>
-                                                        <TabPane tab={inflammationTab} key="2">
+                                                        {/* <TabPane tab={inflammationTab} key="2">
                                                         Content of Tab Pane 2
                                                         </TabPane>
                                                         <TabPane tab={lymphnodeTab} key="3">
                                                         Content of Tab Pane 3
-                                                        </TabPane>
+                                                        </TabPane> */}
                                                     </Tabs>
                                                 </div>
                                             </Grid.Row>
@@ -2477,34 +2509,35 @@ class CornerstoneElement extends Component {
                                             <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
                                         </Grid.Column>
                                         <Grid.Column width={13} textAlign='center' id='canvas-column'>
-                                        <div className='canvas-style' id='canvas-border'>
-                                        <div
-                                                id="origin-canvas"
-                                                // style={divStyle}
-                                                ref={input => {
-                                                this.element = input
-                                            }}>
-                                                <canvas className="cornerstone-canvas" id="canvas"/>
-                                                {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                                                {/* {canvas} */}
-                                                {dicomTagPanel} 
-                                            </div>
+                                            <div className='canvas-style' id='canvas-border'>
+                                            <div
+                                                    id="origin-canvas"
+                                                    // style={divStyle}
+                                                    ref={input => {
+                                                    this.element = input
+                                                }}>
+                                                    <canvas className="cornerstone-canvas" id="canvas"/>
+                                                    {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
+                                                    {/* {canvas} */}
+                                                    {dicomTagPanel} 
+                                                </div>
 
-                                        </div>
-                                        <div className='antd-slider'>
-                                            <Slider 
-                                                vertical
-                                                reverse
-                                                tipFormatter={null}
-                                                marks={sliderMarks} 
-                                                value={this.state.currentIdx+1} 
-                                                onChange={this.handleRangeChange}
-                                                // onAfterChange={this.handleRangeChange.bind(this)} 
-                                                min={1}
-                                                step={1}
-                                                max={this.state.stack.imageIds.length}
-                                                ></Slider>
-                                        </div>
+                                            </div>
+                                            <div className='antd-slider'>
+                                                <Slider 
+                                                    vertical
+                                                    reverse
+                                                    tipFormatter={null}
+                                                    marks={sliderMarks} 
+                                                    value={this.state.currentIdx+1} 
+                                                    onChange={this.handleRangeChange}
+                                                    // onAfterChange={this.handleRangeChange.bind(this)} 
+                                                    min={1}
+                                                    step={1}
+                                                    max={this.state.stack.imageIds.length}
+                                                    ></Slider>
+                                            </div>
+                                            
                                         </Grid.Column>
                                     </Grid.Row>
                                     <Grid.Row className='corner-row' columns={2}>
@@ -2518,12 +2551,12 @@ class CornerstoneElement extends Component {
                                                             </Accordion>
                                                         </div>   
                                                     </TabPane>
-                                                    <TabPane tab={inflammationTab} key="2">
+                                                    {/* <TabPane tab={inflammationTab} key="2">
                                                     Content of Tab Pane 2
                                                     </TabPane>
                                                     <TabPane tab={lymphnodeTab} key="3">
                                                     Content of Tab Pane 3
-                                                    </TabPane>
+                                                    </TabPane> */}
                                                 </Tabs>
                                             </div>
                                         </Grid.Column>
@@ -4265,6 +4298,8 @@ class CornerstoneElement extends Component {
             document.getElementById('hideInfo').style.display='none'
         }
      
+        document.getElementById('closeVisualContent').style.display = 'none'
+
         if(this.state.imageIds.length !==0){
             const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
             this.setState({leftBtnSpeed:leftBtnSpeed})
@@ -4335,16 +4370,20 @@ class CornerstoneElement extends Component {
                 document.getElementById('hideInfo').style.display='none'
             }
         }
+        
 
         if (prevState.random !== this.state.random) {
             console.log('random change',this.state.boxes)
             this.saveToDB()
         }
+
+
         if(prevState.listsActiveIndex!==-1 && prevState.listsActiveIndex !== this.state.listsActiveIndex){
             const visId = 'visual-' + prevState.listsActiveIndex
             if(document.getElementById(visId) !== undefined && document.getElementById(visId) !== null){
                 // document.getElementById(visId).innerHTML=''
                 document.getElementById(visId).style.display='none'
+                document.getElementById('closeVisualContent').style.display = 'none'
             }
             else{
                 console.log('visId is not exist!')
