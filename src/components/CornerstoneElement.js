@@ -225,7 +225,7 @@ class CornerstoneElement extends Component {
             currentImage: null,
             selectTexture:-1,
             selectTiny:0,
-            selectBoxes:props.stack.boxes===""?[]:props.stack.boxes
+            // selectBoxes:props.stack.boxes===""?[]:props.stack.boxes
         }
         this.nextPath = this
             .nextPath
@@ -1059,7 +1059,8 @@ class CornerstoneElement extends Component {
 
     featureAnalysis(idx,e){
         console.log("特征分析")
-        const boxes = this.state.selectBoxes
+        // const boxes = this.state.selectBoxes
+        const boxes = this.state.boxes
         console.log('boxes',boxes, e.target.value)
         if (boxes[idx] !== undefined){
             console.log('boxes',boxes[idx])
@@ -1275,8 +1276,9 @@ class CornerstoneElement extends Component {
         let slideLabel
         let dicomTagPanel
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
-        let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
-        let inflammationTab = '炎症(有)'
+        // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
+        let noduleNumTab = '结节(' + this.state.boxes.length + ')'
+        let inflammationTab = '炎症(无))'
         let lymphnodeTab = '淋巴结(0)'
         let segments={
         'S1':'右肺上叶-尖段','S2':'右肺上叶-后段','S3':'右肺上叶-前段','S4':'右肺中叶-外侧段','S5':'右肺中叶-内侧段',
@@ -1524,7 +1526,8 @@ class CornerstoneElement extends Component {
         if (!this.state.immersive) {
                 tableContent = this
                     .state
-                    .selectBoxes
+                    // .selectBoxes
+                    .boxes
                     .map((inside, idx) => {
                         // console.log('inside',inside)
                         let representArray=[]
@@ -2463,7 +2466,7 @@ class CornerstoneElement extends Component {
                                                 <div className="nodule-card-container">
                                                     <Tabs type="card" animated defaultActiveKey={1} size='small'>
                                                         <TabPane tab={noduleNumTab} key="1" >
-                                                            <div id='listTitle'>
+                                                            {/* <div id='listTitle'>
                                                                 <Space align="baseline">
                                                                     <Select defaultValue="全部密度" onChange={this.chooseDensity.bind(this)} bordered={false} 
                                                                     style={{backgroundColor:'#021C38',color:'#F5F5F5',fontSize:'12pt'}}>
@@ -2474,7 +2477,7 @@ class CornerstoneElement extends Component {
                                                                     </Select>
                                                                     <Checkbox onChange={this.tinyNodules.bind(this)} style={{backgroundColor:'#021C38',color:'#F5F5F5',fontSize:'12pt'}}>微小结节</Checkbox>
                                                                 </Space>
-                                                            </div>
+                                                            </div> */}
                                                             <div id='elec-table'>
                                                                 <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                                     {tableContent}
@@ -4094,7 +4097,14 @@ class CornerstoneElement extends Component {
                 }
                    
             }
-
+            // for (let i = 0; i < this.state.selectBoxes.length; i++) {
+            //     if (this.state.boxes[i].slice_idx == this.state.currentIdx){
+            //          this.drawBoxes(this.state.selectBoxes[i])
+            //          if(this.state.measureStateList[i]){
+            //             this.drawBidirection(this.state.boxes[i])
+            //         }
+            //     }   
+            // }
         }
 
         // if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.immersive == false) {
@@ -4323,24 +4333,24 @@ class CornerstoneElement extends Component {
         // canvas_ROI.width = 500
         // origin.appendChild(canvas_ROI)
         // canvas_ROI.style.position = 'absolute'
-        let tempBox=[]
-        for(let i=0;i<this.state.boxes.length;i++){
-            if(parseInt(this.state.boxes[i].diameter)>3){
-                tempBox.push(this.state.boxes[i])
-            }
-        }
-        if(this.state.selectTexture===-1){
-            this.setState({selectBoxes:tempBox})
-        }
-        else{
-            let temp2temp=[]
-            for(let i=0;i<tempBox.length;i++){
-                if(tempBox[i].texture===this.state.selectTexture){
-                    temp2temp.push(tempBox[i])
-                }
-            }
-            this.setState({selectBoxes:temp2temp})
-        }
+        // let tempBox=[]
+        // for(let i=0;i<this.state.boxes.length;i++){
+        //     if(parseInt(this.state.boxes[i].diameter)>3){
+        //         tempBox.push(this.state.boxes[i])
+        //     }
+        // }
+        // if(this.state.selectTexture===-1){
+        //     this.setState({selectBoxes:tempBox})
+        // }
+        // else{
+        //     let temp2temp=[]
+        //     for(let i=0;i<tempBox.length;i++){
+        //         if(tempBox[i].texture===this.state.selectTexture){
+        //             temp2temp.push(tempBox[i])
+        //         }
+        //     }
+        //     this.setState({selectBoxes:temp2temp})
+        // }
         
     }
 
@@ -4415,42 +4425,42 @@ class CornerstoneElement extends Component {
                 }
             }
         }
-        if(prevState.selectTexture !== this.state.selectTexture || prevState.selectTiny !== this.state.selectTiny){
-            if(this.state.selectTiny===1){
-                if(this.state.selectTexture===-1){
-                    this.setState({selectBoxes:this.state.boxes})
-                }
-                else{
-                    let tempBox=[]
-                    for(let i=0;i<this.state.boxes.length;i++){
-                        if(this.state.boxes[i].texture===this.state.selectTexture){
-                            tempBox.push(this.state.boxes[i])
-                        }
-                    }
-                    this.setState({selectBoxes:tempBox})
-                }
-            }
-            else{
-                let tempBox=[]
-                for(let i=0;i<this.state.boxes.length;i++){
-                    if(parseInt(this.state.boxes[i].diameter)>3){
-                        tempBox.push(this.state.boxes[i])
-                    }
-                }
-                if(this.state.selectTexture===-1){
-                    this.setState({selectBoxes:tempBox})
-                }
-                else{
-                    let temp2temp=[]
-                    for(let i=0;i<tempBox.length;i++){
-                        if(tempBox[i].texture===this.state.selectTexture){
-                            temp2temp.push(tempBox[i])
-                        }
-                    }
-                    this.setState({selectBoxes:temp2temp})
-                }
-            }
-        }
+        // if(prevState.selectTexture !== this.state.selectTexture || prevState.selectTiny !== this.state.selectTiny){
+        //     if(this.state.selectTiny===1){
+        //         if(this.state.selectTexture===-1){
+        //             this.setState({selectBoxes:this.state.boxes})
+        //         }
+        //         else{
+        //             let tempBox=[]
+        //             for(let i=0;i<this.state.boxes.length;i++){
+        //                 if(this.state.boxes[i].texture===this.state.selectTexture){
+        //                     tempBox.push(this.state.boxes[i])
+        //                 }
+        //             }
+        //             this.setState({selectBoxes:tempBox})
+        //         }
+        //     }
+        //     else{
+        //         let tempBox=[]
+        //         for(let i=0;i<this.state.boxes.length;i++){
+        //             if(parseInt(this.state.boxes[i].diameter)>3){
+        //                 tempBox.push(this.state.boxes[i])
+        //             }
+        //         }
+        //         if(this.state.selectTexture===-1){
+        //             this.setState({selectBoxes:tempBox})
+        //         }
+        //         else{
+        //             let temp2temp=[]
+        //             for(let i=0;i<tempBox.length;i++){
+        //                 if(tempBox[i].texture===this.state.selectTexture){
+        //                     temp2temp.push(tempBox[i])
+        //                 }
+        //             }
+        //             this.setState({selectBoxes:temp2temp})
+        //         }
+        //     }
+        // }
     }
 }
 
