@@ -4296,10 +4296,7 @@ class CornerstoneElement extends Component {
             }
             this.setState({selectBoxes:temp2temp})
         }
-<<<<<<< HEAD
-=======
         
->>>>>>> master
     }
 
     componentWillUnmount() {
