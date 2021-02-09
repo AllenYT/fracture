@@ -3,7 +3,6 @@ import {Pagination, Input, Grid, Checkbox, Button} from 'semantic-ui-react'
 import MainList from '../components/MainList'
 import Statistics from '../components/Statistics'
 import DataCockpit from '../panels/DataCockpit'
-import LowerAuth from '../components/LowerAuth'
 import '../css/dataPanel.css'
 import axios from 'axios';
 import qs from 'qs'
@@ -119,7 +118,6 @@ class DataPanel extends Component {
         }
 
         return (
-            localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("stat")>-1?
             <div className='banner'>
                 <Grid>
                     <Grid.Row >
@@ -139,8 +137,6 @@ class DataPanel extends Component {
                 </Grid>
 
             </div>
-            :
-            <LowerAuth></LowerAuth>
         )
     }
 }

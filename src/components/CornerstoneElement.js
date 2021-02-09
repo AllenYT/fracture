@@ -1248,7 +1248,7 @@ class CornerstoneElement extends Component {
         let slideLabel
         let dicomTagPanel
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
-        let noduleNumTab = '结节(' + this.state.boxes.length + ')'
+        let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
         let inflammationTab = '炎症(有)'
         let lymphnodeTab = '淋巴结(0)'
         let segments={
@@ -2355,7 +2355,8 @@ class CornerstoneElement extends Component {
                                             this.state.readonly?
                                             <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
                                             :
-                                            <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
+                                            // <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
+                                            <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
                                         }
                                         {
                                             this.state.readonly?
@@ -4279,7 +4280,7 @@ class CornerstoneElement extends Component {
         // canvas_ROI.style.position = 'absolute'
         let tempBox=[]
         for(let i=0;i<this.state.boxes.length;i++){
-            if(parseInt(this.state.boxes[i].diameter)>=3){
+            if(parseInt(this.state.boxes[i].diameter)>3){
                 tempBox.push(this.state.boxes[i])
             }
         }
@@ -4295,6 +4296,10 @@ class CornerstoneElement extends Component {
             }
             this.setState({selectBoxes:temp2temp})
         }
+<<<<<<< HEAD
+=======
+        
+>>>>>>> master
     }
 
     componentWillUnmount() {
@@ -4382,7 +4387,7 @@ class CornerstoneElement extends Component {
             else{
                 let tempBox=[]
                 for(let i=0;i<this.state.boxes.length;i++){
-                    if(parseInt(this.state.boxes[i].diameter)>=3){
+                    if(parseInt(this.state.boxes[i].diameter)>3){
                         tempBox.push(this.state.boxes[i])
                     }
                 }
