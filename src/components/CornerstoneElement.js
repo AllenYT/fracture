@@ -2395,7 +2395,8 @@ class CornerstoneElement extends Component {
                                             this.state.readonly?
                                             <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
                                             :
-                                            <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
+                                            // <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
+                                            <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
                                         }
                                         {
                                             this.state.readonly?
