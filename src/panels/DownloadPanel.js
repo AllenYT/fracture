@@ -106,6 +106,7 @@ class DownloadPanel extends Component {
 
 
     render() {
+        if(localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("download")>-1){
             const content = Array.from(this.state.cart)
 
             if (this.state.loading) {
@@ -157,8 +158,12 @@ class DownloadPanel extends Component {
                 )
               }
             }
-        
-        
+        }
+        else{
+            return(
+                <LowerAuth></LowerAuth>
+            )
+        }
     }
 }
 

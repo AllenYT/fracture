@@ -3,6 +3,7 @@ import axios from 'axios'
 import qs from 'qs'
 import { Button, Grid, Modal, Icon, Header, Table, Pagination, Input, Label, Dropdown, Segment } from 'semantic-ui-react'
 import '../css/MyQueuePanel.css'
+import LowerAuth from '../components/LowerAuth'
 
 const config = require('../config.json')
 const recordConfig = config.record
@@ -106,10 +107,11 @@ class MyQueuePanel extends Component {
     }
 
     componentDidMount() {
-        
+        if(localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("my_subsets")>-1){
             //请求第一页队列
             this.loadQueueList()
             document.getElementById('queue-popup').style.display = 'none'
+        }
         
     }
 
@@ -661,6 +663,7 @@ class MyQueuePanel extends Component {
 }
 
     render() {
+        if(localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("my_subsets")>-1){
             const {leftpidList,rightpidList,queueList,open,patientList} = this.state
             return (
                 <div>
@@ -1066,6 +1069,12 @@ class MyQueuePanel extends Component {
                 
                 </div>
             )
+        }
+        else{
+            return(
+                <LowerAuth></LowerAuth>
+            )
+        }
     }
 }
 
