@@ -6,6 +6,7 @@ import {DataSet} from '@antv/data-set'
 import '../css/DataCockpit.css'
 import axios from 'axios'
 import {withRouter} from 'react-router-dom'
+import LowerAuth from '../components/LowerAuth'
 import { loadOptions } from '@babel/core'
 
 const config = require('../config.json')
@@ -1970,7 +1971,8 @@ class DataCockpit extends Component {
 }
     
     componentDidUpdate(prevProps, prevState) {
-      if (prevState.totalMalDist !== this.state.totalMalDist) {
+      // if (prevState.totalMalDist !== this.state.totalMalDist) {
+        if (prevState.totalMalDist !== this.state.totalMalDist && localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("stat")>-1) {
           this.visualize()
           document.getElementById('ageTotal').style.display='none'
           document.getElementById('diaTotal').style.display='none'
@@ -1991,7 +1993,8 @@ class DataCockpit extends Component {
       }
   }
     componentDidMount() {
-      if (localStorage.getItem('token') != null) {
+      // if (localStorage.getItem('token') != null) {
+        if(localStorage.getItem('token') != null && localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("stat")>-1){
           this.visualize()
         
           document.getElementById('ageTotal').style.display='none'
@@ -2026,6 +2029,7 @@ class DataCockpit extends Component {
       }
       else{
         return (
+          localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("stat")>-1?
             <div class='VisualCanvas'>
                 <div class='total'>
                   <div class='totalcontnt'>
@@ -2222,6 +2226,8 @@ class DataCockpit extends Component {
                 </div>
 
             </div>
+          :
+          <LowerAuth></LowerAuth>
         )
       }
         

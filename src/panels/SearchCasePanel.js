@@ -7,6 +7,7 @@ import Statistics from '../components/Statistics'
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'
 // import Info from '../components/Info'
+import LowerAuth from '../components/LowerAuth'
 
 const config = require('../config.json')
 const recordConfig = config.record
@@ -317,6 +318,7 @@ export class SearchPanel extends Component {
         //     )
         // }
         return (
+            localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("data_search")>-1?
             <div>
 
             <Grid className="banner">
@@ -451,6 +453,8 @@ export class SearchPanel extends Component {
                 </Grid.Row>
             </Grid>
             </div>
+            :
+            <LowerAuth></LowerAuth>
         )
     }
 }

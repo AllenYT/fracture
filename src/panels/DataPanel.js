@@ -7,6 +7,7 @@ import '../css/dataPanel.css'
 import axios from 'axios';
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'
+import LowerAuth from '../components/LowerAuth'
 
 const config = require('../config.json')
 const recordConfig = config.record
@@ -118,6 +119,7 @@ class DataPanel extends Component {
         }
 
         return (
+            localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("stat")>-1?
             <div className='banner'>
                 <Grid>
                     <Grid.Row >
@@ -137,6 +139,8 @@ class DataPanel extends Component {
                 </Grid>
 
             </div>
+            :
+            <LowerAuth></LowerAuth>
         )
     }
 }

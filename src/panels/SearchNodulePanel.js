@@ -9,6 +9,7 @@ import {withRouter} from 'react-router-dom'
 import '../css/searchnodulePanel.css'
 // import reqwest from 'reqwest'
 import { isType } from '@babel/types'
+import LowerAuth from '../components/LowerAuth'
 
 const config = require('../config.json')
 const recordConfig = config.record
@@ -672,6 +673,7 @@ export class SearchNodulePanel extends Component {
         // console.log('diameters',diaMeters)
         
         return(
+            localStorage.getItem('auths')!==null && JSON.parse(localStorage.getItem('auths')).indexOf("nodule_search")>-1?
             <div>
                 <Grid >
                     <Grid.Row className="conlabel">
@@ -999,6 +1001,8 @@ export class SearchNodulePanel extends Component {
                     </Grid>
                     
             </div>
+            :
+            <LowerAuth></LowerAuth>
             )
         }
         
