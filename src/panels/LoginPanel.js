@@ -125,13 +125,13 @@ class LoginPanel extends Component {
                     {/* <Icon name='user' color='green'/> */}
                     {/* <label>用户名</label> */}
                     <Form.Input type='text' value={this.state.username} onChange={this.handleUsernameChange}  placeholder='用户名' id="input-textBox"
-                    icon='user' iconPosition='left'>
+                    icon='user' iconPosition='left' maxLength={16}>
                     </Form.Input>
                     </Form.Field>
                     <Form.Field className="input-field">
                     {/* <label>密码</label> */}
                     <Form.Input type='password' value={this.state.password} onChange={this.handlePasswordChange} icon='lock' iconPosition='left' placeholder='密码'
-                    id="input-textBox"/>
+                    id="input-textBox" maxLength={32}/>
                     </Form.Field>
                     {errorMessage}
                     <div >
