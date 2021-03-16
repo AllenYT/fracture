@@ -112,6 +112,7 @@ class MyQueuePanel extends Component {
             this.loadQueueList()
             document.getElementById('queue-popup').style.display = 'none'
         }
+        
     }
 
     componentDidUpdate(prevProps, prevState) {

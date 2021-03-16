@@ -344,7 +344,8 @@ class MiniReport extends Component{
                     let place=''
                     let diameter=''
                     let texture=''
-                    let calcification=''
+                    let representArray=[]
+                    let represent=''
                     let malignancy=''
                     if(this.state.boxes[i]['place']===0 || this.state.boxes[i]['place']===undefined || 
                     this.state.boxes[i]['place']===""){
@@ -367,26 +368,59 @@ class MiniReport extends Component{
                         }
                     }
                     if(this.state.boxes[i]['diameter']!==undefined){
-                        diameter='有一'+Math.floor(this.state.boxes[i]['diameter']*10)/100+'cm' 
+                        diameter=Math.floor(this.state.boxes[i]['diameter']*10)/100+'cm' 
                     }
                     else{
-                        diameter='有一未知大小'
+                        diameter='未知'
                     }
                     if(this.state.boxes[i]['texture']===2){
-                        texture='的实性结节，'
+                        texture='实性'
                     }
                     else if(this.state.boxes[i]['texture']===3){
-                        texture='的半实性结节，'
+                        texture='半实性'
                     }
                     else{
-                        texture='的磨玻璃结节，'
+                        texture='磨玻璃'
+                    }
+                    
+                    if(this.state.boxes[i]['lobulation']===2){
+                        representArray.push('分叶')
+                    }
+                    if(this.state.boxes[i]['spiculation']===2){
+                        representArray.push('毛刺')
                     }
                     if(this.state.boxes[i]['calcification']===2){
-                        calcification='有钙化成分，'
+                        representArray.push('钙化')
                     }
-                    else{
-                        calcification='无钙化成分，'
+                    if(this.state.boxes[i]['pin']===2){
+                        representArray.push('胸膜凹陷')
                     }
+                    if(this.state.boxes[i]['cav']===2){
+                        representArray.push('空洞')
+                    }
+                    if(this.state.boxes[i]['vss']===2){
+                        representArray.push('血管集束')
+                    }
+                    if(this.state.boxes[i]['bea']===2){
+                        representArray.push('空泡')
+                    }
+                    if(this.state.boxes[i]['bro']===2){
+                        representArray.push('支气管充气')
+                    }
+                    for(let index=0;index<representArray.length;index++){
+                        if(index===0){
+                            represent=representArray[index]
+                        }
+                        else{
+                            represent=represent+'、'+representArray[index]
+                        }
+                    }
+                    // if(this.state.boxes[i]['calcification']===2){
+                    //     calcification='有钙化成分，'
+                    // }
+                    // else{
+                    //     calcification='无钙化成分，'
+                    // }
                     if(this.state.boxes[i]['malignancy']===3){
                         malignancy='风险较高。'
                     }
@@ -396,16 +430,16 @@ class MiniReport extends Component{
                     else{
                         malignancy='风险较低。'
                     }
-                    texts=texts+place+diameter+texture+calcification+malignancy+'\n\n'
+                    texts=texts+place+' ( Im '+this.state.boxes[i]['slice_idx']+') 见'+texture+'结节, 大小为'+diameter+', 可见'+represent+', '+malignancy+'\n\n'
                 }
                 this.setState({templateText:texts})
             }   
             else{
-                
                 let place=''
                 let diameter=''
                 let texture=''
-                let calcification=''
+                let representArray=[]
+                let represent=''
                 let malignancy=''
                 if(this.state.boxes[this.props.activeItem]['place']===0 || this.state.boxes[this.props.activeItem]['place']===undefined || 
                 this.state.boxes[this.props.activeItem]['place']===""){
@@ -427,26 +461,64 @@ class MiniReport extends Component{
                     }
                 }
                 if(this.state.boxes[this.props.activeItem]['diameter']!==undefined){
-                    diameter='有一'+Math.floor(this.state.boxes[this.props.activeItem]['diameter']*10)/100+'cm' 
+                    diameter=Math.floor(this.state.boxes[this.props.activeItem]['diameter']*10)/100+'cm' 
                 }
                 else{
-                    diameter='有一未知大小'
+                    diameter='未知'
                 }
                 if(this.state.boxes[this.props.activeItem]['texture']===2){
-                    texture='的实性结节，'
+                    texture='实性'
                 }
                 else if(this.state.boxes[this.props.activeItem]['texture']===3){
-                    texture='的半实性结节，'
+                    texture='半实性'
                 }
                 else{
-                    texture='的磨玻璃结节，'
+                    texture='磨玻璃'
+                }
+                // if(this.state.boxes[this.props.activeItem]['calcification']===2){
+                //     calcification='有钙化成分，'
+                // }
+                // else{
+                //     calcification='无钙化成分，'
+                // }
+                if(this.state.boxes[this.props.activeItem]['lobulation']===2){
+                    representArray.push('分叶')
+                }
+                if(this.state.boxes[this.props.activeItem]['spiculation']===2){
+                    representArray.push('毛刺')
                 }
                 if(this.state.boxes[this.props.activeItem]['calcification']===2){
-                    calcification='有钙化成分，'
+                    representArray.push('钙化')
                 }
-                else{
-                    calcification='无钙化成分，'
+                if(this.state.boxes[this.props.activeItem]['pin']===2){
+                    representArray.push('胸膜凹陷')
                 }
+                if(this.state.boxes[this.props.activeItem]['cav']===2){
+                    representArray.push('空洞')
+                }
+                if(this.state.boxes[this.props.activeItem]['vss']===2){
+                    representArray.push('血管集束')
+                }
+                if(this.state.boxes[this.props.activeItem]['bea']===2){
+                    representArray.push('空泡')
+                }
+                if(this.state.boxes[this.props.activeItem]['bro']===2){
+                    representArray.push('支气管充气')
+                }
+                for(let index=0;index<representArray.length;index++){
+                    if(index===0){
+                        represent=representArray[index]
+                    }
+                    else{
+                        represent=represent+'、'+representArray[index]
+                    }
+                }
+                // if(this.state.boxes[i]['calcification']===2){
+                //     calcification='有钙化成分，'
+                // }
+                // else{
+                //     calcification='无钙化成分，'
+                // }
                 if(this.state.boxes[this.props.activeItem]['malignancy']===3){
                     malignancy='风险较高。'
                 }
@@ -456,7 +528,8 @@ class MiniReport extends Component{
                 else{
                     malignancy='风险较低。'
                 }
-                texts=texts+place+diameter+texture+calcification+malignancy
+                texts=texts+place+' ( Im '+this.state.boxes[this.props.activeItem]['slice_idx']+') 见'+texture+'结节, 大小为'+diameter+', 可见'+represent+', '+malignancy
+                
                 this.setState({templateText:texts})
             }
         }

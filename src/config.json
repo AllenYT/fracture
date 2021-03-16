@@ -5,7 +5,8 @@
         "getSingleJpg":"http://192.168.7.198:8095/data/covidMask",
         "getHist":"http://192.168.7.198:8095/covid/getHist",
         "uploadMutiply":"http://192.168.7.198:8095/data/uploadMutiply",
-        "preprocess":"http://192.168.7.198:8095/preprocess/exec"
+        "preprocess":"http://192.168.7.198:8095/preprocess/exec",
+        "getMhaListForCaseId": "http://192.168.7.198:8095/data/getMhaListForCaseId"
     },
 
     "user": {
