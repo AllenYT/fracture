@@ -385,6 +385,7 @@ export class SearchPanel extends Component {
                                     icon='user'
                                     iconPosition='left'
                                     placeholder="病人ID"
+                                    maxLength={16}
                                     disabled={this.state.checked}/>
 
                                 <span id="type-slider"><Checkbox
@@ -400,6 +401,7 @@ export class SearchPanel extends Component {
                                     icon='calendar'
                                     iconPosition='left'
                                     placeholder="检查时间"
+                                    maxLength={8}
                                     disabled={!this.state.checked}/>
                             </div>
                             <div id="show-search-content">
