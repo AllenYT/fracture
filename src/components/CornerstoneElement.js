@@ -177,7 +177,7 @@ class CornerstoneElement extends Component {
             stack: props.stack,
             viewport: cornerstone.getDefaultViewport(null, undefined),
             imageIds: props.stack.imageIds===""?[]:props.stack.imageIds,
-            currentIdx: 0,
+            currentIdx: 0,//当前所在切片号
             autoRefresh: false,
             boxes: props.stack.boxes===""?[]:props.stack.boxes,
             clicked: false,
@@ -187,8 +187,10 @@ class CornerstoneElement extends Component {
             showNodules: true,
             immersive: false,
             readonly: props.stack.readonly,
-            activeIndex: -1,//右上方results活动item
+            // activeIndex: -1,//右上方results活动item
             listsActiveIndex:-1,//右方list活动item
+            dropDownOpen:-1,
+            
             modelResults: '<p style="color:white;">暂无结果</p>',
             annoResults: '<p style="color:white;">暂无结果</p>',
             reviewResults: '<p style="color:white;">暂无结果</p>',
@@ -222,7 +224,11 @@ class CornerstoneElement extends Component {
             slideSpan:0,
             windowHeight:1080,
             preListActiveIdx:-1,
-            currentImage: null
+            currentImage: null,
+            selectTiny:0,
+            selectTexture:-1,
+            selectBoxesMapIndex:[],
+            selectBoxes:props.stack.boxes===""?[]:props.stack.boxes
         }
         this.nextPath = this
             .nextPath
@@ -306,9 +312,9 @@ class CornerstoneElement extends Component {
         this.toHidebox = this
             .toHidebox
             .bind(this)
-        this.handleClick = this
-            .handleClick
-            .bind(this)
+        // this.handleClick = this
+        //     .handleClick
+        //     .bind(this)
         this.temporaryStorage = this
             .temporaryStorage
             .bind(this)
@@ -460,15 +466,15 @@ class CornerstoneElement extends Component {
         //     .bind(this)
     }
 
-    handleClick = (e, titleProps) => {
-        const {index} = titleProps
-        const {activeIndex} = this.state
-        const newIndex = activeIndex === index
-            ? -1
-            : index
+    // handleClick = (e, titleProps) => {
+    //     const {index} = titleProps
+    //     const {activeIndex} = this.state
+    //     const newIndex = activeIndex === index
+    //         ? -1
+    //         : index
 
-        this.setState({activeIndex: newIndex})
-    }
+    //     this.setState({activeIndex: newIndex})
+    // }
 
     handleSliderChange = (e, { name, value }) => {//窗宽
         this.setState({ [name]: value })
@@ -620,6 +626,31 @@ class CornerstoneElement extends Component {
 
     //     this.setState({listsActiveIndex: newIndex})
     // }
+    handleDropdownClick= (currentIdx,index,e) => {
+        console.log('dropdown',e.target,currentIdx,index)
+        if(index===this.state.listsActiveIndex){
+            this.setState({
+                autoRefresh: true,
+                doubleClick:false,
+                dropDownOpen:index
+            })
+        }
+        else{
+            const {listsActiveIndex} = this.state
+            const newIndex = listsActiveIndex === index
+                ? -1
+                : index
+            
+            this.setState({
+                listsActiveIndex: newIndex,
+                currentIdx: currentIdx-1,
+                autoRefresh: true,
+                doubleClick:false,
+                dropDownOpen:-1
+            })   
+        }
+    }
+
     handleListClick = (currentIdx,index,e) => {//点击list-item
         console.log('id',e.target.id)
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
@@ -634,19 +665,20 @@ class CornerstoneElement extends Component {
             const newIndex = listsActiveIndex === index
                 ? -1
                 : index
-
+            
             this.setState({
                 listsActiveIndex: newIndex,
                 currentIdx: currentIdx-1,
                 autoRefresh: true,
-                doubleClick:false
+                doubleClick:false,
+                dropDownOpen:-1
             })
+            
         }
-        
     }
 
     keyDownListSwitch(ActiveIdx){
-        const boxes = this.state.boxes
+        const boxes = this.state.selectBoxes
         let currentIdx = parseInt(boxes[ActiveIdx].nodule_no)
         let sliceIdx = boxes[ActiveIdx].slice_idx
         if(this.state.preListActiveIdx !== -1){
@@ -763,20 +795,21 @@ class CornerstoneElement extends Component {
     delNodule(event) {
         const delNoduleId = event.target.id
         const nodule_no = delNoduleId.split("-")[1]
-        let boxes = this.state.boxes
+        let selectBoxes = this.state.selectBoxes
         let measureStateList = this.state.measureStateList
-        for (var i = 0; i < boxes.length; i++) {
-            if (boxes[i].nodule_no === nodule_no) {
-                boxes.splice(i, 1)
+        for (var i = 0; i < selectBoxes.length; i++) {
+            if (selectBoxes[i].nodule_no === nodule_no) {
+                // selectBoxes.splice(i, 1)
+                selectBoxes[i]="delete"
             }
         }
         measureStateList.splice(nodule_no,1)
-        for (var i = nodule_no; i < boxes.length; i++) {
-            boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
+        // for (var i = nodule_no; i < selectBoxes.length; i++) {
+        //     selectBoxes[i].nodule_no=(parseInt(selectBoxes[i].nodule_no)-1).toString()
             
-        }
+        // }
         this.setState({
-            boxes: boxes,
+            selectBoxes: selectBoxes,
             measureStateList: measureStateList
             // random: Math.random()
         })
@@ -786,27 +819,27 @@ class CornerstoneElement extends Component {
 
     highlightNodule(event) {
         console.log('in', event.target.textContent)
-        let boxes = this.state.boxes
+        let boxes = this.state.selectBoxes
         for (var i = 0; i < boxes.length; i++) {
             if (parseInt(boxes[i].nodule_no) === (event.target.textContent - 1)) {
                 boxes[i].highlight = true
             }
         }
         // console.log(this.state.boxes, boxes)
-        this.setState({boxes: boxes})
+        this.setState({selectBoxes: boxes})
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
     dehighlightNodule(event) {
         console.log('out', event.target.textContent)
-        let boxes = this.state.boxes
+        let boxes = this.state.selectBoxes
         for (var i = 0; i < boxes.length; i++) {
             if (parseInt(boxes[i].nodule_no) === (event.target.textContent - 1)) {
                 boxes[i].highlight = false
             }
         }
         // console.log(this.state.boxes, boxes)
-        this.setState({boxes: boxes})
+        this.setState({selectBoxes: boxes})
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
@@ -824,7 +857,7 @@ class CornerstoneElement extends Component {
             .currentTarget
             .id
             .split('-')[1]
-        let boxes = this.state.boxes
+        let boxes = this.state.selectBoxes
         for (let i = 0; i < boxes.length; i++) {
             if (boxes[i].nodule_no === noduleId) {
                 boxes[i].malignancy = parseInt(value)
@@ -832,7 +865,7 @@ class CornerstoneElement extends Component {
         }
         console.log('boxes',boxes,noduleId)
         this.setState({
-            boxes: boxes,
+            selectBoxes: boxes,
             // random: Math.random()
         })
     }
@@ -842,14 +875,14 @@ class CornerstoneElement extends Component {
             .currentTarget
             .id
             .split('-')[1]
-        let boxes = this.state.boxes
+        let boxes = this.state.selectBoxes
         for (let i = 0; i < boxes.length; i++) {
             if (boxes[i].nodule_no === noduleId) {
                 boxes[i].texture = parseInt(value)
             }
         }
         this.setState({
-            boxes: boxes,
+            selectBoxes: boxes,
             // random: Math.random()
         })
     }
@@ -865,7 +898,7 @@ class CornerstoneElement extends Component {
         const place = event.currentTarget.id.split('-')[2]
         const noduleId = event.currentTarget.id.split('-')[1]
         console.log('id',segment,place,noduleId)
-        let boxes = this.state.boxes
+        let boxes = this.state.selectBoxes
         // console.log('onselectplace',boxes)
         for (let i = 0; i < boxes.length; i++) {
             // console.log('onselectplace',boxes[i].nodule_no,boxes[i],noduleId,boxes[i].nodule_no===noduleId)
@@ -891,7 +924,7 @@ class CornerstoneElement extends Component {
             }
         }
         this.setState({
-            boxes: boxes,
+            selectBoxes: boxes,
             // random: Math.random()
         })
     }
@@ -900,7 +933,7 @@ class CornerstoneElement extends Component {
         let represents={'lobulation':'分叶','spiculation':'毛刺','calcification':'钙化','pin':'胸膜凹陷',
                     'cav':'空洞','vss':'血管集束','bea':'空泡','bro':'支气管充气'}
         console.log('测量',value,name.split('dropdown')[1])
-        let boxes = this.state.boxes
+        let boxes = this.state.selectBoxes
         for(let count = 0;count<boxes.length;count++){
             if (boxes[count].nodule_no === name.split('dropdown')[1]) {
                 boxes[count].lobulation=1
@@ -946,7 +979,7 @@ class CornerstoneElement extends Component {
             }
         }
         this.setState({
-            boxes: boxes
+            selectBoxes: boxes
             // random: Math.random()
         })
     }
@@ -957,6 +990,26 @@ class CornerstoneElement extends Component {
 
     saveToDB() {
         console.log('savetodb')
+        let boxes = this.state.boxes
+        const selectBoxes = this.state.selectBoxes
+        const selectBoxesMapIndex = this.state.selectBoxesMapIndex
+        let deleteBoxes=[]
+
+        for(let i=0;i<selectBoxesMapIndex.length;i++){//仅修改
+            if(selectBoxes[i]!=="delete"){
+                boxes[selectBoxes[i]]=selectBoxes[i]
+            }
+            else{
+                deleteBoxes.push(selectBoxesMapIndex[i])//存在删除情况
+            }
+        }
+
+        for(let i=0;i<deleteBoxes.length;i++){//存在删除情况
+            boxes.splice(deleteBoxes[i], 1)
+            for (let i = deleteBoxes[i]; i < boxes.length; i++) {
+                boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
+            }       
+        }
         const token = localStorage.getItem('token')
         const headers = {
             'Authorization': 'Bearer '.concat(token)
@@ -964,7 +1017,7 @@ class CornerstoneElement extends Component {
         const params = {
             caseId: this.state.caseId,
             username:this.state.username,
-            newRectStr: JSON.stringify(this.state.boxes)
+            newRectStr: JSON.stringify(boxes)
         }
         axios.post(draftConfig.updateRects, qs.stringify(params), {headers}).then(res => {
             if (res.data.status === 'okay') {
@@ -1056,8 +1109,8 @@ class CornerstoneElement extends Component {
 
     featureAnalysis(idx,e){
         console.log("特征分析")
-        // const boxes = this.state.selectBoxes
-        const boxes = this.state.boxes
+        const boxes = this.state.selectBoxes
+        // const boxes = this.state.boxes
         console.log('boxes',boxes, e.target.value)
         if (boxes[idx] !== undefined){
             console.log('boxes',boxes[idx])
@@ -1101,7 +1154,8 @@ class CornerstoneElement extends Component {
     }
 
     eraseMeasures(idx,e){
-        const boxes = this.state.boxes
+        // const boxes = this.state.boxes
+        const boxes = this.state.selectBoxes
         boxes[idx].measure = []
         this.setState({boxes: boxes})
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
@@ -1147,10 +1201,10 @@ class CornerstoneElement extends Component {
 
     tinyNodules(e){
         if(e.target.checked){
-            this.setState({selectTiny:1})
+            this.setState({selectTiny:1,listsActiveIndex:-1})
         }
         else{
-            this.setState({selectTiny:0})
+            this.setState({selectTiny:0,listsActiveIndex:-1})
         }
     }
 
@@ -1174,13 +1228,13 @@ class CornerstoneElement extends Component {
         let sliderMarks={}
 
         if(this.state.imageIds.length<=100){
-            for(let i=0;i<this.state.boxes.length;i++){
-                sliderMarks[this.state.boxes[i].slice_idx+1]=''
+            for(let i=0;i<this.state.selectBoxes.length;i++){
+                sliderMarks[this.state.selectBoxes[i].slice_idx+1]=''
             }
         }
         else{
-            for(let i=0;i<this.state.boxes.length;i++){
-                sliderMarks[this.state.boxes[i].slice_idx]=''
+            for(let i=0;i<this.state.selectBoxes.length;i++){
+                sliderMarks[this.state.selectBoxes[i].slice_idx]=''
             }
         }
         
@@ -1190,8 +1244,8 @@ class CornerstoneElement extends Component {
         let panes = [
             { menuItem: '影像所见', render: () => 
                 <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} 
-                imageIds={this.state.imageIds} boxes={this.state.boxes} activeItem={this.state.doubleClick===true?'all':this.state.listsActiveIndex}/></Tab.Pane> },
-            { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
+                imageIds={this.state.imageIds} boxes={this.state.selectBoxes} activeItem={this.state.doubleClick===true?'all':this.state.listsActiveIndex}/></Tab.Pane> },
+            { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' imageIds={this.state.imageIds} boxes={this.state.selectBoxes}/></Tab.Pane> },
           ]
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, 
             wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth, windowHeight, slideSpan, measureStateList, maskStateList} = this.state
@@ -1273,8 +1327,8 @@ class CornerstoneElement extends Component {
         let slideLabel
         let dicomTagPanel
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
-        // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
-        let noduleNumTab = '结节(' + this.state.boxes.length + ')'
+        let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
+        // let noduleNumTab = '结节(' + this.state.boxes.length + ')'
         // let inflammationTab = '炎症(有)'
         // let lymphnodeTab = '淋巴结(0)'
         let segments={
@@ -1523,9 +1577,12 @@ class CornerstoneElement extends Component {
         if (!this.state.immersive) {
                 tableContent = this
                     .state
-                    // .selectBoxes
-                    .boxes
+                    .selectBoxes
+                    // .boxes
                     .map((inside, idx) => {
+                        if(inside!=="delete"){
+
+                        
                         // console.log('inside',inside)
                         let representArray=[]
                         let dropdownText=''
@@ -1730,7 +1787,7 @@ class CornerstoneElement extends Component {
                                                 <Grid.Column widescreen={6} computer={7} textAlign='center'>
                                                 {
                                                     idx<6?
-                                                    <Dropdown style={selectStyle} text={dropdownText} icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
+                                                    <Dropdown id={placeId} style={selectStyle} text={dropdownText} icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -1794,7 +1851,7 @@ class CornerstoneElement extends Component {
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                     :
-                                                    <Dropdown  style={selectStyle} text={dropdownText} upward icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
+                                                    <Dropdown id={placeId} style={selectStyle} text={dropdownText} upward icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -1973,7 +2030,7 @@ class CornerstoneElement extends Component {
                                                 <Grid.Column widescreen={6} computer={7} textAlign='center'>
                                                 {
                                                     idx<6?
-                                                    <Dropdown style={selectStyle} text={dropdownText} icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
+                                                    <Dropdown id={placeId} style={selectStyle} text={dropdownText} icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -2037,7 +2094,7 @@ class CornerstoneElement extends Component {
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                     :
-                                                    <Dropdown  style={selectStyle} text={dropdownText} upward icon={null} onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}>
+                                                    <Dropdown id={placeId} style={selectStyle} text={dropdownText} upward icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
                                                         <Dropdown.Menu>
                                                             <Dropdown.Header>肺叶</Dropdown.Header>
                                                             <Dropdown.Item>
@@ -2188,6 +2245,7 @@ class CornerstoneElement extends Component {
                                 </div>
                             )
                         }
+                    }
                         
                     })
 
@@ -2464,7 +2522,7 @@ class CornerstoneElement extends Component {
                                                 <div className="nodule-card-container">
                                                     <Tabs type="card" animated defaultActiveKey={1} size='small'>
                                                         <TabPane tab={noduleNumTab} key="1" >
-                                                            {/* <div id='listTitle'>
+                                                            <div id='listTitle'>
                                                                 <Space align="baseline">
                                                                     <Select defaultValue="全部密度" onChange={this.chooseDensity.bind(this)} bordered={false} 
                                                                     style={{backgroundColor:'#021C38',color:'#F5F5F5',fontSize:'12pt'}}>
@@ -2475,7 +2533,7 @@ class CornerstoneElement extends Component {
                                                                     </Select>
                                                                     <Checkbox onChange={this.tinyNodules.bind(this)} style={{backgroundColor:'#021C38',color:'#F5F5F5',fontSize:'12pt'}}>微小结节</Checkbox>
                                                                 </Space>
-                                                            </div> */}
+                                                            </div>
                                                             <div id='elec-table'>
                                                                 <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                                     {tableContent}
@@ -2795,8 +2853,8 @@ class CornerstoneElement extends Component {
     findCurrentArea(x, y) {
         // console.log('x, y', x, y)
         const lineOffset = 2;
-        for (var i = 0; i < this.state.boxes.length; i++) {
-            const box = this.state.boxes[i]
+        for (var i = 0; i < this.state.selectBoxes.length; i++) {
+            const box = this.state.selectBoxes[i]
             if (box.slice_idx == this.state.currentIdx) {
                 const xCenter = box.x1 + (box.x2 - box.x1) / 2;
                 const yCenter = box.y1 + (box.y2 - box.y1) / 2;
@@ -2845,8 +2903,8 @@ class CornerstoneElement extends Component {
 
     findMeasureArea(x,y){
         const lineOffset = 2;
-        for (var i = 0; i < this.state.boxes.length; i++) {
-            const box = this.state.boxes[i]
+        for (var i = 0; i < this.state.selectBoxes.length; i++) {
+            const box = this.state.selectBoxes[i]
             if (box.slice_idx == this.state.currentIdx) {
                 const xCenter = box.x1 + (box.x2 - box.x1) / 2;
                 const yCenter = box.y1 + (box.y2 - box.y1) / 2;
@@ -2987,13 +3045,13 @@ class CornerstoneElement extends Component {
             "place":0,
             "modified":1,
         }
-        let boxes = this.state.boxes
+        let boxes = this.state.selectBoxes
         console.log("newBox", newBox)
         boxes.push(newBox)
         let measureStateList = this.state.measureStateList
         measureStateList.push(false)
         this.setState({boxes: boxes, measureStateList: measureStateList})
-        console.log("Boxes", this.state.boxes, this.state.measureStateList)
+        console.log("Boxes", this.state.selectBoxes, this.state.measureStateList)
             
         // })
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)    
@@ -3232,7 +3290,7 @@ class CornerstoneElement extends Component {
                 this.setState({tmpBox: tmpBox})
                 this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
             } else if (this.state.clicked && this.state.clickedArea.box !== -1) { //mousedown && mouse is inside the annos
-                let boxes = this.state.boxes
+                let boxes = this.state.selectBoxes
                 let currentBox = boxes[this.state.clickedArea.box]
     
                 if (this.state.clickedArea.pos === 'i') {
@@ -3329,7 +3387,7 @@ class CornerstoneElement extends Component {
                 this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
             } 
             else if (this.state.clicked && this.state.clickedArea.box !== -1 && this.state.clickedArea.m_pos !== 'om') { //mousedown && mouse is inside the annos && inside the measure
-                let boxes = this.state.boxes
+                let boxes = this.state.selectBoxes
                 let currentBox = boxes[this.state.clickedArea.box]
                 if(this.state.clickedArea.m_pos === 'sl'){
                     var fixedPoint_x = currentBox.measure.x2 
@@ -3546,11 +3604,13 @@ class CornerstoneElement extends Component {
             //切换结节list
             event.preventDefault()
             const listsActiveIndex = this.state.listsActiveIndex
-            const boxes = this.state.boxes
+            const boxes = this.state.selectBoxes
             if(listsActiveIndex < boxes.length-1){
+                console.log("listsActiveIndex",listsActiveIndex)
                 this.keyDownListSwitch(listsActiveIndex+1)
             }
             else if(listsActiveIndex === boxes.length - 1){
+                console.log("listsActiveIndex",listsActiveIndex)
                 this.keyDownListSwitch(0)
             }
                 
@@ -3656,7 +3716,7 @@ class CornerstoneElement extends Component {
             const x2 = this.state.tmpBox.x2
             const y2 = this.state.tmpBox.y2
             let newNodule_no = -1
-            const boxes = this.state.boxes
+            const boxes = this.state.selectBoxes
             for (var i = 0; i < boxes.length; i++) {
                 const current_nodule_no = parseInt(boxes[i].nodule_no)
                 if (current_nodule_no > newNodule_no) {
@@ -3668,7 +3728,7 @@ class CornerstoneElement extends Component {
         }
         if(this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3 && event.button === 0 && this.state.clickedArea.m_pos === 'om'){
             console.log('tmpBox',this.state.tmpBox)
-            const boxes = this.state.boxes
+            const boxes = this.state.selectBoxes
             let currentBox = boxes[this.state.clickedArea.box]
             currentBox.measure = {}
             console.log('currentBox',currentBox)
@@ -3688,11 +3748,11 @@ class CornerstoneElement extends Component {
             console.log('measure', measureStateList)
             this.setState({boxes:boxes, measureStateList: measureStateList})
             this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
-            console.log('box',this.state.boxes)
+            console.log('box',this.state.selectBoxes)
         }
 
         if(this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3 && event.button === 0 && this.state.clickedArea.m_pos !== 'om'){
-            const boxes = this.state.boxes
+            const boxes = this.state.selectBoxes
             let currentBox = boxes[this.state.clickedArea.box]
             var invertBox = this.invertHandles(currentBox)
             boxes[this.state.clickedArea.box] = invertBox
@@ -3872,7 +3932,7 @@ class CornerstoneElement extends Component {
 
     //标注此模型
     toCurrentModel() {
-        let currentBox = this.state.boxes
+        let currentBox = this.state.selectBoxes
         console.log(currentBox)
         let caseId = window
             .location
@@ -3937,13 +3997,35 @@ class CornerstoneElement extends Component {
     submit(){
         console.log('createuser')
         const token = localStorage.getItem('token')
+        let boxes = this.state.boxes
+        const selectBoxes = this.state.selectBoxes
+        const selectBoxesMapIndex = this.state.selectBoxesMapIndex
+        let deleteBoxes=[]
+
+        for(let i=0;i<selectBoxesMapIndex.length;i++){//仅修改
+            if(selectBoxes[i]!=="delete"){
+                boxes[selectBoxes[i]]=selectBoxes[i]
+            }
+            else{
+                deleteBoxes.push(selectBoxesMapIndex[i])//存在删除情况
+            }
+        }
+
+        for(let i=0;i<deleteBoxes.length;i++){//存在删除情况
+            boxes.splice(deleteBoxes[i], 1)
+            for (let i = deleteBoxes[i]; i < boxes.length; i++) {
+                boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
+            }       
+        }
+        
+
         const headers = {
             'Authorization': 'Bearer '.concat(token)
         }
         const params = {
             caseId: this.state.caseId,
             // username:this.state.username,
-            newRectStr: JSON.stringify(this.state.boxes)
+            newRectStr: JSON.stringify(boxes)
         }
         axios.post(draftConfig.createUser, qs.stringify(params), {headers}).then(res => {
             console.log(res)
@@ -4081,13 +4163,13 @@ class CornerstoneElement extends Component {
         const element = document.getElementById("origin-canvas")
         const viewport = cornerstone.getViewport(element)
         if (this.state.showNodules === true && this.state.caseId === window.location.pathname.split('/')[2]) {
-            for (let i = 0; i < this.state.boxes.length; i++) {
+            for (let i = 0; i < this.state.selectBoxes.length; i++) {
                 // if (this.state.boxes[i].slice_idx == this.state.currentIdx && this.state.immersive == false) 
-                if (this.state.boxes[i].slice_idx == this.state.currentIdx){
-                     this.drawBoxes(this.state.boxes[i])
+                if (this.state.selectBoxes[i].slice_idx == this.state.currentIdx){
+                     this.drawBoxes(this.state.selectBoxes[i])
                     //  this.drawMask(this.state.boxes[i])
                      if(this.state.measureStateList[i]){
-                        this.drawBidirection(this.state.boxes[i])
+                        this.drawBidirection(this.state.selectBoxes[i])
                     }
                     // if(this.state.maskStateList[i]){
                     //     this.drawMask(this.state.boxes[i])
@@ -4099,7 +4181,7 @@ class CornerstoneElement extends Component {
         }
 
 
-        console.log('bool',this.state.clicked && this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3,this.state.clicked,this.state.clickedArea.box,this.state.leftButtonTools)
+        // console.log('bool',this.state.clicked && this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3,this.state.clicked,this.state.clickedArea.box,this.state.leftButtonTools)
         if (this.state.clicked && this.state.clickedArea.box == -1 && this.state.leftButtonTools == 0) { 
             this.drawBoxes(this.state.tmpBox)
         }
@@ -4148,7 +4230,7 @@ class CornerstoneElement extends Component {
                 // }
                 // console.log('image',image.getImage())
                 if (initial) {
-                    console.log(this.state.viewport.voi)
+                    // console.log(this.state.viewport.voi)
                     if (this.state.viewport.voi.windowWidth === undefined || this.state.viewport.voi.windowCenter === undefined) {
                         image.windowCenter = -600
                         image.windowWidth = 1600
@@ -4250,7 +4332,7 @@ class CornerstoneElement extends Component {
     }
 
     componentWillMount() {
-        this.checkHash()
+        // this.checkHash()
     }
 
     componentDidMount() {
@@ -4286,7 +4368,7 @@ class CornerstoneElement extends Component {
         console.log('okParams', okParams)
 
         axios.post(reviewConfig.isOkayForReview, qs.stringify(okParams), {headers}).then(res => {
-            console.log('1484', res)
+            // console.log('1484', res)
         }).catch(err => {
             console.log(err)
         })
@@ -4305,9 +4387,9 @@ class CornerstoneElement extends Component {
             this.setState({leftBtnSpeed:leftBtnSpeed})
         }
 
-        var stateListLength = this.state.boxes.length
+        var stateListLength = this.state.selectBoxes.length
         var measureArr = new Array(stateListLength).fill(true)
-        console.log('measureArr',measureArr)
+        // console.log('measureArr',measureArr)
         this.setState({measureStateList:measureArr})
 
         
@@ -4323,24 +4405,29 @@ class CornerstoneElement extends Component {
         // canvas_ROI.width = 500
         // origin.appendChild(canvas_ROI)
         // canvas_ROI.style.position = 'absolute'
-        // let tempBox=[]
-        // for(let i=0;i<this.state.boxes.length;i++){
-        //     if(parseInt(this.state.boxes[i].diameter)>3){
-        //         tempBox.push(this.state.boxes[i])
-        //     }
-        // }
-        // if(this.state.selectTexture===-1){
-        //     this.setState({selectBoxes:tempBox})
-        // }
-        // else{
-        //     let temp2temp=[]
-        //     for(let i=0;i<tempBox.length;i++){
-        //         if(tempBox[i].texture===this.state.selectTexture){
-        //             temp2temp.push(tempBox[i])
-        //         }
-        //     }
-        //     this.setState({selectBoxes:temp2temp})
-        // }
+        let tempBox=[]
+        let mapIndex=[]
+        for(let i=0;i<this.state.boxes.length;i++){
+            if(parseInt(this.state.boxes[i].diameter)>3){
+                tempBox.push(this.state.boxes[i])
+                tempBox[tempBox.length-1].nodule_no=(tempBox.length-1).toString()
+                mapIndex.push(i)
+            }
+        }
+        if(this.state.selectTexture===-1){
+            this.setState({selectBoxes:tempBox, selectBoxesMapIndex:mapIndex})
+        }
+        else{
+            let temp2temp=[]
+            let temp2index=[]
+            for(let i=0;i<tempBox.length;i++){
+                if(tempBox[i].texture===this.state.selectTexture){
+                    temp2temp.push(tempBox[i])
+                    temp2index.push(mapIndex[i])
+                }
+            }
+            this.setState({selectBoxes:temp2temp, selectBoxesMapIndex:temp2index})
+        }
         
     }
 
@@ -4415,42 +4502,57 @@ class CornerstoneElement extends Component {
                 }
             }
         }
-        // if(prevState.selectTexture !== this.state.selectTexture || prevState.selectTiny !== this.state.selectTiny){
-        //     if(this.state.selectTiny===1){
-        //         if(this.state.selectTexture===-1){
-        //             this.setState({selectBoxes:this.state.boxes})
-        //         }
-        //         else{
-        //             let tempBox=[]
-        //             for(let i=0;i<this.state.boxes.length;i++){
-        //                 if(this.state.boxes[i].texture===this.state.selectTexture){
-        //                     tempBox.push(this.state.boxes[i])
-        //                 }
-        //             }
-        //             this.setState({selectBoxes:tempBox})
-        //         }
-        //     }
-        //     else{
-        //         let tempBox=[]
-        //         for(let i=0;i<this.state.boxes.length;i++){
-        //             if(parseInt(this.state.boxes[i].diameter)>3){
-        //                 tempBox.push(this.state.boxes[i])
-        //             }
-        //         }
-        //         if(this.state.selectTexture===-1){
-        //             this.setState({selectBoxes:tempBox})
-        //         }
-        //         else{
-        //             let temp2temp=[]
-        //             for(let i=0;i<tempBox.length;i++){
-        //                 if(tempBox[i].texture===this.state.selectTexture){
-        //                     temp2temp.push(tempBox[i])
-        //                 }
-        //             }
-        //             this.setState({selectBoxes:temp2temp})
-        //         }
-        //     }
-        // }
+        if(prevState.selectTexture !== this.state.selectTexture || prevState.selectTiny !== this.state.selectTiny){
+            console.log('selectBoxes',this.state.selectBoxes)
+            if(this.state.selectTiny===1){
+                if(this.state.selectTexture===-1){
+                    let tempBox=[]
+                    for(let i=0;i<this.state.boxes.length;i++){
+                        tempBox.push(this.state.boxes[i])
+                        tempBox[tempBox.length-1].nodule_no=(tempBox.length-1).toString()
+                    }
+                    this.setState({selectBoxes:tempBox, 
+                        selectBoxesMapIndex:Array.from(new Array(this.state.boxes.length-1).keys()).slice(0)})
+                }
+                else{
+                    let tempBox=[]
+                    let mapIndex=[]
+                    for(let i=0;i<this.state.boxes.length;i++){
+                        if(this.state.boxes[i].texture===this.state.selectTexture){
+                            tempBox.push(this.state.boxes[i])
+                            tempBox[tempBox.length-1].nodule_no=(tempBox.length-1).toString()
+                            mapIndex.push(i)
+                        }
+                    }
+                    this.setState({selectBoxes:tempBox, selectBoxesMapIndex:mapIndex})
+                }
+            }
+            else{
+                let tempBox=[]
+                let mapIndex=[]
+                for(let i=0;i<this.state.boxes.length;i++){
+                    if(parseInt(this.state.boxes[i].diameter)>3){
+                        tempBox.push(this.state.boxes[i])
+                        tempBox[tempBox.length-1].nodule_no=(tempBox.length-1).toString()
+                        mapIndex.push(i)
+                    }
+                }
+                if(this.state.selectTexture===-1){
+                    this.setState({selectBoxes:tempBox, selectBoxesMapIndex:mapIndex})
+                }
+                else{
+                    let temp2temp=[]
+                    let temp2index=[]
+                    for(let i=0;i<tempBox.length;i++){
+                        if(tempBox[i].texture===this.state.selectTexture){
+                            temp2temp.push(tempBox[i])
+                            temp2index.push(i)
+                        }
+                    }
+                    this.setState({selectBoxes:temp2temp, selectBoxesMapIndex:temp2index})
+                }
+            }
+        }
     }
 }
 

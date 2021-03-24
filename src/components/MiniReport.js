@@ -78,12 +78,12 @@ class MiniReport extends Component{
 
     componentDidUpdate(prevProps,prevState){
         if(prevProps.activeItem !== this.props.activeItem || prevState.dealchoose !== this.state.dealchoose){
-            // console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
+            console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
             this.template()
         }
         // console.log('boxes changed',prevProps.boxes,this.props.boxes,prevState.boxes,this.state.boxes)
         if(prevProps.boxes !== this.props.boxes){
-            // console.log('boxes changed',prevProps.boxes,this.props.boxes)
+            console.log('boxes changed',prevProps.boxes,this.props.boxes)
             const params = {
                 caseId: this.state.caseId,
                 username: this.state.username
@@ -340,71 +340,72 @@ class MiniReport extends Component{
                 this.setState({templateText:''})
             }
             else if(this.props.activeItem==='all'){
-                for(let i=0;i<this.state.boxes.length;i++){
+                console.log('length',this.props.boxes.length)
+                for(let i=0;i<this.props.boxes.length;i++){
                     let place=''
                     let diameter=''
                     let texture=''
                     let representArray=[]
                     let represent=''
                     let malignancy=''
-                    if(this.state.boxes[i]['place']===0 || this.state.boxes[i]['place']===undefined || 
-                    this.state.boxes[i]['place']===""){
-                        if(this.state.boxes[i]['segment']===undefined || this.state.boxes[i]['segment']===""|| 
-                        this.state.boxes[i]['segment']==='None'){
+                    if(this.props.boxes[i]['place']===0 || this.props.boxes[i]['place']===undefined || 
+                    this.props.boxes[i]['place']===""){
+                        if(this.props.boxes[i]['segment']===undefined || this.props.boxes[i]['segment']===""|| 
+                        this.props.boxes[i]['segment']==='None'){
                             place='未知位置'
                         }
                         else{
-                            place=segments[this.state.boxes[i]['segment']]
+                            place=segments[this.props.boxes[i]['segment']]
                         }
                         
                     }
                     else{
-                        if(this.state.boxes[i]['segment']===undefined || this.state.boxes[i]['segment']===""|| 
-                        this.state.boxes[i]['segment']==='None'){
-                            place=places[this.state.boxes[i]['place']]
+                        if(this.props.boxes[i]['segment']===undefined || this.props.boxes[i]['segment']===""|| 
+                        this.props.boxes[i]['segment']==='None'){
+                            place=places[this.props.boxes[i]['place']]
                         }
                         else{
-                            place=segments[this.state.boxes[i]['segment']]
+                            place=segments[this.props.boxes[i]['segment']]
                         }
                     }
-                    if(this.state.boxes[i]['diameter']!==undefined){
-                        diameter=Math.floor(this.state.boxes[i]['diameter']*10)/100+'cm' 
+                    if(this.props.boxes[i]['diameter']!==undefined){
+                        diameter=Math.floor(this.props.boxes[i]['diameter']*10)/100+'cm' 
                     }
                     else{
                         diameter='未知'
                     }
-                    if(this.state.boxes[i]['texture']===2){
+                    if(this.props.boxes[i]['texture']===2){
                         texture='实性'
                     }
-                    else if(this.state.boxes[i]['texture']===3){
+                    else if(this.props.boxes[i]['texture']===3){
                         texture='半实性'
                     }
                     else{
                         texture='磨玻璃'
                     }
                     
-                    if(this.state.boxes[i]['lobulation']===2){
+                    if(this.props.boxes[i]['lobulation']===2){
                         representArray.push('分叶')
                     }
-                    if(this.state.boxes[i]['spiculation']===2){
+                    if(this.props.boxes[i]['spiculation']===2){
                         representArray.push('毛刺')
                     }
-                    if(this.state.boxes[i]['calcification']===2){
+                    if(this.props.boxes[i]['calcification']===2){
                         representArray.push('钙化')
                     }
-                    if(this.state.boxes[i]['pin']===2){
+                    if(this.props.boxes[i]['pin']===2){
                         representArray.push('胸膜凹陷')
                     }
-                    if(this.state.boxes[i]['cav']===2){
+                    if(this.props.boxes[i]['cav']===2){
                         representArray.push('空洞')
                     }
-                    if(this.state.boxes[i]['vss']===2){
+                    if(this.props.boxes[i]['vss']===2){
                         representArray.push('血管集束')
                     }
-                    if(this.state.boxes[i]['bea']===2){
+                    if(this.props.boxes[i]['bea']===2){
                         representArray.push('空泡')
                     }
-                    if(this.state.boxes[i]['bro']===2){
+                    if(this.props.boxes[i]['bro']===2){
                         representArray.push('支气管充气')
                     }
                     for(let index=0;index<representArray.length;index++){
@@ -415,22 +416,22 @@ class MiniReport extends Component{
                             represent=represent+'、'+representArray[index]
                         }
                     }
-                    // if(this.state.boxes[i]['calcification']===2){
+                    // if(this.props.boxes[i]['calcification']===2){
                     //     calcification='有钙化成分，'
                     // }
                     // else{
                     //     calcification='无钙化成分，'
                     // }
-                    if(this.state.boxes[i]['malignancy']===3){
+                    if(this.props.boxes[i]['malignancy']===3){
                         malignancy='风险较高。'
                     }
-                    else if(this.state.boxes[i]['malignancy']===2){
+                    else if(this.props.boxes[i]['malignancy']===2){
                         malignancy='风险中等。'
                     }
                     else{
                         malignancy='风险较低。'
                     }
-                    texts=texts+place+' ( Im '+this.state.boxes[i]['slice_idx']+') 见'+texture+'结节, 大小为'+diameter+', 可见'+represent+', '+malignancy+'\n\n'
+                    texts=texts+place+' ( Im '+this.props.boxes[i]['slice_idx']+') 见'+texture+'结节, 大小为'+diameter+', 可见'+represent+', '+malignancy+'\n\n'
                 }
                 this.setState({templateText:texts})
             }   
@@ -441,35 +442,35 @@ class MiniReport extends Component{
                 let representArray=[]
                 let represent=''
                 let malignancy=''
-                if(this.state.boxes[this.props.activeItem]['place']===0 || this.state.boxes[this.props.activeItem]['place']===undefined || 
-                this.state.boxes[this.props.activeItem]['place']===""){
-                    if(this.state.boxes[this.props.activeItem]['segment']===undefined || this.state.boxes[this.props.activeItem]['segment']===""|| 
-                        this.state.boxes[this.props.activeItem]['segment']==='None'){
+                if(this.props.boxes[this.props.activeItem]['place']===0 || this.props.boxes[this.props.activeItem]['place']===undefined || 
+                this.props.boxes[this.props.activeItem]['place']===""){
+                    if(this.props.boxes[this.props.activeItem]['segment']===undefined || this.props.boxes[this.props.activeItem]['segment']===""|| 
+                        this.props.boxes[this.props.activeItem]['segment']==='None'){
                             place='未知位置'
                         }
                         else{
-                            place=segments[this.state.boxes[this.props.activeItem]['segment']]
+                            place=segments[this.props.boxes[this.props.activeItem]['segment']]
                         }
                 }
                 else{
-                    if(this.state.boxes[this.props.activeItem]['segment']===undefined || this.state.boxes[this.props.activeItem]['segment']===""|| 
-                    this.state.boxes[this.props.activeItem]['segment']==='None'){
-                        place=places[this.state.boxes[this.props.activeItem]['place']]
+                    if(this.props.boxes[this.props.activeItem]['segment']===undefined || this.props.boxes[this.props.activeItem]['segment']===""|| 
+                    this.props.boxes[this.props.activeItem]['segment']==='None'){
+                        place=places[this.props.boxes[this.props.activeItem]['place']]
                     }
                     else{
-                        place=segments[this.state.boxes[this.props.activeItem]['segment']]
+                        place=segments[this.props.boxes[this.props.activeItem]['segment']]
                     }
                 }
-                if(this.state.boxes[this.props.activeItem]['diameter']!==undefined){
-                    diameter=Math.floor(this.state.boxes[this.props.activeItem]['diameter']*10)/100+'cm' 
+                if(this.props.boxes[this.props.activeItem]['diameter']!==undefined){
+                    diameter=Math.floor(this.props.boxes[this.props.activeItem]['diameter']*10)/100+'cm' 
                 }
                 else{
                     diameter='未知'
                 }
-                if(this.state.boxes[this.props.activeItem]['texture']===2){
+                if(this.props.boxes[this.props.activeItem]['texture']===2){
                     texture='实性'
                 }
-                else if(this.state.boxes[this.props.activeItem]['texture']===3){
+                else if(this.props.boxes[this.props.activeItem]['texture']===3){
                     texture='半实性'
                 }
                 else{
@@ -481,28 +482,28 @@ class MiniReport extends Component{
                 // else{
                 //     calcification='无钙化成分，'
                 // }
-                if(this.state.boxes[this.props.activeItem]['lobulation']===2){
+                if(this.props.boxes[this.props.activeItem]['lobulation']===2){
                     representArray.push('分叶')
                 }
-                if(this.state.boxes[this.props.activeItem]['spiculation']===2){
+                if(this.props.boxes[this.props.activeItem]['spiculation']===2){
                     representArray.push('毛刺')
                 }
-                if(this.state.boxes[this.props.activeItem]['calcification']===2){
+                if(this.props.boxes[this.props.activeItem]['calcification']===2){
                     representArray.push('钙化')
                 }
-                if(this.state.boxes[this.props.activeItem]['pin']===2){
+                if(this.props.boxes[this.props.activeItem]['pin']===2){
                     representArray.push('胸膜凹陷')
                 }
-                if(this.state.boxes[this.props.activeItem]['cav']===2){
+                if(this.props.boxes[this.props.activeItem]['cav']===2){
                     representArray.push('空洞')
                 }
-                if(this.state.boxes[this.props.activeItem]['vss']===2){
+                if(this.props.boxes[this.props.activeItem]['vss']===2){
                     representArray.push('血管集束')
                 }
-                if(this.state.boxes[this.props.activeItem]['bea']===2){
+                if(this.props.boxes[this.props.activeItem]['bea']===2){
                     representArray.push('空泡')
                 }
-                if(this.state.boxes[this.props.activeItem]['bro']===2){
+                if(this.props.boxes[this.props.activeItem]['bro']===2){
                     representArray.push('支气管充气')
                 }
                 for(let index=0;index<representArray.length;index++){
@@ -519,16 +520,16 @@ class MiniReport extends Component{
                 // else{
                 //     calcification='无钙化成分，'
                 // }
-                if(this.state.boxes[this.props.activeItem]['malignancy']===3){
+                if(this.props.boxes[this.props.activeItem]['malignancy']===3){
                     malignancy='风险较高。'
                 }
-                else if(this.state.boxes[this.props.activeItem]['malignancy']===2){
+                else if(this.props.boxes[this.props.activeItem]['malignancy']===2){
                     malignancy='风险中等。'
                 }
                 else{
                     malignancy='风险较低。'
                 }
-                texts=texts+place+' ( Im '+this.state.boxes[this.props.activeItem]['slice_idx']+') 见'+texture+'结节, 大小为'+diameter+', 可见'+represent+', '+malignancy
+                texts=texts+place+' ( Im '+this.props.boxes[this.props.activeItem]['slice_idx']+') 见'+texture+'结节, 大小为'+diameter+', 可见'+represent+', '+malignancy
                 
                 this.setState({templateText:texts})
             }
@@ -537,16 +538,16 @@ class MiniReport extends Component{
             if(this.state.dealchoose==='中华共识'){
                 let weight=0
 
-                for(let i=0;i<this.state.boxes.length;i++){
-                    if(this.state.boxes[i]['malignancy']===3){
-                        if(this.state.boxes[i]['diameter']>8){
+                for(let i=0;i<this.props.boxes.length;i++){
+                    if(this.props.boxes[i]['malignancy']===3){
+                        if(this.props.boxes[i]['diameter']>8){
                             weight=20
                             break
                         }
-                        else if(this.state.boxes[i]['diameter']>6 && this.state.boxes[i]['diameter']<=8){
+                        else if(this.props.boxes[i]['diameter']>6 && this.props.boxes[i]['diameter']<=8){
                             weight=weight>=15?weight:15
                         }
-                        else if(this.state.boxes[i]['diameter']>=4 && this.state.boxes[i]['diameter']<=6){
+                        else if(this.props.boxes[i]['diameter']>=4 && this.props.boxes[i]['diameter']<=6){
                             weight=weight>=10?weight:10
                         }
                         else{
@@ -554,14 +555,14 @@ class MiniReport extends Component{
                         }
                     }
                     else{
-                        if(this.state.boxes[i]['diameter']>8){
+                        if(this.props.boxes[i]['diameter']>8){
                             weight=20
                             break
                         }
-                        else if(this.state.boxes[i]['diameter']>6 && this.state.boxes[i]['diameter']<=8){
+                        else if(this.props.boxes[i]['diameter']>6 && this.props.boxes[i]['diameter']<=8){
                             weight=weight>=10?weight:10
                         }
-                        else if(this.state.boxes[i]['diameter']>=4 && this.state.boxes[i]['diameter']<=6){
+                        else if(this.props.boxes[i]['diameter']>=4 && this.props.boxes[i]['diameter']<=6){
                             weight=weight>=5?weight:5
                         }
                         // else{
@@ -585,17 +586,17 @@ class MiniReport extends Component{
             else if(this.state.dealchoose==='Fleischner'){
                 let weight=0
 
-                for(let i=0;i<this.state.boxes.length;i++){
-                    if(this.state.boxes[i]['texture']===2){
-                        if(this.state.boxes[i]['diameter']>8){
+                for(let i=0;i<this.props.boxes.length;i++){
+                    if(this.props.boxes[i]['texture']===2){
+                        if(this.props.boxes[i]['diameter']>8){
                             weight=25
                             break
                         }
-                        else if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<=8){
+                        else if(this.props.boxes[i]['diameter']>=6 && this.props.boxes[i]['diameter']<=8){
                             weight=weight>=15?weight:15
                         }
                         else{
-                            if(this.state.boxes[i]['malignancy']===3){
+                            if(this.props.boxes[i]['malignancy']===3){
                                 weight=weight>=5?weight:5
                             }
                             // else{
@@ -603,8 +604,8 @@ class MiniReport extends Component{
                             // }
                         }
                     }
-                    else if(this.state.boxes[i]['texture']===3){
-                        if(this.state.boxes[i]['diameter']>=6){
+                    else if(this.props.boxes[i]['texture']===3){
+                        if(this.props.boxes[i]['diameter']>=6){
                             weight=weight>=20?weight:20
                         }
                         // else{
@@ -612,7 +613,7 @@ class MiniReport extends Component{
                         // }
                     }
                     else{
-                        if(this.state.boxes[i]['diameter']>=6){
+                        if(this.props.boxes[i]['diameter']>=6){
                             weight=weight>=10?weight:10
                         }
                         // else{
@@ -638,31 +639,31 @@ class MiniReport extends Component{
             else if(this.state.dealchoose==='NCCN'){
                 let weight=0
 
-                for(let i=0;i<this.state.boxes.length;i++){
-                    if(this.state.boxes[i]['texture']===2){
-                        if(this.state.boxes[i]['diameter']>=15){
+                for(let i=0;i<this.props.boxes.length;i++){
+                    if(this.props.boxes[i]['texture']===2){
+                        if(this.props.boxes[i]['diameter']>=15){
                             weight=15
                             break
                         }
-                        else if(this.state.boxes[i]['diameter']>=7 && this.state.boxes[i]['diameter']<15){
+                        else if(this.props.boxes[i]['diameter']>=7 && this.props.boxes[i]['diameter']<15){
                             weight=weight>=10?weight:10
                         }
-                        else if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<7){
+                        else if(this.props.boxes[i]['diameter']>=6 && this.props.boxes[i]['diameter']<7){
                             weight=weight>=5?weight:5
                         }
                         // else{
                         //     weight=0
                         // }
                     }
-                    else if(this.state.boxes[i]['texture']===3){
-                        if(this.state.boxes[i]['diameter']>=8){
+                    else if(this.props.boxes[i]['texture']===3){
+                        if(this.props.boxes[i]['diameter']>=8){
                             weight=15
                             break
                         }
-                        else if(this.state.boxes[i]['diameter']>=7 && this.state.boxes[i]['diameter']<8){
+                        else if(this.props.boxes[i]['diameter']>=7 && this.props.boxes[i]['diameter']<8){
                             weight=weight>=10?weight:10
                         }
-                        else if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<7){
+                        else if(this.props.boxes[i]['diameter']>=6 && this.props.boxes[i]['diameter']<7){
                             weight=weight>=5?weight:5
                         }
                         // else{
@@ -670,7 +671,7 @@ class MiniReport extends Component{
                         // }
                     }
                     else{
-                        if(this.state.boxes[i]['diameter']>=20){
+                        if(this.props.boxes[i]['diameter']>=20){
                             weight=weight>=5?weight:5
                         }
                         // else{
@@ -692,18 +693,18 @@ class MiniReport extends Component{
             else if(this.state.dealchoose==='Lung-RADS'){
                 let weight=0
 
-                for(let i=0;i<this.state.boxes.length;i++){
-                    if(this.state.boxes[i]['malignancy']===1 || this.state.boxes[i]['malignancy']===2){
-                        if(this.state.boxes[i]['texture']===2){
-                            if(this.state.boxes[i]['diameter']<6){
+                for(let i=0;i<this.props.boxes.length;i++){
+                    if(this.props.boxes[i]['malignancy']===1 || this.props.boxes[i]['malignancy']===2){
+                        if(this.props.boxes[i]['texture']===2){
+                            if(this.props.boxes[i]['diameter']<6){
                                 weight=weight>=0?weight:0
                             }
                             else{
                                 weight=weight>=5?weight:5
                             }
                         }
-                        else if(this.state.boxes[i]['texture']===3){
-                            if(this.state.boxes[i]['diameter']<6){
+                        else if(this.props.boxes[i]['texture']===3){
+                            if(this.props.boxes[i]['diameter']<6){
                                 weight=weight>=0?weight:0
                             }
                             else{
@@ -711,7 +712,7 @@ class MiniReport extends Component{
                             }
                         }
                         else{
-                            if(this.state.boxes[i]['diameter']<20){
+                            if(this.props.boxes[i]['diameter']<20){
                                 weight=weight>=0?weight:0
                             }
                             else{
@@ -720,8 +721,8 @@ class MiniReport extends Component{
                         }
                     }
                     else{
-                        if(this.state.boxes[i]['texture']===2){
-                            if(this.state.boxes[i]['diameter']>=8 && this.state.boxes[i]['diameter']<15){
+                        if(this.props.boxes[i]['texture']===2){
+                            if(this.props.boxes[i]['diameter']>=8 && this.props.boxes[i]['diameter']<15){
                                 weight=weight>=10?weight:10
                             }
                             else{
@@ -729,8 +730,8 @@ class MiniReport extends Component{
                                 break
                             }
                         }
-                        else if(this.state.boxes[i]['texture']===3){
-                            if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<8){
+                        else if(this.props.boxes[i]['texture']===3){
+                            if(this.props.boxes[i]['diameter']>=6 && this.props.boxes[i]['diameter']<8){
                                 weight=weight>=10?weight:10
                             }
                             else{
@@ -757,13 +758,13 @@ class MiniReport extends Component{
             else if(this.state.dealchoose==='亚洲共识'){
                 let weight=0
 
-                for(let i=0;i<this.state.boxes.length;i++){
-                    if(this.state.boxes[i]['texture']===2){
-                        if(this.state.boxes[i]['diameter']>8){
+                for(let i=0;i<this.props.boxes.length;i++){
+                    if(this.props.boxes[i]['texture']===2){
+                        if(this.props.boxes[i]['diameter']>8){
                             weight=25
                             break
                         }
-                        else if(this.state.boxes[i]['diameter']>=6 && this.state.boxes[i]['diameter']<=8){
+                        else if(this.props.boxes[i]['diameter']>=6 && this.props.boxes[i]['diameter']<=8){
                             weight=weight>=15?weight:15
                         }
                         // else if(this.state.boxes[i]['diameter']>=4 && this.state.boxes[i]['diameter']<6){
@@ -778,8 +779,8 @@ class MiniReport extends Component{
                         //     // }
                         // }
                     }
-                    else if(this.state.boxes[i]['texture']===1){
-                        if(this.state.boxes[i]['diameter']>5){
+                    else if(this.props.boxes[i]['texture']===1){
+                        if(this.props.boxes[i]['diameter']>5){
                             weight=weight>=5?weight:5
                         }
                         // else{
@@ -787,7 +788,7 @@ class MiniReport extends Component{
                         // }
                     }
                     else{
-                        if(this.state.boxes[i]['diameter']<=8){
+                        if(this.props.boxes[i]['diameter']<=8){
                             weight=weight>=10?weight:10
                         }
                         else{
