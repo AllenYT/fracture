@@ -15,13 +15,14 @@ import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu,Label, Card, Header,Progress } from 'semantic-ui-react'
+import {Grid, Icon, Button, Accordion, Modal, Dropdown, Tab, Image, Menu, Label} from 'semantic-ui-react'
 import '../css/cornerstone.css'
 import qs from 'qs'
 import axios from "axios"
-import { Slider, Select, notification, Sapce, Space, Checkbox, Tabs } from "antd"
+import { Slider, Select, Space, Checkbox, Tabs} from "antd"
 // import { Slider, RangeSlider } from 'rsuite'
 import MiniReport from './MiniReport'
+import MessagePanel from '../panels/MessagePanel'
 import src1 from '../images/scu-logo.jpg'
 
 
@@ -30,6 +31,7 @@ import  'echarts/lib/chart/bar';
 import 'echarts/lib/component/tooltip';
 import 'echarts/lib/component/title';
 import 'echarts/lib/component/toolbox'
+import { Content } from "antd/lib/layout/layout"
 // import { WrappedStudyBrowser } from "./wrappedStudyBrowser"
 
 
@@ -208,7 +210,7 @@ class CornerstoneElement extends Component {
             measureStateList:[],
             maskStateList:[],
             toolState:'',
-            leftButtonTools:1, //0-标注，1-切片切换，2-wwwc,3-bidirection
+            leftButtonTools:1, //0-标注，1-切片切换，2-wwwc,3-bidirection,4-length
             mouseCurPos:{},
             mouseClickPos:{},
             mousePrePos:{},
@@ -228,7 +230,8 @@ class CornerstoneElement extends Component {
             selectTiny:0,
             selectTexture:-1,
             selectBoxesMapIndex:[],
-            selectBoxes:props.stack.boxes===""?[]:props.stack.boxes
+            selectBoxes:props.stack.boxes===""?[]:props.stack.boxes,
+            lengthBox:[]
         }
         this.nextPath = this
             .nextPath
@@ -390,6 +393,9 @@ class CornerstoneElement extends Component {
         this.disableAllTools = this
             .disableAllTools
             .bind(this)
+        this.bidirectionalMeasure = this
+            .bidirectionalMeasure
+            .bind(this)
         this.lengthMeasure = this
             .lengthMeasure
             .bind(this)
@@ -460,6 +466,12 @@ class CornerstoneElement extends Component {
             .bind(this)
         this.noduleHist = this
             .noduleHist
+            .bind(this)
+        this.drawLength = this
+            .drawLength
+            .bind(this)
+        this.createLength = this
+            .createLength
             .bind(this)
         // this.showMask = this
         //     .showMask
@@ -1095,7 +1107,7 @@ class CornerstoneElement extends Component {
         cornerstone.updateImage(element);
     }
 
-    lengthMeasure(){
+    bidirectionalMeasure(){
         this.setState({leftButtonTools:3,menuTools:'bidirect'})
         // console.log('测量')
         // const element = document.querySelector('#origin-canvas')
@@ -1106,6 +1118,9 @@ class CornerstoneElement extends Component {
 
     }
 
+    lengthMeasure(){
+        this.setState({leftButtonTools:4,menuTools:'length'})
+    }
 
     featureAnalysis(idx,e){
         console.log("特征分析")
@@ -1246,6 +1261,7 @@ class CornerstoneElement extends Component {
                 <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} 
                 imageIds={this.state.imageIds} boxes={this.state.selectBoxes} activeItem={this.state.doubleClick===true?'all':this.state.listsActiveIndex}/></Tab.Pane> },
             { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' imageIds={this.state.imageIds} boxes={this.state.selectBoxes}/></Tab.Pane> },
+            { menuItem: '留言', render: () => <Tab.Pane><MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} /></Tab.Pane> }
           ]
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, 
             wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth, windowHeight, slideSpan, measureStateList, maskStateList} = this.state
@@ -2437,8 +2453,12 @@ class CornerstoneElement extends Component {
                                             <Button icon onClick={this.startAnnos} title='标注' className='funcbtn'><Icon name='edit' size='large'></Icon></Button>
                                         }
                                         {menuTools === 'bidirect'?
-                                            <Button icon onClick={this.lengthMeasure} title='测量' className='funcbtn' active><Icon name='crosshairs' size='large'></Icon></Button>:
-                                            <Button icon onClick={this.lengthMeasure} title='测量' className='funcbtn'><Icon name='crosshairs' size='large'></Icon></Button>
+                                            <Button icon onClick={this.bidirectionalMeasure} title='测量' className='funcbtn' active><Icon name='crosshairs' size='large'></Icon></Button>:
+                                            <Button icon onClick={this.bidirectionalMeasure} title='测量' className='funcbtn'><Icon name='crosshairs' size='large'></Icon></Button>
+                                        }
+                                        {menuTools === 'length'?
+                                            <Button icon onClick={this.lengthMeasure} title='长度' className='funcbtn' active><Icon name='arrows alternate vertical' size='large'></Icon></Button>:
+                                            <Button icon onClick={this.lengthMeasure} title='长度' className='funcbtn'><Icon name='arrows alternate vertical' size='large'></Icon></Button>
                                         }
                                         {menuTools === 'slide'?
                                             <Button icon title='切换切片' onClick={this.slide} className='funcbtn' active><Icon name='sort' size='large'></Icon></Button>:
@@ -2462,7 +2482,6 @@ class CornerstoneElement extends Component {
                                             :
                                             <Button icon title='清空标注' onClick={this.clearUserNodule.bind(this)} className='funcbtn'><Icon name='user delete' size='large'></Icon></Button>
                                         }
-                                        
                                         <Button title='3D' className='funcbtn' onClick={this.toSegView}>3D</Button>
                                     </Button.Group>
                                 </Menu.Item>
@@ -2553,6 +2572,18 @@ class CornerstoneElement extends Component {
                                                 <div id='report'>
                                                     <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
                                                     panes={panes} />
+                                                    
+                                                    {/* <Tabs defaultActiveKey="1" type="card">
+                                                        <TabPane tab="Tab 1" key="1">
+                                                        Content of Tab Pane 1
+                                                        </TabPane>
+                                                        <TabPane tab="Tab 2" key="2">
+                                                        Content of Tab Pane 2
+                                                        </TabPane>
+                                                        <TabPane tab="Tab 3" key="3">
+                                                        Content of Tab Pane 3
+                                                        </TabPane>
+                                                    </Tabs> */}
                                                 </div>
                                             </Grid.Row>
                                             
@@ -2825,6 +2856,20 @@ class CornerstoneElement extends Component {
             const y3 = measureCoord.y3
             const x4 = measureCoord.x4
             const y4 = measureCoord.y4
+
+            let anno_x = x1
+            let anno_y = y1
+            const dis = (x1-box.x1)*(x1-box.x1) + (y1-box.y1)*(y1-box.y1)
+            for(var i=2; i<5; i++){
+                var x = "x" + i
+                var y = "y" + i
+                var t_dis = (measureCoord[x]-box.x1)*(measureCoord[x]-box.x1) + (measureCoord[y]-box.y1)*(measureCoord[y]-box.y1)
+                if(t_dis < dis){
+                    anno_x = measureCoord[x]
+                    anno_y = measureCoord[y]
+                }
+            }
+
             context.beginPath()
             context.moveTo(x1,y1)
             context.lineTo(x2,y2)
@@ -2842,7 +2887,7 @@ class CornerstoneElement extends Component {
             
             context.beginPath();
             context.setLineDash([3, 3]);
-            context.moveTo(x1-2,y1-2);
+            context.moveTo(anno_x-2,anno_y-2);
             context.lineTo(box.x1+radius+10, y1-radius-10);
             context.stroke();
             
@@ -2916,7 +2961,7 @@ class CornerstoneElement extends Component {
                 const x2 = box.x2
                 if(x1 - lineOffset < x && x < x2 + lineOffset && y1 - lineOffset < y && y < y2 + lineOffset){
                     // console.log('measure',box.measure.x == undefined)
-                    if(box.measure && box.measure.x != undefined){
+                    if(box.measure && box.measure.x1 != undefined){
                         if(box.measure.x1 - lineOffset < x && x < box.measure.x1 + lineOffset && box.measure.y1 - lineOffset < y && y < box.measure.y1 + lineOffset){
                             return {box: i, pos:'ib', m_pos:'sl'}
                         }
@@ -2942,6 +2987,59 @@ class CornerstoneElement extends Component {
         }
         return {box: -1, pos:'ob', m_pos:'om'}
 
+    }
+
+    drawLength(box){
+        const x1 = box.x1
+        const y1 = box.y1
+        const x2 = box.x2
+        const y2 = box.y2 
+        const dis = Math.sqrt(Math.pow((x1-x2),2)+Math.pow((y1-y2),2)) / 10
+        console.log("dis",dis)
+        const canvas = document.getElementById("canvas")
+        const context = canvas.getContext('2d')
+        context.lineWidth = 1.5
+        context.strokeStyle = 'yellow'
+        context.fillStyle = 'yellow'
+        context.beginPath()
+        context.moveTo(x1,y1)
+        context.lineTo(x2,y2)
+        context.stroke()
+
+        context.beginPath()
+        context.arc(x1, y1, 3,0, 2*Math.PI)
+        context.stroke()
+
+        context.beginPath()
+        context.arc(x2, y2, 3,0, 2*Math.PI)
+        context.stroke()
+
+        context.font = "10px Georgia"
+        context.fillStyle = "yellow"
+        if(y1 < y2){
+            context.fillText(dis.toFixed(2)+'cm',x2+10, y2-10)
+        }
+        else{
+            context.fillText(dis.toFixed(2)+'cm',x1+10, y1-10)
+        }
+        
+        context.closePath()
+    }
+
+    findLengthArea(x,y){
+        const lineOffset = 3
+        for (var i = 0; i < this.state.lengthBox.length; i++) {
+            const box = this.state.lengthBox[i]
+            if(box.slice_idx === this.state.currentIdx){
+                if(box.x1-lineOffset < x && box.x1+lineOffset > x && box.y1-lineOffset < y && box.y1+lineOffset > y){
+                    return {box: i, pos: 'ib', m_pos: 'ul'}
+                }
+                else if(box.x2-lineOffset < x && box.x2+lineOffset > x && box.y2-lineOffset < y && box.y2+lineOffset > y){
+                    return {box: i,pos: 'ib', m_pos: 'dl'}
+                }
+            }
+        }
+        return {box: -1, pos:'ob', m_pos: 'ol'}
     }
 
     handleRangeChange(e) {
@@ -3054,6 +3152,21 @@ class CornerstoneElement extends Component {
         console.log("Boxes", this.state.selectBoxes, this.state.measureStateList)
             
         // })
+        this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)    
+    }
+
+    createLength(x1, x2, y1, y2, slice_idx){
+        const imageId = this.state.imageIds[slice_idx]
+        const newLength = {
+            "slice_idx": slice_idx,
+            "x1": x1,
+            "x2": x2,
+            "y1": y1,
+            "y2": y2,
+        }
+        let lengthList = this.state.lengthBox
+        lengthList.push(newLength)
+        this.setState({lengthBox: lengthList})
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)    
     }
 
@@ -3556,6 +3669,53 @@ class CornerstoneElement extends Component {
                 this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
             }
         }
+        else if(this.state.leftButtonTools === 4){
+            if (!this.state.immersive) {
+                const transX = this.state.viewport.translation.x
+                const transY = this.state.viewport.translation.y
+                const scale = this.state.viewport.scale
+                const halfValue = 256
+                let offsetminus = document.getElementById('canvas').width/2
+                x = (clickX - scale * transX - offsetminus) / scale + halfValue
+                y = (clickY - scale * transY - offsetminus) / scale + halfValue
+
+            } else {
+                x = clickX / 2.5
+                y = clickY / 2.5
+            }
+            let content = this.findLengthArea(x,y)
+            if(!this.state.clicked){
+                if(content.m_pos === 'ul'){
+                    //
+                }
+            }
+            if (this.state.clicked && this.state.clickedArea.box === -1) {  //mousedown && mouse is outside the annos
+                let tmpBox = this.state.tmpBox 
+                console.log('tmpbox',tmpBox)
+                let tmpCoord = this.state.tmpCoord
+                console.log('xy',x,y)
+                tmpBox.x1 = tmpCoord.x1
+                tmpBox.y1 = tmpCoord.y1
+                tmpBox.x2 = x
+                tmpBox.y2 = y
+                this.setState({tmpBox: tmpBox})
+                this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+            } else if (this.state.clicked && this.state.clickedArea.box !== -1) {
+                let lengthBox = this.state.lengthBox
+                let currentLength = lengthBox[this.state.clickedArea.box]
+                if(this.state.clickedArea.m_pos === 'ul'){
+                    currentLength.x1 = x
+                    currentLength.y1 = y
+                }
+                else if(this.state.clickedArea.m_pos === "dl"){
+                    currentLength.x2 = x
+                    currentLength.y2 = y
+                }
+                lengthBox[this.state.clickedArea.box] = currentLength
+                this.setState({lengthBox: lengthBox})
+                this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+            }
+        }
     }
 
     onKeydown(event) {
@@ -3688,6 +3848,17 @@ class CornerstoneElement extends Component {
                 console.log('cotnt',content)
                 this.setState({clicked: true, clickedArea: content, tmpCoord: coords})
             }
+            else if(this.state.leftButtonTools === 4){ //length
+                const coords = {
+                    x1: x,
+                    x2: x,
+                    y1: y,
+                    y2: y
+                }
+                let content = this.findLengthArea(x,y)
+                console.log("contnt", content)
+                this.setState({clicked: true, clickedArea: content, tmpCoord: coords})
+            }
             // this.setState({clicked: true, clickedArea: content, tmpBox: coords})
             
         }
@@ -3758,6 +3929,14 @@ class CornerstoneElement extends Component {
             boxes[this.state.clickedArea.box] = invertBox
             this.setState({boxes:boxes})
             this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+        }
+
+        if(this.state.clickedArea.box === -1 && this.state.leftButtonTools === 4 ){
+            const x1 = this.state.tmpBox.x1
+            const y1 = this.state.tmpBox.y1
+            const x2 = this.state.tmpBox.x2
+            const y2 = this.state.tmpBox.y2
+            this.createLength(x1, x2, y1, y2, this.state.currentIdx)
         }
      
         this.setState({
@@ -4174,10 +4353,13 @@ class CornerstoneElement extends Component {
                     // if(this.state.maskStateList[i]){
                     //     this.drawMask(this.state.boxes[i])
                     // }
-                }
-                   
+                }    
             }
-
+            for(let i=0; i<this.state.lengthBox.length; i++){
+                if(this.state.lengthBox[i].slice_idx === this.state.currentIdx){
+                    this.drawLength(this.state.lengthBox[i])
+                }
+            }
         }
 
 
@@ -4187,6 +4369,9 @@ class CornerstoneElement extends Component {
         }
         else if(this.state.clicked && this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3){
             this.drawBidirection(this.state.tmpBox)
+        }
+        else if(this.state.clicked && this.state.leftButtonTools === 4){
+            this.drawLength(this.state.tmpBox)
         }
 
         this.setState({viewport})

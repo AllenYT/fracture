@@ -457,7 +457,8 @@ export class SearchPanel extends Component {
             </div>
             :
             <LowerAuth></LowerAuth>
-        )
+
+            )
     }
 }
 

@@ -43,6 +43,7 @@ class StudyBrowserList extends Component{
         
         axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(params)).then((response) => {
             const data = response.data
+            // console.log("data",data)
             if (data.status !== 'okay') {
                 console.log("Not okay")
                 // window.location.href = '/'
