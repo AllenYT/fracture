@@ -3016,7 +3016,7 @@ class CornerstoneElement extends Component {
 
         context.font = "10px Georgia"
         context.fillStyle = "yellow"
-        if(y1 < y2){
+        if(x1 < x2){
             context.fillText(dis.toFixed(2)+'cm',x2+10, y2-10)
         }
         else{
@@ -4396,18 +4396,18 @@ class CornerstoneElement extends Component {
 
         // const element = document.getElementById('origin-canvas')
         const element = document.querySelector('#origin-canvas');
-        console.log('element',element)
+        // console.log('element',element)
         // console.log('element',element)
         if (initial) {
             cornerstone.enable(element)
             console.log('enable',cornerstone.enable(element))
         } else {
             cornerstone.getEnabledElement(element)
-            console.log(cornerstone.getEnabledElement(element))
+            // console.log(cornerstone.getEnabledElement(element))
         }
         // console.log('imageLoader',cornerstone.loadImage(imageId))
         cornerstone
-            .loadAndCacheImage(imageId)
+            .loadImage(imageId)
             .then(image => {
                 // if(this.state.TagFlag === false){
                 //     console.log('image info',image.data)
@@ -4534,6 +4534,23 @@ class CornerstoneElement extends Component {
         const height = document.body.clientHeight
         // const width = window.outerHeight
         this.setState({windowWidth : width, windowHeight: height})
+
+        const imageIds = this.state.imageIds
+        for(let i=0;i<this.state.boxes.length;i++){
+            let slice_idx = this.state.boxes[i].slice_idx
+            console.log("cornerstone",slice_idx,imageIds[slice_idx])
+            for(let j=slice_idx-5;j<slice_idx+5;j++){
+                cornerstone.loadAndCacheImage(imageIds[j])
+            }
+        }
+        
+        const promises = imageIds.map(imageId=> {
+        console.log(imageId)
+              return cornerstone.loadAndCacheImage(imageId)
+            })
+        Promise.all(promises).then(()=> {
+        // console.log("111",promise)
+    })
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
         const token = localStorage.getItem('token')
         const headers = {

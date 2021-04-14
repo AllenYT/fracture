@@ -3,8 +3,10 @@ import { Grid, Checkbox, Message} from 'semantic-ui-react'
 import axios from 'axios'
 import qs from 'qs'
 import { Form, Input, Button, Space, Select } from 'antd';
-import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
+import { MinusCircleTwoTone, PlusOutlined } from '@ant-design/icons';
 import {withRouter} from 'react-router-dom'
+import '../css/MessagePanel.css'
+
 const config = require('../config.json')
 const { Option } = Select
 const { TextArea } = Input
@@ -35,7 +37,7 @@ class MessagePanel extends Component {
         const {noduleList} = this.state
         return (
             <div>
-                 <Form name="dynamic_form_nest_item" autoComplete="off">
+                 <Form id="messageform" name="dynamic_form_nest_item" autoComplete="off">
                     <Form.List name="users">
                         {(fields, { add, remove }) => (
                         <>
@@ -47,7 +49,7 @@ class MessagePanel extends Component {
                                 fieldKey={[fieldKey, 'noduleNo']}
                                 rules={[{ required: true, message: 'Missing first name' }]}
                                 >
-                                <Select style={{width:'100px'}}>
+                                <Select id="noduleSelect" style={{width:'100px'}}>
                                     {noduleList.map(noduleNo =>(
                                         <Option key={noduleNo} style={{width:'90px'}}>{noduleNo}号结节</Option>
                                     ))}
@@ -59,23 +61,23 @@ class MessagePanel extends Component {
                                 fieldKey={[fieldKey, 'message']}
                                 rules={[{ required: false}]}
                                 >
-                                <Input style={{width:'200px'}}
+                                <Input style={{width:'260px'}}
                                 // autoSize={{ minRows: 1, maxRows: 2 }}
                                 />
                                 </Form.Item>
-                                <MinusCircleOutlined onClick={() => remove(name)} />
+                                <MinusCircleTwoTone  onClick={() => remove(name)} />
                             </Space>
                             ))}
                             <Form.Item>
-                            <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
-                                Add field
+                            <Button id="addMessage" type="dashed" onClick={() => add()} icon={<PlusOutlined />}>
+                                新增留言
                             </Button>
                             </Form.Item>
                         </>
                         )}
                     </Form.List>
                     <Form.Item>
-                        <Button type="primary" htmlType="submit">
+                        <Button id="messageSend" type="primary" htmlType="submit" >
                         发送
                         </Button>
                     </Form.Item>
