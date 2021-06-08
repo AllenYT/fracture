@@ -4536,18 +4536,18 @@ class CornerstoneElement extends Component {
         this.setState({windowWidth : width, windowHeight: height})
 
         const imageIds = this.state.imageIds
-        for(let i=0;i<this.state.boxes.length;i++){
-            let slice_idx = this.state.boxes[i].slice_idx
-            console.log("cornerstone",slice_idx,imageIds[slice_idx])
-            for(let j=slice_idx-5;j<slice_idx+5;j++){
-                cornerstone.loadAndCacheImage(imageIds[j])
-            }
-        }
+        // for(let i=0;i<this.state.boxes.length;i++){
+        //     let slice_idx = this.state.boxes[i].slice_idx
+        //     console.log("cornerstone",slice_idx,imageIds[slice_idx])
+        //     for(let j=slice_idx-5;j<slice_idx+5;j++){
+        //         cornerstone.loadAndCacheImage(imageIds[j])
+        //     }
+        // }
         
         const promises = imageIds.map(imageId=> {
-        console.log(imageId)
-              return cornerstone.loadAndCacheImage(imageId)
-            })
+            console.log(imageId)
+            return cornerstone.loadAndCacheImage(imageId)
+        })
         Promise.all(promises).then(()=> {
         // console.log("111",promise)
     })
@@ -4682,27 +4682,6 @@ class CornerstoneElement extends Component {
         }
         if(prevState.listsActiveIndex !== -1 && this.state.listsActiveIndex === -1){
             this.setState({preListActiveIdx : prevState.listsActiveIndex})
-        }
-        if(prevState.currentIdx !== this.state.currentIdx){
-            const currentIdx = this.state.currentIdx + 1
-            if(currentIdx - cacheSize < 0){
-                for(var i = 0;i < currentIdx + cacheSize ;i++){
-                    if(i === currentIdx) continue
-                    this.cacheImage(this.state.imageIds[i])
-                }
-            }
-            else if(currentIdx + cacheSize > this.state.imageIds.length){
-                for(var i = this.state.imageIds.length - 1;i > currentIdx - cacheSize ;i--){
-                    if(i === currentIdx) continue
-                    this.cacheImage(this.state.imageIds[i])
-                }
-            }
-            else{
-                for(var i = currentIdx - cacheSize;i < currentIdx + cacheSize ;i++){
-                    if(i === currentIdx) continue
-                    this.cacheImage(this.state.imageIds[i])
-                }
-            }
         }
         if(prevState.selectTexture !== this.state.selectTexture || prevState.selectTiny !== this.state.selectTiny){
             console.log('selectBoxes',this.state.selectBoxes)
