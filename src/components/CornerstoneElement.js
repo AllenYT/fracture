@@ -3002,16 +3002,19 @@ class CornerstoneElement extends Component {
         context.strokeStyle = 'yellow'
         context.fillStyle = 'yellow'
         context.beginPath()
+        context.setLineDash([])
         context.moveTo(x1,y1)
         context.lineTo(x2,y2)
         context.stroke()
 
         context.beginPath()
-        context.arc(x1, y1, 3,0, 2*Math.PI)
+        context.setLineDash([])
+        context.arc(x1, y1, 1,0, 2*Math.PI)
         context.stroke()
 
         context.beginPath()
-        context.arc(x2, y2, 3,0, 2*Math.PI)
+        context.setLineDash([])
+        context.arc(x2, y2, 1,0, 2*Math.PI)
         context.stroke()
 
         context.font = "10px Georgia"
