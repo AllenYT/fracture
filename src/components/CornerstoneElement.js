@@ -227,10 +227,10 @@ class CornerstoneElement extends Component {
             windowHeight:1080,
             preListActiveIdx:-1,
             currentImage: null,
-            selectTiny:0,
-            selectTexture:-1,
-            selectBoxesMapIndex:[],
-            selectBoxes:props.stack.boxes===""?[]:props.stack.boxes,
+            // selectTiny:0,
+            // selectTexture:-1,
+            // selectBoxesMapIndex:[],
+            // selectBoxes:props.stack.boxes===""?[]:props.stack.boxes,
             lengthBox:[]
         }
         this.nextPath = this
@@ -690,7 +690,8 @@ class CornerstoneElement extends Component {
     }
 
     keyDownListSwitch(ActiveIdx){
-        const boxes = this.state.selectBoxes
+        // const boxes = this.state.selectBoxes
+        const boxes = this.state.boxes
         let currentIdx = parseInt(boxes[ActiveIdx].nodule_no)
         let sliceIdx = boxes[ActiveIdx].slice_idx
         if(this.state.preListActiveIdx !== -1){
@@ -807,21 +808,30 @@ class CornerstoneElement extends Component {
     delNodule(event) {
         const delNoduleId = event.target.id
         const nodule_no = delNoduleId.split("-")[1]
-        let selectBoxes = this.state.selectBoxes
-        let measureStateList = this.state.measureStateList
-        for (var i = 0; i < selectBoxes.length; i++) {
-            if (selectBoxes[i].nodule_no === nodule_no) {
-                // selectBoxes.splice(i, 1)
-                selectBoxes[i]="delete"
-            }
-        }
-        measureStateList.splice(nodule_no,1)
-        // for (var i = nodule_no; i < selectBoxes.length; i++) {
-        //     selectBoxes[i].nodule_no=(parseInt(selectBoxes[i].nodule_no)-1).toString()
-            
+        // let selectBoxes = this.state.selectBoxes
+        // let measureStateList = this.state.measureStateList
+        // for (var i = 0; i < selectBoxes.length; i++) {
+        //     if (selectBoxes[i].nodule_no === nodule_no) {
+        //         // selectBoxes.splice(i, 1)
+        //         selectBoxes[i]="delete"
+        //     }
         // }
+        let boxes = this.state.boxes
+        let measureStateList = this.state.measureStateList
+        // for (var i = 0; i < boxes.length; i++) {
+        //     if (boxes[i].nodule_no === nodule_no) {
+        //         boxes.splice(i, 1)
+        //         boxes[i]="delete"
+        //     }
+        // }
+        boxes.splice(nodule_no, 1)
+        measureStateList.splice(nodule_no,1)
+        for (var i = nodule_no; i < boxes.length; i++) {
+            boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
+            
+        }
         this.setState({
-            selectBoxes: selectBoxes,
+            boxes: boxes,
             measureStateList: measureStateList
             // random: Math.random()
         })
@@ -831,27 +841,30 @@ class CornerstoneElement extends Component {
 
     highlightNodule(event) {
         console.log('in', event.target.textContent)
-        let boxes = this.state.selectBoxes
+        // let boxes = this.state.selectBoxes
+        let boxes = this.state.boxes
         for (var i = 0; i < boxes.length; i++) {
             if (parseInt(boxes[i].nodule_no) === (event.target.textContent - 1)) {
                 boxes[i].highlight = true
             }
         }
-        // console.log(this.state.boxes, boxes)
-        this.setState({selectBoxes: boxes})
+        // this.setState({selectBoxes: boxes})
+        this.setState({boxes: boxes})
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
     dehighlightNodule(event) {
         console.log('out', event.target.textContent)
-        let boxes = this.state.selectBoxes
+        // let boxes = this.state.selectBoxes
+        let boxes = this.state.boxes
         for (var i = 0; i < boxes.length; i++) {
             if (parseInt(boxes[i].nodule_no) === (event.target.textContent - 1)) {
                 boxes[i].highlight = false
             }
         }
         // console.log(this.state.boxes, boxes)
-        this.setState({selectBoxes: boxes})
+        // this.setState({selectBoxes: boxes})
+        this.setState({boxes: boxes})
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
@@ -877,7 +890,8 @@ class CornerstoneElement extends Component {
         }
         console.log('boxes',boxes,noduleId)
         this.setState({
-            selectBoxes: boxes,
+            // selectBoxes: boxes,
+            boxes:boxes
             // random: Math.random()
         })
     }
@@ -887,7 +901,8 @@ class CornerstoneElement extends Component {
             .currentTarget
             .id
             .split('-')[1]
-        let boxes = this.state.selectBoxes
+        // let boxes = this.state.selectBoxes
+        let boxes = this.state.boxes
         for (let i = 0; i < boxes.length; i++) {
             if (boxes[i].nodule_no === noduleId) {
                 boxes[i].texture = parseInt(value)
@@ -895,6 +910,7 @@ class CornerstoneElement extends Component {
         }
         this.setState({
             selectBoxes: boxes,
+            boxes: boxes,
             // random: Math.random()
         })
     }
@@ -910,7 +926,8 @@ class CornerstoneElement extends Component {
         const place = event.currentTarget.id.split('-')[2]
         const noduleId = event.currentTarget.id.split('-')[1]
         console.log('id',segment,place,noduleId)
-        let boxes = this.state.selectBoxes
+        // let boxes = this.state.selectBoxes
+        let boxes = this.state.boxes
         // console.log('onselectplace',boxes)
         for (let i = 0; i < boxes.length; i++) {
             // console.log('onselectplace',boxes[i].nodule_no,boxes[i],noduleId,boxes[i].nodule_no===noduleId)
@@ -936,7 +953,8 @@ class CornerstoneElement extends Component {
             }
         }
         this.setState({
-            selectBoxes: boxes,
+            // selectBoxes: boxes,
+            boxes: boxes,
             // random: Math.random()
         })
     }
@@ -945,7 +963,8 @@ class CornerstoneElement extends Component {
         let represents={'lobulation':'分叶','spiculation':'毛刺','calcification':'钙化','pin':'胸膜凹陷',
                     'cav':'空洞','vss':'血管集束','bea':'空泡','bro':'支气管充气'}
         console.log('测量',value,name.split('dropdown')[1])
-        let boxes = this.state.selectBoxes
+        // let boxes = this.state.selectBoxes
+        let boxes = this.state.boxes
         for(let count = 0;count<boxes.length;count++){
             if (boxes[count].nodule_no === name.split('dropdown')[1]) {
                 boxes[count].lobulation=1
@@ -991,7 +1010,8 @@ class CornerstoneElement extends Component {
             }
         }
         this.setState({
-            selectBoxes: boxes
+            // selectBoxes: boxes
+            boxes: boxes
             // random: Math.random()
         })
     }
@@ -1003,25 +1023,25 @@ class CornerstoneElement extends Component {
     saveToDB() {
         console.log('savetodb')
         let boxes = this.state.boxes
-        const selectBoxes = this.state.selectBoxes
-        const selectBoxesMapIndex = this.state.selectBoxesMapIndex
-        let deleteBoxes=[]
+        // const selectBoxes = this.state.selectBoxes
+        // const selectBoxesMapIndex = this.state.selectBoxesMapIndex
+        // let deleteBoxes=[]
 
-        for(let i=0;i<selectBoxesMapIndex.length;i++){//仅修改
-            if(selectBoxes[i]!=="delete"){
-                boxes[selectBoxes[i]]=selectBoxes[i]
-            }
-            else{
-                deleteBoxes.push(selectBoxesMapIndex[i])//存在删除情况
-            }
-        }
+        // for(let i=0;i<selectBoxesMapIndex.length;i++){//仅修改
+        //     if(selectBoxes[i]!=="delete"){
+        //         boxes[selectBoxes[i]]=selectBoxes[i]
+        //     }
+        //     else{
+        //         deleteBoxes.push(selectBoxesMapIndex[i])//存在删除情况
+        //     }
+        // }
 
-        for(let i=0;i<deleteBoxes.length;i++){//存在删除情况
-            boxes.splice(deleteBoxes[i], 1)
-            for (let i = deleteBoxes[i]; i < boxes.length; i++) {
-                boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
-            }       
-        }
+        // for(let i=0;i<deleteBoxes.length;i++){//存在删除情况
+        //     boxes.splice(deleteBoxes[i], 1)
+        //     for (let i = deleteBoxes[i]; i < boxes.length; i++) {
+        //         boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
+        //     }       
+        // }
         const token = localStorage.getItem('token')
         const headers = {
             'Authorization': 'Bearer '.concat(token)
@@ -1124,8 +1144,8 @@ class CornerstoneElement extends Component {
 
     featureAnalysis(idx,e){
         console.log("特征分析")
-        const boxes = this.state.selectBoxes
-        // const boxes = this.state.boxes
+        // const boxes = this.state.selectBoxes
+        const boxes = this.state.boxes
         console.log('boxes',boxes, e.target.value)
         if (boxes[idx] !== undefined){
             console.log('boxes',boxes[idx])
@@ -1169,8 +1189,8 @@ class CornerstoneElement extends Component {
     }
 
     eraseMeasures(idx,e){
-        // const boxes = this.state.boxes
-        const boxes = this.state.selectBoxes
+        const boxes = this.state.boxes
+        // const boxes = this.state.selectBoxes
         boxes[idx].measure = []
         this.setState({boxes: boxes})
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
@@ -1242,14 +1262,24 @@ class CornerstoneElement extends Component {
     render() {
         let sliderMarks={}
 
+        // if(this.state.imageIds.length<=100){
+        //     for(let i=0;i<this.state.selectBoxes.length;i++){
+        //         sliderMarks[this.state.selectBoxes[i].slice_idx+1]=''
+        //     }
+        // }
+        // else{
+        //     for(let i=0;i<this.state.selectBoxes.length;i++){
+        //         sliderMarks[this.state.selectBoxes[i].slice_idx]=''
+        //     }
+        // }
         if(this.state.imageIds.length<=100){
-            for(let i=0;i<this.state.selectBoxes.length;i++){
-                sliderMarks[this.state.selectBoxes[i].slice_idx+1]=''
+            for(let i=0;i<this.state.boxes.length;i++){
+                sliderMarks[this.state.boxes[i].slice_idx+1]=''
             }
         }
         else{
-            for(let i=0;i<this.state.selectBoxes.length;i++){
-                sliderMarks[this.state.selectBoxes[i].slice_idx]=''
+            for(let i=0;i<this.state.boxes.length;i++){
+                sliderMarks[this.state.boxes[i].slice_idx]=''
             }
         }
         
@@ -1259,8 +1289,8 @@ class CornerstoneElement extends Component {
         let panes = [
             { menuItem: '影像所见', render: () => 
                 <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} 
-                imageIds={this.state.imageIds} boxes={this.state.selectBoxes} activeItem={this.state.doubleClick===true?'all':this.state.listsActiveIndex}/></Tab.Pane> },
-            { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' imageIds={this.state.imageIds} boxes={this.state.selectBoxes}/></Tab.Pane> },
+                imageIds={this.state.imageIds} boxes={this.state.boxes} activeItem={this.state.doubleClick===true?'all':this.state.listsActiveIndex}/></Tab.Pane> },
+            { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
             { menuItem: '留言', render: () => <Tab.Pane><MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} /></Tab.Pane> }
           ]
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, 
@@ -1343,8 +1373,8 @@ class CornerstoneElement extends Component {
         let slideLabel
         let dicomTagPanel
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
-        let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
-        // let noduleNumTab = '结节(' + this.state.boxes.length + ')'
+        // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
+        let noduleNumTab = '结节(' + this.state.boxes.length + ')'
         // let inflammationTab = '炎症(有)'
         // let lymphnodeTab = '淋巴结(0)'
         let segments={
@@ -1593,13 +1623,9 @@ class CornerstoneElement extends Component {
         if (!this.state.immersive) {
                 tableContent = this
                     .state
-                    .selectBoxes
-                    // .boxes
+                    // .selectBoxes
+                    .boxes
                     .map((inside, idx) => {
-                        if(inside!=="delete"){
-
-                        
-                        // console.log('inside',inside)
                         let representArray=[]
                         let dropdownText=''
                         let malignancyContnt = ''
@@ -1614,6 +1640,12 @@ class CornerstoneElement extends Component {
                         if(inside.measure !== undefined && inside.measure !== null){
                             ll = Math.sqrt(Math.pow((inside.measure.x1 - inside.measure.x2),2) + Math.pow((inside.measure.y1 - inside.measure.y2),2))
                             sl = Math.sqrt(Math.pow((inside.measure.x3 - inside.measure.x4),2) + Math.pow((inside.measure.y3 - inside.measure.y4),2))
+                            if(isNaN(ll)){
+                                ll=0
+                            }
+                            if(isNaN(sl)){
+                                sl=0
+                            }
                         }
                         
                         let showMeasure = measureStateList[idx]
@@ -1660,7 +1692,7 @@ class CornerstoneElement extends Component {
                         }
                         
                         if(inside.malignancy === -1){
-                            if(this.state.readonly){
+                            // if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='center'>
                                         <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal}>
@@ -1676,22 +1708,22 @@ class CornerstoneElement extends Component {
                                         <div>{Math.floor(inside.malProb*1000)/10}%</div>
                                     </Grid.Column>
                                 )
-                            }
-                            else{
-                                malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='center'>
-                                        <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal}>
-                                            <option value="-1" disabled="disabled">选择性质</option>
-                                            <option value="1">低危</option>
-                                            <option value="2">中危</option>
-                                            <option value="3">高危</option>
-                                        </select>
-                                    </Grid.Column>
-                                )
-                            }
+                            // }
+                            // else{
+                            //     malignancyContnt = (
+                            //         <Grid.Column width={2} textAlign='center'>
+                            //             <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                            //                 <option value="-1" disabled="disabled">选择性质</option>
+                            //                 <option value="1">低危</option>
+                            //                 <option value="2">中危</option>
+                            //                 <option value="3">高危</option>
+                            //             </select>
+                            //         </Grid.Column>
+                            //     )
+                            // }
                         }
                         else if(inside.malignancy===1){
-                            if(this.state.readonly){
+                            // if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='center'>
                                         <select id={malId} style={lowRiskStyle} value={"1"} onChange={this.onSelectMal}>
@@ -1707,22 +1739,22 @@ class CornerstoneElement extends Component {
                                         <div style={{color:'green'}}>{Math.floor(inside.malProb*1000)/10}%</div>
                                     </Grid.Column>
                                 )
-                            }
-                            else{
-                                malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='center'>
-                                        <select id={malId} style={lowRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
-                                            <option value="-1" disabled="disabled">选择性质</option>
-                                            <option value="1">低危</option>
-                                            <option value="2">中危</option>
-                                            <option value="3">高危</option>
-                                        </select>
-                                    </Grid.Column>
-                                )
-                            }
+                            // }
+                            // else{
+                            //     malignancyContnt = (
+                            //         <Grid.Column width={2} textAlign='center'>
+                            //             <select id={malId} style={lowRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                            //                 <option value="-1" disabled="disabled">选择性质</option>
+                            //                 <option value="1">低危</option>
+                            //                 <option value="2">中危</option>
+                            //                 <option value="3">高危</option>
+                            //             </select>
+                            //         </Grid.Column>
+                            //     )
+                            // }
                         }
                         else if(inside.malignancy===2){
-                            if(this.state.readonly){
+                            // if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='left'>
                                         <select id={malId} style={middleRiskStyle} value={"2"} onChange={this.onSelectMal}>
@@ -1738,22 +1770,22 @@ class CornerstoneElement extends Component {
                                         <div style={{color:'#fcaf17'}}>{Math.floor(inside.malProb*1000)/10}%</div>
                                     </Grid.Column>
                                 )
-                            }
-                            else{
-                                malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='left'>
-                                        <select id={malId} style={middleRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
-                                            <option value="-1" disabled="disabled">选择性质</option>
-                                            <option value="1">低危</option>
-                                            <option value="2">中危</option>
-                                            <option value="3">高危</option>
-                                        </select>
-                                    </Grid.Column>
-                                )
-                            }
+                            // }
+                            // else{
+                            //     malignancyContnt = (
+                            //         <Grid.Column width={2} textAlign='left'>
+                            //             <select id={malId} style={middleRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                            //                 <option value="-1" disabled="disabled">选择性质</option>
+                            //                 <option value="1">低危</option>
+                            //                 <option value="2">中危</option>
+                            //                 <option value="3">高危</option>
+                            //             </select>
+                            //         </Grid.Column>
+                            //     )
+                            // }
                         }
                         else if(inside.malignancy===3){
-                            if(this.state.readonly){
+                            // if(this.state.readonly){
                                 malignancyContnt = (
                                     <Grid.Column width={2} textAlign='left'>
                                         <select id={malId} style={highRiskStyle} value={"3"} onChange={this.onSelectMal}>
@@ -1769,500 +1801,255 @@ class CornerstoneElement extends Component {
                                         <div style={{color:'#CC3300'}}>{Math.floor(inside.malProb*1000)/10}%</div>
                                     </Grid.Column>
                                 )
-                            }
-                            else{
-                                malignancyContnt = (
-                                    <Grid.Column width={2} textAlign='left'>
-                                        <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
-                                            <option value="-1" disabled="disabled">选择性质</option>
-                                            <option value="1">低危</option>
-                                            <option value="2">中危</option>
-                                            <option value="3">高危</option>
-                                        </select>
-                                    </Grid.Column>
-                                )
-                            }
+                            // }
+                            // else{
+                            //     malignancyContnt = (
+                            //         <Grid.Column width={2} textAlign='left'>
+                            //             <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                            //                 <option value="-1" disabled="disabled">选择性质</option>
+                            //                 <option value="1">低危</option>
+                            //                 <option value="2">中危</option>
+                            //                 <option value="3">高危</option>
+                            //             </select>
+                            //         </Grid.Column>
+                            //     )
+                            // }
                         }
-                        if(this.state.readonly){
-                            return (
-                                <div key={idx} className='highlightTbl'>
-                                    <Accordion.Title onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
-                                    active={listsActiveIndex===idx} index={idx} >
-                                        <Grid>
-                                            <Grid.Row>
-                                                <Grid.Column width={1}>
-                                                    {
-                                                        inside.modified===undefined?
-                                                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{idx+1}</div>
-                                                        :
-                                                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large',color:'#dbce12'}}>{idx+1}</div>
-                                                    }
-                                                    
-                                                </Grid.Column>
-                                                
-                                                <Grid.Column widescreen={6} computer={7} textAlign='center'>
+                        // if(this.state.readonly){
+                        return (
+                            <div key={idx} className='highlightTbl'>
+                                <Accordion.Title onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
+                                active={listsActiveIndex===idx} index={idx} >
+                                    <Grid>
+                                        <Grid.Row>
+                                            <Grid.Column width={1}>
                                                 {
-                                                    idx<6?
-                                                    <Dropdown id={placeId} style={selectStyle} text={dropdownText} icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
-                                                        <Dropdown.Menu>
-                                                            <Dropdown.Header>肺叶</Dropdown.Header>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺中叶'>
-                                                                <Dropdown.Menu>
-                                                                    <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>外侧段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>内侧段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺上叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>尖段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>后段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>前段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺下叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>背段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>内基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>前基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>外基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>后基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='左肺上叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>尖后段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>前段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>上舌段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>下舌段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                            </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='左肺下叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>背段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>内前基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>外基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>后基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                                    inside.modified===undefined?
+                                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{idx+1}</div>
                                                     :
-                                                    <Dropdown id={placeId} style={selectStyle} text={dropdownText} upward icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
-                                                        <Dropdown.Menu>
-                                                            <Dropdown.Header>肺叶</Dropdown.Header>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺中叶'>
-                                                                <Dropdown.Menu>
-                                                                    <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>外侧段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>内侧段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺上叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>尖段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>后段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>前段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺下叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>背段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>内基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>前基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>外基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>后基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='左肺上叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>尖后段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>前段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>上舌段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>下舌段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                            </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='左肺下叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>背段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>内前基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>外基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>后基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
+                                                    <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large',color:'#dbce12'}}>{idx+1}</div>
                                                 }
-                                                </Grid.Column>
-                                            {malignancyContnt}
-                                            {probContnt}
-                                            
-                                            <Grid.Column width={1} textAlign='center'>
-                                                <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
+                                                
                                             </Grid.Column>
-                                        </Grid.Row>
-                                    </Grid>
-                                    </Accordion.Title>
-                                    <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
-                                        <Grid>
-                                            <Grid.Row>
-                                                <Grid.Column width={1}>
-                                                <div style={{fontSize:'1rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
-                                                </Grid.Column>
-                                                
-                                                <Grid.Column widescreen={3} computer={3} textAlign='center'>
-                                                    {/* <Icon name='crosshairs' size='mini'></Icon> */}
-                                                    {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'}
-                                                </Grid.Column>
-                                                <Grid.Column widescreen={3} computer={3} textAlign='center'>
-                                                    {
-                                                    inside.volume!==undefined?
-                                                    (Math.floor(inside.volume * 100) / 100).toFixed(2)+'\xa0cm³'
-                                                    :
-                                                    null
-                                                }
-                                                </Grid.Column>
-                                                <Grid.Column widescreen={4} computer={5} textAlign='center'>
-                                                        {inside.huMin!==undefined && inside.huMax!==undefined?
-                                                    inside.huMin +'~' + inside.huMax + 'HU'
-                                                    :
-                                                    null
-                                                    }
-                                                </Grid.Column>
-                                                <Grid.Column widescreen={2} computer={2} textAlign='center'>
-                                                    
-                                                    <Button size='mini' circular inverted
-                                                    icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this,idx)}>
-                                                    </Button>
-                                                    {/* <Button size='mini' circular basic inverted
-                                                    icon='download' title='下载' value={idx} onClick={this.downloadBar.bind(this,idx)}>
-                                                    </Button>
-                                                             */}
-                                                </Grid.Column>
-                                                
-                                            </Grid.Row>
-                                            {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
-                                                    <select id={texId} style={selectStyle} defaultValue="" disabled>
-                                                    <option value="" disabled="disabled">选择亚型</option>
-                                                    </select>
-                                                </Grid.Column> */}
-                                        
-                                            <Grid.Row textAlign='center' verticalAlign='middle' centered>
-                                                <Grid.Column width={3}>
-                                                    <select id={texId} style={selectStyle} value={inside.texture} onChange={this.onSelectTex}>
-                                                        <option value="-1" disabled="disabled">选择性质</option>
-                                                        <option value="1">磨玻璃</option>
-                                                        <option value="2">实性</option>
-                                                        <option value="3">半实性</option>
-                                                    </select>
-                                                </Grid.Column>
-                                                <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}}>表征:</Grid.Column>
-                                                <Grid.Column width={11} style={{paddingLeft:'0px',paddingRight:'0px'}}>
-                                
-                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name={'dropdown'+idx}
-                                                    value={representArray} onChange={this.representChange.bind(this)} />
-                                                </Grid.Column>
-                                            </Grid.Row>
-                                            <Grid.Row>
-                                                <Grid.Column width={12}></Grid.Column>
-                                                <Grid.Column width={4}>
-                                                    <Button.Group size='mini' className='measureBtnGroup'>
-                                                        {
-                                                            showMeasure?
-                                                            <Button basic icon title='隐藏测量' active color='blue' onClick={this.toHideMeasures.bind(this,idx)}><Icon inverted color='blue' name='eye'></Icon></Button>:
-                                                            <Button basic icon title='显示测量' active color='blue' onClick={this.toHideMeasures.bind(this,idx)}><Icon inverted color='blue' name='eye slash'></Icon></Button>
-                                                        }
-                                                        {
-                                                            showMask?
-                                                            <Button basic icon title='隐藏ROI' active color='blue' onClick={this.toHideMask.bind(this,idx)}><Icon inverted color='blue' name='circle'></Icon></Button>:
-                                                            <Button basic icon title='显示ROI' active color='blue' onClick={this.toHideMask.bind(this,idx)}><Icon inverted color='blue' name='circle outline'></Icon></Button>
-                                                        }
-                                                        
-                                                    </Button.Group>
-                                                </Grid.Column>
-                                            </Grid.Row>
                                             
-                                        </Grid>
-                                        
-                                        {/* <div id={visualId} className='histogram'></div> */}
-                                    </Accordion.Content>
-                                </div>
-                            )
-                        }
-                        else{
-                            return (
-                                <div key={idx} className='highlightTbl'>
-                                    <Accordion.Title onClick={this.handleListClick.bind(this,inside.slice_idx + 1,idx)}
-                                    active={listsActiveIndex===idx} index={idx} >
-                                            <Grid>
-                                            <Grid.Row>
-                                                <Grid.Column width={1}>
-                                                    {
-                                                        inside.modified===undefined?
-                                                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large'}}>{idx+1}</div>
-                                                        :
-                                                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{fontSize:'large',color:'#dbce12'}}>{idx+1}</div>
-                                                    }
-                                                </Grid.Column>
-                                                
-                                                <Grid.Column widescreen={6} computer={7} textAlign='center'>
-                                                {
-                                                    idx<6?
-                                                    <Dropdown id={placeId} style={selectStyle} text={dropdownText} icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
-                                                        <Dropdown.Menu>
-                                                            <Dropdown.Header>肺叶</Dropdown.Header>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺中叶'>
-                                                                <Dropdown.Menu>
-                                                                    <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>外侧段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>内侧段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺上叶'>
-                                                                <Dropdown.Menu>
+                                            <Grid.Column widescreen={6} computer={7} textAlign='center'>
+                                            {
+                                                idx<6?
+                                                <Dropdown id={placeId} style={selectStyle} text={dropdownText} icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Header>肺叶</Dropdown.Header>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='右肺中叶'>
+                                                            <Dropdown.Menu>
                                                                 <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>尖段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>后段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>前段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺下叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>背段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>内基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>前基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>外基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>后基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='左肺上叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>尖后段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>前段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>上舌段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>下舌段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>外侧段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>内侧段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
                                                             </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='左肺下叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>背段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>内前基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>外基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>后基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
-                                                    :
-                                                    <Dropdown id={placeId} style={selectStyle} text={dropdownText} upward icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
-                                                        <Dropdown.Menu>
-                                                            <Dropdown.Header>肺叶</Dropdown.Header>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺中叶'>
-                                                                <Dropdown.Menu>
-                                                                    <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>外侧段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>内侧段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺上叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>尖段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>后段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>前段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='右肺下叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>背段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>内基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>前基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>外基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>后基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='左肺上叶'>
-                                                                <Dropdown.Menu>
-                                                                <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>尖后段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>前段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>上舌段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>下舌段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='右肺上叶'>
+                                                            <Dropdown.Menu>
+                                                            <Dropdown.Header>肺段</Dropdown.Header>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>尖段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>后段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>前段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
                                                             </Dropdown>
-                                                            </Dropdown.Item>
-                                                            <Dropdown.Item>
-                                                            <Dropdown text='左肺下叶'>
-                                                                <Dropdown.Menu>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='右肺下叶'>
+                                                            <Dropdown.Menu>
+                                                            <Dropdown.Header>肺段</Dropdown.Header>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>背段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>内基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>前基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>外基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>后基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                            </Dropdown>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='左肺上叶'>
+                                                            <Dropdown.Menu>
+                                                            <Dropdown.Header>肺段</Dropdown.Header>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>尖后段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>前段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>上舌段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>下舌段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                        </Dropdown>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='左肺下叶'>
+                                                            <Dropdown.Menu>
+                                                            <Dropdown.Header>肺段</Dropdown.Header>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>背段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>内前基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>外基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>后基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                            </Dropdown>
+                                                        </Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                                :
+                                                <Dropdown id={placeId} style={selectStyle} text={dropdownText} upward icon={null} onClick={this.handleDropdownClick.bind(this,inside.slice_idx + 1,idx)} open={this.state.dropDownOpen===idx}>
+                                                    <Dropdown.Menu>
+                                                        <Dropdown.Header>肺叶</Dropdown.Header>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='右肺中叶'>
+                                                            <Dropdown.Menu>
                                                                 <Dropdown.Header>肺段</Dropdown.Header>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>背段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>内前基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>外基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>后基底段</Dropdown.Item>
-                                                                    <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
-                                                                </Dropdown.Menu>
-                                                                </Dropdown>
-                                                            </Dropdown.Item>
-                                                        </Dropdown.Menu>
-                                                    </Dropdown>
-                                                }
-                                                </Grid.Column>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>外侧段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>内侧段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                            </Dropdown>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='右肺上叶'>
+                                                            <Dropdown.Menu>
+                                                            <Dropdown.Header>肺段</Dropdown.Header>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>尖段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>后段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺上叶'}>前段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                            </Dropdown>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='右肺下叶'>
+                                                            <Dropdown.Menu>
+                                                            <Dropdown.Header>肺段</Dropdown.Header>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>背段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>内基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>前基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>外基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺下叶'}>后基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                            </Dropdown>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='左肺上叶'>
+                                                            <Dropdown.Menu>
+                                                            <Dropdown.Header>肺段</Dropdown.Header>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>尖后段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>前段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>上舌段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺上叶'}>下舌段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                        </Dropdown>
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item>
+                                                        <Dropdown text='左肺下叶'>
+                                                            <Dropdown.Menu>
+                                                            <Dropdown.Header>肺段</Dropdown.Header>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>背段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>内前基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>外基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-左肺下叶'}>后基底段</Dropdown.Item>
+                                                                <Dropdown.Item onClick={this.onSelectPlace} id={placeId+'-右肺中叶'}>无法定位</Dropdown.Item>
+                                                            </Dropdown.Menu>
+                                                            </Dropdown>
+                                                        </Dropdown.Item>
+                                                    </Dropdown.Menu>
+                                                </Dropdown>
+                                            }
+                                            </Grid.Column>
                                         {malignancyContnt}
                                         {probContnt}
-                                        <Grid.Column width={3} textAlign='center'>
-                                            <select id={texId} style={selectStyle} defaultValue="" disabled>
-                                            <option value="" disabled="disabled">选择亚型</option>
-                                            </select>
-                                        </Grid.Column>
                                         
                                         <Grid.Column width={1} textAlign='center'>
                                             <Icon name='trash alternate' onClick={this.delNodule} id={delId}></Icon>
                                         </Grid.Column>
-                                        
                                     </Grid.Row>
-                                    </Grid>
-                                    </Accordion.Title>
-                                    <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
-                                        <Grid>
-                                            <Grid.Row>
-                                                <Grid.Column width={2}>
-                                                <div style={{fontSize:'0.5rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
-                                                </Grid.Column>
-                                                <Grid.Column width={5}>
-                                                    <select id={texId} style={selectStyle} value={inside.texture} onChange={this.onSelectTex}>
-                                                        <option value="-1" disabled="disabled">选择性质</option>
-                                                        <option value="1">磨玻璃</option>
-                                                        <option value="2">实性</option>
-                                                        <option value="3">半实性</option>
-                                                    </select>
-                                                </Grid.Column>
-                                                <Grid.Column widescreen={5} computer={5}>
-                                                        {inside.huMin!==undefined && inside.huMax!==undefined?
-                                                    inside.huMin +'~' + inside.huMax + 'HU'
-                                                    :
-                                                    null
+                                </Grid>
+                                </Accordion.Title>
+                                <Accordion.Content active={listsActiveIndex===idx} id='highlightAccordion'>
+                                    <Grid>
+                                        <Grid.Row>
+                                            <Grid.Column width={1}>
+                                            <div style={{fontSize:'1rem',color:'#2ECC71'}}>{parseInt(inside.slice_idx)+1}</div>
+                                            </Grid.Column>
+                                            
+                                            <Grid.Column widescreen={6} computer={6}>
+                                                {'\xa0\xa0'+(ll/10).toFixed(2) + '\xa0\xa0'+ ' ×' +'\xa0\xa0' + (sl/10).toFixed(2) + ' cm'}
+                                                
+                                            </Grid.Column>
+                                            <Grid.Column widescreen={3} computer={3} textAlign='center'>
+                                                {
+                                                inside.volume!==undefined?
+                                                (Math.floor(inside.volume * 100) / 100).toFixed(2)+'\xa0cm³'
+                                                :
+                                                null
+                                            }
+                                            </Grid.Column>
+                                            <Grid.Column widescreen={4} computer={5} textAlign='center'>
+                                                    {inside.huMin!==undefined && inside.huMax!==undefined?
+                                                inside.huMin +'~' + inside.huMax + 'HU'
+                                                :
+                                                null
+                                                }
+                                            </Grid.Column>
+                                    
+                                            
+                                        </Grid.Row>
+                                        {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
+                                                <select id={texId} style={selectStyle} defaultValue="" disabled>
+                                                <option value="" disabled="disabled">选择亚型</option>
+                                                </select>
+                                            </Grid.Column> */}
+                                    
+                                        <Grid.Row textAlign='center' verticalAlign='middle' centered>
+                                            <Grid.Column width={3}>
+                                                <select id={texId} style={selectStyle} value={inside.texture} onChange={this.onSelectTex}>
+                                                    <option value="-1" disabled="disabled">选择性质</option>
+                                                    <option value="1">磨玻璃</option>
+                                                    <option value="2">实性</option>
+                                                    <option value="3">半实性</option>
+                                                </select>
+                                            </Grid.Column>
+                                            <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}}>表征:</Grid.Column>
+                                            <Grid.Column width={11} style={{paddingLeft:'0px',paddingRight:'0px'}}>
+                            
+                                                <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name={'dropdown'+idx}
+                                                value={representArray} onChange={this.representChange.bind(this)} />
+                                            </Grid.Column>
+                                        </Grid.Row>
+                                        <Grid.Row>
+                                            <Grid.Column width={12}>
+                                                <Button size='mini' circular inverted
+                                                icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this,idx)}>
+                                                </Button>
+                                            </Grid.Column>
+                                            <Grid.Column width={4}>
+                                                <Button.Group size='mini' className='measureBtnGroup'>
+                                                <Button basic icon title='擦除测量' active color='green' onClick={this.eraseMeasures.bind(this,idx)}><Icon inverted color='green' name='eraser'></Icon></Button>
+                                                    {
+                                                        showMeasure?
+                                                        <Button basic icon title='隐藏测量' active color='blue' onClick={this.toHideMeasures.bind(this,idx)}><Icon inverted color='blue' name='eye'></Icon></Button>:
+                                                        <Button basic icon title='显示测量' active color='blue' onClick={this.toHideMeasures.bind(this,idx)}><Icon inverted color='blue' name='eye slash'></Icon></Button>
                                                     }
-                                                </Grid.Column>
-                                                <Grid.Column width={2}>
-                                                    <Button size='mini' circular inverted
-                                                    icon='chart bar' title='特征分析' value={idx} onClick={this.featureAnalysis.bind(this,idx)}>
-                                                    </Button>
-                                                    {/* <Button size='mini' circular basic inverted
-                                                    icon='download' title='下载' value={idx} onClick={this.downloadBar.bind(this,idx)}>
-                                                    </Button> */}
-                                                </Grid.Column>
-                                            </Grid.Row>
-                                            <Grid.Row>
-                                                <Grid.Column>
-                                                    <Icon name='crosshairs' size='mini'></Icon>
-                                                    {/* {'\xa0\xa0'+(Math.floor(inside.diameter * 10) / 100).toFixed(2)+'\xa0cm'} */}
-                                                    {'\xa0\xa0'+'L:' + ll.toFixed(2) + '\xa0\xa0'+'W:' + sl.toFixed(2)}
-                                                </Grid.Column>
-                                            </Grid.Row>
-                                            {/* <Grid.Row textAlign='center' verticalAlign='middle' centered> */}
-                                            <Grid.Row verticalAlign='middle'>
-                                                <Grid.Column width={2} style={{paddingLeft:'0px',paddingRight:'0px'}} textAlign='center'>表征</Grid.Column>
-                                                <Grid.Column width={14} style={{paddingLeft:'0px',paddingRight:'0px'}}>
-                                                    <Dropdown multiple selection options={options} id='dropdown' icon='add circle' name={'dropdown'+idx}
-                                                    value={representArray} onChange={this.representChange.bind(this)} />
-                                                    {/* <Select mode='multiple' placeholder='请选择表征' allowClear 
-                                                    defaultValue={['分叶']} onChange={this.representChange.bind(this)}
-                                                    style={{ width: '90%' }}>
-                                                        {children}
-                                                    </Select> */}
-                                                </Grid.Column>
-                                            </Grid.Row>
-                                            <Grid.Row>
-                                                <Grid.Column width={12}></Grid.Column>
-                                                <Grid.Column width={4}>
-                                                    <Button.Group size='mini' className='measureBtnGroup'>
-                                                        <Button basic icon title='擦除测量' active color='green' onClick={this.eraseMeasures.bind(this,idx)}><Icon inverted color='green' name='eraser'></Icon></Button>
-                                                        {
-                                                            showMeasure?
-                                                            <Button basic icon title='隐藏测量' active color='blue' onClick={this.toHideMeasures.bind(this,idx)}><Icon inverted color='blue' name='eye'></Icon></Button>:
-                                                            <Button basic icon title='显示测量' active color='blue' onClick={this.toHideMeasures.bind(this,idx)}><Icon inverted color='blue' name='eye slash'></Icon></Button>
-                                                        }
-                                                        
-                                                    </Button.Group>
-                                                </Grid.Column>
-                                            </Grid.Row>
-                                        </Grid>
+                                                    
+                                                </Button.Group>
+                                            </Grid.Column>
+                                        </Grid.Row>
                                         
-                                        {/* <div id={visualId} className='histogram'></div> */}
-                                    </Accordion.Content>
-                                </div>
-                            )
-                        }
-                    }
-                        
+                                    </Grid>
+                                    
+                                    {/* <div id={visualId} className='histogram'></div> */}
+                                </Accordion.Content>
+                            </div>
+                        )
+                        // }
                     })
 
                     visualContent =  this
@@ -2541,18 +2328,7 @@ class CornerstoneElement extends Component {
                                                 <div className="nodule-card-container">
                                                     <Tabs type="card" animated defaultActiveKey={1} size='small'>
                                                         <TabPane tab={noduleNumTab} key="1" >
-                                                            <div id='listTitle'>
-                                                                <Space align="baseline">
-                                                                    <Select defaultValue="全部密度" onChange={this.chooseDensity.bind(this)} bordered={false} 
-                                                                    style={{backgroundColor:'#021C38',color:'#F5F5F5',fontSize:'12pt'}}>
-                                                                        <Option value="全部密度" >全部密度</Option>
-                                                                        <Option value="实性" >实性</Option>
-                                                                        <Option value="半实性" >半实性</Option>
-                                                                        <Option value="磨玻璃" >磨玻璃</Option> 
-                                                                    </Select>
-                                                                    <Checkbox onChange={this.tinyNodules.bind(this)} style={{backgroundColor:'#021C38',color:'#F5F5F5',fontSize:'12pt'}}>微小结节</Checkbox>
-                                                                </Space>
-                                                            </div>
+                                                            
                                                             <div id='elec-table'>
                                                                 <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                                     {tableContent}
@@ -2898,8 +2674,10 @@ class CornerstoneElement extends Component {
     findCurrentArea(x, y) {
         // console.log('x, y', x, y)
         const lineOffset = 2;
-        for (var i = 0; i < this.state.selectBoxes.length; i++) {
-            const box = this.state.selectBoxes[i]
+        // for (var i = 0; i < this.state.selectBoxes.length; i++) {
+        //     const box = this.state.selectBoxes[i]
+        for (var i = 0; i < this.state.boxes.length; i++) {
+            const box = this.state.boxes[i]
             if (box.slice_idx == this.state.currentIdx) {
                 const xCenter = box.x1 + (box.x2 - box.x1) / 2;
                 const yCenter = box.y1 + (box.y2 - box.y1) / 2;
@@ -2948,8 +2726,10 @@ class CornerstoneElement extends Component {
 
     findMeasureArea(x,y){
         const lineOffset = 2;
-        for (var i = 0; i < this.state.selectBoxes.length; i++) {
-            const box = this.state.selectBoxes[i]
+        for (var i = 0; i < this.state.boxes.length; i++) {
+            const box = this.state.boxes[i]
+        // for (var i = 0; i < this.state.selectBoxes.length; i++) {
+        //     const box = this.state.selectBoxes[i]
             if (box.slice_idx == this.state.currentIdx) {
                 const xCenter = box.x1 + (box.x2 - box.x1) / 2;
                 const yCenter = box.y1 + (box.y2 - box.y1) / 2;
@@ -3146,13 +2926,14 @@ class CornerstoneElement extends Component {
             "place":0,
             "modified":1,
         }
-        let boxes = this.state.selectBoxes
+        // let boxes = this.state.selectBoxes
+        let boxes = this.state.boxes
         console.log("newBox", newBox)
         boxes.push(newBox)
         let measureStateList = this.state.measureStateList
         measureStateList.push(false)
         this.setState({boxes: boxes, measureStateList: measureStateList})
-        console.log("Boxes", this.state.selectBoxes, this.state.measureStateList)
+        console.log("Boxes", this.state.boxes, this.state.measureStateList)
             
         // })
         this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)    
@@ -3406,7 +3187,8 @@ class CornerstoneElement extends Component {
                 this.setState({tmpBox: tmpBox})
                 this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
             } else if (this.state.clicked && this.state.clickedArea.box !== -1) { //mousedown && mouse is inside the annos
-                let boxes = this.state.selectBoxes
+                // let boxes = this.state.selectBoxes
+                let boxes = this.state.boxes
                 let currentBox = boxes[this.state.clickedArea.box]
     
                 if (this.state.clickedArea.pos === 'i') {
@@ -3503,7 +3285,8 @@ class CornerstoneElement extends Component {
                 this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
             } 
             else if (this.state.clicked && this.state.clickedArea.box !== -1 && this.state.clickedArea.m_pos !== 'om') { //mousedown && mouse is inside the annos && inside the measure
-                let boxes = this.state.selectBoxes
+                // let boxes = this.state.selectBoxes
+                let boxes = this.state.boxes
                 let currentBox = boxes[this.state.clickedArea.box]
                 if(this.state.clickedArea.m_pos === 'sl'){
                     var fixedPoint_x = currentBox.measure.x2 
@@ -3767,7 +3550,8 @@ class CornerstoneElement extends Component {
             //切换结节list
             event.preventDefault()
             const listsActiveIndex = this.state.listsActiveIndex
-            const boxes = this.state.selectBoxes
+            // const boxes = this.state.selectBoxes
+            let boxes = this.state.boxes
             if(listsActiveIndex < boxes.length-1){
                 console.log("listsActiveIndex",listsActiveIndex)
                 this.keyDownListSwitch(listsActiveIndex+1)
@@ -3890,7 +3674,8 @@ class CornerstoneElement extends Component {
             const x2 = this.state.tmpBox.x2
             const y2 = this.state.tmpBox.y2
             let newNodule_no = -1
-            const boxes = this.state.selectBoxes
+            // const boxes = this.state.selectBoxes
+            let boxes = this.state.boxes
             for (var i = 0; i < boxes.length; i++) {
                 const current_nodule_no = parseInt(boxes[i].nodule_no)
                 if (current_nodule_no > newNodule_no) {
@@ -3902,7 +3687,8 @@ class CornerstoneElement extends Component {
         }
         if(this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3 && event.button === 0 && this.state.clickedArea.m_pos === 'om'){
             console.log('tmpBox',this.state.tmpBox)
-            const boxes = this.state.selectBoxes
+            // const boxes = this.state.selectBoxes
+            let boxes = this.state.boxes
             let currentBox = boxes[this.state.clickedArea.box]
             currentBox.measure = {}
             console.log('currentBox',currentBox)
@@ -3922,11 +3708,12 @@ class CornerstoneElement extends Component {
             console.log('measure', measureStateList)
             this.setState({boxes:boxes, measureStateList: measureStateList})
             this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
-            console.log('box',this.state.selectBoxes)
+            console.log('box',this.state.boxes)
         }
 
         if(this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3 && event.button === 0 && this.state.clickedArea.m_pos !== 'om'){
-            const boxes = this.state.selectBoxes
+            // const boxes = this.state.selectBoxes
+            let boxes = this.state.boxes
             let currentBox = boxes[this.state.clickedArea.box]
             var invertBox = this.invertHandles(currentBox)
             boxes[this.state.clickedArea.box] = invertBox
@@ -4114,7 +3901,8 @@ class CornerstoneElement extends Component {
 
     //标注此模型
     toCurrentModel() {
-        let currentBox = this.state.selectBoxes
+        // let currentBox = this.state.selectBoxes
+        let currentBox = this.state.boxes
         console.log(currentBox)
         let caseId = window
             .location
@@ -4180,25 +3968,25 @@ class CornerstoneElement extends Component {
         console.log('createuser')
         const token = localStorage.getItem('token')
         let boxes = this.state.boxes
-        const selectBoxes = this.state.selectBoxes
-        const selectBoxesMapIndex = this.state.selectBoxesMapIndex
-        let deleteBoxes=[]
+        // const selectBoxes = this.state.selectBoxes
+        // const selectBoxesMapIndex = this.state.selectBoxesMapIndex
+        // let deleteBoxes=[]
 
-        for(let i=0;i<selectBoxesMapIndex.length;i++){//仅修改
-            if(selectBoxes[i]!=="delete"){
-                boxes[selectBoxes[i]]=selectBoxes[i]
-            }
-            else{
-                deleteBoxes.push(selectBoxesMapIndex[i])//存在删除情况
-            }
-        }
+        // for(let i=0;i<selectBoxesMapIndex.length;i++){//仅修改
+        //     if(selectBoxes[i]!=="delete"){
+        //         boxes[selectBoxes[i]]=selectBoxes[i]
+        //     }
+        //     else{
+        //         deleteBoxes.push(selectBoxesMapIndex[i])//存在删除情况
+        //     }
+        // }
 
-        for(let i=0;i<deleteBoxes.length;i++){//存在删除情况
-            boxes.splice(deleteBoxes[i], 1)
-            for (let i = deleteBoxes[i]; i < boxes.length; i++) {
-                boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
-            }       
-        }
+        // for(let i=0;i<deleteBoxes.length;i++){//存在删除情况
+        //     boxes.splice(deleteBoxes[i], 1)
+        //     for (let i = deleteBoxes[i]; i < boxes.length; i++) {
+        //         boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
+        //     }       
+        // }
         
 
         const headers = {
@@ -4345,13 +4133,13 @@ class CornerstoneElement extends Component {
         const element = document.getElementById("origin-canvas")
         const viewport = cornerstone.getViewport(element)
         if (this.state.showNodules === true && this.state.caseId === window.location.pathname.split('/')[2]) {
-            for (let i = 0; i < this.state.selectBoxes.length; i++) {
+            for (let i = 0; i < this.state.boxes.length; i++) {
                 // if (this.state.boxes[i].slice_idx == this.state.currentIdx && this.state.immersive == false) 
-                if (this.state.selectBoxes[i].slice_idx == this.state.currentIdx){
-                     this.drawBoxes(this.state.selectBoxes[i])
+                if (this.state.boxes[i].slice_idx == this.state.currentIdx){
+                     this.drawBoxes(this.state.boxes[i])
                     //  this.drawMask(this.state.boxes[i])
                      if(this.state.measureStateList[i]){
-                        this.drawBidirection(this.state.selectBoxes[i])
+                        this.drawBidirection(this.state.boxes[i])
                     }
                     // if(this.state.maskStateList[i]){
                     //     this.drawMask(this.state.boxes[i])
@@ -4592,7 +4380,8 @@ class CornerstoneElement extends Component {
             this.setState({leftBtnSpeed:leftBtnSpeed})
         }
 
-        var stateListLength = this.state.selectBoxes.length
+        // var stateListLength = this.state.selectBoxes.length
+        var stateListLength = this.state.boxes.length
         var measureArr = new Array(stateListLength).fill(true)
         // console.log('measureArr',measureArr)
         this.setState({measureStateList:measureArr})
@@ -4610,29 +4399,6 @@ class CornerstoneElement extends Component {
         // canvas_ROI.width = 500
         // origin.appendChild(canvas_ROI)
         // canvas_ROI.style.position = 'absolute'
-        let tempBox=[]
-        let mapIndex=[]
-        for(let i=0;i<this.state.boxes.length;i++){
-            if(parseInt(this.state.boxes[i].diameter)>3){
-                tempBox.push(this.state.boxes[i])
-                tempBox[tempBox.length-1].nodule_no=(tempBox.length-1).toString()
-                mapIndex.push(i)
-            }
-        }
-        if(this.state.selectTexture===-1){
-            this.setState({selectBoxes:tempBox, selectBoxesMapIndex:mapIndex})
-        }
-        else{
-            let temp2temp=[]
-            let temp2index=[]
-            for(let i=0;i<tempBox.length;i++){
-                if(tempBox[i].texture===this.state.selectTexture){
-                    temp2temp.push(tempBox[i])
-                    temp2index.push(mapIndex[i])
-                }
-            }
-            this.setState({selectBoxes:temp2temp, selectBoxesMapIndex:temp2index})
-        }
         
     }
 
@@ -4685,57 +4451,6 @@ class CornerstoneElement extends Component {
         }
         if(prevState.listsActiveIndex !== -1 && this.state.listsActiveIndex === -1){
             this.setState({preListActiveIdx : prevState.listsActiveIndex})
-        }
-        if(prevState.selectTexture !== this.state.selectTexture || prevState.selectTiny !== this.state.selectTiny){
-            console.log('selectBoxes',this.state.selectBoxes)
-            if(this.state.selectTiny===1){
-                if(this.state.selectTexture===-1){
-                    let tempBox=[]
-                    for(let i=0;i<this.state.boxes.length;i++){
-                        tempBox.push(this.state.boxes[i])
-                        tempBox[tempBox.length-1].nodule_no=(tempBox.length-1).toString()
-                    }
-                    this.setState({selectBoxes:tempBox, 
-                        selectBoxesMapIndex:Array.from(new Array(this.state.boxes.length-1).keys()).slice(0)})
-                }
-                else{
-                    let tempBox=[]
-                    let mapIndex=[]
-                    for(let i=0;i<this.state.boxes.length;i++){
-                        if(this.state.boxes[i].texture===this.state.selectTexture){
-                            tempBox.push(this.state.boxes[i])
-                            tempBox[tempBox.length-1].nodule_no=(tempBox.length-1).toString()
-                            mapIndex.push(i)
-                        }
-                    }
-                    this.setState({selectBoxes:tempBox, selectBoxesMapIndex:mapIndex})
-                }
-            }
-            else{
-                let tempBox=[]
-                let mapIndex=[]
-                for(let i=0;i<this.state.boxes.length;i++){
-                    if(parseInt(this.state.boxes[i].diameter)>3){
-                        tempBox.push(this.state.boxes[i])
-                        tempBox[tempBox.length-1].nodule_no=(tempBox.length-1).toString()
-                        mapIndex.push(i)
-                    }
-                }
-                if(this.state.selectTexture===-1){
-                    this.setState({selectBoxes:tempBox, selectBoxesMapIndex:mapIndex})
-                }
-                else{
-                    let temp2temp=[]
-                    let temp2index=[]
-                    for(let i=0;i<tempBox.length;i++){
-                        if(tempBox[i].texture===this.state.selectTexture){
-                            temp2temp.push(tempBox[i])
-                            temp2index.push(i)
-                        }
-                    }
-                    this.setState({selectBoxes:temp2temp, selectBoxesMapIndex:temp2index})
-                }
-            }
         }
     }
 }
