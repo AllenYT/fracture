@@ -229,7 +229,6 @@ class DisplayPanel extends Component {
             boxes[i].rect_no = "a00" + i
           } 
           console.log('boxidx',boxes)
-
           const stack = {
             imageIds: dataResponse.data,
             caseId: this.state.caseId,

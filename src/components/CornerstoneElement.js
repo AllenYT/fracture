@@ -231,7 +231,8 @@ class CornerstoneElement extends Component {
             // selectTexture:-1,
             // selectBoxesMapIndex:[],
             // selectBoxes:props.stack.boxes===""?[]:props.stack.boxes,
-            lengthBox:[]
+            lengthBox:[],
+            imageCaching:false,
         }
         this.nextPath = this
             .nextPath
@@ -712,7 +713,7 @@ class CornerstoneElement extends Component {
         this.setState(({isPlaying}) => ({
             isPlaying: !isPlaying
         }))
-        playTimer = setInterval(() => this.Animation(), 1000)
+        playTimer = setInterval(() => this.Animation(), 1)
     }
 
     pauseAnimation(){
@@ -2291,6 +2292,7 @@ class CornerstoneElement extends Component {
                                         </Grid.Column>
                                         <Grid.Column width={10} textAlign='center' id='canvas-column'>
                                         <div className='canvas-style' id='canvas-border'>
+                                        
                                         <div
                                                 id="origin-canvas"
                                                 // style={divStyle}
@@ -2313,7 +2315,7 @@ class CornerstoneElement extends Component {
                                                 marks={sliderMarks} 
                                                 value={this.state.currentIdx+1} 
                                                 onChange={this.handleRangeChange}
-                                                // onAfterChange={this.handleRangeChange.bind(this)} 
+                                                onAfterChange={this.handleRangeChangeAfter.bind(this)} 
                                                 min={1}
                                                 step={1}
                                                 max={this.state.stack.imageIds.length}
@@ -2826,7 +2828,7 @@ class CornerstoneElement extends Component {
     }
 
     handleRangeChange(e) {
-        console.log('slider',e)
+        //console.log('slider',e)
         // this.setState({currentIdx: event.target.value - 1, imageId:
         // this.state.imageIds[event.target.value - 1]})
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
@@ -2834,7 +2836,9 @@ class CornerstoneElement extends Component {
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
         this.refreshImage(false, this.state.imageIds[e-1], e-1)
     }
-
+    handleRangeChangeAfter(e){
+        //console.log("slider after", e)
+    }
     pixeldataSort(x, y){
         if (x < y) {
             return -1;
@@ -4198,7 +4202,7 @@ class CornerstoneElement extends Component {
         }
         // console.log('imageLoader',cornerstone.loadImage(imageId))
         cornerstone
-            .loadImage(imageId)
+            .loadAndCacheImage(imageId)
             .then(image => {
                 // if(this.state.TagFlag === false){
                 //     console.log('image info',image.data)
@@ -4308,6 +4312,7 @@ class CornerstoneElement extends Component {
     }
 
     componentWillMount() {
+       
         // this.checkHash()
     }
 
@@ -4327,19 +4332,46 @@ class CornerstoneElement extends Component {
         this.setState({windowWidth : width, windowHeight: height})
 
         const imageIds = this.state.imageIds
-        // for(let i=0;i<this.state.boxes.length;i++){
-        //     let slice_idx = this.state.boxes[i].slice_idx
-        //     console.log("cornerstone",slice_idx,imageIds[slice_idx])
-        //     for(let j=slice_idx-5;j<slice_idx+5;j++){
-        //         cornerstone.loadAndCacheImage(imageIds[j])
+        var annoHash = {}
+        const annoImageIds = []
+        const resImageIds = imageIds
+
+        for(let i=0;i<this.state.boxes.length;i++){
+            let slice_idx = this.state.boxes[i].slice_idx
+            console.log("cornerstone",slice_idx,imageIds[slice_idx])
+            for(let j=slice_idx-5;j<slice_idx+5;j++){
+                // cornerstone.loadAndCacheImage(imageIds[j])
+                // if(!annoHash[this[i]]){
+                //     annoHash[this[i]] = true
+                    annoImageIds.push(imageIds[j])
+                // }
+            }
+        }
+
+        // for(let i=0;i<imageIds.length;i++){
+        //     var flag = false
+        //     for(let j=0;j<annoImageIds.length;i++){
+        //         if(i == j) flag = true
         //     }
+        //     if(!flag)
+        //         resImageIds.push(imageIds[i])
         // }
+
+        console.log("annoImage", annoImageIds)
+
+        const annoPromises = annoImageIds.map(annoImageId => {
+            return cornerstone.loadAndCacheImage(annoImageId)
+        })
+        Promise.all(annoPromises).then((value) => {
+            console.log("promise",value)
+        })
         
-        const promises = imageIds.map(imageId=> {
-            console.log(imageId)
+        const promises =resImageIds.map(imageId=> {
+            // console.log(imageId)
             return cornerstone.loadAndCacheImage(imageId)
         })
-        Promise.all(promises).then(()=> {
+        Promise.all(promises).then((value)=> {
+        console.log("promise",value)
         // console.log("111",promise)
     })
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
@@ -4389,7 +4421,7 @@ class CornerstoneElement extends Component {
         
         var maskArr = new Array(stateListLength).fill(true)
         this.setState({maskStateList:maskArr})
-
+        this.setState({imageCaching:true})
         // const origin = document.getElementById('origin-canvas')
         // const canvas = document.getElementById('canvas')
         // console.log('origin-canvas',canvas)
@@ -4404,6 +4436,7 @@ class CornerstoneElement extends Component {
 
     componentWillUnmount() {
         console.log('remove')
+        
         const element = this.element
         element.removeEventListener("cornerstoneimagerendered", this.onImageRendered)
 
