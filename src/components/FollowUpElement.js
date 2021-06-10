@@ -10,7 +10,7 @@ import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
 import {withRouter} from 'react-router-dom'
 import {  Grid, Table, Icon, Button, Accordion, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu, Label, Card, Header,Progress } from 'semantic-ui-react'
-import '../css/FollowUpElement.css'
+// import '../css/FollowUpElement.css'
 import qs from 'qs'
 import axios from "axios"
 import { Slider, Select, notification, Sapce, Space, Checkbox, Tabs, Row, Col } from "antd"

@@ -304,7 +304,7 @@ class Main extends Component {
                         <Route path='/homepage/' component={HomepagePanel}/>
                         <Route path='/preprocess/' component={preprocess}/>
                         <Route path='/segView/' component={ViewerPanel}/>
-                        <Route path='/followup' component={FollowUpDisplayPanel}/>
+                        <Route path='/followup/' component={FollowUpDisplayPanel}/>
                     </div>
                     <div className="ui inverted vertical footer segment">
                         <div className="inline" style={{verticalAlign:'middle'}}>

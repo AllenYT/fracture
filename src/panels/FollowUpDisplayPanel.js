@@ -156,6 +156,8 @@ async componentWillMount() {
                 preDicomTag: preDicomTag
             }
 
+            console.log(stack)
+
             this.setState({stack: stack, show: true})
         })
     }

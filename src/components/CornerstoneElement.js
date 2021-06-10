@@ -1209,7 +1209,42 @@ class CornerstoneElement extends Component {
         window.location.href = '/segView/'+ this.state.caseId
     }
 
-    toFollowUp(){
+    async toFollowUp(){
+        console.log('followup')
+        const dataListParams = {
+            type:'pid',
+            mainItem:this.state.caseId.split('_')[0],
+            otherKeyword:''
+        }
+        const allListPromise = new Promise((resolve, reject) => {
+            axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(dataListParams)).then((sublistResponse) => {
+                const sublistData = sublistResponse.data.subList
+                resolve(sublistData)
+            },reject)
+        })
+
+        const sublistData = await allListPromise
+        console.log('subl',sublistData)
+        const currentDate = this.state.caseId.split('_')[1]
+        var i = 0
+        for (var key in sublistData) {
+            i+=1
+            if(key === currentDate) break;
+        }
+        var preCaseId = ''
+        for (var key in sublistData) {
+            i-=1
+            if(i === 1){
+                preCaseId = sublistData[key][0].split('#')[0]
+                break
+            } 
+        }
+        if(preCaseId === ''){
+            preCaseId = this.state.caseId
+        }
+        
+        console.log('preCaseId',preCaseId)
+        window.location.href = '/followup/' + this.state.caseId + '&' + preCaseId + '/' + this.state.username
 
     }
 
