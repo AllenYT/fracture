@@ -474,6 +474,9 @@ class CornerstoneElement extends Component {
         this.createLength = this
             .createLength
             .bind(this)
+        this.toFollowUp = this
+            .toFollowUp
+            .bind(this)
         // this.showMask = this
         //     .showMask
         //     .bind(this)
@@ -1204,6 +1207,10 @@ class CornerstoneElement extends Component {
 
     toSegView(){
         window.location.href = '/segView/'+ this.state.caseId
+    }
+
+    toFollowUp(){
+
     }
 
     handleLogin() {
@@ -2271,6 +2278,7 @@ class CornerstoneElement extends Component {
                                             <Button icon title='清空标注' onClick={this.clearUserNodule.bind(this)} className='funcbtn'><Icon name='user delete' size='large'></Icon></Button>
                                         }
                                         <Button title='3D' className='funcbtn' onClick={this.toSegView}>3D</Button>
+                                        <Button title='followup' className='funcbtn' onClick={this.toFollowUp}>随访</Button>
                                     </Button.Group>
                                 </Menu.Item>
                                 <Menu.Item position='right'>

@@ -20,6 +20,7 @@ import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
 import HomepagePanel from '../panels/HomepagePanel'
 import preprocess from '../panels/preprocess'
 import ViewerPanel from '../panels/ViewerPanel'
+import FollowUpDisplayPanel from '../panels/FollowUpDisplayPanel'
 
 const config = require('../config.json')
 const userConfig = config.user
@@ -303,6 +304,7 @@ class Main extends Component {
                         <Route path='/homepage/' component={HomepagePanel}/>
                         <Route path='/preprocess/' component={preprocess}/>
                         <Route path='/segView/' component={ViewerPanel}/>
+                        <Route path='/followup' component={FollowUpDisplayPanel}/>
                     </div>
                     <div className="ui inverted vertical footer segment">
                         <div className="inline" style={{verticalAlign:'middle'}}>
