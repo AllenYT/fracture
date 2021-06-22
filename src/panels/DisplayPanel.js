@@ -14,7 +14,7 @@ class DisplayPanel extends Component {
   constructor(props) {
     super(props)
     var username = ""
-    if(NODE_ENV === "production"){
+    if(NODE_ENV === "development"){
       username =  window.location.pathname.split('/')[3]
     }
     else{
