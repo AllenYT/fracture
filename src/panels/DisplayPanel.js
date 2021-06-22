@@ -3,19 +3,26 @@ import CornerstoneElement from '../components/CornerstoneElement'
 import * as cornerstone from "cornerstone-core"
 import axios from 'axios'
 import qs from 'qs'
-import dicomParser from 'dicom-parser'
 const config = require('../config.json')
 const dataConfig = config.data
 const draftConfig = config.draft
-const recordConfig = config.record
-
+const userConfig = config.user
+const loginConfig = config.loginId
+const NODE_ENV = process.env.NODE_ENV
 class DisplayPanel extends Component {
 
   constructor(props) {
     super(props)
+    var username = ""
+    if(NODE_ENV === "production"){
+      username =  window.location.pathname.split('/')[3]
+    }
+    else{
+      username = loginConfig.uid
+    }
     this.state = {
       caseId: window.location.pathname.split('/case/')[1].split('/')[0],
-      username: window.location.pathname.split('/')[3],
+      username: username,
       studyList:[],
       stack: {},
       show: false
@@ -34,6 +41,42 @@ class DisplayPanel extends Component {
       window.location.href=href
     }
     
+  }
+
+  componentDidMount(){
+    const user = {
+      username: this.state.username,
+      password: loginConfig.password
+    }
+    const auth={
+        username: this.state.username
+    }
+    Promise.all([
+        axios.post(userConfig.validUser, qs.stringify(user)),
+        axios.post(userConfig.getAuthsForUser, qs.stringify(auth))
+    ])
+    
+    .then(([loginResponse,authResponse]) => {
+        console.log(authResponse.data)
+        if (loginResponse.data.status === 'failed') {
+            this.setState({messageVisible: true})
+        } else {
+            localStorage.setItem('token', loginResponse.data.token)
+            localStorage.setItem('realname', loginResponse.data.realname)
+            localStorage.setItem('username',  loginResponse.data.username)
+            localStorage.setItem('privilege', loginResponse.data.privilege)
+            localStorage.setItem('allPatientsPages', loginResponse.data.allPatientsPages)
+            localStorage.setItem('totalPatients', loginResponse.data.totalPatients)
+            localStorage.setItem('totalRecords', loginResponse.data.totalRecords)
+            localStorage.setItem('modelProgress', loginResponse.data.modelProgress)
+            localStorage.setItem('BCRecords',loginResponse.data.BCRecords)
+            localStorage.setItem('HCRecords',loginResponse.data.HCRecords)
+            localStorage.setItem('auths',JSON.stringify(authResponse.data))
+        }
+    })
+    .catch((error) => {
+        console.log(error)
+    })
   }
 
   sliceIdxSort(prop){
@@ -69,7 +112,7 @@ class DisplayPanel extends Component {
       const headers = {
         'Authorization': 'Bearer '.concat(token) //add the fun of check
       }
-  
+
       if (this.state.username === 'origin') {
   
         axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {

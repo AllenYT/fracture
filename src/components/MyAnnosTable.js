@@ -46,6 +46,7 @@ export class MyAnnosTable extends Component {
     handleLinkClick(event) {
         const link = '/case/' + event.currentTarget.dataset.id + '/' + localStorage.getItem('username')
         window.location.href = link
+        console.log("annotable")
     }
 
 
