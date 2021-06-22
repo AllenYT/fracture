@@ -145,6 +145,15 @@ async componentWillMount() {
                 } 
             }
 
+            let viewport = cornerstone.getDefaultViewport(null, undefined)
+            if (viewport.voi.windowWidth === undefined || viewport.voi.windowCenter === undefined) {
+                viewport.voi.windowCenter = -600
+                viewport.voi.windowWidth = 1600
+            }
+            else{
+                console.log("viewport",viewport.voi.windowCenter, viewport.voi.windowWidth)
+            }
+
             const stack = {
                 curImageIds: curData,
                 curCaseId: this.state.curCaseId,
@@ -153,7 +162,8 @@ async componentWillMount() {
                 preImageIds: preData,
                 preCaseId: this.state.preCaseId,
                 preBoxes: preBox,
-                preDicomTag: preDicomTag
+                preDicomTag: preDicomTag,
+                viewport: viewport
             }
 
             console.log(stack)

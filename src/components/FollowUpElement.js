@@ -8,22 +8,26 @@ import * as cornerstoneMath from "cornerstone-math"
 import * as cornerstoneTools from "cornerstone-tools"
 import Hammer from "hammerjs"
 import * as cornerstoneWadoImageLoader from "cornerstone-wado-image-loader"
+import CornerstoneViewport from 'react-cornerstone-viewport'
 import {withRouter} from 'react-router-dom'
-import {  Grid, Table, Icon, Button, Accordion, Modal,Dropdown,Popup,Form,Tab, Container, Image, Menu, Label, Card, Header,Progress } from 'semantic-ui-react'
-// import '../css/FollowUpElement.css'
+import '../css/FollowUpElement.css'
 import qs from 'qs'
 import axios from "axios"
-import { Slider, Select, notification, Sapce, Space, Checkbox, Tabs, Row, Col } from "antd"
+import { Dropdown, Menu, Icon, Image, Button, Accordion} from 'semantic-ui-react'
+import { Slider, Select, notification, Sapce, Space, Checkbox, Tabs, Row, Col, Typography, Dropdown as aDropdown, Menu as aMenu, Cascader} from "antd"
 import src1 from '../images/scu-logo.jpg'
 
 import echarts from 'echarts/lib/echarts';
-import  'echarts/lib/chart/bar';
+import 'echarts/lib/chart/bar';
 import 'echarts/lib/component/tooltip';
 import 'echarts/lib/component/title';
 import 'echarts/lib/component/toolbox'
 
-const {Option} = Select
 
+
+const {Option} = Select
+const {Title, Text} = Typography
+const {subMenu} = aMenu
 cornerstoneTools.external.cornerstone = cornerstone
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 // cornerstoneWebImageLoader.external.cornerstone = cornerstone
@@ -51,104 +55,14 @@ const cacheSize = 5
 let playTimer = undefined
 let imageLoadTimer = undefined
 
-const immersiveStyle = {
-    width: "1280px",
-    height: "1280px",
-    position: "relative",
-    // display: "inline",
-    color: "white"
-}
-
-let bottomLeftStyle = {
-    bottom: "5px",
-    left: "-95px",
-    position: "absolute",
-    color: "white"
-}
-
-let bottomRightStyle = {
-    bottom: "5px",
-    right: "-95px",
-    position: "absolute",
-    color: "white"
-}
-
-let topLeftStyle = {
-    top: "5px",
-    left: "-95px", // 5px
-    position: "absolute",
-    color: "white"
-}
-
-let topRightStyle = {
-    top: "5px",
-    right: "-95px", //5px
-    position: "absolute",
-    color: "white"
-}
-
-let modalBtnStyle = {
-    width: "200px",
-    display: "block",
-    // marginTop:'10px',
-    marginBottom: '20px',
-    marginLeft: "auto",
-    marginRight: "auto"
-}
 
 const config = require('../config.json')
 const draftConfig = config.draft
 const recordConfig = config.record
 const userConfig = config.user
 const reviewConfig = config.review
+const segmentCofig = config.segment
 
-const selectStyle = {
-    'background': 'none',
-    'border': 'none',
-    // 'fontFamily': 'SimHei',
-    'WebkitAppearance':'none',
-    // 'fontSize':'medium',
-    'MozAppearance':'none',
-    'apperance': 'none',
-}
-
-const lowRiskStyle = {
-    'background': 'none',
-    'border': 'none',
-    // 'fontFamily': 'SimHei',
-    'WebkitAppearance':'none',
-    'fontSize':'small',
-    'MozAppearance':'none',
-    'apperance': 'none',
-    'color':'green'
-}
-
-const highRiskStyle = {
-    'background': 'none',
-    'border': 'none',
-    // 'fontFamily': 'SimHei',
-    'WebkitAppearance':'none',
-    'fontSize':'small',
-    'MozAppearance':'none',
-    'apperance': 'none',
-    'color':'#CC3300'
-}
-const middleRiskStyle = {
-    'background': 'none',
-    'border': 'none',
-    // 'fontFamily': 'SimHei',
-    'WebkitAppearance':'none',
-    'fontSize':'small',
-    'MozAppearance':'none',
-    'apperance': 'none',
-    'color':'#fcaf17'
-}
-
-const toolstrigger = (
-    <span>
-        <Icon name='user' />
-    </span>
-)
 
 class FollowUpElement extends Component {
     constructor(props){
@@ -156,7 +70,7 @@ class FollowUpElement extends Component {
         this.state={
             username: props.username,
             stack: props.stack,
-            viewport: cornerstone.getDefaultViewport(null, undefined),
+            viewport: props.stack.viewport === ''?cornerstone.getDefaultViewport(null, undefined):props.stack.viewport,
             curImageIds: props.stack.curImageIds === ''?[]:props.stack.curImageIds,
             curCaseId: props.stack.curCaseId,
             curBoxes: props.stack.curBoxes === ''?[]:props.stack.curBoxes,
@@ -171,161 +85,128 @@ class FollowUpElement extends Component {
             clickedArea: {},
             showNodules: true,
             showInfo: true,
+            activeViewportIndex: 0,
+            curViewportIndex: 0,
+            preViewportIndex: 1,
+            curImageIdIndex: 0,
+            preImageIdIndex: 0,
+            isPlaying: false,
+            frameRate: 22,
+            isRegistering: false,
+            curListsActiveIndex: 0,
+            tools: [
+                // Mouse
+                {
+                  name: 'Wwwc',
+                  mode: 'active',
+                  modeOptions: { mouseButtonMask: 1 },
+                },
+                {
+                  name: 'Zoom',
+                  mode: 'active',
+                  modeOptions: { mouseButtonMask: 2 },
+                },
+                {
+                  name: 'Pan',
+                  mode: 'active',
+                  modeOptions: { mouseButtonMask: 4 },
+                },
+                // Scroll
+                { name: 'StackScrollMouseWheel', mode: 'active' },
+                // Touch
+                { name: 'PanMultiTouch', mode: 'active' },
+                { name: 'ZoomTouchPinch', mode: 'active' },
+                { name: 'StackScrollMultiTouch', mode: 'active' },
+              ],
             
             random: Math.random()
         }
         this.nextPath = this
             .nextPath
             .bind(this)
-        this.refreshCurrentImage = this
-            .refreshCurrentImage
+        this.startRegistering = this
+            .startRegistering
             .bind(this)
-        this.refreshPreviewsImage = this
-            .refreshPreviewsImage
+        this.onLungLocationChange = this
+            .onLungLocationChange
             .bind(this)
     }
 
     componentDidMount(){
-        this.refreshCurrentImage(true, this.state.curImageIds[this.state.currentIdx], undefined)
-        this.refreshPreviewsImage(true, this.state.preImageIds[this.state.previewsIdx], undefined)
+        const curImageIds = this.state.curImageIds
+        const preImageIds = this.state.preImageIds
+        
+        const curImagePromise = curImageIds.map((curImageId) => {
+            return cornerstone.loadAndCacheImage(curImageId)
+        })
+        const preImagePromise = preImageIds.map((preImageId) => {
+            return cornerstone.loadAndCacheImage(preImageId)
+        })
+
+        Promise.all([curImagePromise,preImagePromise]).then(( ) => {})
+        
+    }
+
+    componentDidUpdate(prevProps, prevState){
+        if(prevState.activeViewportIndex !== this.state.activeViewportIndex){
+            console.log("activeidx", this.state.activeViewportIndex)
+        }
     }
 
     nextPath(path) {
         this.props.history.push(path)
     }
 
-    refreshCurrentImage(initial, imageId, newIdx){
-        const element = document.querySelector('#current-origin-canvas');
-
-        if (!initial) {
-            this.setState({currentIdx: newIdx})
-        }
-
-        if (initial) {
-            cornerstone.enable(element)
-            console.log('enable',cornerstone.enable(element))
-        } else {
-            cornerstone.getEnabledElement(element)
-            console.log(cornerstone.getEnabledElement(element))
-        }
-        cornerstone
-            .loadAndCacheImage(imageId)
-            .then(image => {
-                if (initial) {
-                    if (this.state.viewport.voi.windowWidth === undefined || this.state.viewport.voi.windowCenter === undefined) {
-                        image.windowCenter = -600
-                        image.windowWidth = 1600
-                    } else {
-                        image.windowCenter = this.state.viewport.voi.windowCenter
-                        image.windowWidth = this.state.viewport.voi.windowWidth
-                    }
-                }
-                if(element !== undefined){
-                    cornerstone.displayImage(element, image)
-                }
-                
-                this.setState({currentImage: image})
-                if(initial){
-                    cornerstoneTools.addToolForElement(element, pan)
-                    cornerstoneTools.setToolActiveForElement(
-                        element,
-                        'Pan',
-                        {
-                            mouseButtonMask:4, //middle mouse button
-                        },
-                        ['Mouse']
-
-                    )
-                    cornerstoneTools.addToolForElement(element, zoomWheel)
-                    cornerstoneTools.setToolActiveForElement(
-                        element,
-                        'Zoom',
-                        { 
-                            mouseButtonMask: 2,
-                        }
-                    )
-                
-                
-            element.addEventListener("cornerstoneimagerendered", this.onImageRendered)
-            element.addEventListener("cornerstonenewimage", this.onNewImage)
-            element.addEventListener("contextmenu", this.onRightClick)
-            element.addEventListener("mousedown", this.onMouseDown)
-            element.addEventListener("mousemove", this.onMouseMove)
-            element.addEventListener("mouseup", this.onMouseUp)
-            element.addEventListener("mouseout", this.onMouseOut)
-            element.addEventListener("mouseover",this.onMouseOver)
-            document.addEventListener("keydown", this.onKeydown)
-            }
-        })
+    startRegistering(){
+        this.setState({isRegistering: true})
+        console.log("register")
     }
 
-    refreshPreviewsImage(initial, imageId, newIdx){
-        const element = document.querySelector('#previews-origin-canvas');
-
-        if (!initial) {
-            this.setState({previewsIdx: newIdx})
-        }
-
-        if (initial) {
-            cornerstone.enable(element)
-            console.log('enable',cornerstone.enable(element))
-        } else {
-            cornerstone.getEnabledElement(element)
-            console.log(cornerstone.getEnabledElement(element))
-        }
-        cornerstone
-            .loadAndCacheImage(imageId)
-            .then(image => {
-                if (initial) {
-                    if (this.state.viewport.voi.windowWidth === undefined || this.state.viewport.voi.windowCenter === undefined) {
-                        image.windowCenter = -600
-                        image.windowWidth = 1600
-                    } else {
-                        image.windowCenter = this.state.viewport.voi.windowCenter
-                        image.windowWidth = this.state.viewport.voi.windowWidth
-                    }
-                }
-                if(element !== undefined){
-                    cornerstone.displayImage(element, image)
-                }
-                
-                this.setState({currentImage: image})
-                if(initial){
-                    cornerstoneTools.addToolForElement(element, pan)
-                    cornerstoneTools.setToolActiveForElement(
-                        element,
-                        'Pan',
-                        {
-                            mouseButtonMask:4, //middle mouse button
-                        },
-                        ['Mouse']
-
-                    )
-                    cornerstoneTools.addToolForElement(element, zoomWheel)
-                    cornerstoneTools.setToolActiveForElement(
-                        element,
-                        'Zoom',
-                        { 
-                            mouseButtonMask: 2,
-                        }
-                    )
-                
-                
-            element.addEventListener("cornerstoneimagerendered", this.onImageRendered)
-            element.addEventListener("cornerstonenewimage", this.onNewImage)
-            element.addEventListener("contextmenu", this.onRightClick)
-            element.addEventListener("mousedown", this.onMouseDown)
-            element.addEventListener("mousemove", this.onMouseMove)
-            element.addEventListener("mouseup", this.onMouseUp)
-            element.addEventListener("mouseout", this.onMouseOut)
-            element.addEventListener("mouseover",this.onMouseOver)
-            document.addEventListener("keydown", this.onKeydown)
-            }
-        })
+    onLungLocationChange(val){
+        console.log("location",val)
     }
+
 
     render(){
         const welcome = '欢迎您，' + localStorage.realname;
+        const {curListsActiveIndex} = this.state
+        let curBoxesAccord = ""
+        curBoxesAccord = this.state.curBoxes.map((inside,idx) => {
+            return( 
+            <div key={idx}>
+                <Accordion.Title index={idx} active={curListsActiveIndex === idx}>
+                <Row gutter={1}>
+                    <Col span={2}>
+                        <Text>位置</Text>
+                    </Col>
+                    <Col span={3}>
+                        <Cascader options={segmentCofig} onChange={this.onLungLocationChange} placeholder="请选择肺段..." bordered="false" />
+                    </Col>
+                    <Col span={3}>
+                    
+                    </Col>
+                    <Col span={3}>
+                        
+                    </Col>
+                    <Col span={3}>
+                    
+                    </Col>
+                    <Col span={3}>
+                        
+                    </Col>
+                    <Col span={3}>
+                    
+                    </Col>
+                </Row>
+            </Accordion.Title>
+            <Accordion.Content>
+
+            </Accordion.Content>
+            </div>
+               
+            )
+            
+        })
         return(
             <div id='follow-up'>
                 <Menu className='corner-header'>
@@ -398,70 +279,82 @@ class FollowUpElement extends Component {
                     </Menu.Item>
                 </Menu>
                 <Row>
-                    <Col span={12}> {/* current case */}
-                        <div className='canvas-style' id='canvas-border'>
-                            <div
-                                    id="current-origin-canvas"
-                                    ref={input => {
-                                    this.element = input
-                                }}>
-                            <canvas className="cornerstone-canvas" id="current-canvas"/>
-                                {/* {dicomTagPanel}  */}
-                        </div>
-
-                        </div>
-                        <div className='antd-slider'>
-                            <Slider 
-                                vertical
-                                reverse
-                                tipFormatter={null}
-                                // marks={sliderMarks} 
-                                value={this.state.currentIdx+1} 
-                                onChange={this.handleRangeChange}
-                                // onAfterChange={this.handleRangeChange.bind(this)} 
-                                min={1}
-                                step={1}
-                                max={this.state.curImageIds.length}
-                            />
-                        </div>
+                    <Col span={12}> 
+                    {/* current case */}
+                        <CornerstoneViewport
+                            key={this.state.curViewportIndex}
+                            tools={this.state.tools}
+                            imageIds={this.state.curImageIds}
+                            style={{minWidth: '90%', height:'512px', flex: '1'}}
+                            imageIdIndex={this.state.curImageIdIndex}
+                            isPlaying={this.state.isPlaying}
+                            frameRate={this.state.frameRate}
+                            initialViewport={this.state.viewport}
+                            className={this.state.activeViewportIndex === this.state.curViewportIndex ? 'active' : ''}
+                            setViewportActive={() => {
+                                this.setState({
+                                    activeViewportIndex: this.state.curViewportIndex
+                                })
+                            }}
+                        />
                     </Col>
-                    <Col span={12}>{/* current case */}
-                        <div className='canvas-style' id='canvas-border'>
-                            <div
-                                    id="previews-origin-canvas"
-                                    ref={input => {
-                                    this.element = input
-                                }}>
-                            <canvas className="cornerstone-canvas" id="previews-canvas"/>
-                                {/* {dicomTagPanel}  */}
-                        </div>
-
-                        </div>
-                        <div className='antd-slider'>
-                            <Slider 
-                                vertical
-                                reverse
-                                tipFormatter={null}
-                                // marks={sliderMarks} 
-                                value={this.state.previewsIdx+1} 
-                                onChange={this.handleRangeChange}
-                                // onAfterChange={this.handleRangeChange.bind(this)}
-                                min={1}
-                                step={1}
-                                max={this.state.preImageIds.length}
-                            />
-                        </div>
-
+                    <Col span={12}>   
+                        <CornerstoneViewport
+                            key={this.state.preViewportIndex}
+                            tools={this.state.tools}
+                            imageIds={this.state.preImageIds}
+                            style={{minWidth: '90%', height:'512px', flex: '1'}}
+                            imageIdIndex={this.state.preImageIdIndex}
+                            isPlaying={this.state.isPlaying}
+                            frameRate={this.state.frameRate}
+                            initialViewport={this.state.viewport}
+                            className={this.state.activeViewportIndex === this.state.preViewportIndex ? 'active' : ''}
+                            setViewportActive={() => {
+                                this.setState({
+                                    activeViewportIndex: this.state.preViewportIndex
+                                })
+                            }}
+                        />
                     </Col>
                 </Row>
-                <Row>
-                    <Col span={12}>
-
-                    </Col>
-                    <Col span={12}>
-                        
-                    </Col>
-                </Row>
+                {this.state.isRegistering === false ? 
+                <div>
+                    <Row gutter={4}>
+                        <Col span={10}>
+                            <Title level={3} className="reportTitle">结构化报告</Title>
+                        </Col>
+                        <Col span={4}>
+                            <Button onClick={this.startRegistering}>开始配准</Button>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={12}>
+                            {curBoxesAccord}
+                        </Col>
+                        <Col span={12}>
+                            
+                        </Col>
+                    </Row>
+                </div>
+                :
+                <div>
+                    <Row gutter={4}>
+                        <Col span={10}>
+                            <Title level={3} className="reportTitle">结构化报告</Title>
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col span={12}>
+                            
+                        </Col>
+                        <Col span={12}>
+                            
+                        </Col>
+                    </Row>
+                </div>
+                    
+            }
+                
                 
             </div>
         )

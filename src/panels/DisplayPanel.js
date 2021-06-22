@@ -295,6 +295,7 @@ class DisplayPanel extends Component {
   }
 
   render() {
+    console.log('Display call render')
     console.log('stack',this.state.stack)
     if (this.state.show) {
       return (

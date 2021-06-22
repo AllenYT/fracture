@@ -90,5 +90,50 @@
         "getQueuePatientIds":"http://192.168.7.198:8080/subset/getPatienIds",
         "deleteQueue":"http://192.168.7.198:8080/subset/delete",
         "updateQueue":"http://192.168.7.198:8080/subset/update"
-    }
+    },
+
+    "segment":[
+        {
+            "value":"middleLobeofRightLung",
+            "label":"右肺中叶",
+            "children":[
+                {
+                   "value":"segmentLaterale", 
+                   "label":"外侧段"
+                },
+                {
+                    "value":"segmentaMediale", 
+                    "label":"内侧段"
+                },
+                {
+                    "value":"cannotLocate", 
+                    "label":"无法定位"
+                }
+            ]
+            
+        },
+        {
+            "value":"",
+            "label":"右肺上叶",
+            "children":[
+                {
+                   "value":"", 
+                   "label":"尖段"
+                },
+                {
+                    "value":"", 
+                    "label":"后段"
+                }
+                ,
+                {
+                    "value":"", 
+                    "label":"前段"
+                },
+                {
+                    "value":"cannotLocate", 
+                    "label":"无法定位"
+                }
+            ]
+        }
+    ]
 }

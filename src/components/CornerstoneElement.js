@@ -20,7 +20,6 @@ import '../css/cornerstone.css'
 import qs from 'qs'
 import axios from "axios"
 import { Slider, Select, Space, Checkbox, Tabs} from "antd"
-// import { Slider, RangeSlider } from 'rsuite'
 import MiniReport from './MiniReport'
 import MessagePanel from '../panels/MessagePanel'
 import src1 from '../images/scu-logo.jpg'
@@ -4368,55 +4367,11 @@ class CornerstoneElement extends Component {
                 window.location.pathname.split('/')[3])
                 window.location.href = '/'
         }
-        document.getElementById('header').style.display = 'none'
         const width = document.body.clientWidth
         const height = document.body.clientHeight
         // const width = window.outerHeight
         this.setState({windowWidth : width, windowHeight: height})
 
-        const imageIds = this.state.imageIds
-        var annoHash = {}
-        const annoImageIds = []
-        const resImageIds = imageIds
-
-        for(let i=0;i<this.state.boxes.length;i++){
-            let slice_idx = this.state.boxes[i].slice_idx
-            console.log("cornerstone",slice_idx,imageIds[slice_idx])
-            for(let j=slice_idx-5;j<slice_idx+5;j++){
-                // cornerstone.loadAndCacheImage(imageIds[j])
-                // if(!annoHash[this[i]]){
-                //     annoHash[this[i]] = true
-                    annoImageIds.push(imageIds[j])
-                // }
-            }
-        }
-
-        // for(let i=0;i<imageIds.length;i++){
-        //     var flag = false
-        //     for(let j=0;j<annoImageIds.length;i++){
-        //         if(i == j) flag = true
-        //     }
-        //     if(!flag)
-        //         resImageIds.push(imageIds[i])
-        // }
-
-        console.log("annoImage", annoImageIds)
-
-        const annoPromises = annoImageIds.map(annoImageId => {
-            return cornerstone.loadAndCacheImage(annoImageId)
-        })
-        Promise.all(annoPromises).then((value) => {
-            console.log("promise",value)
-        })
-        
-        const promises =resImageIds.map(imageId=> {
-            // console.log(imageId)
-            return cornerstone.loadAndCacheImage(imageId)
-        })
-        Promise.all(promises).then((value)=> {
-        console.log("promise",value)
-        // console.log("111",promise)
-    })
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
         const token = localStorage.getItem('token')
         const headers = {
@@ -4436,7 +4391,6 @@ class CornerstoneElement extends Component {
         console.log('okParams', okParams)
 
         axios.post(reviewConfig.isOkayForReview, qs.stringify(okParams), {headers}).then(res => {
-            // console.log('1484', res)
         }).catch(err => {
             console.log(err)
         })
@@ -4455,26 +4409,60 @@ class CornerstoneElement extends Component {
             this.setState({leftBtnSpeed:leftBtnSpeed})
         }
 
-        // var stateListLength = this.state.selectBoxes.length
         var stateListLength = this.state.boxes.length
         var measureArr = new Array(stateListLength).fill(true)
-        // console.log('measureArr',measureArr)
         this.setState({measureStateList:measureArr})
 
         
         var maskArr = new Array(stateListLength).fill(true)
         this.setState({maskStateList:maskArr})
         this.setState({imageCaching:true})
-        // const origin = document.getElementById('origin-canvas')
-        // const canvas = document.getElementById('canvas')
-        // console.log('origin-canvas',canvas)
-        // const canvas_ROI = document.createElement('canvas')
-        // canvas_ROI.id = 'canvasROI'
-        // canvas_ROI.height = 500
-        // canvas_ROI.width = 500
-        // origin.appendChild(canvas_ROI)
-        // canvas_ROI.style.position = 'absolute'
         
+        
+        var imageIds = this.state.imageIds
+        console.log("Image", imageIds)
+        var dupFlag
+        var annoNo = []
+        const annoImageIds = []
+        let resImageIds = imageIds
+
+        for(let i=0;i<this.state.boxes.length;i++){
+            let slice_idx = this.state.boxes[i].slice_idx
+            console.log("cornerstone",slice_idx,imageIds[slice_idx])
+            for(let j=slice_idx-3;j<=slice_idx+3;j++){
+                dupFlag = false
+                for(let k=0;k<annoImageIds.length;k++){
+                    if(annoImageIds[k] == imageIds[j]){
+                        dupFlag = true
+                        break
+                    }
+                }
+                if(!dupFlag){
+                    annoImageIds.push(imageIds[j])
+                    annoNo.push(j)
+                }
+            }
+        }
+
+        for(let i=annoNo.length-1;i>=0;i--){
+            resImageIds.slice(annoNo[i],1)
+        }
+
+        console.log("annoImage", imageIds, annoImageIds, resImageIds)
+
+        const annoPromises = annoImageIds.map(annoImageId => {
+            return cornerstone.loadAndCacheImage(annoImageId)
+        })
+        Promise.all(annoPromises).then((value) => {
+            console.log("promise",value)
+        })
+        
+        const promises =resImageIds.map(imageId=> {
+            return cornerstone.loadAndCacheImage(imageId)
+        })
+        Promise.all(promises).then((value)=> {
+            console.log("promise",value)
+        })
     }
 
     componentWillUnmount() {

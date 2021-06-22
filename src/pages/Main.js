@@ -206,7 +206,7 @@ class Main extends Component {
 
         if (this.state.isLoggedIn) {
             console.log('islogin')
-            if(window.location.pathname.split('/')[1] != 'case'){
+            if(window.location.pathname.split('/')[1] != 'case' && window.location.pathname.split('/')[1] != 'followup'){
                 logButtonPlace = (
                     <Menu id="header" pointing secondary>
                         {mainMenus}
@@ -222,21 +222,7 @@ class Main extends Component {
                     </Menu>
                 )
             }else{
-                console.log('标注界面')
-                logButtonPlace =(
-                    <Menu id="header" pointing secondary>
-                        {/* {mainMenus} */}
-                        <Menu.Item position='right'>
-                            <Dropdown text={welcome}>
-                                <Dropdown.Menu id="logout-menu">
-                                    <Dropdown.Item icon="home" text='我的主页' onClick={this.toHomepage}/>
-                                    <Dropdown.Item icon="write" text='留言' onClick={this.handleWriting}/>
-                                    <Dropdown.Item icon="log out" text='注销' onClick={this.handleLogout}/>
-                                </Dropdown.Menu>
-                            </Dropdown>
-                        </Menu.Item>
-                    </Menu>
-                )
+                console.log('标注界面 || 随访')
             }
             
 
