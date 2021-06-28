@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {Menu, Dropdown, Button, Image} from 'semantic-ui-react'
 import {withRouter, BrowserRouter as Router, Route, Link} from "react-router-dom";
+import qs from 'qs'
 import LoginPanel from '../panels/LoginPanel'
 import DataCockpit from '../panels/DataCockpit'
 import DisplayPanel from '../panels/DisplayPanel'
@@ -23,6 +24,7 @@ import ViewerPanel from '../panels/ViewerPanel'
 
 const config = require('../config.json')
 const userConfig = config.user
+const loginConfig = config.loginId
 
 class Main extends Component {
     constructor(props) {
@@ -30,6 +32,7 @@ class Main extends Component {
         this.state = {
             activeItem: 'home',
             name: localStorage.realname,
+            username: localStorage.getItem('username') === null ? loginConfig.uid : localStorage.getItem('username'),
             path: window.location.pathname,
             reRender: 0,
             isLoggedIn: false,
@@ -84,7 +87,55 @@ class Main extends Component {
     }
 
     componentWillMount() {
+        console.log("localusername",localStorage.getItem('username'))
+        if(localStorage.getItem('username') === null && window.location.pathname !== '/'){
+            const usernameParams = {
+                username : loginConfig.uid
+            }
+            axios.post(userConfig.insertUserInfo, qs.stringify(usernameParams)).then((insertResponse) => {
+                console.log("insertResponse",insertResponse)
+                if(insertResponse.data.status === "ok"){
+                    this.setState({username: usernameParams.username})
+                }
+            })
+          const user = {
+                username: this.state.username,
+                password: loginConfig.password
+          }
+          const auth={
+              username: this.state.username
+          }
+          Promise.all([
+              axios.post(userConfig.validUser, qs.stringify(user)),
+              axios.post(userConfig.getAuthsForUser, qs.stringify(auth))
+          ])
+          
+          .then(([loginResponse,authResponse]) => {
+              console.log(authResponse.data)
+              if (loginResponse.data.status !== 'failed') {
+                  localStorage.setItem('token', loginResponse.data.token)
+                  localStorage.setItem('realname', loginResponse.data.realname)
+                  localStorage.setItem('username',  loginResponse.data.username)
+                  localStorage.setItem('privilege', loginResponse.data.privilege)
+                  localStorage.setItem('allPatientsPages', loginResponse.data.allPatientsPages)
+                  localStorage.setItem('totalPatients', loginResponse.data.totalPatients)
+                  localStorage.setItem('totalRecords', loginResponse.data.totalRecords)
+                  localStorage.setItem('modelProgress', loginResponse.data.modelProgress)
+                  localStorage.setItem('BCRecords',loginResponse.data.BCRecords)
+                  localStorage.setItem('HCRecords',loginResponse.data.HCRecords)
+                  localStorage.setItem('auths',JSON.stringify(authResponse.data))
+                  console.log("localtoken",localStorage.getItem('token'))
+              }
+              else{
+                console.log("localtoken",localStorage.getItem('token'))
+              }
+          })
+          .catch((error) => {
+              console.log(error)
+          })
+        }
         const token = localStorage.getItem('token');
+        console.log("localtoken",localStorage.getItem('token'))
         console.log('token',token)
         if (token !== null) {
             console.log('token:', token);

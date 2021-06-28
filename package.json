@@ -54,8 +54,7 @@
     "xlsx": "^0.16.3"
   },
   "scripts": {
-    "start-dev": "set NODE_ENV=development --max-old-space-size=4096 && craco start",
-    "start-produce": "set NODE_ENV=production --max-old-space-size=4096 && craco start",
+    "start": "set NODE_ENV --max-old-space-size=4096 && craco start",
     "build": "craco build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
@@ -81,3 +80,4 @@
   "repository": "https://github.com/KLzfyn520/my_new_front",
   "license": "MIT"
 }
+

@@ -26,12 +26,12 @@ import MessagePanel from '../panels/MessagePanel'
 import src1 from '../images/scu-logo.jpg'
 
 
-import echarts from 'echarts/lib/echarts';
-import  'echarts/lib/chart/bar';
-import 'echarts/lib/component/tooltip';
-import 'echarts/lib/component/title';
-import 'echarts/lib/component/toolbox'
-import { Content } from "antd/lib/layout/layout"
+import * as echarts from 'echarts';
+//import  'echarts/lib/chart/bar';
+//import 'echarts/lib/component/tooltip';
+//import 'echarts/lib/component/title';
+//import 'echarts/lib/component/toolbox'
+//import { Content } from "antd/lib/layout/layout"
 // import { WrappedStudyBrowser } from "./wrappedStudyBrowser"
 
 

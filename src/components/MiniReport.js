@@ -12,11 +12,15 @@ import { Chart } from '@antv/g2'
 import DataSet from '@antv/data-set'
 import '../css/cornerstone.css'
 
-import echarts from 'echarts/lib/echarts';
-import  'echarts/lib/chart/bar';
-import 'echarts/lib/component/tooltip';
-import 'echarts/lib/component/title';
-import 'echarts/lib/component/toolbox'
+import * as echarts from 'echarts';
+//import  'echarts/lib/chart/bar';
+//import 'echarts/lib/component/tooltip';
+//import 'echarts/lib/component/title';
+//import 'echarts/lib/component/toolbox'
+
+//const echarts = require('echarts/lib/echarts')
+//import {BarChart} from 'echarts/charts'
+
 
 const config = require('../config.json')
 const draftConfig=config.draft

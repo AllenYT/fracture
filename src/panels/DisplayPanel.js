@@ -8,21 +8,14 @@ const dataConfig = config.data
 const draftConfig = config.draft
 const userConfig = config.user
 const loginConfig = config.loginId
-const NODE_ENV = process.env.NODE_ENV
 class DisplayPanel extends Component {
 
   constructor(props) {
     super(props)
-    var username = ""
-    if(NODE_ENV === "development"){
-      username =  window.location.pathname.split('/')[3]
-    }
-    else{
-      username = loginConfig.uid
-    }
     this.state = {
       caseId: window.location.pathname.split('/case/')[1].split('/')[0],
-      username: username,
+      username: localStorage.getItem('username') === null ? loginConfig.uid : localStorage.getItem('username'),
+      modelName: window.location.pathname.split('/')[3],
       studyList:[],
       stack: {},
       show: false
@@ -41,42 +34,6 @@ class DisplayPanel extends Component {
       window.location.href=href
     }
     
-  }
-
-  componentDidMount(){
-    const user = {
-      username: this.state.username,
-      password: loginConfig.password
-    }
-    const auth={
-        username: this.state.username
-    }
-    Promise.all([
-        axios.post(userConfig.validUser, qs.stringify(user)),
-        axios.post(userConfig.getAuthsForUser, qs.stringify(auth))
-    ])
-    
-    .then(([loginResponse,authResponse]) => {
-        console.log(authResponse.data)
-        if (loginResponse.data.status === 'failed') {
-            this.setState({messageVisible: true})
-        } else {
-            localStorage.setItem('token', loginResponse.data.token)
-            localStorage.setItem('realname', loginResponse.data.realname)
-            localStorage.setItem('username',  loginResponse.data.username)
-            localStorage.setItem('privilege', loginResponse.data.privilege)
-            localStorage.setItem('allPatientsPages', loginResponse.data.allPatientsPages)
-            localStorage.setItem('totalPatients', loginResponse.data.totalPatients)
-            localStorage.setItem('totalRecords', loginResponse.data.totalRecords)
-            localStorage.setItem('modelProgress', loginResponse.data.modelProgress)
-            localStorage.setItem('BCRecords',loginResponse.data.BCRecords)
-            localStorage.setItem('HCRecords',loginResponse.data.HCRecords)
-            localStorage.setItem('auths',JSON.stringify(authResponse.data))
-        }
-    })
-    .catch((error) => {
-        console.log(error)
-    })
   }
 
   sliceIdxSort(prop){
@@ -100,7 +57,7 @@ class DisplayPanel extends Component {
       }
       const draftParams = {
         caseId: this.state.caseId,
-        username: this.state.username
+        username: this.state.modelName
         // username:'deepln'
       }
       const readonlyParams = {
@@ -113,7 +70,7 @@ class DisplayPanel extends Component {
         'Authorization': 'Bearer '.concat(token) //add the fun of check
       }
 
-      if (this.state.username === 'origin') {
+      if (this.state.modelName === 'origin') {
   
         axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
           cornerstone
@@ -191,7 +148,6 @@ class DisplayPanel extends Component {
   }
 
   componentWillMount() {
-
     // first let's check the status to display the proper contents.
     // const pathname = window.location.pathname
     // send our token to the server, combined with the current pathname
@@ -204,7 +160,7 @@ class DisplayPanel extends Component {
     }
     const draftParams = {
       caseId: this.state.caseId,
-      username: this.state.username
+      username: this.state.modelName
       // username:'deepln'
     }
     const readonlyParams = {
@@ -217,7 +173,7 @@ class DisplayPanel extends Component {
       'Authorization': 'Bearer '.concat(token) //add the fun of check
     }
 
-    if (this.state.username === 'origin') {
+    if (this.state.modelName === 'origin') {
 
       axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
         cornerstone
