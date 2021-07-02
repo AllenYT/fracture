@@ -114,12 +114,6 @@ let modalBtnStyle = {
 
 let users = []
 
-const config = JSON.parse(localStorage.getItem('config'))
-const draftConfig = config.draft
-const recordConfig = config.record
-const userConfig = config.user
-const reviewConfig = config.review
-
 const selectStyle = {
     'background': 'none',
     'border': 'none',
@@ -177,6 +171,7 @@ class CornerstoneElement extends Component {
         this.state = {
             caseId: props.caseId,
             username:props.username,
+            modelName:props.modelName,
             stack: props.stack,
             viewport: cornerstone.getDefaultViewport(null, undefined),
             imageIds: props.stack.imageIds===""?[]:props.stack.imageIds,
@@ -235,6 +230,7 @@ class CornerstoneElement extends Component {
             firstlayout:0,
             imageCaching:false,
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.nextPath = this
             .nextPath
             .bind(this)
@@ -1061,7 +1057,7 @@ class CornerstoneElement extends Component {
             username:this.state.username,
             newRectStr: JSON.stringify(boxes)
         }
-        axios.post(draftConfig.updateRects, qs.stringify(params), {headers}).then(res => {
+        axios.post(this.config.draft.updateRects, qs.stringify(params), {headers}).then(res => {
             if (res.data.status === 'okay') {
                 const content = res.data.allDrafts
                 this.setState({content: content})
@@ -1227,7 +1223,7 @@ class CornerstoneElement extends Component {
             'Authorization': 'Bearer '.concat(token)
         }
         axios
-            .get(userConfig.signoutUser, {headers})
+            .get(this.config.user.signoutUser, {headers})
             .then((response) => {
                 if (response.data.status === 'okay') {
                     this.setState({isLoggedIn: false})
@@ -1298,7 +1294,7 @@ class CornerstoneElement extends Component {
 
         let panes = [
             { menuItem: '影像所见', render: () => 
-                <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.username} 
+                <Tab.Pane><MiniReport type='影像所见' caseId={this.state.caseId} username={this.state.modelName}
                 imageIds={this.state.imageIds} boxes={this.state.boxes} activeItem={this.state.doubleClick===true?'all':this.state.listsActiveIndex}/></Tab.Pane> },
             { menuItem: '处理建议', render: () => <Tab.Pane><MiniReport type='处理建议' imageIds={this.state.imageIds} boxes={this.state.boxes}/></Tab.Pane> },
             { menuItem: '留言', render: () => <Tab.Pane><MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} /></Tab.Pane> }
@@ -3855,8 +3851,8 @@ class CornerstoneElement extends Component {
             .setItem('currentModelId', "none")
         const userId = sessionStorage.getItem('userId')
         Promise.all([
-            axios.get(userConfig.get_session, {headers}),
-            axios.post(draftConfig.createNewDraft, qs.stringify(params), {headers})
+            axios.get(this.config.user.get_session, {headers}),
+            axios.post(this.config.draft.createNewDraft, qs.stringify(params), {headers})
         ]).then(([response, NewDraftRes]) => {
             console.log(response.data.status);
             console.log(NewDraftRes.data);
@@ -3907,8 +3903,8 @@ class CornerstoneElement extends Component {
             .setItem('currentModelId', currentModel)
         console.log('params', params)
         Promise.all([
-            axios.get(userConfig.get_session, {headers}),
-            axios.post(draftConfig.createNewDraft, qs.stringify(params), {headers})
+            axios.get(this.config.user.get_session, {headers}),
+            axios.post(this.config.draft.createNewDraft, qs.stringify(params), {headers})
         ]).then(([response, NewDraftRes]) => {
             console.log(response.data.status);
             console.log(NewDraftRes.data);
@@ -3977,7 +3973,7 @@ class CornerstoneElement extends Component {
             // username:this.state.username,
             newRectStr: JSON.stringify(boxes)
         }
-        axios.post(draftConfig.createUser, qs.stringify(params), {headers}).then(res => {
+        axios.post(this.config.draft.createUser, qs.stringify(params), {headers}).then(res => {
             console.log(res)
             if (res.data.status === 'okay') {
                 console.log('createUser')
@@ -4004,7 +4000,7 @@ class CornerstoneElement extends Component {
             const params = {
                 caseId: this.state.caseId
             }
-            axios.post(draftConfig.removeDraft, qs.stringify(params), {headers}).then(res => {
+            axios.post(this.config.draft.removeDraft, qs.stringify(params), {headers}).then(res => {
                 console.log(res.data)
                 if (res.data === true) {
                     window.location.href =window.location.pathname.split('/')[0]+
@@ -4053,7 +4049,7 @@ class CornerstoneElement extends Component {
             caseId: this.state.caseId,
             username:this.state.username
         }
-        axios.post(draftConfig.deSubmitDraft, qs.stringify(params), {headers}).then(res => {
+        axios.post(this.config.draft.deSubmitDraft, qs.stringify(params), {headers}).then(res => {
             if (res.data === true) 
                 this.setState({'draftStatus': '0'})
             else 
@@ -4073,7 +4069,7 @@ class CornerstoneElement extends Component {
         const params = {
             caseId: this.state.caseId
         }
-        axios.post(draftConfig.removeDraft, qs.stringify(params), {headers}).then(res => {
+        axios.post(this.config.draft.removeDraft, qs.stringify(params), {headers}).then(res => {
             console.log(res.data)
             if (res.data === true) {
                 this.toNewModel()
@@ -4094,7 +4090,7 @@ class CornerstoneElement extends Component {
         const params = {
             caseId: this.state.caseId
         }
-        axios.post(draftConfig.removeDraft, qs.stringify(params), {headers}).then(res => {
+        axios.post(this.config.draft.removeDraft, qs.stringify(params), {headers}).then(res => {
             console.log(res.data)
             if (res.data === true) {
                 this.toCurrentModel()
@@ -4418,7 +4414,7 @@ class CornerstoneElement extends Component {
         console.log('token', token)
         console.log('okParams', okParams)
 
-        axios.post(reviewConfig.isOkayForReview, qs.stringify(okParams), {headers}).then(res => {
+        axios.post(this.config.review.isOkayForReview, qs.stringify(okParams), {headers}).then(res => {
             // console.log('1484', res)
         }).catch(err => {
             console.log(err)

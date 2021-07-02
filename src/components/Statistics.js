@@ -8,8 +8,6 @@ import {DataSet} from '@antv/data-set'
 import { loadOptions } from '@babel/core';
 
 
-const config = JSON.parse(localStorage.getItem('config'))
-const userConfig = config.user
 const _DataSet = DataSet,
     DataView = _DataSet.DataView;
 const _G = G2,
@@ -86,14 +84,15 @@ class Statistics extends Component {
                 }
             }
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.visualize = this.visualize.bind(this)
     }
 
 
     componentWillMount() {
         Promise.all([
-            axios.get(userConfig.get_statistics),
-            axios.get(userConfig.get_sexData)
+            axios.get(this.config.user.get_statistics),
+            axios.get(this.config.user.get_sexData)
         ])
         .then(([response,res]) => {
           console.log(response.data)

@@ -4,8 +4,6 @@ import '../css/loginPanel.css'
 import axios from 'axios'
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'
-const config = JSON.parse(localStorage.getItem('config'))
-const userConfig = config.user
 
 
 
@@ -22,6 +20,7 @@ class LoginPanel extends Component {
         this.handleClick = this.handleClick.bind(this)
         this.handleUsernameChange = this.handleUsernameChange.bind(this)
         this.handlePasswordChange = this.handlePasswordChange.bind(this)
+        this.config = JSON.parse(localStorage.getItem('config'))
     }
 
     handleDismiss() {
@@ -52,8 +51,8 @@ class LoginPanel extends Component {
             username: this.state.username
         }
         Promise.all([
-            axios.post(userConfig.validUser, qs.stringify(user)),
-            axios.post(userConfig.getAuthsForUser, qs.stringify(auth))
+            axios.post(this.config.user.validUser, qs.stringify(user)),
+            axios.post(this.config.user.getAuthsForUser, qs.stringify(auth))
         ])
         
         .then(([loginResponse,authResponse]) => {
@@ -88,6 +87,7 @@ class LoginPanel extends Component {
     }
 
     render() {
+        console.log("d")
 
         let errorMessage
 

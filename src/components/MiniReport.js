@@ -22,8 +22,6 @@ import * as echarts from 'echarts';
 //import {BarChart} from 'echarts/charts'
 
 
-const config = JSON.parse(localStorage.getItem('config'))
-const draftConfig=config.draft
 let buttonflag=0
 cornerstoneTools.external.cornerstone = cornerstone
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath
@@ -55,6 +53,7 @@ class MiniReport extends Component{
             dealchoose:'中华共识',
             windowWidth:1920,
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.showImages = this.showImages.bind(this)
         this.exportPDF = this.exportPDF.bind(this)
         this.template = this.template.bind(this)
@@ -64,15 +63,14 @@ class MiniReport extends Component{
     }
 
     componentDidMount(){
-        console.log('config',this.config)
-        console.log('mount')
         const width = document.body.clientWidth
         this.setState({windowWidth : width})
         const params = {
             caseId: this.state.caseId,
             username: this.state.username
         }
-        axios.post(draftConfig.structedReport, qs.stringify(params)).then((response) => {
+        axios.post(this.config.draft.structedReport, qs.stringify(params)).then((response) => {
+            console.log('report_nodule', response.data)
             const data = response.data
             this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
                 patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
@@ -93,7 +91,7 @@ class MiniReport extends Component{
                 caseId: this.state.caseId,
                 username: this.state.username
             }
-            axios.post(draftConfig.structedReport, qs.stringify(params)).then((response) => {
+            axios.post(this.config.draft.structedReport, qs.stringify(params)).then((response) => {
                 const data = response.data
                 console.log('report:',data,params)
                 this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,

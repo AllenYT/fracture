@@ -10,8 +10,6 @@ import moment from 'moment'
 import { runInThisContext } from 'vm';
 
 
-const config = JSON.parse(localStorage.getItem('config'))
-const recordConfig = config.record
 const storecid = []
 const _G = G2,
     Shape = _G.Shape;
@@ -67,6 +65,7 @@ class PatientPanel extends Component {
             width:600,
             height:240
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.handlePaginationChange = this
             .handlePaginationChange
             .bind(this)
@@ -222,7 +221,7 @@ class PatientPanel extends Component {
             otherKeyword: ''
         }
 
-        axios.post(recordConfig.getSubList, qs.stringify(params)).then((response) => {
+        axios.post(this.config.record.getSubList, qs.stringify(params)).then((response) => {
             const data = response.data
             if (data.status !== 'okay') {
                 console.log("Not okay")
@@ -252,7 +251,7 @@ class PatientPanel extends Component {
         const params = {
             patientId: window.location.pathname.split("/")[2]
         }
-        axios.post(recordConfig.getPatientInfo, qs.stringify(params))
+        axios.post(this.config.record.getPatientInfo, qs.stringify(params))
         .then(res => {
             const data = res.data
             this.setState({
@@ -289,7 +288,7 @@ class PatientPanel extends Component {
             pidKeyword: this.state.pidKeyword,
         }
 
-        axios.post(recordConfig.getTotalPages, qs.stringify(params), {headers}).then((response) => {
+        axios.post(this.config.record.getTotalPages, qs.stringify(params), {headers}).then((response) => {
             const data = response.data
             if (data.status !== 'okay') {
                 alert("错误，请联系管理员")

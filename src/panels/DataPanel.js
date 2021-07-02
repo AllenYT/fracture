@@ -9,9 +9,6 @@ import qs from 'qs'
 import {withRouter} from 'react-router-dom'
 import LowerAuth from '../components/LowerAuth'
 
-const config = JSON.parse(localStorage.getItem('config'))
-const recordConfig = config.record
-
 class DataPanel extends Component {
 
     constructor(props) {
@@ -23,6 +20,7 @@ class DataPanel extends Component {
             pidKeyword: '',
             dateKeyword: '',
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.handlePaginationChange = this
             .handlePaginationChange
             .bind(this)
@@ -67,7 +65,7 @@ class DataPanel extends Component {
             dateKeyword: this.state.dateKeyword
         }
 
-        axios.post(recordConfig.getTotalPages, qs.stringify(params), {headers}).then((response) => {
+        axios.post(this.config.record.getTotalPages, qs.stringify(params), {headers}).then((response) => {
             const data = response.data
             if (data.status !== 'okay') {
                 alert("错误，请联系管理员")

@@ -96,11 +96,6 @@ let modalBtnStyle = {
     marginRight: "auto"
 }
 
-const config = JSON.parse(localStorage.getItem('config'))
-const draftConfig = config.draft
-const recordConfig = config.record
-const userConfig = config.user
-const reviewConfig = config.review
 
 const selectStyle = {
     'background': 'none',
@@ -174,6 +169,7 @@ class FollowUpElement extends Component {
             
             random: Math.random()
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.nextPath = this
             .nextPath
             .bind(this)

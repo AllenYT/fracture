@@ -4,23 +4,20 @@ import * as cornerstone from "cornerstone-core"
 import axios from 'axios'
 import qs from 'qs'
 import dicomParser from 'dicom-parser'
-const config = JSON.parse(localStorage.getItem('config'))
-const dataConfig = config.data
-const draftConfig = config.draft
-const userConfig = config.user
-const loginConfig = config.loginId
 class DisplayPanel extends Component {
 
   constructor(props) {
     super(props)
+    this.config = JSON.parse(localStorage.getItem('config'))
     this.state = {
       caseId: window.location.pathname.split('/case/')[1].split('/')[0],
-      username: localStorage.getItem('username') === null ? loginConfig.uid : localStorage.getItem('username'),
+      username: localStorage.getItem('username') === null ? this.config.loginId.uid : localStorage.getItem('username'),
       modelName: window.location.pathname.split('/')[3],
       studyList:[],
       stack: {},
       show: false
     }
+    
     this.nextPath = this.nextPath.bind(this)
   }
   nextPath(path) {
@@ -73,7 +70,7 @@ class DisplayPanel extends Component {
 
       if (this.state.modelName === 'origin') {
   
-        axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
+        axios.post(this.config.data.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
           cornerstone
           .loadAndCacheImage(dataResponse.data[0])
           .then(image => {
@@ -105,9 +102,9 @@ class DisplayPanel extends Component {
         //     'Authorization': 'Bearer '.concat(token)//add the fun of check
         // }
         Promise.all([
-          axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)),
-          axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParams)),
-          axios.post(draftConfig.readonly, qs.stringify(readonlyParams), {headers})
+          axios.post(this.config.data.getDataListForCaseId, qs.stringify(dataParams)),
+          axios.post(this.config.draft.getRectsForCaseIdAndUsername, qs.stringify(draftParams)),
+          axios.post(this.config.draft.readonly, qs.stringify(readonlyParams), {headers})
         ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
           const readonly = readonlyResponse.data.readonly === 'true'
           // const readonly = false
@@ -176,7 +173,7 @@ class DisplayPanel extends Component {
 
     if (this.state.modelName === 'origin') {
 
-      axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
+      axios.post(this.config.data.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
         cornerstone
         .loadAndCacheImage(dataResponse.data[0])
         .then(image => {
@@ -207,9 +204,9 @@ class DisplayPanel extends Component {
       //     'Authorization': 'Bearer '.concat(token)//add the fun of check
       // }
       Promise.all([
-        axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)),
-        axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParams)),
-        axios.post(draftConfig.readonly, qs.stringify(readonlyParams), {headers})
+        axios.post(this.config.data.getDataListForCaseId, qs.stringify(dataParams)),
+        axios.post(this.config.draft.getRectsForCaseIdAndUsername, qs.stringify(draftParams)),
+        axios.post(this.config.draft.readonly, qs.stringify(readonlyParams), {headers})
       ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
         const readonly = readonlyResponse.data.readonly === 'true'
         // const readonly = false
@@ -302,7 +299,7 @@ class DisplayPanel extends Component {
         {/* {this.state.caseId} */}
         <CornerstoneElement stack={{
             ...this.state.stack
-          }} caseId={this.state.caseId} username={this.state.username} 
+          }} caseId={this.state.caseId} username={this.state.username} modelName={this.state.modelName}
           handleClickScreen={this.handleClickScreen.bind(this)}/>
         </div>
       )

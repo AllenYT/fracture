@@ -7,8 +7,6 @@ import SubList from './SubList'
 import { string } from 'postcss-selector-parser'
 import ReactHtmlParser from 'react-html-parser'
 
-const config = JSON.parse(localStorage.getItem('config'))
-const recordConfig = config.record
 
 class MainList extends Component {
     contextRef=createRef()
@@ -21,6 +19,7 @@ class MainList extends Component {
             show: false
             // selectPid: ''
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.handlePatientIdClick = this
             .handlePatientIdClick
             .bind(this)
@@ -48,7 +47,7 @@ class MainList extends Component {
                 dateKeyword: this.props.dateKeyword.toUpperCase()
             }
     
-            axios.post(recordConfig.getMainList, qs.stringify(params), {headers}).then((response) => {
+            axios.post(this.config.record.getMainList, qs.stringify(params), {headers}).then((response) => {
                 const data = response.data
                 if (data.status !== 'okay') {
                     // window.location.href = '/'
@@ -70,7 +69,7 @@ class MainList extends Component {
                 username:localStorage.getItem('username'),
                 subsetName:this.props.subsetName
             }
-            axios.post(recordConfig.getMainListForSubset, qs.stringify(params)).then((response) => {
+            axios.post(this.config.record.getMainListForSubset, qs.stringify(params)).then((response) => {
                 const data = response.data
                 if (data.status !== 'okay') {
                     // window.location.href = '/'

@@ -9,10 +9,6 @@ import {withRouter} from 'react-router-dom'
 // import Info from '../components/Info'
 import LowerAuth from '../components/LowerAuth'
 
-const config = JSON.parse(localStorage.getItem('config'))
-const recordConfig = config.record
-const cartConfig = config.cart
-const subsetConfig=config.subset
 const style = {
     textAlign: 'center',
     marginTop: '300px'
@@ -38,6 +34,7 @@ export class SearchPanel extends Component {
             searchQueue:[],
             search:false
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.handlePaginationChange = this
             .handlePaginationChange
             .bind(this)
@@ -124,7 +121,7 @@ export class SearchPanel extends Component {
         const params={
             username:localStorage.getItem('username')
         }
-        axios.post(subsetConfig.getQueue, qs.stringify(params)).then(res => {
+        axios.post(this.config.subset.getQueue, qs.stringify(params)).then(res => {
             let queue=['不限队列']
             let searchQueue=[{key:'不限队列',value:'不限队列',text:'不限队列'}]
             let activeQueue=['不限队列']
@@ -163,7 +160,7 @@ export class SearchPanel extends Component {
                 dateKeyword: this.state.dateKeyword
             }
     
-            axios.post(recordConfig.getTotalPages, qs.stringify(params), {headers}).then((response) => {
+            axios.post(this.config.record.getTotalPages, qs.stringify(params), {headers}).then((response) => {
                 const data = response.data
                 if (data.status !== 'okay') {
                     alert("错误，请联系管理员")
@@ -187,7 +184,7 @@ export class SearchPanel extends Component {
                 username:localStorage.getItem('username'),
                 subsetName:this.state.chooseQueue
             }
-            axios.post(recordConfig.getTotalPagesForSubset, qs.stringify(params)).then((response) => {
+            axios.post(this.config.record.getTotalPagesForSubset, qs.stringify(params)).then((response) => {
                 const data = response.data
                 const totalPage = data.count
                 console.log('totalPage',totalPage)
@@ -229,7 +226,7 @@ export class SearchPanel extends Component {
         const headers = {
             'Authorization': 'Bearer '.concat(token)
         }
-        axios.get(cartConfig.downloadCart, { headers })
+        axios.get(this.config.cart.downloadCart, { headers })
         .then(res => {
           const filename = res.data
           console.log('Filename', filename)

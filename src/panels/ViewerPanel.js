@@ -18,10 +18,6 @@ import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 
 cornerstoneWADOImageLoader.external.cornerstone = cornerstone
 
-const config = JSON.parse(localStorage.getItem('config'))
-const dataConfig = config.data
-const draftConfig = config.draft
-const userConfig = config.user
 const places = {
   0: '选择位置',
   1: '右肺中叶',
@@ -86,6 +82,7 @@ class ViewerPanel extends Component {
       erasing: false,
       isCtrl: false,
     }
+    this.config = JSON.parse(localStorage.getItem('config'))
     this.nextPath = this.nextPath.bind(this)
     this.handleLogout = this.handleLogout.bind(this)
     this.toHomepage = this.toHomepage.bind(this)
@@ -211,7 +208,7 @@ class ViewerPanel extends Component {
       Authorization: 'Bearer '.concat(token),
     }
     axios
-      .get(userConfig.signoutUser, { headers })
+      .get(this.config.user.signoutUser, { headers })
       .then((response) => {
         if (response.data.status === 'okay') {
           this.setState({ isLoggedIn: false })

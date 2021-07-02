@@ -8,8 +8,6 @@ const style={
     marginTop:'300px',
 };
 
-const config = JSON.parse(localStorage.getItem('config'))
-const userConfig = config.user
 
 class MyReviewsPanel extends Component {
     constructor(props){
@@ -18,6 +16,7 @@ class MyReviewsPanel extends Component {
             isLoggedIn: false,
             name: localStorage.realname
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
     }
 
     componentWillMount() {
@@ -28,7 +27,7 @@ class MyReviewsPanel extends Component {
             'Authorization': 'Bearer '.concat(token)
           };
 
-          axios.get(userConfig.get_session, {headers})
+          axios.get(this.config.user.get_session, {headers})
             .then((response) => {
               console.log(response.data.status);
               if (response.data.status === 'okay') {

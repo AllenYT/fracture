@@ -42,11 +42,7 @@ import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import { max } from 'vtk.js/Sources/Common/Core/Math'
 cornerstoneWADOImageLoader.external.cornerstone = cornerstone
 
-const config = require('../config.json')
 
-const dataConfig = config.data
-const draftConfig = config.draft
-const userConfig = config.user
 
 const Types = {
   DATESERIE: 'dateSerie',
@@ -231,6 +227,7 @@ class VTKViewer extends Component {
       airwayCenterVolumes: [],
       points: [],
     }
+    this.config = JSON.parse(localStorage.getItem('config'))
   }
 
   processCenterline() {
@@ -322,7 +319,7 @@ class VTKViewer extends Component {
 
     const urlsPromise = new Promise((resolve, reject) => {
       axios
-        .post(dataConfig.getMhaListForCaseId, qs.stringify(dataParams), {
+        .post(this.config.data.getMhaListForCaseId, qs.stringify(dataParams), {
           headers,
         })
         .then((res) => {
@@ -437,7 +434,7 @@ class VTKViewer extends Component {
       item.order = urls[index].order
     })
     this.props.saveLobesData(lobesData)
-    axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParams)).then((res) => {
+    axios.post(this.config.draft.getRectsForCaseIdAndUsername, qs.stringify(draftParams)).then((res) => {
       const data = res.data
       // console.log('nodule request data', data)
       const nodulesData = []
@@ -518,7 +515,7 @@ class VTKViewer extends Component {
 
     const imageIdsPromise = new Promise((resolve, reject) => {
       axios
-        .post(dataConfig.getDataListForCaseId, qs.stringify(dataParams), {
+        .post(this.config.data.getDataListForCaseId, qs.stringify(dataParams), {
           headers,
         })
         .then((res) => {

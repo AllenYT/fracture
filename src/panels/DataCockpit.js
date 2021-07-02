@@ -9,9 +9,6 @@ import {withRouter} from 'react-router-dom'
 import LowerAuth from '../components/LowerAuth'
 import { loadOptions } from '@babel/core'
 
-const config = JSON.parse(localStorage.getItem('config'))
-const noduleConfig = config.nodule
-const userConfig = config.user
 const _DataSet = DataSet,
     DataView = _DataSet.DataView;
 const _G = G2,
@@ -352,28 +349,29 @@ class DataCockpit extends Component {
         }
         this.visualize = this.visualize.bind(this)
         this.typeChange = this.typeChange.bind(this)
+        this.config = JSON.parse(localStorage.getItem('config'))
     }
     componentWillMount() {
       Promise.all([
-          axios.get(userConfig.get_statistics),
-          axios.get(userConfig.get_sexData),
-          axios.get(noduleConfig.totalMalDist),
-          axios.get(noduleConfig.totalDiameterDist),
-          axios.get(noduleConfig.characterDiameterDist),
-          axios.get(noduleConfig.nonSpiculationDiameterDist),
-          axios.get(noduleConfig.nonCalcificationDiameterDist),
-          axios.get(noduleConfig.totalAgeDist),
-          axios.get(noduleConfig.nonLobulationDiameterDist),
-          axios.get(noduleConfig.nonTextureDiameterDist),
-          axios.get(noduleConfig.spiculationMalDist),
-          axios.get(noduleConfig.calcificationMalDist),
-          axios.get(noduleConfig.lobulationMalDist),
-          axios.get(noduleConfig.textureMalDist),
-          axios.get(noduleConfig.pinMalDist),
-          axios.get(noduleConfig.cavMalDist),
-          axios.get(noduleConfig.vssMalDist),
-          axios.get(noduleConfig.beaMalDist),
-          axios.get(noduleConfig.broMalDist)
+          axios.get(this.config.user.get_statistics),
+          axios.get(this.config.user.get_sexData),
+          axios.get(this.config.nodule.totalMalDist),
+          axios.get(this.config.nodule.totalDiameterDist),
+          axios.get(this.config.nodule.characterDiameterDist),
+          axios.get(this.config.nodule.nonSpiculationDiameterDist),
+          axios.get(this.config.nodule.nonCalcificationDiameterDist),
+          axios.get(this.config.nodule.totalAgeDist),
+          axios.get(this.config.nodule.nonLobulationDiameterDist),
+          axios.get(this.config.nodule.nonTextureDiameterDist),
+          axios.get(this.config.nodule.spiculationMalDist),
+          axios.get(this.config.nodule.calcificationMalDist),
+          axios.get(this.config.nodule.lobulationMalDist),
+          axios.get(this.config.nodule.textureMalDist),
+          axios.get(this.config.nodule.pinMalDist),
+          axios.get(this.config.nodule.cavMalDist),
+          axios.get(this.config.nodule.vssMalDist),
+          axios.get(this.config.nodule.beaMalDist),
+          axios.get(this.config.nodule.broMalDist)
           
       ])
       .then(([ressta, ressex, restm, restd, rescd, resns, resnc, resta, resld, resntd, ressm, rescm, reslm, resttm, respin, rescav, resvss, resbea, resbro]) => {

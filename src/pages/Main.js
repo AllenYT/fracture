@@ -16,28 +16,26 @@ import axios from 'axios'
 import src1 from '../images/MILab.png'
 import src2 from '../images/logo.jpg'
 import src3 from '../images/scu-logo.png'
-import Cov19ListPanel from '../panels/Cov19ListPanel';
-import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
+// import Cov19ListPanel from '../panels/Cov19ListPanel';
+// import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
 import HomepagePanel from '../panels/HomepagePanel'
 import preprocess from '../panels/preprocess'
 import ViewerPanel from '../panels/ViewerPanel'
 
-const config = JSON.parse(localStorage.getItem('config'))
-const userConfig = config.user
-const loginConfig = config.loginId
-
 class Main extends Component {
     constructor(props) {
         super(props);
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.state = {
             activeItem: 'home',
             name: localStorage.realname,
-            username: localStorage.getItem('username') === null ? loginConfig.uid : localStorage.getItem('username'),
+            username: localStorage.getItem('username') === null ? this.config.loginId.uid : localStorage.getItem('username'),
             path: window.location.pathname,
             reRender: 0,
             isLoggedIn: false,
             expiration: false
         }
+        
         this.handleItemClick = this
             .handleItemClick
             .bind(this);
@@ -69,7 +67,7 @@ class Main extends Component {
             'Authorization': 'Bearer '.concat(token)
         }
         axios
-            .get(userConfig.signoutUser, {headers})
+            .get(this.config.user.signoutUser, {headers})
             .then((response) => {
                 if (response.data.status === 'okay') {
                     this.setState({isLoggedIn: false})
@@ -87,17 +85,17 @@ class Main extends Component {
     }
 
     componentWillMount() {
-        axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-            const config = res.data
-            console.log('config', config)
-            localStorage.setItem('config', JSON.stringify(config))
-        })
-        console.log("localusername",localStorage.getItem('username'))
+        // axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
+        //     const config = res.data
+        //     console.log('config', config)
+        //     localStorage.setItem('config', JSON.stringify(config))
+        // })
+        // console.log("localusername",localStorage.getItem('username'))
         if(localStorage.getItem('username') === null && window.location.pathname !== '/'){
             const usernameParams = {
-                username : loginConfig.uid
+                username : this.config.loginId.uid
             }
-            axios.post(userConfig.insertUserInfo, qs.stringify(usernameParams)).then((insertResponse) => {
+            axios.post(this.config.user.insertUserInfo, qs.stringify(usernameParams)).then((insertResponse) => {
                 console.log("insertResponse",insertResponse)
                 if(insertResponse.data.status === "ok"){
                     this.setState({username: usernameParams.username})
@@ -105,14 +103,14 @@ class Main extends Component {
             })
           const user = {
                 username: this.state.username,
-                password: loginConfig.password
+                password: this.config.loginId.password
           }
           const auth={
               username: this.state.username
           }
           Promise.all([
-              axios.post(userConfig.validUser, qs.stringify(user)),
-              axios.post(userConfig.getAuthsForUser, qs.stringify(auth))
+              axios.post(this.config.user.validUser, qs.stringify(user)),
+              axios.post(this.config.user.getAuthsForUser, qs.stringify(auth))
           ])
           
           .then(([loginResponse,authResponse]) => {
@@ -149,7 +147,7 @@ class Main extends Component {
             };
 
             axios
-                .get(userConfig.get_session, {headers})
+                .get(this.config.user.get_session, {headers})
                 .then((response) => {
                     console.log(response.data.status);
                     if (response.data.status === 'okay') {
@@ -354,8 +352,8 @@ class Main extends Component {
                         <Route exact path="/download/" component={DownloadPanel}/>
                         <Route path="/case/" component={DisplayPanel}/>
                         <Route path="/patientInfo/" component={PatientPanel}/>
-                        <Route path="/cov19List/" component={Cov19ListPanel} />
-                        <Route path='/cov19Case/' component={Cov19DisplayPanel}/>
+                        {/* <Route path="/cov19List/" component={Cov19ListPanel} />
+                        <Route path='/cov19Case/' component={Cov19DisplayPanel}/> */}
                         <Route path='/homepage/' component={HomepagePanel}/>
                         <Route path='/preprocess/' component={preprocess}/>
                         <Route path='/segView/' component={ViewerPanel}/>

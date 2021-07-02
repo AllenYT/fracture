@@ -4,9 +4,6 @@ import '../css/myAnnosTable.css'
 import axios from 'axios'
 import qs from 'qs'
 
-const config = JSON.parse(localStorage.getItem('config'))
-const draftConfig = config.draft
-
 
 export class MyAnnosTable extends Component {
 
@@ -17,6 +14,7 @@ export class MyAnnosTable extends Component {
             activePage:1,
             totalPage:1
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.getAnnos = this.getAnnos.bind(this)
         this.timestampToDate = this.timestampToDate.bind(this)
         this.handleLinkClick = this.handleLinkClick.bind(this)
@@ -31,7 +29,7 @@ export class MyAnnosTable extends Component {
         const params = {
             status: this.props.status
         }
-        axios.post(draftConfig.getMyAnnos, qs.stringify(params), { headers })
+        axios.post(this.config.draft.getMyAnnos, qs.stringify(params), { headers })
         .then(res => {
             if (res.data.status === 'okay') {
                 const content = res.data.allDrafts
