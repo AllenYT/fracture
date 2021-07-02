@@ -7,15 +7,16 @@ import dicomParser from 'dicom-parser'
 const config = JSON.parse(localStorage.getItem('config'))
 const dataConfig = config.data
 const draftConfig = config.draft
-const recordConfig = config.record
-
+const userConfig = config.user
+const loginConfig = config.loginId
 class DisplayPanel extends Component {
 
   constructor(props) {
     super(props)
     this.state = {
       caseId: window.location.pathname.split('/case/')[1].split('/')[0],
-      username: window.location.pathname.split('/')[3],
+      username: localStorage.getItem('username') === null ? loginConfig.uid : localStorage.getItem('username'),
+      modelName: window.location.pathname.split('/')[3],
       studyList:[],
       stack: {},
       show: false
@@ -57,7 +58,7 @@ class DisplayPanel extends Component {
       }
       const draftParams = {
         caseId: this.state.caseId,
-        username: this.state.username
+        username: this.state.modelName
         // username:'deepln'
       }
       const readonlyParams = {
@@ -69,8 +70,8 @@ class DisplayPanel extends Component {
       const headers = {
         'Authorization': 'Bearer '.concat(token) //add the fun of check
       }
-  
-      if (this.state.username === 'origin') {
+
+      if (this.state.modelName === 'origin') {
   
         axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
           cornerstone
@@ -148,7 +149,6 @@ class DisplayPanel extends Component {
   }
 
   componentWillMount() {
-
     // first let's check the status to display the proper contents.
     // const pathname = window.location.pathname
     // send our token to the server, combined with the current pathname
@@ -161,7 +161,7 @@ class DisplayPanel extends Component {
     }
     const draftParams = {
       caseId: this.state.caseId,
-      username: this.state.username
+      username: this.state.modelName
       // username:'deepln'
     }
     const readonlyParams = {
@@ -174,7 +174,7 @@ class DisplayPanel extends Component {
       'Authorization': 'Bearer '.concat(token) //add the fun of check
     }
 
-    if (this.state.username === 'origin') {
+    if (this.state.modelName === 'origin') {
 
       axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)).then(dataResponse => {
         cornerstone
@@ -229,7 +229,6 @@ class DisplayPanel extends Component {
             boxes[i].rect_no = "a00" + i
           } 
           console.log('boxidx',boxes)
-
           const stack = {
             imageIds: dataResponse.data,
             caseId: this.state.caseId,
