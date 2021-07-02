@@ -42,8 +42,6 @@ import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import { max } from 'vtk.js/Sources/Common/Core/Math'
 cornerstoneWADOImageLoader.external.cornerstone = cornerstone
 
-
-
 const Types = {
   DATESERIE: 'dateSerie',
 }
@@ -180,7 +178,7 @@ class VTKViewer extends Component {
       viewerWidth: props.viewerWidth,
       viewerHeight: props.viewerWidth,
       caseId: window.location.pathname.split('/segView/')[1].split('/')[0],
-      username: localStorage.realname,
+      username: window.location.pathname.split('/segView/')[1].split('/')[1],
       imageIds: [],
       urls: [],
       nodulesData: [],
@@ -230,7 +228,24 @@ class VTKViewer extends Component {
     this.config = JSON.parse(localStorage.getItem('config'))
   }
 
-  processCenterline() {
+  processCenterLine() {
+    const segRange = this.state.segRange
+    const spacing = this.state.spacing
+    const xOffset = segRange.xMin
+    const yOffset = segRange.yMin
+    const zOffset = segRange.zMin
+    const coos = centerLine.coos
+    const points = []
+    coos.forEach((item, index) => {
+      const z = item[0]
+      const y = item[1]
+      const x = item[2]
+      points.push(vec3.fromValues(Math.floor(x * spacing[0] + xOffset), Math.floor(y * spacing[1] + yOffset), Math.floor(z + zOffset)))
+    })
+    centerLine.points = points
+    console.log(centerLine)
+  }
+  processRefinedCenterLine() {
     const xOffset = -182
     const yOffset = -330
     const zOffset = -540
@@ -299,8 +314,6 @@ class VTKViewer extends Component {
     })
   }
   async componentDidMount() {
-    this.processCenterline()
-    this.processOneAirway()
     this.props.onRef(this)
     this.apis = []
     console.log('call didMount', this.state.caseId)
@@ -313,16 +326,16 @@ class VTKViewer extends Component {
     }
     const draftParams = {
       caseId: this.state.caseId,
-      // username: this.state.username,
-      username: 'deepln',
+      username: this.state.username,
     }
-
+    console.log('draftParams', draftParams)
     const urlsPromise = new Promise((resolve, reject) => {
       axios
         .post(this.config.data.getMhaListForCaseId, qs.stringify(dataParams), {
           headers,
         })
         .then((res) => {
+          console.log(res)
           // const urls = res.data
           function sortUrl(x, y) {
             // small to big
@@ -436,58 +449,33 @@ class VTKViewer extends Component {
     this.props.saveLobesData(lobesData)
     axios.post(this.config.draft.getRectsForCaseIdAndUsername, qs.stringify(draftParams)).then((res) => {
       const data = res.data
-      // console.log('nodule request data', data)
+      // console.log('nodule request data', res)
       const nodulesData = []
-      data.forEach((item, index) => {
-        let position
-        switch (item.place) {
-          case 1:
-            position = '右肺中叶'
-            break
-          case 2:
-            position = '右肺上叶'
-            break
-          case 3:
-            position = '右肺下叶'
-            break
-          case 4:
-            position = '左肺上叶'
-            break
-          case 5:
-            position = '左肺下叶'
-            break
-          default:
+      if (data && data.length !== 0) {
+        data.forEach((item, index) => {
+          let position = nodulePosition[item.place]
+          let malignancyName = noduleMalignancyName[item.malignancy]
+          if (!position) {
             position = '待定'
-            break
-        }
-        let malignancyName
-        switch (item.malignancy) {
-          case 1:
-            malignancyName = '低危'
-            break
-          case 2:
-            malignancyName = '中危'
-            break
-          case 3:
-            malignancyName = '高危'
-            break
-          default:
+          }
+          if (!malignancyName) {
             malignancyName = '待定'
-            break
-        }
-        const { lobesLength, airwayLength } = this.state
-        const urlIndex = index + lobesLength + airwayLength
-        if (urlIndex <= urls.length - 1) {
-          nodulesData.push({
-            index: urlIndex,
-            order: urls[urlIndex].order,
-            name: urls[urlIndex].name,
-            position,
-            malignancy: item.malignancy,
-            malignancyName,
-          })
-        }
-      })
+          }
+          const { lobesLength, airwayLength } = this.state
+          const urlIndex = index + lobesLength + airwayLength
+          if (urlIndex <= urls.length - 1) {
+            nodulesData.push({
+              index: urlIndex,
+              order: urls[urlIndex].order,
+              name: urls[urlIndex].name,
+              position,
+              malignancy: item.malignancy,
+              malignancyName,
+            })
+          }
+        })
+      }
+
       this.props.saveNodulesData(nodulesData)
     })
     //local test
@@ -534,6 +522,7 @@ class VTKViewer extends Component {
     const firstImageId = imageIds[imageIds.length - 1]
     const firstImageIdPromise = new Promise((resolve, reject) => {
       cornerstone.loadAndCacheImage(firstImageId).then((img) => {
+        console.log('first img', img)
         let dataSet = img.data
         let imagePositionPatientString = dataSet.string('x00200032')
         let imagePositionPatient = imagePositionPatientString.split('\\')
@@ -620,6 +609,8 @@ class VTKViewer extends Component {
       }, reject)
     })
     await firstImageIdPromise
+    this.processCenterLine()
+    this.processOneAirway()
     this.getMPRInfoWithPriority(imageIds)
   }
   componentDidUpdate(prevProps, prevState, snapshot) {}
