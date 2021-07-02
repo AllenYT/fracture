@@ -55,7 +55,7 @@ class ViewerPanel extends Component {
       viewerWidth: 1200,
       viewerHeight: 800,
       caseId: window.location.pathname.split('/segView/')[1].split('/')[0],
-      username: window.location.pathname.split('/')[3],
+      username: window.location.pathname.split('/segView/')[1].split('/')[1],
       urls: [],
       nodulesData: null,
       lobesData: null,

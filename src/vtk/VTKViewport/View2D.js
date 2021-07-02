@@ -83,7 +83,8 @@ export default class View2D extends Component {
     const handle = this.paintWidget.getWidgetState().getHandle()
     const camera = this.paintRenderer.getActiveCamera()
     const normal = camera.getDirectionOfProjection()
-    manip.setNormal(...normal)
+    // manip.setNormal(...normal)
+    manip.setNormal(...this.renderWindow.getInteractor().getInteractorStyle().getSliceNormal())
     manip.setOrigin(...camera.getFocalPoint())
     handle.rotateFromDirections(handle.getDirection(), normal)
   }
