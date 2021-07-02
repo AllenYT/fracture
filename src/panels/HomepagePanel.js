@@ -12,7 +12,7 @@ import MyQueuePanel from '../panels/MyQueuePanel'
 
 // import {withRouter, BrowserRouter as Router, Route, Link} from "react-router-dom"
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const dataConfig = config.data
 
 class HomepagePanel extends Component {

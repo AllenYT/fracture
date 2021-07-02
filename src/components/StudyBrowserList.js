@@ -15,7 +15,7 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 // cornerstoneWebImageLoader.external.cornerstone = cornerstone
 cornerstoneWadoImageLoader.external.cornerstone = cornerstone
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const recordConfig = config.record
 const draftConfig = config.draft
 const dataConfig = config.data

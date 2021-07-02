@@ -8,7 +8,7 @@ import {DataSet} from '@antv/data-set'
 import { loadOptions } from '@babel/core';
 
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const userConfig = config.user
 const _DataSet = DataSet,
     DataView = _DataSet.DataView;

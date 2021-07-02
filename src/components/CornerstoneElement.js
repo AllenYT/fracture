@@ -24,6 +24,7 @@ import { Slider, Select, Space, Checkbox, Tabs} from "antd"
 import MiniReport from './MiniReport'
 import MessagePanel from '../panels/MessagePanel'
 import src1 from '../images/scu-logo.jpg'
+import $ from 'jquery'
 
 
 import echarts from 'echarts/lib/echarts';
@@ -88,14 +89,14 @@ let bottomRightStyle = {
 
 let topLeftStyle = {
     top: "5px",
-    left: "-95px", // 5px
+    // left: "-95px", // 5px
     position: "absolute",
     color: "white"
 }
 
 let topRightStyle = {
     top: "5px",
-    right: "-95px", //5px
+    right: "5px", //5px
     position: "absolute",
     color: "white"
 }
@@ -113,7 +114,7 @@ let modalBtnStyle = {
 
 let users = []
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const draftConfig = config.draft
 const recordConfig = config.record
 const userConfig = config.user
@@ -221,17 +222,17 @@ class CornerstoneElement extends Component {
             studyList:props.studyList,
             menuTools:'',
             isPlaying: false,
-            windowWidth:1920,
-            windowHeight:1080,
+            windowWidth:document.body.clientWidth,
+            windowHeight:document.body.clientHeight,
             slideSpan:0,
-            windowHeight:1080,
             preListActiveIdx:-1,
             currentImage: null,
             // selectTiny:0,
             // selectTexture:-1,
             // selectBoxesMapIndex:[],
             // selectBoxes:props.stack.boxes===""?[]:props.stack.boxes,
-            lengthBox:[]
+            lengthBox:[],
+            firstlayout:0
         }
         this.nextPath = this
             .nextPath
@@ -473,6 +474,9 @@ class CornerstoneElement extends Component {
         this.createLength = this
             .createLength
             .bind(this)
+        this.firstLayout = this
+            .firstLayout
+            .bind(this)
         // this.showMask = this
         //     .showMask
         //     .bind(this)
@@ -543,8 +547,13 @@ class CornerstoneElement extends Component {
         var dom = document.getElementById(visId);
         document.getElementById('closeVisualContent').style.display =''
         dom.style.display = ''
-        dom.style.height = '200px'
-        dom.style.width = '870px'
+        dom.style.height = 200 * this.state.windowHeight / 1000 +'px'
+        if (this.state.windowWidth > this.state.windowHeight){
+            dom.style.width = 870 * this.state.windowWidth / 1800 +'px'
+        }
+        else{
+            dom.style.width = 1380 * this.state.windowWidth / 1800 +'px'
+        }
         let bins = hist_data.bins
         let ns = hist_data.n
         if(echarts.getInstanceByDom(dom)){
@@ -1295,64 +1304,64 @@ class CornerstoneElement extends Component {
           ]
         const {showNodules, activeIndex, modalOpenNew, modalOpenCur,listsActiveIndex,wwDefine, 
             wcDefine, dicomTag, studyList, menuTools, cacheModal, windowWidth, windowHeight, slideSpan, measureStateList, maskStateList} = this.state
-        if(windowWidth <= 1600 && windowWidth > 1440){
-            bottomLeftStyle = {
-                bottom: "5px",
-                left: "-50px",
-                position: "absolute",
-                color: "white"
-            }
+        // if(windowWidth <= 1600 && windowWidth > 1440){
+        //     bottomLeftStyle = {
+        //         bottom: "5px",
+        //         left: "-50px",
+        //         position: "absolute",
+        //         color: "white"
+        //     }
             
-            bottomRightStyle = {
-                bottom: "5px",
-                right: "-10px",
-                position: "absolute",
-                color: "white"
-            }
+        //     bottomRightStyle = {
+        //         bottom: "5px",
+        //         right: "-10px",
+        //         position: "absolute",
+        //         color: "white"
+        //     }
             
-            topLeftStyle = {
-                top: "5px",
-                left: "-50px", // 5px
-                position: "absolute",
-                color: "white"
-            }
+        //     topLeftStyle = {
+        //         top: "5px",
+        //         left: "-50px", // 5px
+        //         position: "absolute",
+        //         color: "white"
+        //     }
             
-            topRightStyle = {
-                top: "5px",
-                right: "-10px", //5px
-                position: "absolute",
-                color: "white"
-            }
-        }
-        else if(windowWidth <= 1440){
-            bottomLeftStyle = {
-                bottom: "5px",
-                left: "-40px",
-                position: "absolute",
-                color: "white"
-            }
+        //     topRightStyle = {
+        //         top: "5px",
+        //         right: "-10px", //5px
+        //         position: "absolute",
+        //         color: "white"
+        //     }
+        // }
+        // else if(windowWidth <= 1440){
+        //     bottomLeftStyle = {
+        //         bottom: "5px",
+        //         left: "-40px",
+        //         position: "absolute",
+        //         color: "white"
+        //     }
             
-            bottomRightStyle = {
-                bottom: "5px",
-                right: "-30px",
-                position: "absolute",
-                color: "white"
-            }
+        //     bottomRightStyle = {
+        //         bottom: "5px",
+        //         right: "-30px",
+        //         position: "absolute",
+        //         color: "white"
+        //     }
             
-            topLeftStyle = {
-                top: "5px",
-                left: "-40px", // 5px
-                position: "absolute",
-                color: "white"
-            }
+        //     topLeftStyle = {
+        //         top: "5px",
+        //         left: "-40px", // 5px
+        //         position: "absolute",
+        //         color: "white"
+        //     }
             
-            topRightStyle = {
-                top: "5px",
-                right: "-30px", //5px
-                position: "absolute",
-                color: "white"
-            }
-        }
+        //     topRightStyle = {
+        //         top: "5px",
+        //         right: "-30px", //5px
+        //         position: "absolute",
+        //         color: "white"
+        //     }
+        // }
         // console.log('dicomTag',dicomTag.elements)
         // var keys = [];
         // for(var propertyName in dicomTag.elements) {
@@ -1369,7 +1378,7 @@ class CornerstoneElement extends Component {
         let submitButton;
         let StartReviewButton;
         let calCount=0
-        let canvas;
+        let canvas
         let slideLabel
         let dicomTagPanel
         let places={0:'选择位置',1:'右肺中叶',2:'右肺上叶',3:'右肺下叶',4:'左肺上叶',5:'左肺下叶'}
@@ -1430,137 +1439,88 @@ class CornerstoneElement extends Component {
             slideLabel = (null)
         }
 
-        if(windowWidth <=1600 && windowWidth > 1440){
-            dicomTagPanel = (
-                <div>                          
+        // if(windowWidth <=1600 && windowWidth > 1440){
+        //     dicomTagPanel = (
+        //         <div>                          
+        //         <div id='dicomTag'>               
+        //             <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+        //             <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+        //             <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
+        //             <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
+        //             <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                    
+        //             <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+        //             <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+        //             <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
+        //             <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
+        //             <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
+        //             <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
+        //         </div>
+        //         <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+        //         </div>
+        //         <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+        //         <div style={bottomRightStyle}>
+        //             WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+        //             /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+        //         </div>
+        //     </div>
+        //     )
+            
+        // }
+        // else if(windowWidth <= 1440){
+        //     dicomTagPanel= (
+        //         <div>                          
+        //             <div id='dicomTag'>               
+        //                 <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+        //                 <div style={{position:'absolute',color:'white',top:'20px',left:'-40px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+        //                 <div style={{position:'absolute',color:'white',top:'35px',left:'-40px'}}>{dicomTag.string('x00100020')}</div>
+        //                 <div style={{position:'absolute',color:'white',top:'50px',left:'-40px'}}>{dicomTag.string('x00185100')}</div>
+        //                 <div style={{position:'absolute',color:'white',top:'65px',left:'-40px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                        
+        //                 <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+        //                 <div style={{position:'absolute',color:'white',top:'20px',right:'-30px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+        //                 <div style={{position:'absolute',color:'white',top:'35px',right:'-30px'}}>{dicomTag.string('x00090010')}</div>
+        //                 <div style={{position:'absolute',color:'white',top:'50px',right:'-30px'}}>{dicomTag.string('x0008103e')}</div>
+        //                 <div style={{position:'absolute',color:'white',top:'65px',right:'-30px'}}>{dicomTag.string('x00080020')}</div>
+        //                 <div style={{position:'absolute',color:'white',top:'80px',right:'-30px'}}>T: {dicomTag.string('x00180050')}</div>
+        //             </div>
+        //             <div style={{position:'absolute',color:'white',bottom:'20px',left:'-40px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+        //             </div>
+        //             <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+        //             <div style={bottomRightStyle}>
+        //                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
+        //                 /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
+        //             </div>
+        //         </div>
+        //     )  
+        // }
+        // else{
+        dicomTagPanel=(
+            <div>
                 <div id='dicomTag'>               
                     <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                    <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                    <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
-                    <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
-                    <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-                    
+                    <div style={{position:'absolute',color:'white',top:'20px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
+                    <div style={{position:'absolute',color:'white',top:'35px'}}>{dicomTag.string('x00100020')}</div>
+                    <div style={{position:'absolute',color:'white',top:'50px'}}>{dicomTag.string('x00185100')}</div>
+                    <div style={{position:'absolute',color:'white',top:'65px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
+                    {slideLabel}                                                  
                     <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                    <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                    <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
-                    <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
-                    <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
-                    <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
+                    <div style={{position:'absolute',color:'white',top:'20px',right:'5px'}}>ACC No: {dicomTag.string('x00080050')}</div>
+                    <div style={{position:'absolute',color:'white',top:'35px',right:'5px'}}>{dicomTag.string('x00090010')}</div>
+                    <div style={{position:'absolute',color:'white',top:'50px',right:'5px'}}>{dicomTag.string('x0008103e')}</div>
+                    <div style={{position:'absolute',color:'white',top:'65px',right:'5px'}}>{dicomTag.string('x00080020')}</div>
+                    <div style={{position:'absolute',color:'white',top:'80px',right:'5px'}}>T: {dicomTag.string('x00180050')}</div>
                 </div>
-                <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+                <div style={{position:'absolute',color:'white',bottom:'30px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
                 </div>
-                <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-                <div style={bottomRightStyle}>
+                <div style={{position:'absolute',color:'white',bottom:'10px'}}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
+                <div style={{position:'absolute',color:'white',bottom:'20px',right:'5px'}}>
                     WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
                     /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
                 </div>
             </div>
-            )
-            
-        }
-        else if(windowWidth <= 1440){
-            dicomTagPanel= (
-                <div>                          
-                    <div id='dicomTag'>               
-                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                        <div style={{position:'absolute',color:'white',top:'20px',left:'-40px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                        <div style={{position:'absolute',color:'white',top:'35px',left:'-40px'}}>{dicomTag.string('x00100020')}</div>
-                        <div style={{position:'absolute',color:'white',top:'50px',left:'-40px'}}>{dicomTag.string('x00185100')}</div>
-                        <div style={{position:'absolute',color:'white',top:'65px',left:'-40px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-                        
-                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                        <div style={{position:'absolute',color:'white',top:'20px',right:'-30px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                        <div style={{position:'absolute',color:'white',top:'35px',right:'-30px'}}>{dicomTag.string('x00090010')}</div>
-                        <div style={{position:'absolute',color:'white',top:'50px',right:'-30px'}}>{dicomTag.string('x0008103e')}</div>
-                        <div style={{position:'absolute',color:'white',top:'65px',right:'-30px'}}>{dicomTag.string('x00080020')}</div>
-                        <div style={{position:'absolute',color:'white',top:'80px',right:'-30px'}}>T: {dicomTag.string('x00180050')}</div>
-                    </div>
-                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-40px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-                    </div>
-                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-                    <div style={bottomRightStyle}>
-                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                    </div>
-                </div>
-            )  
-        }
-        else{
-            dicomTagPanel=(
-                <div>
-                    <div id='dicomTag'>               
-                        <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-                        <div style={{position:'absolute',color:'white',top:'20px',left:'-95px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-                        <div style={{position:'absolute',color:'white',top:'35px',left:'-95px'}}>{dicomTag.string('x00100020')}</div>
-                        <div style={{position:'absolute',color:'white',top:'50px',left:'-95px'}}>{dicomTag.string('x00185100')}</div>
-                        <div style={{position:'absolute',color:'white',top:'65px',left:'-95px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-                        {slideLabel}                                                  
-                        <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-                        <div style={{position:'absolute',color:'white',top:'20px',right:'-95px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-                        <div style={{position:'absolute',color:'white',top:'35px',right:'-95px'}}>{dicomTag.string('x00090010')}</div>
-                        <div style={{position:'absolute',color:'white',top:'50px',right:'-95px'}}>{dicomTag.string('x0008103e')}</div>
-                        <div style={{position:'absolute',color:'white',top:'65px',right:'-95px'}}>{dicomTag.string('x00080020')}</div>
-                        <div style={{position:'absolute',color:'white',top:'80px',right:'-95px'}}>T: {dicomTag.string('x00180050')}</div>
-                    </div>
-                    <div style={{position:'absolute',color:'white',bottom:'20px',left:'-95px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-                    </div>
-                    <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-                    <div style={bottomRightStyle}>
-                        WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-                        /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-                    </div>
-                </div>
-            )
-        }
-        // if(window.screen.width <=1280){
-        //     canvas=(
-        //         <div
-        //             id="origin-canvas"
-        //             style={divStyle}
-        //             ref={input => {
-        //             this.element = input
-        //         }}>
-        //             <canvas className="cornerstone-canvas" id="canvas"/>
-        //             <div style={topLeftStyle}>Offset: {this.state.viewport.translation['x']}, {this.state.viewport.translation['y']}
-        //             </div>
-        //             <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
-        //             <div style={bottomRightStyle}>
-        //                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-        //                 /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-        //             </div>
-        //         </div>
-        //     )
+        )
         // }
-        // else{
-        //     canvas=(
-        //         <div
-        //             id="origin-canvas"
-        //             style={divStyle1}
-        //             ref={input => {
-        //             this.element = input
-        //         }}>
-        //             <canvas className="cornerstone-canvas" id="canvas"/>
-        //             <div style={topLeftStyle}>Offset: {this.state.viewport.translation['x']}, {this.state.viewport.translation['y']}
-        //             </div>
-        //             <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100) / 100}</div>
-        //             <div style={bottomRightStyle}>
-        //                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-        //                 /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-        //             </div>
-        //         </div>
-        //     )
-        // }
-
-        
-
-        // if (this.state.draftStatus === '0') 
-        //     submitButton = (
-        //         <Button icon title='提交' onClick={this.submit} className='funcbtn'><Icon name='upload' size='large'></Icon></Button>
-        //     )
-        // else if (this.state.draftStatus === '1') 
-        //     submitButton = (
-        //         <Button icon title='撤销' onClick={this.deSubmit} className='funcbtn'><Icon name='reply' size='large'></Icon></Button>
-        //     )
         if (window.location.pathname.split('/')[3] === 'origin') 
             createDraftModal = (
                 <div style={{width:'100%',height:'100%'}}>
@@ -2289,37 +2249,49 @@ class CornerstoneElement extends Component {
                                         <Grid.Column width={2}>
                                             <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
                                         </Grid.Column>
-                                        <Grid.Column width={10} textAlign='center' id='canvas-column'>
-                                        <div className='canvas-style' id='canvas-border'>
-                                        <div
-                                                id="origin-canvas"
-                                                // style={divStyle}
-                                                ref={input => {
-                                                this.element = input
-                                            }}>
-                                                <canvas className="cornerstone-canvas" id="canvas"/>
-                                                {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                                                {/* {canvas} */}
-                                                {dicomTagPanel} 
-                                            </div>
+                                        <Grid.Column width={10} textAlign='center' style={{position:'relative'}}>
+                                            <Grid celled style={{margin:0}}>
+                                                {/* <Grid.Row columns={2} id='canvas-column' style={{height:this.state.windowHeight*37/40}}> */}
+                                                <Grid.Row columns={2} id='canvas-column'>
+                                                    <Grid.Column width={15} className='canvas-style' id='canvas-border'>
+                                                    
+                                                        {/* <div className='canvas-style' id='canvas-border'> */}
+                                                            <div
+                                                                    id="origin-canvas"
+                                                                    style={{weight:this.state.windowHeight * 960/1080, height: this.state.windowHeight * 960/1080}}
+                                                                    ref={input => {
+                                                                    this.element = input
+                                                                }}>
+                                                                    <canvas className="cornerstone-canvas" id="canvas"/>
+                                                                    {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
+                                                                    {/* {canvas} */}
+                                                                    {dicomTagPanel} 
+                                                            </div>
 
-                                        </div>
-                                        <div className='antd-slider'>
-                                            <Slider
-                                                id='antd-slide' 
-                                                vertical
-                                                reverse
-                                                tipFormatter={null}
-                                                marks={sliderMarks} 
-                                                value={this.state.currentIdx+1} 
-                                                onChange={this.handleRangeChange}
-                                                // onAfterChange={this.handleRangeChange.bind(this)} 
-                                                min={1}
-                                                step={1}
-                                                max={this.state.stack.imageIds.length}
-                                                ></Slider>
+                                                        {/* </div> */}
+                                                    </Grid.Column>
+                                                    <Grid.Column width={1}>
+                                                    <Slider
+                                                        id='antd-slide' 
+                                                        vertical
+                                                        reverse
+                                                        tipFormatter={null}
+                                                        marks={sliderMarks} 
+                                                        value={this.state.currentIdx+1} 
+                                                        onChange={this.handleRangeChange}
+                                                        // onAfterChange={this.handleRangeChange.bind(this)} 
+                                                        min={1}
+                                                        step={1}
+                                                        max={this.state.stack.imageIds.length}
+                                                        ></Slider>
+                                                    </Grid.Column>
+                                                </Grid.Row>
+                                            </Grid>
+                                        
+                                        {/* <div className='antd-slider'> */}
+                                            
 
-                                        </div>
+                                        {/* </div> */}
                                         {visualContent}
                                         <button id='closeVisualContent' onClick={this.closeVisualContent}>×</button>
                                         </Grid.Column>
@@ -2329,7 +2301,7 @@ class CornerstoneElement extends Component {
                                                     <Tabs type="card" animated defaultActiveKey={1} size='small'>
                                                         <TabPane tab={noduleNumTab} key="1" >
                                                             
-                                                            <div id='elec-table'>
+                                                            <div id='elec-table' style={{height:this.state.windowHeight*1/2}}>
                                                                 <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                                                                     {tableContent}
                                                                 </Accordion>
@@ -2344,22 +2316,10 @@ class CornerstoneElement extends Component {
                                                     </Tabs>
                                                 </div>
                                             </Grid.Row>
-                                            <Grid.Row>
-                                                <div id='report'>
+                                            <Grid.Row >
+                                                <div id='report' style={{height:this.state.windowHeight/3}}>
                                                     <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
                                                     panes={panes} />
-                                                    
-                                                    {/* <Tabs defaultActiveKey="1" type="card">
-                                                        <TabPane tab="Tab 1" key="1">
-                                                        Content of Tab Pane 1
-                                                        </TabPane>
-                                                        <TabPane tab="Tab 2" key="2">
-                                                        Content of Tab Pane 2
-                                                        </TabPane>
-                                                        <TabPane tab="Tab 3" key="3">
-                                                        Content of Tab Pane 3
-                                                        </TabPane>
-                                                    </Tabs> */}
                                                 </div>
                                             </Grid.Row>
                                             
@@ -2371,66 +2331,83 @@ class CornerstoneElement extends Component {
                                 :
                                 <Grid celled className='corner-contnt' >
                                     <Grid.Row className='corner-row' columns={2}>
-                                        <Grid.Column width={3}>
+                                        <Grid.Column width={1}>
                                             <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen}/>
                                         </Grid.Column>
-                                        <Grid.Column width={13} textAlign='center' id='canvas-column'>
-                                            <div className='canvas-style' id='canvas-border'>
-                                            <div
-                                                    id="origin-canvas"
-                                                    // style={divStyle}
-                                                    ref={input => {
-                                                    this.element = input
-                                                }}>
-                                                    <canvas className="cornerstone-canvas" id="canvas"/>
-                                                    {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                                                    {/* {canvas} */}
-                                                    {dicomTagPanel} 
-                                                </div>
+                                        <Grid.Column width={15} textAlign='center' style={{position:'relative'}}>
+                                        <Grid celled style={{margin:0}}>
+                                                {/* <Grid.Row columns={2} id='canvas-column' style={{height:this.state.windowHeight*37/40}}> */}
+                                                <Grid.Row columns={2} id='canvas-column'>
+                                                    <Grid.Column width={15} className='canvas-style' id='canvas-border'>
+                                                    
+                                                        {/* <div className='canvas-style' id='canvas-border'> */}
+                                                            <div
+                                                                    id="origin-canvas"
+                                                                    style={{weight:this.state.windowHeight * 960/1080, height: this.state.windowHeight * 960/1080}}
+                                                                    ref={input => {
+                                                                    this.element = input
+                                                                }}>
+                                                                    <canvas className="cornerstone-canvas" id="canvas"/>
+                                                                    {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
+                                                                    {/* {canvas} */}
+                                                                    {dicomTagPanel} 
+                                                            </div>
 
-                                            </div>
-                                            <div className='antd-slider'>
-                                                <Slider 
-                                                    vertical
-                                                    reverse
-                                                    tipFormatter={null}
-                                                    marks={sliderMarks} 
-                                                    value={this.state.currentIdx+1} 
-                                                    onChange={this.handleRangeChange}
-                                                    // onAfterChange={this.handleRangeChange.bind(this)} 
-                                                    min={1}
-                                                    step={1}
-                                                    max={this.state.stack.imageIds.length}
-                                                    ></Slider>
-                                            </div>
+                                                        {/* </div> */}
+                                                    </Grid.Column>
+                                                    <Grid.Column width={1}>
+                                                    <Slider
+                                                        id='antd-slide' 
+                                                        vertical
+                                                        reverse
+                                                        tipFormatter={null}
+                                                        marks={sliderMarks} 
+                                                        value={this.state.currentIdx+1} 
+                                                        onChange={this.handleRangeChange}
+                                                        // onAfterChange={this.handleRangeChange.bind(this)} 
+                                                        min={1}
+                                                        step={1}
+                                                        max={this.state.stack.imageIds.length}
+                                                        ></Slider>
+                                                    </Grid.Column>
+                                                </Grid.Row>
+                                            </Grid>
+                                        
+                                        {/* <div className='antd-slider'> */}
+                                            
+
+                                        {/* </div> */}
+                                        {visualContent}
+                                        <button id='closeVisualContent' onClick={this.closeVisualContent}>×</button>
                                             
                                         </Grid.Column>
                                     </Grid.Row>
                                     <Grid.Row className='corner-row' columns={2}>
                                         <Grid.Column width={10}>
-                                            <div className="nodule-card-container">
-                                                <Tabs type="card" animated defaultActiveKey={1} size='small'>
-                                                    <TabPane tab={noduleNumTab} key="1" >
-                                                        <div id='elec-table'>
-                                                            <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
-                                                                {tableContent}
-                                                            </Accordion>
-                                                        </div>   
-                                                    </TabPane>
-                                                    {/* <TabPane tab={inflammationTab} key="2">
-                                                    Content of Tab Pane 2
-                                                    </TabPane>
-                                                    <TabPane tab={lymphnodeTab} key="3">
-                                                    Content of Tab Pane 3
-                                                    </TabPane> */}
-                                                </Tabs>
-                                            </div>
+                                                <div className="nodule-card-container">
+                                                    <Tabs type="card" animated defaultActiveKey={1} size='small'>
+                                                        <TabPane tab={noduleNumTab} key="1" >
+                                                            
+                                                            <div id='elec-table' style={{height:this.state.windowHeight*1/2}}>
+                                                                <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
+                                                                    {tableContent}
+                                                                </Accordion>
+                                                            </div>   
+                                                        </TabPane>
+                                                        {/* <TabPane tab={inflammationTab} key="2">
+                                                        Content of Tab Pane 2
+                                                        </TabPane>
+                                                        <TabPane tab={lymphnodeTab} key="3">
+                                                        Content of Tab Pane 3
+                                                        </TabPane> */}
+                                                    </Tabs>
+                                                </div>
                                         </Grid.Column>
                                         <Grid.Column width={6}>
-                                            <div id='report'>
-                                                <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
-                                                panes={panes} />
-                                            </div>
+                                                <div id='report' style={{height:this.state.windowHeight/3}}>
+                                                    <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true,size:'huge' }} 
+                                                    panes={panes} />
+                                                </div>
                                         </Grid.Column>
                                     </Grid.Row>
                                 </Grid>
@@ -4171,6 +4148,36 @@ class CornerstoneElement extends Component {
         // enabledElement.image.imageId})
     }
 
+    resizeScreen(e){
+        // let canva = document.getElementById('origin-canvas')
+        // // canva.style.width = e.target.innerWidth * 400/1920
+        // canva.style.width = document.body.clientWidth * 860/1920
+        // canva.style.height = canva.style.width
+
+        let canvasColumn = document.getElementById('canvas-column')
+        let report = document.getElementById('report')
+        let list = document.getElementsByClassName('nodule-card-container')[0]
+        report.style.height = canvasColumn.clientHeight/3+'px'
+        list.style.height = canvasColumn.clientHeight*2/3+'px'
+        console.log('resizeBrowser',report.clientHeight,list.clientHeight,canvasColumn.clientHeight)
+        // this.setState({windowWidth:document.body.clientWidth, windowHeight:document.body.clientHeight})
+        this.setState({windowWidth:e.target.innerWidth, windowHeight:e.target.innerHeight})
+        
+    }
+
+    firstLayout(){
+        let canvasColumn = document.getElementById('canvas-column')
+        let report = document.getElementById('report')
+        let list = document.getElementsByClassName('nodule-card-container')[0]
+        report.style.height = canvasColumn.clientHeight/3+'px'
+        list.style.height = canvasColumn.clientHeight*2/3+'px'
+        // let closeHistogram = document.getElementById('closeVisualContent')
+        // let histogram = document.getElementsByClassName('histogram')[0]
+        
+
+        this.setState({firstlayout:1})
+    }
+
     refreshImage(initial, imageId, newIdx) {
         // let style = $("<style>", {type:"text/css"}).appendTo("head");
         // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (newIdx -1)*100/this.state.imageIds.length+'%)}');
@@ -4189,6 +4196,7 @@ class CornerstoneElement extends Component {
         if (initial) {
             cornerstone.enable(element)
             console.log('enable',cornerstone.enable(element))
+            
         } else {
             cornerstone.getEnabledElement(element)
             // console.log(cornerstone.getEnabledElement(element))
@@ -4202,19 +4210,20 @@ class CornerstoneElement extends Component {
                 //     this.setState({dicomTag:image.data,TagFlag:true})
                 // }
                 // console.log('image',image.getImage())
-                if (initial) {
-                    // console.log(this.state.viewport.voi)
-                    if (this.state.viewport.voi.windowWidth === undefined || this.state.viewport.voi.windowCenter === undefined) {
-                        image.windowCenter = -600
-                        image.windowWidth = 1600
-                    } else {
-                        image.windowCenter = this.state.viewport.voi.windowCenter
-                        image.windowWidth = this.state.viewport.voi.windowWidth
-                    }
-
-                }
+                // if (initial) {
+                //     // console.log(this.state.viewport.voi)
+                //     if (this.state.viewport.voi.windowWidth === undefined || this.state.viewport.voi.windowCenter === undefined) {
+                //         image.windowCenter = -600
+                //         image.windowWidth = 1600
+                //     } else {
+                //         image.windowCenter = this.state.viewport.voi.windowCenter
+                //         image.windowWidth = this.state.viewport.voi.windowWidth
+                //     }
+                    
+                // }
                 if(element !== undefined){
                     cornerstone.displayImage(element, image)
+                    
                 }
                 
                 this.setState({currentImage: image})
@@ -4235,6 +4244,21 @@ class CornerstoneElement extends Component {
                 //     .wwwc
                 //     .activate(element, 2) // ww/wc is the default tool for middle mouse button
                 if(initial){
+                    let viewport = {
+                        invert: false,
+                        pixelReplication: false,
+                        voi: {
+                        windowWidth: 1600,
+                        windowCenter: -600
+                        },
+                        scale : document.getElementById('canvas').width/512,
+                        translation: {
+                          x: 0,
+                          y: 0
+                        },
+                    }
+                    cornerstone.setViewport(this.element, viewport)
+                    this.setState({viewport})
                     if (!this.state.immersive) {
                         cornerstoneTools.addToolForElement(element, pan)
                         cornerstoneTools.setToolActiveForElement(
@@ -4268,6 +4292,7 @@ class CornerstoneElement extends Component {
             // }
 
             document.addEventListener("keydown", this.onKeydown)
+            window.addEventListener('resize', this.resizeScreen.bind(this))
             }
                 // window.addEventListener("resize", this.onWindowResize) if (!initial) {
                 // this.setState({currentIdx: newIdx}) }
@@ -4318,11 +4343,11 @@ class CornerstoneElement extends Component {
                 window.location.href = '/'
         }
         document.getElementById('header').style.display = 'none'
-        const width = document.body.clientWidth
-        const height = document.body.clientHeight
-        // const width = window.outerHeight
-        this.setState({windowWidth : width, windowHeight: height})
-
+        // const width = document.body.clientWidth
+        // const height = document.body.clientHeight
+        // // const width = window.outerHeight
+        // this.setState({windowWidth : width, windowHeight: height})
+        
         const imageIds = this.state.imageIds
         // for(let i=0;i<this.state.boxes.length;i++){
         //     let slice_idx = this.state.boxes[i].slice_idx
@@ -4333,13 +4358,15 @@ class CornerstoneElement extends Component {
         // }
         
         const promises = imageIds.map(imageId=> {
-            console.log(imageId)
+            // console.log(imageId)
             return cornerstone.loadAndCacheImage(imageId)
         })
         Promise.all(promises).then(()=> {
         // console.log("111",promise)
     })
         this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
+        
+        this.firstLayout()
         const token = localStorage.getItem('token')
         const headers = {
             'Authorization': 'Bearer '.concat(token)
@@ -4386,7 +4413,6 @@ class CornerstoneElement extends Component {
         
         var maskArr = new Array(stateListLength).fill(true)
         this.setState({maskStateList:maskArr})
-
         // const origin = document.getElementById('origin-canvas')
         // const canvas = document.getElementById('canvas')
         // console.log('origin-canvas',canvas)
@@ -4396,7 +4422,7 @@ class CornerstoneElement extends Component {
         // canvas_ROI.width = 500
         // origin.appendChild(canvas_ROI)
         // canvas_ROI.style.position = 'absolute'
-        
+       
     }
 
     componentWillUnmount() {
@@ -4408,6 +4434,7 @@ class CornerstoneElement extends Component {
 
         // window.removeEventListener("resize", this.onWindowResize)
         document.removeEventListener("keydown", this.onKeydown)
+        window.removeEventListener('resize', this.resizeScreen.bind(this))
         // cornerstone.disable(element)
     }
 

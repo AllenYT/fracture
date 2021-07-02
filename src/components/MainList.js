@@ -7,7 +7,7 @@ import SubList from './SubList'
 import { string } from 'postcss-selector-parser'
 import ReactHtmlParser from 'react-html-parser'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const recordConfig = config.record
 
 class MainList extends Component {

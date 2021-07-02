@@ -31,7 +31,7 @@ import StudyBrowserList from "../components/StudyBrowserList";
 import src1 from "../images/scu-logo.jpg";
 import VTKViewer from "../components/VTKViewer";
 
-const config = require("../config.json");
+const config = JSON.parse(localStorage.getItem('config'))
 const dataConfig = config.data;
 const draftConfig = config.draft;
 const userConfig = config.user

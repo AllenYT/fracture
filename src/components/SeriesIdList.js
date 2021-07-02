@@ -8,7 +8,7 @@ import CurrentDraftsDisplay from './CurrentDraftsDisplay'
 import '../css/seriesIdList.css'
 import { Link } from 'react-router-dom/cjs/react-router-dom.min'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const recordConfig = config.record
 const draftConfig = config.draft
 // const storecid = []

@@ -6,9 +6,6 @@ import Main from './pages/Main.js'
 import axios from 'axios';
 
 
-const config = require('./config.json')
-const userConfig = config.user
-
 class App extends Component {
   constructor(props) {
     super(props);

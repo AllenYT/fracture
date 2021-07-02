@@ -5,7 +5,7 @@ import qs from 'qs'
 import '../css/Cov19ListPanel.css'
 import src2 from '../images/cov19.jpg'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const recordConfig = config.record
 
 class Cov19ListPanel extends Component{

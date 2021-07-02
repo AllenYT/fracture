@@ -10,6 +10,7 @@
     "@ohif/core": "^2.9.6",
     "antd": "^4.7.0",
     "axios": "^0.21.1",
+    "cnpm": "^6.2.0",
     "copy-to-clipboard": "^3.3.1",
     "cornerstone-core": "^2.1.0",
     "cornerstone-math": "^0.1.6",

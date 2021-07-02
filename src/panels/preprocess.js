@@ -6,7 +6,7 @@ import axios from 'axios'
 import qs from 'qs'
 import '../css/preprocess.css'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const dataConfig = config.data
 
 class preprocess extends Component {

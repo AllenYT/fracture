@@ -9,7 +9,7 @@ import {withRouter} from 'react-router-dom'
 import LowerAuth from '../components/LowerAuth'
 import { loadOptions } from '@babel/core'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const noduleConfig = config.nodule
 const userConfig = config.user
 const _DataSet = DataSet,

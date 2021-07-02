@@ -4,7 +4,7 @@ import '../css/loginPanel.css'
 import axios from 'axios'
 import qs from 'qs'
 import {withRouter} from 'react-router-dom'
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const userConfig = config.user
 
 

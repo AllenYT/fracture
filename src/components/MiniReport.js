@@ -18,7 +18,7 @@ import 'echarts/lib/component/tooltip';
 import 'echarts/lib/component/title';
 import 'echarts/lib/component/toolbox'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const draftConfig=config.draft
 let buttonflag=0
 cornerstoneTools.external.cornerstone = cornerstone
@@ -60,6 +60,7 @@ class MiniReport extends Component{
     }
 
     componentDidMount(){
+        console.log('config',this.config)
         console.log('mount')
         const width = document.body.clientWidth
         this.setState({windowWidth : width})
@@ -1097,7 +1098,7 @@ class MiniReport extends Component{
                     this.props.type==='影像所见'?
                     <Grid.Row >
                         <Grid.Column textAlign='center'>
-                        <textarea style={{fontSize:'medium',overflowY:'auto',height:'150px',width:'100%',
+                        <textarea style={{fontSize:'medium',overflowY:'auto',width:'100%',height:document.body.clientHeight/7,
                         background:'transparent',border:'0rem',marginLeft:'0px'}} id='textarea' 
                         placeholder='在此填写诊断报告' onChange={this.handleTextareaChange} value={this.state.templateText}>
                             
@@ -1116,7 +1117,7 @@ class MiniReport extends Component{
                     :
                     <Grid.Row >
                         <Grid.Column textAlign='center'>
-                        <Form.TextArea style={{fontSize:'medium',overflowY:'auto',height:'150px',width:'100%',
+                        <Form.TextArea style={{fontSize:'medium',overflowY:'auto',width:'100%',height:document.body.clientHeight/7,
                         background:'transparent',border:'0rem',marginLeft:'0px'}} id='textarea' placeholder='在此填写处理建议'
                         value={this.state.templateText} onChange={this.handleTextareaChange}>
                         </Form.TextArea>

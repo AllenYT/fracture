@@ -3,7 +3,7 @@ import axios from 'axios'
 import qs from 'qs'
 import Cov19Cornerstone from '../components/Cov19Cornerstone'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const dataConfig=config.data
 
 class Cov19DisplayPanel extends Component{

@@ -9,7 +9,7 @@ import qs from 'qs'
 import {withRouter} from 'react-router-dom'
 import LowerAuth from '../components/LowerAuth'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const recordConfig = config.record
 
 class DataPanel extends Component {

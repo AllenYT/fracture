@@ -6,7 +6,7 @@ import qs from 'qs'
 import SeriesIdList from './SeriesIdList'
 import '../css/subList.css'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const recordConfig = config.record
 const cartConfig = config.cart
 

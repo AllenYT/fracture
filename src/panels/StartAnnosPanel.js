@@ -3,7 +3,7 @@ import CornerstoneElement from '../components/CornerstoneElement'
 import axios from 'axios'
 import qs from 'qs'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const dataConfig = config.data
 const draftConfig = config.draft
 

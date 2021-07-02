@@ -5,7 +5,7 @@ import { Button, Grid, Modal, Icon, Header, Table, Pagination, Input, Label, Dro
 import '../css/MyQueuePanel.css'
 import LowerAuth from '../components/LowerAuth'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const recordConfig = config.record
 const subsetConfig = config.subset
 let  nums={'危险':null,'毛刺征':null,'分叶征':null,'钙化':null,'密度':null,'胸膜凹陷征':null,'空洞征':null,'血管集束征':null,

@@ -5,7 +5,7 @@ import axios from 'axios'
 import qs from 'qs'
 import LowerAuth from '../components/LowerAuth'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const cartConfig = config.cart
 
 const style = {

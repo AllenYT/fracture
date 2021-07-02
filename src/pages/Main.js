@@ -21,7 +21,7 @@ import HomepagePanel from '../panels/HomepagePanel'
 import preprocess from '../panels/preprocess'
 import ViewerPanel from '../panels/ViewerPanel'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const userConfig = config.user
 
 class Main extends Component {
@@ -84,6 +84,11 @@ class Main extends Component {
     }
 
     componentWillMount() {
+        axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
+            const config = res.data
+            console.log('config', config)
+            localStorage.setItem('config', JSON.stringify(config))
+        })
         const token = localStorage.getItem('token');
         console.log('token',token)
         if (token !== null) {

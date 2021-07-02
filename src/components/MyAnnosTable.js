@@ -4,7 +4,7 @@ import '../css/myAnnosTable.css'
 import axios from 'axios'
 import qs from 'qs'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const draftConfig = config.draft
 
 

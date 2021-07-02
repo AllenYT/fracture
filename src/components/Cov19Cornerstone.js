@@ -90,7 +90,7 @@ const modalBtnStyle = {
 
 let users = []
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const draftConfig = config.draft
 const recordConfig = config.record
 const userConfig = config.user

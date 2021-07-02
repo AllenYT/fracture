@@ -11,7 +11,7 @@ import '../css/searchnodulePanel.css'
 import { isType } from '@babel/types'
 import LowerAuth from '../components/LowerAuth'
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const recordConfig = config.record
 const draftConfig = config.draft
 const subsetConfig = config.subset

@@ -4,7 +4,7 @@ import * as cornerstone from "cornerstone-core"
 import axios from 'axios'
 import qs from 'qs'
 import dicomParser from 'dicom-parser'
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const dataConfig = config.data
 const draftConfig = config.draft
 const recordConfig = config.record

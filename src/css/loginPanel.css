@@ -99,7 +99,6 @@ body {
 .ui.menu{
     background-color:rgba(1, 23, 46, 0.997) !important;
     border-radius: 0.1rem !important;
-    border-color: white; 
 }
 
 .ui.checkbox .box:before, .ui.checkbox label:before {

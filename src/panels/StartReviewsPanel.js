@@ -7,7 +7,7 @@ const style={
     marginTop:'20%',
 };
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const userConfig = config.user
 
 class StartReviewsPanel extends Component {

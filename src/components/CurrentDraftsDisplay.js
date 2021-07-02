@@ -5,7 +5,7 @@ import {Popup, Button} from 'semantic-ui-react'
 import qs from 'qs'
 import axios from 'axios';
 
-const config = require('../config.json')
+const config = JSON.parse(localStorage.getItem('config'))
 const draftConfig = config.draft
 const reviewConfig = config.review
 
