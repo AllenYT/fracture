@@ -924,7 +924,7 @@ class ViewerPanel extends Component {
               </Grid.Column>
               {/* 右边部分 */}
               <Grid.Column width={3}>
-                <Tab panes={panes} />
+                <Tab className={"list-tab"} panes={panes} />
               </Grid.Column>
             </Grid.Row>
           </Grid>

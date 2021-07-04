@@ -341,12 +341,12 @@ svg > g > #container {
   border: none !important;
 }
 
-.ui.menu.attached > a {
+.list-tab >.ui.menu.attached > a {
   background-color: #021c38 !important;
   width: 50% !important;
   justify-content: center !important;
 }
-.ui.menu.attached > a.active {
+.list-tab >.ui.menu.attached > a.active {
   background-color: #122c48 !important;
   border: none !important;
 }
