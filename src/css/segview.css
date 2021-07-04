@@ -12,31 +12,31 @@
 i.icon.icon-custom-CPR {
   width: 22px !important;
   height: 22px !important;
-  background: url("../icons/cpr_curve.svg") no-repeat !important;
+  background: url('../icons/cpr_curve.svg') no-repeat !important;
   background-size: 22px 22px !important;
 }
 i.icon.icon-custom-RA {
   width: 22px !important;
   height: 22px !important;
-  background: url("../icons/select_end_points.svg") no-repeat !important;
+  background: url('../icons/select_end_points.svg') no-repeat !important;
   background-size: 22px 22px !important;
 }
 i.icon.icon-custom-HC {
   width: 22px !important;
   height: 22px !important;
-  background: url("../icons/cross_fill_hidden.svg") no-repeat !important;
+  background: url('../icons/cross_fill_hidden.svg') no-repeat !important;
   background-size: 22px 22px !important;
 }
 i.icon.icon-custom-SC {
   width: 22px !important;
   height: 22px !important;
-  background: url("../icons/cross_fill_show.svg") no-repeat !important;
+  background: url('../icons/cross_fill_show.svg') no-repeat !important;
   background-size: 22px 22px !important;
 }
 i.icon.icon-custom-FS {
   width: 22px !important;
   height: 22px !important;
-  background: url("../icons/complete.svg") no-repeat !important;
+  background: url('../icons/complete.svg') no-repeat !important;
   background-size: 22px 22px !important;
 }
 
@@ -358,10 +358,10 @@ svg > g > #container {
   position: relative;
   margin-top: 10px;
 }
-.ui.celled.table th {
+.segment-list-block .ui.celled.table th {
   background-color: #021c38 !important;
 }
-.ui.celled.table td {
+.segment-list-block .ui.celled.table td {
   background-color: #021c38 !important;
 }
 .segment-list-malignancy-1 {

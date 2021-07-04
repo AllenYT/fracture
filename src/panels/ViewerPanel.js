@@ -18,34 +18,6 @@ import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 
 cornerstoneWADOImageLoader.external.cornerstone = cornerstone
 
-const places = {
-  0: '选择位置',
-  1: '右肺中叶',
-  2: '右肺上叶',
-  3: '右肺下叶',
-  4: '左肺上叶',
-  5: '左肺下叶',
-}
-const segments = {
-  S1: '右肺上叶-尖段',
-  S2: '右肺上叶-后段',
-  S3: '右肺上叶-前段',
-  S4: '右肺中叶-外侧段',
-  S5: '右肺中叶-内侧段',
-  S6: '右肺下叶-背段',
-  S7: '右肺下叶-内基底段',
-  S8: '右肺下叶-前基底段',
-  S9: '右肺下叶-外基底段',
-  S10: '右肺下叶-后基底段',
-  S11: '左肺上叶-尖后段',
-  S12: '左肺上叶-前段',
-  S13: '左肺上叶-上舌段',
-  S14: '左肺上叶-下舌段',
-  S15: '左肺下叶-背段',
-  S16: '左肺下叶-内前基底段',
-  S17: '左肺下叶-外基底段',
-  S18: '左肺下叶-后基底段',
-}
 class ViewerPanel extends Component {
   constructor(props) {
     super(props)
@@ -55,7 +27,7 @@ class ViewerPanel extends Component {
       viewerWidth: 1200,
       viewerHeight: 800,
       caseId: window.location.pathname.split('/segView/')[1].split('/')[0],
-      username: window.location.pathname.split('/')[3],
+      username: window.location.pathname.split('/segView/')[1].split('/')[1],
       urls: [],
       nodulesData: null,
       lobesData: null,
