@@ -29,7 +29,7 @@ class Main extends Component {
         this.state = {
             activeItem: 'home',
             name: localStorage.realname,
-            username: localStorage.getItem('username') === null ? this.config.loginId.uid : localStorage.getItem('username'),
+            username: localStorage.getItem('username'),
             path: window.location.pathname,
             reRender: 0,
             isLoggedIn: false,

@@ -5,6 +5,12 @@ import Expiration from './pages/Expiration.js'
 import Main from './pages/Main.js'
 import axios from 'axios';
 
+axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
+  const config = res.data
+  console.log('config', config)
+  localStorage.setItem('config', JSON.stringify(config))
+})
+console.log("localusername",localStorage.getItem('username'))
 
 class App extends Component {
   constructor(props) {
@@ -14,25 +20,20 @@ class App extends Component {
     //   expiration: false
     // }
   }
-  componentWillMount(){
-    axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-            const config = res.data
-            console.log('config', config)
-            localStorage.setItem('config', JSON.stringify(config))
-        })
-        console.log("localusername",localStorage.getItem('username'))
-  }
-  // async componentWillMount() {
-  //   console.timeEnd("d")
-  //   const promise = new Promise((resolve, reject) =>{axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-  //       const config = res.data
-  //       console.log('config', config)
-  //       localStorage.setItem('config', JSON.stringify(config))
-  //       resolve(true)
-  //     }, reject)
-  //   })
-  //   await promise
+  // componentWillMount(){
+    
   // }
+  async componentWillMount() {
+    console.timeEnd("d")
+    const promise = new Promise((resolve, reject) =>{axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
+        const config = res.data
+        console.log('config', config)
+        localStorage.setItem('config', JSON.stringify(config))
+        resolve(true)
+      }, reject)
+    })
+    await promise
+  }
 
 
 
