@@ -70,7 +70,7 @@ class MiniReport extends Component{
             username: this.state.username
         }
         axios.post(this.config.draft.structedReport, qs.stringify(params)).then((response) => {
-            console.log('report_nodule', response.data)
+            // console.log('report_nodule', response.data)
             const data = response.data
             this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
                 patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
@@ -81,19 +81,19 @@ class MiniReport extends Component{
 
     componentDidUpdate(prevProps,prevState){
         if(prevProps.activeItem !== this.props.activeItem || prevState.dealchoose !== this.state.dealchoose){
-            console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
+            // console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
             this.template()
         }
         // console.log('boxes changed',prevProps.boxes,this.props.boxes,prevState.boxes,this.state.boxes)
         if(prevProps.boxes !== this.props.boxes){
-            console.log('boxes changed',prevProps.boxes,this.props.boxes)
+            // console.log('boxes changed',prevProps.boxes,this.props.boxes)
             const params = {
                 caseId: this.state.caseId,
                 username: this.state.username
             }
             axios.post(this.config.draft.structedReport, qs.stringify(params)).then((response) => {
                 const data = response.data
-                console.log('report:',data,params)
+                // console.log('report:',data,params)
                 this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
                     patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
                
@@ -102,7 +102,7 @@ class MiniReport extends Component{
     }
 
     dealChoose(e){
-        console.log('list',e.currentTarget.innerHTML)
+        // console.log('list',e.currentTarget.innerHTML)
         this.setState({dealchoose:e.currentTarget.innerHTML})
     }
 
@@ -150,8 +150,8 @@ class MiniReport extends Component{
                     if(hist_data!==undefined){
                         let bins=hist_data.bins
                         let ns=hist_data.n
-                        console.log('bins',bins)
-                        console.log('ns',ns)
+                        // console.log('bins',bins)
+                        // console.log('ns',ns)
                         // var histogram = []
                         // var line=[]
                         // for (var i = 0; i < bins.length-1; i++) {
@@ -289,7 +289,7 @@ class MiniReport extends Component{
                         cornerstone.setViewport(element, viewport)
                         cornerstone.displayImage(element, image)
                         buttonflag+=1
-                        console.log('buttonflag',buttonflag)
+                        // console.log('buttonflag',buttonflag)
                         if(buttonflag===nodules.length){
                             that.setState({temp:1})
                         }
@@ -343,7 +343,7 @@ class MiniReport extends Component{
                 this.setState({templateText:''})
             }
             else if(this.props.activeItem==='all'){
-                console.log('length',this.props.boxes.length)
+                // console.log('length',this.props.boxes.length)
                 for(let i=0;i<this.props.boxes.length;i++){
                     let place=''
                     let diameter=''

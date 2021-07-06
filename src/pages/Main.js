@@ -66,13 +66,16 @@ class Main extends Component {
         const headers = {
             'Authorization': 'Bearer '.concat(token)
         }
-        axios
-            .get(this.config.user.signoutUser, {headers})
-            .then((response) => {
-                if (response.data.status === 'okay') {
+        Promise.all([
+        axios.get(this.config.user.signoutUser, {headers}),
+        axios.get(process.env.PUBLIC_URL + "/config.json")]).then(([signoutRes,configs]) => {
+                if (signoutRes.data.status === 'okay') {
                     this.setState({isLoggedIn: false})
                     localStorage.clear()
                     sessionStorage.clear()
+                    const config = configs.data
+                    console.log('config', config)
+                    localStorage.setItem('config', JSON.stringify(config))
                     window.location.href = '/'
                 } else {
                     alert("出现内部错误，请联系管理员！")

@@ -1050,25 +1050,28 @@ class CornerstoneElement extends Component {
 
   handleLogout() {
     const token = localStorage.getItem('token')
-    const headers = {
-      Authorization: 'Bearer '.concat(token),
-    }
-    axios
-      .get(this.config.user.signoutUser, { headers })
-      .then((response) => {
-        if (response.data.status === 'okay') {
-          this.setState({ isLoggedIn: false })
-          localStorage.clear()
-          sessionStorage.clear()
-          window.location.href = '/'
-        } else {
-          alert('出现内部错误，请联系管理员！')
-          window.location.href = '/'
+        const headers = {
+            'Authorization': 'Bearer '.concat(token)
         }
-      })
-      .catch((error) => {
-        console.log('error')
-      })
+        Promise.all([
+        axios.get(this.config.user.signoutUser, {headers}),
+        axios.get(process.env.PUBLIC_URL + "/config.json")]).then(([signoutRes,configs]) => {
+                if (signoutRes.data.status === 'okay') {
+                    this.setState({isLoggedIn: false})
+                    localStorage.clear()
+                    sessionStorage.clear()
+                    const config = configs.data
+                    console.log('config', config)
+                    localStorage.setItem('config', JSON.stringify(config))
+                    window.location.href = '/'
+                } else {
+                    alert("出现内部错误，请联系管理员！")
+                    window.location.href = '/'
+                }
+            })
+            .catch((error) => {
+                console.log("error")
+            })
   }
 
   tinyNodules(e) {
@@ -4424,7 +4427,7 @@ class CornerstoneElement extends Component {
 
     // var stateListLength = this.state.selectBoxes.length
     var stateListLength = this.state.boxes.length
-    var measureArr = new Array(stateListLength).fill(true)
+    var measureArr = new Array(stateListLength).fill(false)
     // console.log('measureArr',measureArr)
     this.setState({ measureStateList: measureArr })
 
