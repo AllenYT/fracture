@@ -1,40 +1,25 @@
-import React, {Component} from 'react';
-import './App.css';
+import React, { Component } from 'react'
+import './App.css'
 import UnLogged from './pages/UnLogged.js'
 import Expiration from './pages/Expiration.js'
 import Main from './pages/Main.js'
-import axios from 'axios';
-
+import axios from 'axios'
 
 class App extends Component {
   constructor(props) {
-    super(props);
-    // this.state = {
-    //   isLoggedIn: false,
-    //   expiration: false
-    // }
+    super(props)
   }
-  componentWillMount(){
-    axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-            const config = res.data
-            console.log('config', config)
-            localStorage.setItem('config', JSON.stringify(config))
-        })
-        console.log("localusername",localStorage.getItem('username'))
+  componentWillMount() {
+    // console.timeEnd("d")
+    // const promise = new Promise((resolve, reject) =>{axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
+    //     const config = res.data
+    //     console.log('config', config)
+    //     localStorage.setItem('config', JSON.stringify(config))
+    //     resolve(true)
+    //   }, reject)
+    // })
+    // await promise
   }
-  // async componentWillMount() {
-  //   console.timeEnd("d")
-  //   const promise = new Promise((resolve, reject) =>{axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-  //       const config = res.data
-  //       console.log('config', config)
-  //       localStorage.setItem('config', JSON.stringify(config))
-  //       resolve(true)
-  //     }, reject)
-  //   })
-  //   await promise
-  // }
-
-
 
   render() {
     // if (this.state.isLoggedIn) {
@@ -51,13 +36,8 @@ class App extends Component {
     //     <UnLogged />
     //   )
     // }
-    return (
-      <Main />
-    )
+    return <Main />
   }
-
-
-
 }
 
-export default App;
+export default App

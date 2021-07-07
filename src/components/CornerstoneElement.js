@@ -4334,7 +4334,7 @@ class CornerstoneElement extends Component {
         'location',
         window.location.pathname.split('/')[0] + '/' + window.location.pathname.split('/')[1] + '/' + window.location.pathname.split('/')[2] + '/' + window.location.pathname.split('/')[3]
       )
-      window.location.href = '/'
+      // window.location.href = '/'
     }
     document.getElementById('header').style.display = 'none'
     // const width = document.body.clientWidth
