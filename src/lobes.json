@@ -1,0 +1,29 @@
+{
+  "lobes": [
+    {
+      "name": "\u53f3\u80ba\u4e2d\u53f6",
+      "volume": 647,
+      "percent": 11
+    },
+    {
+      "name": "\u53f3\u80ba\u4e0a\u53f6",
+      "volume": 1159,
+      "percent": 20
+    },
+    {
+      "name": "\u53f3\u80ba\u4e0b\u53f6",
+      "volume": 1320,
+      "percent": 23
+    },
+    {
+      "name": "\u5de6\u80ba\u4e0a\u53f6",
+      "volume": 1365,
+      "percent": 24
+    },
+    {
+      "name": "\u5de6\u80ba\u4e0b\u53f6",
+      "volume": 1264,
+      "percent": 22
+    }
+  ]
+}

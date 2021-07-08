@@ -502,6 +502,8 @@ export class SearchNodulePanel extends Component {
                     this.setState({malignancy:2,activePage:'1'});break
                 case '高危':
                     this.setState({malignancy:3,activePage:'1'});break
+                default:
+                    this.setState({malignancy:-1,activePage:'1'});break
             }
         }
     }
@@ -575,6 +577,8 @@ export class SearchNodulePanel extends Component {
                 this.setState({bro:2,activePage:'1'});break
             case '非支气管充气':
                 this.setState({bro:1,activePage:'1'});break
+            default:
+                this.setState({bro:-1,activePage:'1'});break
 
         }
     }

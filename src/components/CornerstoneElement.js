@@ -239,10 +239,6 @@ class CornerstoneElement extends Component {
         this.onImageRendered = this
             .onImageRendered
             .bind(this)
-        this.onNewImage = this
-            .onNewImage
-            .bind(this)
-
         this.onRightClick = this
             .onRightClick
             .bind(this)
@@ -306,12 +302,6 @@ class CornerstoneElement extends Component {
         this.dehighlightNodule = this
             .dehighlightNodule
             .bind(this)
-        this.toCurrentModel = this
-            .toCurrentModel
-            .bind(this)
-        this.toNewModel = this
-            .toNewModel
-            .bind(this)
         this.toHidebox = this
             .toHidebox
             .bind(this)
@@ -326,12 +316,6 @@ class CornerstoneElement extends Component {
             .bind(this)
         this.deSubmit = this
             .deSubmit
-            .bind(this)
-        this.clearthenNew = this
-            .clearthenNew
-            .bind(this)
-        this.clearthenFork = this
-            .clearthenFork
             .bind(this)
         this.createBox = this
             .createBox
@@ -1407,7 +1391,6 @@ class CornerstoneElement extends Component {
         // console.log('element',element)
         let tableContent = ""
         let visualContent = ""
-        let createDraftModal;
         let submitButton;
         let StartReviewButton;
         let calCount=0
@@ -1603,65 +1586,6 @@ class CornerstoneElement extends Component {
         //     submitButton = (
         //         <Button icon title='撤销' onClick={this.deSubmit} className='funcbtn'><Icon name='reply' size='large'></Icon></Button>
         //     )
-        if (window.location.pathname.split('/')[3] === 'origin') 
-            createDraftModal = (
-                <div style={{width:'100%',height:'100%'}}>
-                    <Modal
-                        trigger={<Button inverted style={{height:60,fontSize:14,width:75}} color = 'blue' onClick = {
-                        this.toNewModel
-                    }
-                    > 从新<br/>标注 </Button>}
-                        size='tiny'
-                        open={modalOpenNew}>
-                        <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
-                        <Modal.Content>
-                            <Button color='blue' style={modalBtnStyle} onClick={this.toMyAnno}>跳转至已有标注</Button>
-                            <Button color='blue' style={modalBtnStyle} onClick={this.clearthenNew}>清空现有标注并从头开始标注</Button>
-                        </Modal.Content>
-                        <Modal.Actions>
-                            <Button onClick={this.closeModalNew}>返回</Button>
-                        </Modal.Actions>
-                    </Modal>
-                </div>
-            )
-        else 
-            createDraftModal = (
-                <div style={{width:'100%',height:'100%'}}>
-                        <Modal
-                            trigger={<Button inverted color = 'blue' onClick = {
-                            this.toNewModel 
-                        }
-                        > 从新<br/>标注 </Button>}
-                            size='tiny'
-                            open={modalOpenNew}>
-                            <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
-                            <Modal.Content>
-                                <Button color='blue' style={modalBtnStyle} onClick={this.toMyAnno}>跳转至已有标注</Button>
-                                <Button color='blue' style={modalBtnStyle} onClick={this.clearthenNew}>清空现有标注并从头开始标注</Button>
-                            </Modal.Content>
-                            <Modal.Actions>
-                                <Button onClick={this.closeModalNew}>返回</Button>
-                            </Modal.Actions>
-                        </Modal>
-                        <Modal
-                            trigger={<Button inverted color = 'blue' onClick = {
-                            this.toCurrentModel
-                        } > 拷贝<br/>标注 </Button>}
-                            size='tiny'
-                            open={modalOpenCur}>
-                            <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
-                            <Modal.Content>
-                                <Button color='blue' style={modalBtnStyle} onClick={this.toMyAnno}>跳转至已有标注</Button>
-                                <Button color='blue' style={modalBtnStyle} onClick={this.clearthenFork}>清空现有标注并拷贝开始标注</Button>
-                            </Modal.Content>
-                            <Modal.Actions>
-                                <Button onClick={this.closeModalCur}>返回</Button>
-                            </Modal.Actions>
-                        </Modal>
-                    
-                </div>
-            )
-
         if (!this.state.immersive) {
                 tableContent = this
                     .state
@@ -3897,108 +3821,6 @@ class CornerstoneElement extends Component {
         console.log("to media", viewport)
     }
 
-    //标注新模型
-    toNewModel() {
-        let caseId = window
-            .location
-            .pathname
-            .split('/case/')[1]
-            .split('/')[0]
-        // let currentModel = window.location.pathname.split('/')[3]
-        let currentModel = "origin"
-        // request, api, modifier
-        const token = localStorage.getItem('token')
-        const headers = {
-            'Authorization': 'Bearer '.concat(token)
-        }
-        const params = {
-            caseId: caseId,
-            username: currentModel
-        }
-        console.log('params', qs.stringify(params))
-        window
-            .sessionStorage
-            .setItem('currentModelId', "none")
-        const userId = sessionStorage.getItem('userId')
-        Promise.all([
-            axios.get(userConfig.get_session, {headers}),
-            axios.post(draftConfig.createNewDraft, qs.stringify(params), {headers})
-        ]).then(([response, NewDraftRes]) => {
-            console.log(response.data.status);
-            console.log(NewDraftRes.data);
-            if (response.data.status === 'okay') {
-                console.log('re', response.data)
-                console.log('NewDraftRes', NewDraftRes.data.status)
-                if (NewDraftRes.data.status === 'okay') {
-                    window.location.href = NewDraftRes.data.nextPath
-                } else if (NewDraftRes.data.status === 'alreadyExisted') {
-                    this.setState({modalOpenNew: true})
-                }
-            } else {
-                alert("请先登录!")
-                sessionStorage.setItem('location',window.location.pathname.split('/')[0]+
-                '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/')
-                window.location.href = '/login'
-            }
-        }).catch((error) => {
-            console.log("ERRRRROR", error);
-        })
-    }
-
-    //标注此模型
-    toCurrentModel() {
-        // let currentBox = this.state.selectBoxes
-        let currentBox = this.state.boxes
-        console.log(currentBox)
-        let caseId = window
-            .location
-            .pathname
-            .split('/case/')[1]
-            .split('/')[0]
-        let currentModel = window
-            .location
-            .pathname
-            .split('/')[3]
-        // request, api, modifier
-        const token = localStorage.getItem('token')
-        const headers = {
-            'Authorization': 'Bearer '.concat(token)
-        }
-        const params = {
-            caseId: caseId,
-            username: currentModel
-        }
-        window
-            .sessionStorage
-            .setItem('currentModelId', currentModel)
-        console.log('params', params)
-        Promise.all([
-            axios.get(userConfig.get_session, {headers}),
-            axios.post(draftConfig.createNewDraft, qs.stringify(params), {headers})
-        ]).then(([response, NewDraftRes]) => {
-            console.log(response.data.status);
-            console.log(NewDraftRes.data);
-            if (response.data.status === 'okay') {
-                console.log('re', response.data)
-                console.log('NewDraftRes', NewDraftRes.data.status)
-                if (NewDraftRes.data.status === 'okay') {
-                    // this.nextPath(NewDraftRes.data.nextPath)
-                    window.location.href = NewDraftRes.data.nextPath
-                } else if (NewDraftRes.data.status === 'alreadyExisted') {
-                    this.setState({modalOpenCur: true})
-                }
-            } else {
-                alert("请先登录!")
-                sessionStorage.setItem('location',window.location.pathname.split('/')[0]+
-                '/'+window.location.pathname.split('/')[1]+'/'+window.location.pathname.split('/')[2]+'/')
-                // sessionStorage.setItem('location',NewDraftRes.data.nextPath)
-                window.location.href = '/'
-            }
-        }).catch((error) => {
-            console.log("ERRRRROR", error);
-        })
-    }
-
     //暂存结节
     temporaryStorage() {
         alert("已保存当前结果!")
@@ -4129,52 +3951,6 @@ class CornerstoneElement extends Component {
         })
     }
 
-    //清空模型并新建
-    clearthenNew() {
-        const token = localStorage.getItem('token')
-        console.log('token', token)
-        const headers = {
-            'Authorization': 'Bearer '.concat(token)
-        }
-        const params = {
-            caseId: this.state.caseId
-        }
-        axios.post(draftConfig.removeDraft, qs.stringify(params), {headers}).then(res => {
-            console.log(res.data)
-            if (res.data === true) {
-                this.toNewModel()
-            } else {
-                alert("出现错误,请联系管理员！")
-            }
-        }).catch(err => {
-            console.log(err)
-        })
-    }
-
-    async clearthenFork() {
-        const token = localStorage.getItem('token')
-        console.log('token', token)
-        const headers = {
-            'Authorization': 'Bearer '.concat(token)
-        }
-        const params = {
-            caseId: this.state.caseId
-        }
-        axios.post(draftConfig.removeDraft, qs.stringify(params), {headers}).then(res => {
-            console.log(res.data)
-            if (res.data === true) {
-                this.toCurrentModel()
-            } else {
-                alert("出现错误,请联系管理员！")
-            }
-        }).catch(err => {
-            console.log(err)
-        })
-    }
-
-    // onWindowResize() {     console.log("onWindowResize")
-    // cornerstone.resize(this.element) }
-
     onImageRendered() {
         const element = document.getElementById("origin-canvas")
         const viewport = cornerstone.getViewport(element)
@@ -4212,12 +3988,6 @@ class CornerstoneElement extends Component {
         }
 
         this.setState({viewport})
-    }
-
-    onNewImage() {
-        // console.log("onNewImage") const enabledElement =
-        // cornerstone.getEnabledElement(this.element) this.setState({imageId:
-        // enabledElement.image.imageId})
     }
 
     refreshImage(initial, imageId, newIdx) {
@@ -4410,7 +4180,7 @@ class CornerstoneElement extends Component {
         }
 
         var stateListLength = this.state.boxes.length
-        var measureArr = new Array(stateListLength).fill(true)
+        var measureArr = new Array(stateListLength).fill(false)
         this.setState({measureStateList:measureArr})
 
         
@@ -4420,7 +4190,7 @@ class CornerstoneElement extends Component {
         
         
         var imageIds = this.state.imageIds
-        console.log("Image", imageIds)
+        // console.log("Image", imageIds)
         var dupFlag
         var annoNo = []
         const annoImageIds = []
@@ -4448,7 +4218,7 @@ class CornerstoneElement extends Component {
             resImageIds.slice(annoNo[i],1)
         }
 
-        console.log("annoImage", imageIds, annoImageIds, resImageIds)
+        // console.log("annoImage", imageIds, annoImageIds, resImageIds)
 
         const annoPromises = annoImageIds.map(annoImageId => {
             return cornerstone.loadAndCacheImage(annoImageId)

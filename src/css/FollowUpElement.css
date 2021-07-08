@@ -1,3 +1,31 @@
 h3.ant-typography, .ant-typography h3 .reportTitle{
     color:white;
 }
+
+.current-nodule-accordion-title{
+    color: white;
+    font:white;
+    background-color: rgba(7, 116, 211, 0.466);
+}
+
+.current-nodule-accordion-content{
+    background-color: rgba(17, 87, 148, 0.466);
+}
+
+.representDropdown{
+    background:transparent !important;
+    border:1px solid transparent !important;
+    color:whitesmoke !important
+}
+.representDropdown>.ui.label{
+    background-color: transparent ;
+    color: whitesmoke;
+    border: 0.5px solid whitesmoke;
+}
+
+.representDropdown> div > .item{
+    /* color: #2af270; */
+    color:whitesmoke;
+    background: rgba(1, 23, 46, 0.997);
+    border: 0.5px solid whitesmoke;
+}

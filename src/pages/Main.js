@@ -148,51 +148,6 @@ class Main extends Component {
                     结节检索
                 </Menu.Item>
 
-                {/* <Menu.Item
-                    active={activeItem === 'myAnnos'}
-                    onClick={this.handleItemClick}
-                    as={Link}
-                    to='/myAnnos'
-                    name='myAnnos'>
-                    我的标注
-                </Menu.Item>
-
-        
-                <Menu.Item
-                    active={activeItem === 'myReviews'}
-                    onClick={this.handleItemClick}
-                    as={Link}
-                    to='/myReviews'
-                    name='myReviews'
-                    >
-                    我的审核
-                </Menu.Item>
-                
-
-                <Menu.Item
-                    active={activeItem === 'download'}
-                    onClick={this.handleItemClick}
-                    as={Link}
-                    to='/download'
-                    name='download'>
-                    数据列表
-                </Menu.Item> */}
-                {/* <Menu.Item
-                    active={activeItem === 'patientInfo'}
-                    onClick={this.handleItemClick}
-                    as={Link}
-                    to='/patientInfo'
-                    name='patientInfo'>
-                    病人详情
-                </Menu.Item> */}
-                {/* <Menu.Item
-                    active={activeItem === 'cov19List'}
-                    onClick={this.handleItemClick}
-                    as={Link}
-                    to='/cov19List'
-                    name='cov19List'>
-                    新冠肺炎
-                </Menu.Item> */}
                 <Menu.Item
                     active={activeItem === 'preprocess'}
                     onClick={this.handleItemClick}
@@ -206,7 +161,7 @@ class Main extends Component {
 
         if (this.state.isLoggedIn) {
             console.log('islogin')
-            if(window.location.pathname.split('/')[1] != 'case' && window.location.pathname.split('/')[1] != 'followup'){
+            if(window.location.pathname.split('/')[1] !== 'case' && window.location.pathname.split('/')[1] !== 'followup'){
                 logButtonPlace = (
                     <Menu id="header" pointing secondary>
                         {mainMenus}
