@@ -17,7 +17,8 @@
         "get_sexData":" http://192.168.7.198:8095/patient/getPatientSexRatio",
         "getAuthsForUser":"http://192.168.7.198:8095/user/getAuthsForUser",
         "getRolesForUser":"http://192.168.7.198:8095/user/getRolesForUser",
-        "insertUserInfo":"http://192.168.7.198:8095/user/insertUserInfo"
+        "insertUserInfo":"http://192.168.7.198:8095/user/insertUserInfo",
+        "getRemoteAddr":"http://192.168.7.198:8095/user/getRemoteAddr"
     },
 
     "record": {
@@ -91,6 +92,7 @@
         "deleteQueue":"http://192.168.7.198:8095/subset/delete",
         "updateQueue":"http://192.168.7.198:8095/subset/update"
     },
+
     "loginId":{
         "uid":"user1",
         "password":"123456"
