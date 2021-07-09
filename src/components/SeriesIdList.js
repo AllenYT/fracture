@@ -8,9 +8,6 @@ import CurrentDraftsDisplay from './CurrentDraftsDisplay'
 import '../css/seriesIdList.css'
 import { Link } from 'react-router-dom/cjs/react-router-dom.min'
 
-const config = require('../config.json')
-const recordConfig = config.record
-const draftConfig = config.draft
 // const storecid = []
 class SeriesIdList extends Component {
 
@@ -21,6 +18,7 @@ class SeriesIdList extends Component {
             contextRef:props.contextRef,
             // cart: new Set()
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.storeCaseId = this
             .storeCaseId
             .bind(this)
@@ -45,7 +43,7 @@ class SeriesIdList extends Component {
         const params = {
             caseId: e.currentTarget.dataset.id
         }
-        axios.post(draftConfig.getDataPath, qs.stringify(params), {headers})
+        axios.post(this.config.draft.getDataPath, qs.stringify(params), {headers})
         .then(res => {
             console.log('result from server', res.data)
             console.log('params',params)

@@ -3,10 +3,6 @@ import CornerstoneElement from '../components/CornerstoneElement'
 import axios from 'axios'
 import qs from 'qs'
 
-const config = require('../config.json')
-const dataConfig = config.data
-const draftConfig = config.draft
-
 class StartAnnosPanel extends Component {
     constructor(props) {
         super(props)
@@ -17,6 +13,7 @@ class StartAnnosPanel extends Component {
             stack: {},
             show: false
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
     }
 
     componentDidMount() {
@@ -39,8 +36,8 @@ class StartAnnosPanel extends Component {
             //只请求当前登录user标记boxes
             console.log('newmodel')
             Promise.all([
-                axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)),
-                axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParamsLogin))
+                axios.post(this.config.data.getDataListForCaseId, qs.stringify(dataParams)),
+                axios.post(this.config.draft.getRectsForCaseIdAndUsername, qs.stringify(draftParamsLogin))
             ]).then(([dataResponse, draftResponse])=> {
                 const stack = {
                     imageIds: dataResponse.data,
@@ -58,9 +55,9 @@ class StartAnnosPanel extends Component {
             //请求当前user和basemodelname标记boxes.push
             console.log('Currentmodel')
             Promise.all([
-                axios.post(dataConfig.getDataListForCaseId, qs.stringify(dataParams)),
-                axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParamsLogin)),
-                axios.post(draftConfig.getRectsForCaseIdAndUsername, qs.stringify(draftParamsBase))
+                axios.post(this.config.data.getDataListForCaseId, qs.stringify(dataParams)),
+                axios.post(this.config.draft.getRectsForCaseIdAndUsername, qs.stringify(draftParamsLogin)),
+                axios.post(this.config.draft.getRectsForCaseIdAndUsername, qs.stringify(draftParamsBase))
             ]).then(([dataResponse, draftResponse, draftResponseBase]) => {
                 // console.log(dataResponse.data)
                 // console.log(draftResponse.data)

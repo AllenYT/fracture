@@ -7,9 +7,6 @@ const style={
     marginTop:'20%',
 };
 
-const config = require('../config.json')
-const userConfig = config.user
-
 class StartReviewsPanel extends Component {
     constructor(props){
         super(props)
@@ -17,6 +14,7 @@ class StartReviewsPanel extends Component {
             isLoggedIn: false,
             name: localStorage.realname
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
     }
 
     componentWillMount() {
@@ -27,7 +25,7 @@ class StartReviewsPanel extends Component {
             'Authorization': 'Bearer '.concat(token)
           };
     
-          axios.get(userConfig.get_session, {headers})
+          axios.get(this.config.user.get_session, {headers})
             .then((response) => {
               console.log(response.data.status);
               if (response.data.status === 'okay') {

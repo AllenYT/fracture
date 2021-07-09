@@ -6,8 +6,6 @@ import axios from 'axios'
 import qs from 'qs'
 import '../css/preprocess.css'
 
-const config = require('../config.json')
-const dataConfig = config.data
 
 class preprocess extends Component {
     constructor(props){
@@ -17,6 +15,7 @@ class preprocess extends Component {
             activeItem:'upload',
             status:''
         }
+    this.config = JSON.parse(localStorage.getItem('config'))
     this.singlefile = this.singlefile.bind(this)
     this.getFileSize = this.getFileSize.bind(this)
     this.multifile = this.multifile.bind(this)
@@ -63,7 +62,7 @@ class preprocess extends Component {
             const params={
                 filepath:cur_file
             }
-            axios.post(dataConfig.preprocess, qs.stringify(params)).then(res => {
+            axios.post(this.config.data.preprocess, qs.stringify(params)).then(res => {
                 console.log(res.data)
                 if(res.data.status==='failed')
                 this.setState({status:'status:'+res.data.status+' msg:'+res.data.msg})
@@ -129,7 +128,7 @@ class preprocess extends Component {
             const params={
                 filepath:filename['webkitRelativePath'].split('/')[0]
             }
-            axios.post(dataConfig.preprocess, qs.stringify(params)).then(res => {
+            axios.post(this.config.data.preprocess, qs.stringify(params)).then(res => {
                 console.log(res.data)
                 if(res.data.status==='failed')
                 this.setState({status:'status:'+res.data.status+' msg:'+res.data.msg})

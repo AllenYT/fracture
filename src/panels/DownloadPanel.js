@@ -5,9 +5,6 @@ import axios from 'axios'
 import qs from 'qs'
 import LowerAuth from '../components/LowerAuth'
 
-const config = require('../config.json')
-const cartConfig = config.cart
-
 const style = {
   textAlign: 'center',
   marginTop: '300px'
@@ -31,6 +28,7 @@ class DownloadPanel extends Component {
             loading: false,
             random: Math.random()
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.delCase = this.delCase.bind(this)
         this.saveCart = this.saveCart.bind(this)
         this.startDownload = this.startDownload.bind(this)
@@ -45,7 +43,7 @@ class DownloadPanel extends Component {
         const params = {
             cart: Array.from(this.state.cart).join(',')
         }
-        axios.post(cartConfig.saveCart, qs.stringify(params), {headers})
+        axios.post(this.config.cart.saveCart, qs.stringify(params), {headers})
         .then(res => {
             console.log(this.state.cart)
             console.log(res.data.status)
@@ -62,7 +60,7 @@ class DownloadPanel extends Component {
             const headers = {
                 'Authorization': 'Bearer '.concat(token)
             }
-            axios.get(cartConfig.getCart, {headers})
+            axios.get(this.config.cart.getCart, {headers})
             .then(res => {
                 if (res.data.status === 'okay') {
                     const cartString = res.data.cart
@@ -90,7 +88,7 @@ class DownloadPanel extends Component {
       const headers = {
           'Authorization': 'Bearer '.concat(token)
       }
-      axios.get(cartConfig.downloadCart, { headers })
+      axios.get(this.config.cart.downloadCart, { headers })
       .then(res => {
         const filename = res.data
         console.log('Filename', filename)

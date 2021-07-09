@@ -15,11 +15,6 @@ cornerstoneTools.external.cornerstoneMath = cornerstoneMath
 // cornerstoneWebImageLoader.external.cornerstone = cornerstone
 cornerstoneWadoImageLoader.external.cornerstone = cornerstone
 
-const config = require('../config.json')
-const recordConfig = config.record
-const draftConfig = config.draft
-const dataConfig = config.data
-
 class StudyBrowserList extends Component{
     constructor(props) {
         super(props);
@@ -28,7 +23,7 @@ class StudyBrowserList extends Component{
             dateSeries:[],
             load:true
         }
-        
+        this.config = JSON.parse(localStorage.getItem('config'))
     }
     componentDidMount(){
         const token = localStorage.getItem('token')
@@ -41,7 +36,7 @@ class StudyBrowserList extends Component{
             'Authorization': 'Bearer '.concat(token)
         }
         
-        axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(params)).then((response) => {
+        axios.post(this.config.record.getSubListForMainItem_front, qs.stringify(params)).then((response) => {
             const data = response.data
             // console.log("data",data)
             if (data.status !== 'okay') {
@@ -56,8 +51,8 @@ class StudyBrowserList extends Component{
                     const seriesLst = subList[key]
                     seriesLst.map((serie,index)=>{
                         Promise.all([
-                            axios.post(draftConfig.getDataPath,qs.stringify({caseId:serie.split('#')[0]}), {headers}),
-                            axios.post(dataConfig.getDataListForCaseId,qs.stringify({caseId:serie.split('#')[0]})),
+                            axios.post(this.config.draft.getDataPath,qs.stringify({caseId:serie.split('#')[0]}), {headers}),
+                            axios.post(this.config.data.getDataListForCaseId,qs.stringify({caseId:serie.split('#')[0]})),
                         ])
                         .then(([annotype,dicom])=>{
                             

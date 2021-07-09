@@ -11,10 +11,6 @@ import '../css/searchnodulePanel.css'
 import { isType } from '@babel/types'
 import LowerAuth from '../components/LowerAuth'
 
-const config = require('../config.json')
-const recordConfig = config.record
-const draftConfig = config.draft
-const subsetConfig = config.subset
 
 
 let  nums={'危险':null,'毛刺征':null,'分叶征':null,'钙化':null,'密度':null,'胸膜凹陷征':null,'空洞征':null,'血管集束征':null,
@@ -52,6 +48,7 @@ export class SearchNodulePanel extends Component {
             show:false,
             load:false
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.handleLabels = this
             .handleLabels
             .bind(this)
@@ -121,7 +118,7 @@ export class SearchNodulePanel extends Component {
             bea:this.state.bea,
             bro:this.state.bro
         }
-        axios.post(recordConfig.filterNodulesMulti, qs.stringify(params)).then((response) => {
+        axios.post(this.config.record.filterNodulesMulti, qs.stringify(params)).then((response) => {
             const data = response.data
             console.log('total:',data)
             
@@ -148,7 +145,7 @@ export class SearchNodulePanel extends Component {
             bro:this.state.bro
         }
         
-        axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
+        axios.post(this.config.record.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
             let lists=[]
             const data = response.data
             
@@ -205,7 +202,7 @@ export class SearchNodulePanel extends Component {
             bro:this.state.bro
         }
     
-    axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
+    axios.post(this.config.record.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
         let datalists=[]
         const data = response.data
 
@@ -625,7 +622,7 @@ export class SearchNodulePanel extends Component {
                 bro:this.state.bro
             }
             
-            axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
+            axios.post(this.config.record.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
                 const data = response.data
                 let patients=''
                 console.log('params', params)
@@ -646,7 +643,7 @@ export class SearchNodulePanel extends Component {
                     patientIds:patients,
                     subsetName:text
                 }
-                axios.post(subsetConfig.createQueue, qs.stringify(queueParams)).then(res => {
+                axios.post(this.config.subset.createQueue, qs.stringify(queueParams)).then(res => {
                     console.log(queueParams)
                     console.log(res.data.status)
                     if(res.data.status==='ok'){

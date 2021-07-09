@@ -6,10 +6,6 @@ import qs from 'qs'
 import SeriesIdList from './SeriesIdList'
 import '../css/subList.css'
 
-const config = require('../config.json')
-const recordConfig = config.record
-const cartConfig = config.cart
-
 const patientInfoButtonStyle = {
     'marginLeft': '20px'
 }
@@ -39,6 +35,7 @@ class SubList extends Component {
             .exportCaseId
             .bind(this)
         this.saveCart = this.saveCart.bind(this)
+        this.config = JSON.parse(localStorage.getItem('config'))
 
     }
 
@@ -51,7 +48,7 @@ class SubList extends Component {
         const params = {
             cart: Array.from(this.state.cart).join(',')
         }
-        axios.post(cartConfig.saveCart, qs.stringify(params), {headers})
+        axios.post(this.config.cart.saveCart, qs.stringify(params), {headers})
         .then(res => {
             console.log(this.state.cart)
             console.log(res.data.status)
@@ -96,7 +93,7 @@ class SubList extends Component {
             const headers = {
                 'Authorization': 'Bearer '.concat(token)
             }
-            axios.get(cartConfig.getCart, {headers})
+            axios.get(this.config.cart.getCart, {headers})
             .then(res => {
                 if (res.data.status === 'okay') {
                     const cartString = res.data.cart
@@ -142,7 +139,7 @@ class SubList extends Component {
             otherKeyword: this.props.otherKeyword
         }
 
-        axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(params), {headers}).then((response) => {
+        axios.post(this.config.record.getSubListForMainItem_front, qs.stringify(params), {headers}).then((response) => {
             const data = response.data
             if (data.status !== 'okay') {
                 console.log("Not okay")

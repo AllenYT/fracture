@@ -12,8 +12,6 @@ import MyQueuePanel from '../panels/MyQueuePanel'
 
 // import {withRouter, BrowserRouter as Router, Route, Link} from "react-router-dom"
 
-const config = require('../config.json')
-const dataConfig = config.data
 
 class HomepagePanel extends Component {
     constructor(props){
@@ -22,6 +20,7 @@ class HomepagePanel extends Component {
             fileList:[],
             activeItem:'upload'
         }
+    this.config = JSON.parse(localStorage.getItem('config'))
     this.singlefile = this.singlefile.bind(this)
     this.getFileSize = this.getFileSize.bind(this)
     this.multifile = this.multifile.bind(this)
@@ -80,7 +79,7 @@ class HomepagePanel extends Component {
             //     isLastFile : isLastFile
             // }
             // console.log('url',url)
-            axios.post(dataConfig.uploadMutiply, formdata).then(res => {
+            axios.post(this.config.data.uploadMutiply, formdata).then(res => {
                 console.log(res.data)
                 const successList = res.data.success
                 if (successList !== null) {
@@ -216,7 +215,7 @@ class HomepagePanel extends Component {
             const params={
                 filepath:filename['webkitRelativePath'].split('/')[0]
             }
-            axios.post(dataConfig.preprocess, qs.stringify(params)).then(res => {
+            axios.post(this.config.data.preprocess, qs.stringify(params)).then(res => {
                 console.log(res.data)
                 
             }).catch(err => {

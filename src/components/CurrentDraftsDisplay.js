@@ -5,9 +5,6 @@ import {Popup, Button} from 'semantic-ui-react'
 import qs from 'qs'
 import axios from 'axios';
 
-const config = require('../config.json')
-const draftConfig = config.draft
-const reviewConfig = config.review
 
 class CurrentDraftsDisplay extends Component {
 
@@ -19,6 +16,7 @@ class CurrentDraftsDisplay extends Component {
             annoResults: '暂无结果',
             reviewResults: '暂无结果'
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
     }
 
     componentDidMount() {
@@ -31,9 +29,9 @@ class CurrentDraftsDisplay extends Component {
         }
         //  console.log(token)
         Promise.all([
-            axios.post(draftConfig.getModelResults, qs.stringify(params), {headers}),
-            axios.post(draftConfig.getAnnoResults, qs.stringify(params), {headers}),
-            axios.post(reviewConfig.getReviewResults, qs.stringify(params), {headers})
+            axios.post(this.config.draft.getModelResults, qs.stringify(params), {headers}),
+            axios.post(this.config.draft.getAnnoResults, qs.stringify(params), {headers}),
+            axios.post(this.config.review.getReviewResults, qs.stringify(params), {headers})
         ]).then(([res1, res2, res3]) => {
             const modelList = res1.data.dataList
             const annoList = res2.data.dataList

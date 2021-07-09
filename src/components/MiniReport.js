@@ -12,14 +12,16 @@ import { Chart } from '@antv/g2'
 import DataSet from '@antv/data-set'
 import '../css/cornerstone.css'
 
-import echarts from 'echarts/lib/echarts';
-import  'echarts/lib/chart/bar';
-import 'echarts/lib/component/tooltip';
-import 'echarts/lib/component/title';
-import 'echarts/lib/component/toolbox'
+import * as echarts from 'echarts';
+//import  'echarts/lib/chart/bar';
+//import 'echarts/lib/component/tooltip';
+//import 'echarts/lib/component/title';
+//import 'echarts/lib/component/toolbox'
 
-const config = require('../config.json')
-const draftConfig=config.draft
+//const echarts = require('echarts/lib/echarts')
+//import {BarChart} from 'echarts/charts'
+
+
 let buttonflag=0
 cornerstoneTools.external.cornerstone = cornerstone
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath
@@ -51,6 +53,7 @@ class MiniReport extends Component{
             dealchoose:'中华共识',
             windowWidth:1920,
         }
+        this.config = JSON.parse(localStorage.getItem('config'))
         this.showImages = this.showImages.bind(this)
         this.exportPDF = this.exportPDF.bind(this)
         this.template = this.template.bind(this)
@@ -60,14 +63,14 @@ class MiniReport extends Component{
     }
 
     componentDidMount(){
-        console.log('mount')
         const width = document.body.clientWidth
         this.setState({windowWidth : width})
         const params = {
             caseId: this.state.caseId,
             username: this.state.username
         }
-        axios.post(draftConfig.structedReport, qs.stringify(params)).then((response) => {
+        axios.post(this.config.draft.structedReport, qs.stringify(params)).then((response) => {
+            // console.log('report_nodule', response.data)
             const data = response.data
             this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
                 patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
@@ -78,19 +81,19 @@ class MiniReport extends Component{
 
     componentDidUpdate(prevProps,prevState){
         if(prevProps.activeItem !== this.props.activeItem || prevState.dealchoose !== this.state.dealchoose){
-            console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
+            // console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
             this.template()
         }
         // console.log('boxes changed',prevProps.boxes,this.props.boxes,prevState.boxes,this.state.boxes)
         if(prevProps.boxes !== this.props.boxes){
-            console.log('boxes changed',prevProps.boxes,this.props.boxes)
+            // console.log('boxes changed',prevProps.boxes,this.props.boxes)
             const params = {
                 caseId: this.state.caseId,
                 username: this.state.username
             }
-            axios.post(draftConfig.structedReport, qs.stringify(params)).then((response) => {
+            axios.post(this.config.draft.structedReport, qs.stringify(params)).then((response) => {
                 const data = response.data
-                console.log('report:',data,params)
+                // console.log('report:',data,params)
                 this.setState({age:data.age,date:data.date,nodules:data.nodules===undefined?[]:data.nodules,patientBirth:data.patientBirth,
                     patientId:data.patientID,patientSex:data.patientSex==='M'?'男':'女'})
                
@@ -99,7 +102,7 @@ class MiniReport extends Component{
     }
 
     dealChoose(e){
-        console.log('list',e.currentTarget.innerHTML)
+        // console.log('list',e.currentTarget.innerHTML)
         this.setState({dealchoose:e.currentTarget.innerHTML})
     }
 
@@ -147,8 +150,8 @@ class MiniReport extends Component{
                     if(hist_data!==undefined){
                         let bins=hist_data.bins
                         let ns=hist_data.n
-                        console.log('bins',bins)
-                        console.log('ns',ns)
+                        // console.log('bins',bins)
+                        // console.log('ns',ns)
                         // var histogram = []
                         // var line=[]
                         // for (var i = 0; i < bins.length-1; i++) {
@@ -286,7 +289,7 @@ class MiniReport extends Component{
                         cornerstone.setViewport(element, viewport)
                         cornerstone.displayImage(element, image)
                         buttonflag+=1
-                        console.log('buttonflag',buttonflag)
+                        // console.log('buttonflag',buttonflag)
                         if(buttonflag===nodules.length){
                             that.setState({temp:1})
                         }
@@ -340,7 +343,7 @@ class MiniReport extends Component{
                 this.setState({templateText:''})
             }
             else if(this.props.activeItem==='all'){
-                console.log('length',this.props.boxes.length)
+                // console.log('length',this.props.boxes.length)
                 for(let i=0;i<this.props.boxes.length;i++){
                     let place=''
                     let diameter=''
@@ -1097,7 +1100,7 @@ class MiniReport extends Component{
                     this.props.type==='影像所见'?
                     <Grid.Row >
                         <Grid.Column textAlign='center'>
-                        <textarea style={{fontSize:'medium',overflowY:'auto',height:'150px',width:'100%',
+                        <textarea style={{fontSize:'medium',overflowY:'auto',width:'100%',height:document.body.clientHeight/7,
                         background:'transparent',border:'0rem',marginLeft:'0px'}} id='textarea' 
                         placeholder='在此填写诊断报告' onChange={this.handleTextareaChange} value={this.state.templateText}>
                             
@@ -1116,7 +1119,7 @@ class MiniReport extends Component{
                     :
                     <Grid.Row >
                         <Grid.Column textAlign='center'>
-                        <Form.TextArea style={{fontSize:'medium',overflowY:'auto',height:'150px',width:'100%',
+                        <Form.TextArea style={{fontSize:'medium',overflowY:'auto',width:'100%',height:document.body.clientHeight/7,
                         background:'transparent',border:'0rem',marginLeft:'0px'}} id='textarea' placeholder='在此填写处理建议'
                         value={this.state.templateText} onChange={this.handleTextareaChange}>
                         </Form.TextArea>

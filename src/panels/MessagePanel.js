@@ -7,7 +7,6 @@ import { MinusCircleTwoTone, PlusOutlined } from '@ant-design/icons';
 import {withRouter} from 'react-router-dom'
 import '../css/MessagePanel.css'
 
-const config = require('../config.json')
 const { Option } = Select
 const { TextArea } = Input
 

@@ -5,9 +5,6 @@ import { Button, Grid, Modal, Icon, Header, Table, Pagination, Input, Label, Dro
 import '../css/MyQueuePanel.css'
 import LowerAuth from '../components/LowerAuth'
 
-const config = require('../config.json')
-const recordConfig = config.record
-const subsetConfig = config.subset
 let  nums={'危险':null,'毛刺征':null,'分叶征':null,'钙化':null,'密度':null,'胸膜凹陷征':null,'空洞征':null,'血管集束征':null,
 '空泡征':null,'支气管充气征':null,'<=0.3cm':null,'0.3cm-0.5cm':null,'0.5cm-1cm':null,'1cm-1.3cm':null,'1.3cm-3cm':null,
 '>=3cm':null}//限制labels数量
@@ -38,6 +35,7 @@ class MyQueuePanel extends Component {
             queueName:'',
             patientList:[]
         }
+    this.config = JSON.parse(localStorage.getItem('config'))
     this.handlePaginationChange = this
         .handlePaginationChange
         .bind(this)
@@ -135,7 +133,7 @@ class MyQueuePanel extends Component {
         const params = {
             username: localStorage.getItem('username')
         }
-        axios.post(subsetConfig.getQueue,qs.stringify(params)).then(res =>{
+        axios.post(this.config.subset.getQueue,qs.stringify(params)).then(res =>{
             console.log('queue',res)
             this.setState({queueList:res.data})
         }).catch(err =>{
@@ -160,7 +158,7 @@ class MyQueuePanel extends Component {
             dateKeyword: ''
         }
 
-        axios.post(recordConfig.getMainList, qs.stringify(params), {headers}).then((response) => {
+        axios.post(this.config.record.getMainList, qs.stringify(params), {headers}).then((response) => {
             const data = response.data
             if (data.status !== 'okay') {
                 // window.location.href = '/'
@@ -258,7 +256,7 @@ class MyQueuePanel extends Component {
             patientIds: patientIds,
             subsetName: this.state.queueName
         }
-        axios.post(subsetConfig.createQueue,qs.stringify(params)).then(res =>{
+        axios.post(this.config.subset.createQueue,qs.stringify(params)).then(res =>{
             if(res.data.status==='ok'){
                 document.getElementById('queue-popup').style.display='none'
                 console.log("submit")
@@ -561,7 +559,7 @@ class MyQueuePanel extends Component {
             username:localStorage.getItem('username'),
             subsetName:queueName
         }
-        axios.post(subsetConfig.getQueuePatientIds,qs.stringify(params)).then(res =>{
+        axios.post(this.config.subset.getQueuePatientIds,qs.stringify(params)).then(res =>{
             // console.log("patients",res)
 
             this.setState({patientList:res.data})
@@ -590,7 +588,7 @@ class MyQueuePanel extends Component {
             username:localStorage.getItem('username'),
             subsetName:delName
         }
-        axios.post(subsetConfig.deleteQueue,qs.stringify(params)).then(res =>{
+        axios.post(this.config.subset.deleteQueue,qs.stringify(params)).then(res =>{
             if(res.data.status === 'ok'){
                 for (var i = 0; i < queueList.length; i++) {
                     console.log(queueList[i])
@@ -634,7 +632,7 @@ class MyQueuePanel extends Component {
             bea:this.state.bea,
             bro:this.state.bro
         }
-        axios.post(recordConfig.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
+        axios.post(this.config.record.getNodulesAtPageMulti, qs.stringify(params)).then((response) => {
             let lists=[]
             const data = response.data
             console.log('total:',data)
