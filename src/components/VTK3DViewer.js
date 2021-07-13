@@ -181,30 +181,32 @@ class VTK3DViewer extends Component {
           const range = this.state.range
           this.picker.pick([callback.position.x, callback.position.y, callback.position.z], callback.pokedRenderer)
           let picked = this.picker.getPickedPositions()[0]
-          const x = picked[0]
-          const y = picked[1]
-          const z = picked[2]
-          if (x > range.xMax) {
-            range.xMax = x
+          if (picked) {
+            const x = picked[0]
+            const y = picked[1]
+            const z = picked[2]
+            if (x > range.xMax) {
+              range.xMax = x
+            }
+            if (x < range.xMin) {
+              range.xMin = x
+            }
+            if (y > range.yMax) {
+              range.yMax = y
+            }
+            if (y < range.yMin) {
+              range.yMin = y
+            }
+            if (z > range.zMax) {
+              range.zMax = z
+            }
+            if (z < range.zMin) {
+              range.zMin = z
+            }
+            this.setState({
+              range,
+            })
           }
-          if (x < range.xMin) {
-            range.xMin = x
-          }
-          if (y > range.yMax) {
-            range.yMax = y
-          }
-          if (y < range.yMin) {
-            range.yMin = y
-          }
-          if (z > range.zMax) {
-            range.zMax = z
-          }
-          if (z < range.zMin) {
-            range.zMin = z
-          }
-          this.setState({
-            range,
-          })
         }
       })
     )

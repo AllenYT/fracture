@@ -1039,7 +1039,7 @@ class CornerstoneElement extends Component {
   }
 
   toSegView() {
-    window.location.href = '/segView/' + this.state.caseId
+    window.location.href = '/segView/' + this.state.caseId + '/' + this.state.modelName
   }
 
   handleLogin() {
