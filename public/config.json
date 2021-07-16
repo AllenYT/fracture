@@ -51,7 +51,9 @@
         "createNewDraft":"http://192.168.7.198:8095/draft/createNewDraft",
         "removeDraft": "http://192.168.7.198:8095/draft/removeDraft",
         "structedReport":"http://192.168.7.198:8095/draft/getReportInfoForCaseIdAndUsername",
-        "createUser":"http://192.168.7.198:8095/draft/createUserDraftFromModel"
+        "createUser":"http://192.168.7.198:8095/draft/createUserDraftFromModel",
+        "getLobeInfo": "http://192.168.7.198:8095/draft/getLobeInfo",
+        "getCenterLine": "http://192.168.7.198:8095/draft/getCenterLine"
     },
 
     "review": {

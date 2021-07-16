@@ -196,12 +196,18 @@ export default class View2D extends Component {
     }
 
     const camera = this.renderer.getActiveCamera()
+    const paintCamera = this.paintRenderer.getActiveCamera()
 
     camera.setParallelProjection(true)
+    paintCamera.setParallelProjection(true)
+
     this.renderer.resetCamera()
+
     if (this.props.parallelScale) {
       camera.setParallelScale(this.props.parallelScale * 1.1)
+      paintCamera.setParallelScale(this.props.parallelScale * 1.1)
     }
+
     istyle.setVolumeActor(this.props.volumes[0])
     const range = istyle.getSliceRange()
     istyle.setSlice((range[0] + range[1]) / 2)
