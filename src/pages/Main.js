@@ -30,7 +30,6 @@ import ViewerPanel from "../panels/ViewerPanel";
 class Main extends Component {
   constructor(props) {
     super(props);
-    this.config = JSON.parse(localStorage.getItem("config"));
     this.state = {
       activeItem: "home",
       name: localStorage.realname,
@@ -228,7 +227,7 @@ class Main extends Component {
           to="/dataCockpit"
           name="home"
         >
-          DeepLN肺癌全周期影像数据智能管理平台
+          肺结节CT影像辅助检测软件
         </Menu.Item>
 
         <Menu.Item
@@ -240,16 +239,19 @@ class Main extends Component {
         >
           数据检索
         </Menu.Item>
-
-        <Menu.Item
-          active={activeItem === "searchNodule"}
-          onClick={this.handleItemClick}
-          as={Link}
-          to="/searchNodule"
-          name="searchNodule"
-        >
-          结节检索
-        </Menu.Item>
+        {localStorage.getItem("auths") !== null &&
+        JSON.parse(localStorage.getItem("auths")).indexOf("auth_manage") >
+          -1 ? (
+          <Menu.Item
+            active={activeItem === "searchNodule"}
+            onClick={this.handleItemClick}
+            as={Link}
+            to="/searchNodule"
+            name="searchNodule"
+          >
+            结节检索
+          </Menu.Item>
+        ) : null}
 
         {/* <Menu.Item
                     active={activeItem === 'myAnnos'}
@@ -296,15 +298,19 @@ class Main extends Component {
                     name='cov19List'>
                     新冠肺炎
                 </Menu.Item> */}
-        <Menu.Item
-          active={activeItem === "preprocess"}
-          onClick={this.handleItemClick}
-          as={Link}
-          to="/preprocess"
-          name="preprocess"
-        >
-          预处理
-        </Menu.Item>
+        {localStorage.getItem("auths") !== null &&
+        JSON.parse(localStorage.getItem("auths")).indexOf("auth_manage") >
+          -1 ? (
+          <Menu.Item
+            active={activeItem === "preprocess"}
+            onClick={this.handleItemClick}
+            as={Link}
+            to="/preprocess"
+            name="preprocess"
+          >
+            预处理
+          </Menu.Item>
+        ) : null}
       </>
     );
 
@@ -397,7 +403,7 @@ class Main extends Component {
               to="/"
               name="home"
             >
-              DeepLN肺癌全周期影像数据智能管理平台
+              肺结节CT影像辅助检测软件
             </Menu.Item>
 
             <Menu.Item position="right">

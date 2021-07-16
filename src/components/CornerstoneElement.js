@@ -2498,11 +2498,9 @@ class CornerstoneElement extends Component {
         <div id="cornerstone">
           <Menu className="corner-header">
             <Menu.Item>
-              <Image src={src1} avatar size="mini" />
+              {/* <Image src={src1} avatar size="mini" /> */}
               <a id="sys-name" href="/searchCase">
-                DeepLN肺结节全周期
-                <br />
-                管理数据平台
+                肺结节CT影像辅助检测软件
               </a>
             </Menu.Item>
             <Menu.Item className="hucolumn">
@@ -2868,9 +2866,9 @@ class CornerstoneElement extends Component {
                     <Icon name="user delete" size="large"></Icon>
                   </Button>
                 )}
-                <Button title="3D" className="funcbtn" onClick={this.toSegView}>
+                {/* <Button title="3D" className="funcbtn" onClick={this.toSegView}>
                   3D
-                </Button>
+                </Button> */}
               </Button.Group>
             </Menu.Item>
             <Menu.Item position="right">
@@ -2921,7 +2919,7 @@ class CornerstoneElement extends Component {
                         <div
                           id="origin-canvas"
                           style={{
-                            width: (this.state.windowHeight * 960) / 1080,
+                            width: (this.state.windowWidth * 960) / 1920,
                             height: (this.state.windowHeight * 960) / 1080,
                           }}
                           ref={(input) => {
@@ -3048,8 +3046,8 @@ class CornerstoneElement extends Component {
                         <div
                           id="origin-canvas"
                           style={{
-                            width: (this.state.windowHeight * 960) / 1080,
-                            height: (this.state.windowHeight * 960) / 1080,
+                            width: (this.state.windowWidth * 840) / 1080,
+                            height: (this.state.windowHeight * 1080) / 1920,
                           }}
                           ref={(input) => {
                             this.element = input;

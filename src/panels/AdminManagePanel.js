@@ -9,10 +9,11 @@ class AdminManagePanel extends Component {
     this.config = JSON.parse(localStorage.getItem("config"));
   }
 
-  //   render() {
-  //     //   return(
-  //     //   )
-  //   }
+  // render() {
+  //     return(
+
+  //     )
+  // }
 }
 
 export default AdminManagePanel;
