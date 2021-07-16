@@ -237,7 +237,12 @@ export class SearchNodulePanel extends Component {
               : "低危";
           sequence["分叶征"] = data[idx]["lobulation"] == 2 ? "是" : "否";
           sequence["毛刺征"] = data[idx]["spiculation"] == 2 ? "是" : "否";
-          sequence["密度"] = data[idx]["texture"] == 2 ? "实性" : "磨玻璃";
+          sequence["密度"] =
+            data[idx]["texture"] == 2
+              ? "半实性"
+              : data[idx]["texture"] == 3
+              ? "实性"
+              : "磨玻璃";
           sequence["钙化"] = data[idx]["calcification"] == 2 ? "是" : "否";
           sequence["胸膜凹陷征"] =
             data[idx]["pin"] === undefined
@@ -358,7 +363,12 @@ export class SearchNodulePanel extends Component {
               : "低危";
           sequence["分叶征"] = data[idx]["lobulation"] == 2 ? "是" : "否";
           sequence["毛刺征"] = data[idx]["spiculation"] == 2 ? "是" : "否";
-          sequence["密度"] = data[idx]["texture"] == 2 ? "实性" : "磨玻璃";
+          sequence["密度"] =
+            data[idx]["texture"] == 2
+              ? "半实性"
+              : data[idx]["texture"] == 3
+              ? "实性"
+              : "磨玻璃";
           sequence["钙化"] = data[idx]["calcification"] == 2 ? "是" : "否";
           sequence["胸膜凹陷征"] =
             data[idx]["pin"] === undefined
@@ -764,10 +774,10 @@ export class SearchNodulePanel extends Component {
         this.setState({ calcification: 1, activePage: "1" });
         break;
       case "实性":
-        this.setState({ texture: 2, activePage: "1" });
+        this.setState({ texture: 3, activePage: "1" });
         break;
       case "半实性":
-        this.setState({ texture: 3, activePage: "1" });
+        this.setState({ texture: 2, activePage: "1" });
         break;
       case "磨玻璃":
         this.setState({ texture: 1, activePage: "1" });
@@ -1141,7 +1151,9 @@ export class SearchNodulePanel extends Component {
                               <Dropdown.Item onClick={this.handleImageLabels}>
                                 实性
                               </Dropdown.Item>
-                              <Dropdown.Item>半实性</Dropdown.Item>
+                              <Dropdown.Item onClick={this.handleImageLabels}>
+                                半实性
+                              </Dropdown.Item>
                               <Dropdown.Item onClick={this.handleImageLabels}>
                                 磨玻璃
                               </Dropdown.Item>
