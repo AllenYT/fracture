@@ -1221,14 +1221,14 @@ class CornerstoneElement extends Component {
           </Tab.Pane>
         ),
       },
-      {
-        menuItem: "留言",
-        render: () => (
-          <Tab.Pane>
-            <MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} />
-          </Tab.Pane>
-        ),
-      },
+      // {
+      //   menuItem: "留言",
+      //   render: () => (
+      //     <Tab.Pane>
+      //       <MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} />
+      //     </Tab.Pane>
+      //   ),
+      // },
     ];
     const {
       showNodules,
@@ -2838,7 +2838,7 @@ class CornerstoneElement extends Component {
                     <Icon name="sliders" size="large"></Icon>
                   </Button>
                 )}
-                {/* {this.state.readonly ? (
+                {this.state.readonly ? (
                   <Button
                     icon
                     title="提交"
@@ -2857,8 +2857,8 @@ class CornerstoneElement extends Component {
                   >
                     <Icon name="upload" size="large"></Icon>
                   </Button>
-                )} */}
-                {/* {this.state.readonly ? null : (
+                )}
+                {this.state.readonly ? null : (
                   <Button
                     icon
                     title="清空标注"
@@ -2867,7 +2867,7 @@ class CornerstoneElement extends Component {
                   >
                     <Icon name="user delete" size="large"></Icon>
                   </Button>
-                )} */}
+                )}
                 {/* <Button title="3D" className="funcbtn" onClick={this.toSegView}>
                   3D
                 </Button> */}
@@ -2881,11 +2881,11 @@ class CornerstoneElement extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item
+                  {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
-                  />
+                  /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"

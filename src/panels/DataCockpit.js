@@ -936,7 +936,8 @@ class DataCockpit extends Component {
         container: "thicknessDist",
         forceFit: true,
         height: 260,
-        padding: [0, 50, 20, 50],
+        // padding: [0, 50, 20, 50],
+        padding: [20, 50, 20, 50],
         animate: true,
       });
       thicknessChart.source(thickDV, {
