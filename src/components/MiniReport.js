@@ -353,7 +353,7 @@ class MiniReport extends Component {
         // }
         clearInterval(timer);
       }
-    }, 500);
+    }, 100);
   }
 
   template() {

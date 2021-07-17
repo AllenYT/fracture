@@ -234,8 +234,10 @@ class CornerstoneElement extends Component {
       lengthBox: [],
       firstlayout: 0,
       imageCaching: false,
-      // originCanvasWidth: 960,
-      // originCanvasHeight: 960,
+      crossCanvasWidth: 870,
+      crossCanvasHeight: 870,
+      verticalCanvasWidth: 840,
+      verticalCanvasHeight: 1080,
     };
     this.config = JSON.parse(localStorage.getItem("config"));
     this.nextPath = this.nextPath.bind(this);
@@ -2836,7 +2838,7 @@ class CornerstoneElement extends Component {
                     <Icon name="sliders" size="large"></Icon>
                   </Button>
                 )}
-                {this.state.readonly ? (
+                {/* {this.state.readonly ? (
                   <Button
                     icon
                     title="提交"
@@ -2855,8 +2857,8 @@ class CornerstoneElement extends Component {
                   >
                     <Icon name="upload" size="large"></Icon>
                   </Button>
-                )}
-                {this.state.readonly ? null : (
+                )} */}
+                {/* {this.state.readonly ? null : (
                   <Button
                     icon
                     title="清空标注"
@@ -2865,7 +2867,7 @@ class CornerstoneElement extends Component {
                   >
                     <Icon name="user delete" size="large"></Icon>
                   </Button>
-                )}
+                )} */}
                 {/* <Button title="3D" className="funcbtn" onClick={this.toSegView}>
                   3D
                 </Button> */}
@@ -2919,8 +2921,8 @@ class CornerstoneElement extends Component {
                         <div
                           id="origin-canvas"
                           style={{
-                            width: (this.state.windowWidth * 960) / 1920,
-                            height: (this.state.windowHeight * 960) / 1080,
+                            width: this.state.crossCanvasWidth,
+                            height: this.state.crossCanvasHeight,
                           }}
                           ref={(input) => {
                             this.element = input;
@@ -3046,8 +3048,8 @@ class CornerstoneElement extends Component {
                         <div
                           id="origin-canvas"
                           style={{
-                            width: (this.state.windowWidth * 840) / 1080,
-                            height: (this.state.windowHeight * 1080) / 1920,
+                            width: this.state.verticalCanvasWidth,
+                            height: this.state.verticalCanvasHeight,
                           }}
                           ref={(input) => {
                             this.element = input;
@@ -5263,8 +5265,10 @@ class CornerstoneElement extends Component {
     let list = document.getElementsByClassName("nodule-card-container")[0];
     report.style.height = canvasColumn.clientHeight / 3 + "px";
     list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
-    // originCanvas.style.width = (this.state.windowWidth * 960) / 1080;
-    // originCanvas.style.height = (this.state.windowHeight * 960) / 1080;
+    let crossCanvasWidth = (e.target.innerWidth * 870) / 1920;
+    let crossCanvasHeight = (e.target.innerHeight * 870) / 1080;
+    let verticalCanvasWidth = (e.target.innerWidth * 840) / 1080;
+    let verticalCanvasheight = (e.target.innerHeight * 1080) / 1920;
     console.log(
       "resizeBrowser",
       report.clientHeight,
@@ -5275,6 +5279,10 @@ class CornerstoneElement extends Component {
     this.setState({
       windowWidth: e.target.innerWidth,
       windowHeight: e.target.innerHeight,
+      crossCanvasWidth: crossCanvasWidth,
+      crossCanvasHeight: crossCanvasHeight,
+      verticalCanvasWidth: verticalCanvasWidth,
+      verticalCanvasheight: verticalCanvasheight,
     });
   }
 
