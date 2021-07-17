@@ -64,6 +64,7 @@ class DisplayPanel extends Component {
       const readonlyParams = {
         caseId: this.state.caseId,
         username: this.state.username,
+        // username: this.state.modelName,
       };
 
       const token = localStorage.getItem("token");
@@ -117,6 +118,7 @@ class DisplayPanel extends Component {
           }),
         ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
           const readonly = readonlyResponse.data.readonly === "true";
+          console.log("readonly", readonly);
           // const readonly = false
           cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
             // const readonly = readonlyResponse.data.readonly === 'true'
@@ -181,6 +183,7 @@ class DisplayPanel extends Component {
     const readonlyParams = {
       caseId: this.state.caseId,
       username: this.state.username,
+      // username: this.state.modelName,
     };
 
     const token = localStorage.getItem("token");
@@ -231,6 +234,7 @@ class DisplayPanel extends Component {
         }),
       ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
         const readonly = readonlyResponse.data.readonly === "true";
+        console.log("readonly", readonly);
         // const readonly = false
         cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
           console.log("image info", image.data);
@@ -249,7 +253,8 @@ class DisplayPanel extends Component {
             imageIds: dataResponse.data,
             caseId: this.state.caseId,
             boxes: boxes,
-            readonly: false,
+            // readonly: false,
+            readonly: readonly,
             draftStatus: draftStatus,
             noduleNo: noduleNo,
             dicomTag: dicomtag,

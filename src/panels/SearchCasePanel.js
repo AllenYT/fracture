@@ -335,140 +335,135 @@ export class SearchPanel extends Component {
     //         <Info type='1' />
     //     )
     // }
-    return localStorage.getItem("auths") !== null &&
-      JSON.parse(localStorage.getItem("auths")).indexOf("data_search") > -1 ? (
-      <div>
-        <Grid className="banner">
-          {/* <Grid.Row>
-                        <Grid.Column width={2}></Grid.Column>
-                        <Grid.Column width={12}>
-                            <Statistics/>
-                        </Grid.Column>
-                        <Grid.Column width={2}></Grid.Column>
-                </Grid.Row> */}
-          <Grid.Row>
-            <Grid.Column width={2}></Grid.Column>
-            <Grid.Column width={12} id="queuestyle">
-              <Grid>
-                <Grid.Row></Grid.Row>
-                <Grid.Row>
-                  <Dropdown
-                    id="queueDropdown"
-                    placeholder="搜索队列"
-                    search
-                    icon="search"
-                    text={this.state.chooseQueue}
-                    selection
-                    options={this.state.searchQueue}
-                    onChange={this.getQueueIds.bind(this)}
-                  ></Dropdown>
-                </Grid.Row>
-                <Grid.Row columns={7}>
-                  <Grid.Column floated="left">
-                    <Button
-                      inverted
-                      color="green"
-                      size="small"
-                      icon="caret left"
-                      floated="left"
-                      onClick={this.left}
-                    ></Button>
-                  </Grid.Column>
-                  {this.state.activeQueue.map((content, index) => {
-                    return (
-                      <Grid.Column>
-                        {content === "" ? (
-                          <Button
-                            fluid
-                            inverted
-                            color="green"
-                            size="large"
-                            onClick={this.buttonQueue.bind(this)}
-                            style={{ visibility: "hidden" }}
-                          >
-                            {content}
-                          </Button>
-                        ) : (
-                          <Button
-                            fluid
-                            inverted
-                            color="green"
-                            size="large"
-                            onClick={this.buttonQueue.bind(this)}
-                          >
-                            {content}
-                          </Button>
-                        )}
-                      </Grid.Column>
-                    );
-                  })}
-                  <Grid.Column floated="right">
-                    <Button
-                      inverted
-                      color="green"
-                      size="small"
-                      icon="caret right"
-                      floated="right"
-                      onClick={this.right}
-                    ></Button>
-                  </Grid.Column>
-                </Grid.Row>
-                <Grid.Row></Grid.Row>
-              </Grid>
-            </Grid.Column>
-            <Grid.Column width={2}></Grid.Column>
-          </Grid.Row>
-          {/* <Grid.Row className="data-content"> */}
-          <Grid.Row>
-            <Grid.Column width={2}></Grid.Column>
+    return (
+      <Grid className="banner">
+        <Grid.Row>
+          <Grid.Column width={2}></Grid.Column>
+          <Grid.Column width={12} id="queuestyle">
+            <Grid>
+              <Grid.Row></Grid.Row>
+              <Grid.Row>
+                <Dropdown
+                  id="queueDropdown"
+                  placeholder="搜索队列"
+                  search
+                  icon="search"
+                  text={this.state.chooseQueue}
+                  selection
+                  options={this.state.searchQueue}
+                  onChange={this.getQueueIds.bind(this)}
+                ></Dropdown>
+              </Grid.Row>
+              <Grid.Row columns={7}>
+                <Grid.Column floated="left">
+                  <Button
+                    inverted
+                    color="green"
+                    size="small"
+                    icon="caret left"
+                    floated="left"
+                    onClick={this.left}
+                  ></Button>
+                </Grid.Column>
+                {this.state.activeQueue.map((content, index) => {
+                  return (
+                    <Grid.Column>
+                      {content === "" ? (
+                        <Button
+                          fluid
+                          inverted
+                          color="green"
+                          size="large"
+                          onClick={this.buttonQueue.bind(this)}
+                          style={{ visibility: "hidden" }}
+                        >
+                          {content}
+                        </Button>
+                      ) : (
+                        <Button
+                          fluid
+                          inverted
+                          color="green"
+                          size="large"
+                          onClick={this.buttonQueue.bind(this)}
+                        >
+                          {content}
+                        </Button>
+                      )}
+                    </Grid.Column>
+                  );
+                })}
+                <Grid.Column floated="right">
+                  <Button
+                    inverted
+                    color="green"
+                    size="small"
+                    icon="caret right"
+                    floated="right"
+                    onClick={this.right}
+                  ></Button>
+                </Grid.Column>
+              </Grid.Row>
+              <Grid.Row></Grid.Row>
+            </Grid>
+          </Grid.Column>
+          <Grid.Column width={2}></Grid.Column>
+        </Grid.Row>
+        {/* <Grid.Row className="data-content"> */}
+        <Grid.Row>
+          <Grid.Column width={2}></Grid.Column>
 
-            <Grid.Column width={12}>
-              <div id="container">
-                <div className="searchBar">
-                  <Input
-                    name="pid"
-                    value={this.state.pidKeyword}
-                    onChange={this.handleInputChange}
-                    id="patient-search"
-                    icon="user"
-                    iconPosition="left"
-                    placeholder="病人ID"
-                    maxLength={16}
-                    disabled={this.state.checked}
+          <Grid.Column width={12}>
+            <div id="container">
+              <div className="searchBar">
+                <Input
+                  name="pid"
+                  value={this.state.pidKeyword}
+                  onChange={this.handleInputChange}
+                  id="patient-search"
+                  icon="user"
+                  iconPosition="left"
+                  placeholder="病人ID"
+                  maxLength={16}
+                  disabled={this.state.checked}
+                />
+
+                <span id="type-slider">
+                  <Checkbox
+                    slider
+                    onChange={this.handleCheckbox}
+                    defaultChecked={this.state.checked}
                   />
+                </span>
 
-                  <span id="type-slider">
-                    <Checkbox
-                      slider
-                      onChange={this.handleCheckbox}
-                      defaultChecked={this.state.checked}
+                <Input
+                  name="date"
+                  value={this.state.dateKeyword}
+                  onChange={this.handleInputChange}
+                  id="date-search"
+                  icon="calendar"
+                  iconPosition="left"
+                  placeholder="检查时间"
+                  maxLength={8}
+                  disabled={!this.state.checked}
+                />
+              </div>
+              <div id="show-search-content">
+                {/* {searchResults} */}
+                <div>
+                  <div className="patientList" style={{ minHeight: 500 }}>
+                    <MainList
+                      type={type}
+                      currentPage={this.state.activePage} //MainList.js 40,css in MainList.js 108
+                      pidKeyword={this.state.pidKeyword}
+                      dateKeyword={this.state.dateKeyword}
+                      subsetName={this.state.chooseQueue}
+                      search={this.state.search}
                     />
-                  </span>
-
-                  <Input
-                    name="date"
-                    value={this.state.dateKeyword}
-                    onChange={this.handleInputChange}
-                    id="date-search"
-                    icon="calendar"
-                    iconPosition="left"
-                    placeholder="检查时间"
-                    maxLength={8}
-                    disabled={!this.state.checked}
-                  />
-                </div>
-                <div id="show-search-content">
-                  {/* {searchResults} */}
-                  <div>
-                    <div className="patientList" style={{ minHeight: 500 }}>
-                      <MainList
-                        type={type}
-                        currentPage={this.state.activePage} //MainList.js 40,css in MainList.js 108
-                        pidKeyword={this.state.pidKeyword}
-                        dateKeyword={this.state.dateKeyword}
-                        subsetName={this.state.chooseQueue}
-                        search={this.state.search}
-                      />
+                    {localStorage.getItem("auths") !== null &&
+                    JSON.parse(localStorage.getItem("auths")).indexOf(
+                      "data_search"
+                    ) > -1 ? (
                       <div className="exportButton">
                         <Button
                           inverted
@@ -478,7 +473,7 @@ export class SearchPanel extends Component {
                           导出
                         </Button>
                       </div>
-                    </div>
+                    ) : null}
 
                     <div className="pagination-component">
                       <Pagination
@@ -490,33 +485,13 @@ export class SearchPanel extends Component {
                     </div>
                   </div>
                 </div>
-                {/* <div className="patientList" style={{minHeight:500}}>
-                                <MainList
-                                    type={type}
-                                    currentPage={this.state.activePage}//MainList.js 40,css in MainList.js 108
-                                    pidKeyword={this.state.pidKeyword}
-                                    dateKeyword={this.state.dateKeyword}/>
-                                    <div className='exportButton'>
-                                        <Button inverted color='blue' onClick={this.startDownload}>导出</Button>
-                                    </div>
-                            </div>
-                            
-                            <div className="pagination-component">
-                                <Pagination
-                                    id="pagination"
-                                    onPageChange={this.handlePaginationChange}
-                                    activePage={this.state.activePage}
-                                    totalPages={this.state.totalPage}/>
-                            </div> */}
               </div>
-            </Grid.Column>
+            </div>
+          </Grid.Column>
 
-            <Grid.Column width={2}></Grid.Column>
-          </Grid.Row>
-        </Grid>
-      </div>
-    ) : (
-      <LowerAuth></LowerAuth>
+          <Grid.Column width={2}></Grid.Column>
+        </Grid.Row>
+      </Grid>
     );
   }
 }

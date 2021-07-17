@@ -234,8 +234,10 @@ class CornerstoneElement extends Component {
       lengthBox: [],
       firstlayout: 0,
       imageCaching: false,
-      // originCanvasWidth: 960,
-      // originCanvasHeight: 960,
+      crossCanvasWidth: 870,
+      crossCanvasHeight: 870,
+      verticalCanvasWidth: 840,
+      verticalCanvasHeight: 1080,
     };
     this.config = JSON.parse(localStorage.getItem("config"));
     this.nextPath = this.nextPath.bind(this);
@@ -1219,14 +1221,14 @@ class CornerstoneElement extends Component {
           </Tab.Pane>
         ),
       },
-      {
-        menuItem: "留言",
-        render: () => (
-          <Tab.Pane>
-            <MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} />
-          </Tab.Pane>
-        ),
-      },
+      // {
+      //   menuItem: "留言",
+      //   render: () => (
+      //     <Tab.Pane>
+      //       <MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} />
+      //     </Tab.Pane>
+      //   ),
+      // },
     ];
     const {
       showNodules,
@@ -2498,11 +2500,9 @@ class CornerstoneElement extends Component {
         <div id="cornerstone">
           <Menu className="corner-header">
             <Menu.Item>
-              <Image src={src1} avatar size="mini" />
+              {/* <Image src={src1} avatar size="mini" /> */}
               <a id="sys-name" href="/searchCase">
-                DeepLN肺结节全周期
-                <br />
-                管理数据平台
+                肺结节CT影像辅助检测软件
               </a>
             </Menu.Item>
             <Menu.Item className="hucolumn">
@@ -2868,9 +2868,9 @@ class CornerstoneElement extends Component {
                     <Icon name="user delete" size="large"></Icon>
                   </Button>
                 )}
-                <Button title="3D" className="funcbtn" onClick={this.toSegView}>
+                {/* <Button title="3D" className="funcbtn" onClick={this.toSegView}>
                   3D
-                </Button>
+                </Button> */}
               </Button.Group>
             </Menu.Item>
             <Menu.Item position="right">
@@ -2881,11 +2881,11 @@ class CornerstoneElement extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item
+                  {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
-                  />
+                  /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"
@@ -2921,8 +2921,8 @@ class CornerstoneElement extends Component {
                         <div
                           id="origin-canvas"
                           style={{
-                            width: (this.state.windowHeight * 960) / 1080,
-                            height: (this.state.windowHeight * 960) / 1080,
+                            width: this.state.crossCanvasWidth,
+                            height: this.state.crossCanvasHeight,
                           }}
                           ref={(input) => {
                             this.element = input;
@@ -3048,8 +3048,8 @@ class CornerstoneElement extends Component {
                         <div
                           id="origin-canvas"
                           style={{
-                            width: (this.state.windowHeight * 960) / 1080,
-                            height: (this.state.windowHeight * 960) / 1080,
+                            width: this.state.verticalCanvasWidth,
+                            height: this.state.verticalCanvasHeight,
                           }}
                           ref={(input) => {
                             this.element = input;
@@ -5265,8 +5265,10 @@ class CornerstoneElement extends Component {
     let list = document.getElementsByClassName("nodule-card-container")[0];
     report.style.height = canvasColumn.clientHeight / 3 + "px";
     list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
-    // originCanvas.style.width = (this.state.windowWidth * 960) / 1080;
-    // originCanvas.style.height = (this.state.windowHeight * 960) / 1080;
+    let crossCanvasWidth = (e.target.innerWidth * 870) / 1920;
+    let crossCanvasHeight = (e.target.innerHeight * 870) / 1080;
+    let verticalCanvasWidth = (e.target.innerWidth * 840) / 1080;
+    let verticalCanvasheight = (e.target.innerHeight * 1080) / 1920;
     console.log(
       "resizeBrowser",
       report.clientHeight,
@@ -5277,6 +5279,10 @@ class CornerstoneElement extends Component {
     this.setState({
       windowWidth: e.target.innerWidth,
       windowHeight: e.target.innerHeight,
+      crossCanvasWidth: crossCanvasWidth,
+      crossCanvasHeight: crossCanvasHeight,
+      verticalCanvasWidth: verticalCanvasWidth,
+      verticalCanvasheight: verticalCanvasheight,
     });
   }
 

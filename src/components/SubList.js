@@ -143,7 +143,6 @@ class SubList extends Component {
             const data = response.data
             if (data.status !== 'okay') {
                 console.log("Not okay")
-                // window.location.href = '/'
             } else {
                 console.log('sublist',data.subList)
                 const subList = data.subList
@@ -153,17 +152,14 @@ class SubList extends Component {
                     totalDates++ 
                     totalStudies += subList[subKey].length
                 }
-                // console.log('MAINITEM', this.props.mainItem)
                 if (totalDates > 0 && totalStudies > 0) {
                     if (this.props.type === 'date'){
                         this.setState({
-                            // hint: '当前病人包含共' + totalDates + '个日期的' + totalStudies + '次检查'
                             hint: '当前日期包含共' + totalStudies + '次检查'
                         })
                     }
                     else{
                         this.setState({
-                            // hint: '当前病人包含共' + totalDates + '个日期的' + totalStudies + '次检查'
                             hint: '当前病人包含共' + totalDates + '次检查'
                         })
                     }
@@ -176,6 +172,8 @@ class SubList extends Component {
         }).catch((error) => {
             console.log(error)
         })
+
+        
     }
 
     render() {
@@ -194,9 +192,10 @@ class SubList extends Component {
         if (this.props.type === 'date') {
             icon = 'user'
         }
-
+        console.log("subList",subList)
         for (const subKey in subList) {
             const studyAry = subList[subKey]
+            console.log('studyAry', studyAry)
             const len = studyAry.length
             //  console.log('subkey',subKey)
             // console.log('study',studyAry)

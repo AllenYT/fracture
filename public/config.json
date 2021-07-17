@@ -18,7 +18,12 @@
         "getAuthsForUser":"http://192.168.7.198:8095/user/getAuthsForUser",
         "getRolesForUser":"http://192.168.7.198:8095/user/getRolesForUser",
         "insertUserInfo":"http://192.168.7.198:8095/user/insertUserInfo",
-        "getRemoteAddr":"http://192.168.7.198:8095/user/getRemoteAddr"
+        "getRemoteAddr":"http://192.168.7.198:8095/user/getRemoteAddr",
+        "getUserAtPage": "http://192.168.7.198:8095/user/getUserAtpage",
+        "insertUserInfoForAdmin": "http://192.168.7.198:8095/user/insertUserInfoForAdmin",
+        "getTotalUserPages": "http://192.168.7.198:8095/user/getTotalUserPages",
+        "delUser": "http://192.168.7.198:8095/user/delUser",
+        "updateRolesForUser": "http://192.168.7.198:8095/user/updateRolesForUser"
     },
 
     "record": {
@@ -53,7 +58,8 @@
         "structedReport":"http://192.168.7.198:8095/draft/getReportInfoForCaseIdAndUsername",
         "createUser":"http://192.168.7.198:8095/draft/createUserDraftFromModel",
         "getLobeInfo": "http://192.168.7.198:8095/draft/getLobeInfo",
-        "getCenterLine": "http://192.168.7.198:8095/draft/getCenterLine"
+        "getCenterLine": "http://192.168.7.198:8095/draft/getCenterLine",
+        "dataValid": "http://192.168.7.198:8095/draft/dataValidation"
     },
 
     "review": {
@@ -94,7 +100,9 @@
         "deleteQueue":"http://192.168.7.198:8095/subset/delete",
         "updateQueue":"http://192.168.7.198:8095/subset/update"
     },
-
+    "role": {
+        "getAllRole": "http://192.168.7.198:8095/role/getAllRole"
+    },
     "loginId":{
         "uid":"user1",
         "password":"123456"

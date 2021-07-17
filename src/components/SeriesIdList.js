@@ -16,6 +16,7 @@ class SeriesIdList extends Component {
         this.displayStudy = this.displayStudy.bind(this)
         this.state={
             contextRef:props.contextRef,
+            popupHovers: [],
             // cart: new Set()
         }
         this.config = JSON.parse(localStorage.getItem('config'))
@@ -33,41 +34,44 @@ class SeriesIdList extends Component {
         // this.props.history.push(path, {storeCaseId: storecid})
     }
 
-    displayStudy(e) {
-        console.log(e.currentTarget.dataset.id)
-        // request, api, modifier
-        const token = localStorage.getItem('token')
-        const headers = {
-            'Authorization': 'Bearer '.concat(token)
+    displayStudy(idName, e) {
+        if(idName === this.state.onPopupIndex){
+            console.log("displayStudy",e.currentTarget.dataset.id)
+            // request, api, modifier
+            const token = localStorage.getItem('token')
+            const headers = {
+                'Authorization': 'Bearer '.concat(token)
+            }
+            const params = {
+                caseId: e.currentTarget.dataset.id
+            }
+            axios.post(this.config.draft.getDataPath, qs.stringify(params), {headers})
+            .then(res => {
+                console.log('result from server', res.data)
+                console.log('params',params)
+                // window.open('/case/' + params.caseId + '/' + res.data,'target','')
+                // this.props.history.push('/case/' + params.caseId + '/' + res.data)
+                const oa = document.createElement('a');
+                oa.href = '/case/' + params.caseId + '/' + res.data;
+                oa.setAttribute('target', '_blank');
+                oa.setAttribute('rel',"nofollow noreferrer")
+                document.body.appendChild(oa);
+                oa.click();
+                
+                // console.log('data',res.data)
+                // this.nextPath('/case/' + params.caseId + '/' + res.data)
+                // window.open('/case/' + params.caseId + '/' + res.data, '_blank')
+                // const w=window.open('about:blank');
+                // w.location.href = '/case/' + params.caseId + '/' + res.data
+                // this.nextPath('/case/' + params.caseId + '/deepln')
+            })
+            .catch(err => {
+                console.log(err)
+            })
+            // this.nextPath('/case/' + e.currentTarget.dataset.id + '/deepln')
+            //this.nextPath('/case/' + e.currentTarget.dataset.id + '/origin')
         }
-        const params = {
-            caseId: e.currentTarget.dataset.id
-        }
-        axios.post(this.config.draft.getDataPath, qs.stringify(params), {headers})
-        .then(res => {
-            console.log('result from server', res.data)
-            console.log('params',params)
-            // window.open('/case/' + params.caseId + '/' + res.data,'target','')
-            // this.props.history.push('/case/' + params.caseId + '/' + res.data)
-            const oa = document.createElement('a');
-            oa.href = '/case/' + params.caseId + '/' + res.data;
-            oa.setAttribute('target', '_blank');
-            oa.setAttribute('rel',"nofollow noreferrer")
-            document.body.appendChild(oa);
-            oa.click();
-            
-            // console.log('data',res.data)
-            // this.nextPath('/case/' + params.caseId + '/' + res.data)
-            // window.open('/case/' + params.caseId + '/' + res.data, '_blank')
-            // const w=window.open('about:blank');
-            // w.location.href = '/case/' + params.caseId + '/' + res.data
-            // this.nextPath('/case/' + params.caseId + '/deepln')
-        })
-        .catch(err => {
-            console.log(err)
-        })
-        // this.nextPath('/case/' + e.currentTarget.dataset.id + '/deepln')
-        //this.nextPath('/case/' + e.currentTarget.dataset.id + '/origin')
+        
     }
 
     componentDidMount() {
@@ -142,8 +146,29 @@ class SeriesIdList extends Component {
         else
             return false
     }
-
+    popupEnter(index){
+        console.log('popupEnter', index)
+        const popupHovers = this.state.popupHovers
+        popupHovers[index] = true
+        this.setState({
+            popupHovers
+        })
+    }
+    popupLeave(index){
+        const popupHovers = this.state.popupHovers
+        popupHovers[index] = false
+        this.setState({
+            popupHovers
+        })
+    }
+    onPopupHide(index){
+        console.log('onPopupHide', index)
+        this.setState({
+            onPopupIndex: index
+        })
+    }
     render() {
+        const onPopupIndex = this.state.onPopupIndex
         const content = this.props.content
         const pid = this.props.pid
         let CheckboxDis = {
@@ -165,11 +190,13 @@ class SeriesIdList extends Component {
                                 <Checkbox id={idName} onChange={this.storeCaseId} value={value} checked={this.validValue(value)} style={CheckboxDis}></Checkbox>
                             </div>
                             <p className='sid'>{value.split('#')[1]}</p>
-                            <Popup trigger={<Button size='mini' inverted color='green' data-id={value.split('#')[0]} icon='chevron right' onClick={this.displayStudy} 
+                            <Popup 
+                            className={onPopupIndex === idName?'':'seriesId-popup'}
+                            trigger={<Button size='mini' inverted color='green' data-id={value.split('#')[0]} icon='chevron right' onClick={this.displayStudy.bind(this, idName)}  
                             floated='right'/>}
                             context={this.state.contextRef}>
                                 <Popup.Content>
-                                    <CurrentDraftsDisplay caseId={value.split('#')[0]} />
+                                    <CurrentDraftsDisplay caseId={value.split('#')[0]} onPopupHide={this.onPopupHide.bind(this)} onPopupIndex={idName}/>
                                 </Popup.Content>
                             </Popup>    
                         </div>

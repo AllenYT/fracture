@@ -20,6 +20,19 @@ class LoginPanel extends Component {
     this.config = JSON.parse(localStorage.getItem("config"));
   }
 
+  async componentWillMount() {
+    const configPromise = new Promise((resolve, reject) => {
+      axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
+        const config = res.data;
+        console.log("config", config);
+        localStorage.setItem("config", JSON.stringify(config));
+        resolve(config);
+      }, reject);
+    });
+    const config = await configPromise;
+    this.config = config;
+  }
+
   handleUsernameChange(e) {
     this.setState({ username: e.target.value });
   }
@@ -75,7 +88,11 @@ class LoginPanel extends Component {
             window.location.href = sessionStorage.getItem("location");
             // this.props.history.push(sessionStorage.getItem('location')+'deepln')
           } else {
-            window.location.href = "/dataCockpit";
+            if (authResponse.data.indexOf("auth_manage") > -1) {
+              window.location.href = "/dataCockpit";
+            } else {
+              window.location.href = "/searchCase";
+            }
             // this.props.history.push('/dataCockpit')
           }
         }
@@ -95,7 +112,7 @@ class LoginPanel extends Component {
               <Grid.Column width={4} className="left-bg">
                 <div id="left-align1">欢迎来到</div>
                 <div id="left-align2">DEEPLN</div>
-                <div id="left-align1">肺癌全周期影像数据智能管理平台</div>
+                <div id="left-align1">肺结节CT影像辅助检测软件</div>
               </Grid.Column>
               <Grid.Column width={8}>
                 <h1 className="login-header">系统登录</h1>
