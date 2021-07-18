@@ -1,6 +1,9 @@
 .admin-manage-out-container {
   padding: 20px;
   box-shadow: 0px 0px 50px black;
+  background-color: rgba(10, 10, 0, 0.7);
+
+  margin: 0 20px;
 }
 .admin-manage-container-bottom {
   display: flex;

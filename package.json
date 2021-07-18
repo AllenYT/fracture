@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@ant-design/icons": "^4.6.2",
     "@antv/data-set": "^0.10.2",
     "@antv/g2": "^3.5.17",
     "@craco/craco": "^5.7.0",

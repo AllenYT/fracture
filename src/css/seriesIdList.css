@@ -11,3 +11,14 @@ p {
 .export{
     display: inline-block;
 }
+
+.ant-notification-notice-message{
+    color:rgba(200, 33, 33);
+}
+
+.ant-notification-notice-description{
+    color: rgba(219, 40, 40);
+}
+.seriesId-popup.visible.transition{
+    display: none !important;
+}

@@ -210,23 +210,27 @@ class AdminManagePanel extends Component {
   }
   editUser(index) {
     const { editUsername, editPassword, editValPassword, editRole, message } = this.state
-    axios
-      .post(
-        this.config.user.updateRolesForUser,
-        qs.stringify({
-          changeUsername: editUsername,
-          roles: editRole,
+    if (this.validateUserInfo(editUsername, editPassword, editValPassword, editRole)) {
+      axios
+        .post(
+          this.config.user.insertUserInfoForAdmin,
+          qs.stringify({
+            createUsername: editUsername,
+            createPassword: editPassword,
+            roles: editRole,
+          })
+        )
+        .then((res) => {
+          console.log('updateRolesForUser request', res)
+          if (res.status === 200 && res.data && res.data.status === 'ok') {
+            this.setEditUserModalOpen(index, false)
+            this.getUserInfoByPage(this.state.currentPage)
+            alert('修改成功')
+          } else {
+            alert('修改失败')
+          }
         })
-      )
-      .then((res) => {
-        console.log('updateRolesForUser request', res)
-        if (res.status === 200 && res.data && res.data.status === 'ok') {
-          this.getUserInfoByPage(this.state.currentPage)
-          alert('修改成功')
-        } else {
-          alert('修改失败')
-        }
-      })
+    }
   }
   deleteUser(index) {
     const username = this.state.usersList[index].username
@@ -240,6 +244,7 @@ class AdminManagePanel extends Component {
       .then((res) => {
         console.log('delUser request', res)
         if (res.status === 200 && res.data && res.data === 1) {
+          this.setDeleteUserModalOpen(index, false)
           this.getUserInfoByPage(this.state.currentPage)
           alert('删除成功')
         } else {
@@ -248,6 +253,14 @@ class AdminManagePanel extends Component {
       })
   }
   setAddUserModalOpen(addUserModalOpen) {
+    if (!addUserModalOpen) {
+      this.setState({
+        newUsername: '',
+        newPassword: '',
+        newValPassword: '',
+        newRole: '',
+      })
+    }
     this.setState({
       addUserModalOpen,
     })
@@ -261,6 +274,14 @@ class AdminManagePanel extends Component {
   setEditUserModalOpen(index, editUserModalOpen) {
     const editUserModalOpens = this.state.editUserModalOpens
     editUserModalOpens[index] = editUserModalOpen
+    if (!editUserModalOpen) {
+      this.setState({
+        editUsername: '',
+        editPassword: '',
+        editValPassword: '',
+        editRole: '',
+      })
+    }
     if (editUserModalOpen) {
       const user = this.state.usersList[index]
       this.setState({
@@ -426,12 +447,12 @@ class AdminManagePanel extends Component {
                   <Form.Item>
                     <Input addonBefore={'用户名'} placeholder="输入用户名" value={editUsername} disabled onChange={this.onEditUsernameInputChange.bind(this)} />
                   </Form.Item>
-                  {/* <Form.Item>
+                  <Form.Item>
                     <Input addonBefore={'密 码'} type="password" placeholder="输入密码" value={editPassword} onChange={this.onEditPasswordInputChange.bind(this)} />
                   </Form.Item>
                   <Form.Item>
                     <Input addonBefore={'确认密码'} type="password" placeholder="确认密码" value={editValPassword} onChange={this.onEditValPasswordInputChange.bind(this)} />
-                  </Form.Item> */}
+                  </Form.Item>
                   <Form.Item>
                     <div style={{ display: 'flex', flexDirection: 'row' }}>
                       <span className="ant-input-group-addon">选择角色</span>
@@ -441,7 +462,7 @@ class AdminManagePanel extends Component {
                     </div>
                   </Form.Item>
                   <Form.Item>
-                    <AntdButton className={'admin-manage-log-form-button'} style={{ marginRight: '6%' }} onClick={this.setEditUserModalOpen.bind(this, false)}>
+                    <AntdButton className={'admin-manage-log-form-button'} style={{ marginRight: '6%' }} onClick={this.setEditUserModalOpen.bind(this, index, false)}>
                       取消
                     </AntdButton>
                     <AntdButton className={'admin-manage-log-form-button'} onClick={this.editUser.bind(this, index, item.username)}>
@@ -475,7 +496,7 @@ class AdminManagePanel extends Component {
                 </div>
                 <Form className={'admin-manage-log-form'} labelCol={{ offset: 0, span: 0 }} wrapperCol={{ offset: 0, span: 24 }}>
                   <Form.Item>
-                    <AntdButton className={'admin-manage-log-form-button'} style={{ marginRight: '6%' }} onClick={this.setDeleteUserModalOpen.bind(this, false)}>
+                    <AntdButton className={'admin-manage-log-form-button'} style={{ marginRight: '6%' }} onClick={this.setDeleteUserModalOpen.bind(this, index, false)}>
                       取消删除
                     </AntdButton>
                     <AntdButton className={'admin-manage-log-form-button'} onClick={this.deleteUser.bind(this, index)}>
