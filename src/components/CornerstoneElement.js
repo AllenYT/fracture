@@ -2928,7 +2928,10 @@ class CornerstoneElement extends Component {
                             this.element = input;
                           }}
                         >
-                          <canvas className="cornerstone-canvas" id="canvas" />
+                          <canvas className="cornerstone-canvas" id="canvas" style={{
+                            width: this.state.crossCanvasWidth,
+                            height: this.state.crossCanvasHeight,
+                          }}/>
                           {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                           {/* {canvas} */}
                           {dicomTagPanel}
@@ -3055,7 +3058,11 @@ class CornerstoneElement extends Component {
                             this.element = input;
                           }}
                         >
-                          <canvas className="cornerstone-canvas" id="canvas" />
+                          <canvas className="cornerstone-canvas" id="canvas" style={{
+                            width: this.state.verticalCanvasWidth,
+                            height: this.state.verticalCanvasHeight,
+                          }}
+                          />
                           {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                           {/* {canvas} */}
                           {dicomTagPanel}
@@ -4041,9 +4048,10 @@ class CornerstoneElement extends Component {
         const transY = this.state.viewport.translation.y;
         const scale = this.state.viewport.scale;
         const halfValue = 256;
-        let offsetminus = document.getElementById("canvas").width / 2;
-        x = (clickX - scale * transX - offsetminus) / scale + halfValue;
-        y = (clickY - scale * transY - offsetminus) / scale + halfValue;
+        let canvasHeight = document.getElementById("canvas").height / 2
+        let canvaseWidth = document.getElementById("canvas").width / 2
+        x = (clickX - scale * transX - canvaseWidth) / scale + halfValue;
+        y = (clickY - scale * transY - canvasHeight) / scale + halfValue;
       } else {
         x = clickX / 2.5;
         y = clickY / 2.5;
@@ -4144,9 +4152,10 @@ class CornerstoneElement extends Component {
         const transY = this.state.viewport.translation.y;
         const scale = this.state.viewport.scale;
         const halfValue = 256;
-        let offsetminus = document.getElementById("canvas").width / 2;
-        x = (clickX - scale * transX - offsetminus) / scale + halfValue;
-        y = (clickY - scale * transY - offsetminus) / scale + halfValue;
+        let canvasHeight = document.getElementById("canvas").height / 2
+        let canvaseWidth = document.getElementById("canvas").width / 2
+        x = (clickX - scale * transX - canvaseWidth) / scale + halfValue;
+        y = (clickY - scale * transY - canvasHeight) / scale + halfValue;
       } else {
         x = clickX / 2.5;
         y = clickY / 2.5;
@@ -4461,9 +4470,10 @@ class CornerstoneElement extends Component {
         const transY = this.state.viewport.translation.y;
         const scale = this.state.viewport.scale;
         const halfValue = 256;
-        let offsetminus = document.getElementById("canvas").width / 2;
-        x = (clickX - scale * transX - offsetminus) / scale + halfValue;
-        y = (clickY - scale * transY - offsetminus) / scale + halfValue;
+        let canvasHeight = document.getElementById("canvas").height / 2
+        let canvaseWidth = document.getElementById("canvas").width / 2
+        x = (clickX - scale * transX - canvaseWidth) / scale + halfValue;
+        y = (clickY - scale * transY - canvasHeight) / scale + halfValue;
       } else {
         x = clickX / 2.5;
         y = clickY / 2.5;
@@ -4604,10 +4614,10 @@ class CornerstoneElement extends Component {
         const scale = this.state.viewport.scale;
 
         const halfValue = 256; //256
-        let offsetminus = document.getElementById("canvas").width / 2;
-        // console.log('off',offsetminus)
-        x = (clickX - scale * transX - offsetminus) / scale + halfValue;
-        y = (clickY - scale * transY - offsetminus) / scale + halfValue;
+        let canvasHeight = document.getElementById("canvas").height / 2
+        let canvaseWidth = document.getElementById("canvas").width / 2
+        x = (clickX - scale * transX - canvaseWidth) / scale + halfValue;
+        y = (clickY - scale * transY - canvasHeight) / scale + halfValue;
       } else {
         x = clickX / 2.5;
         y = clickY / 2.5;

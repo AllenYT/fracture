@@ -22,3 +22,8 @@ p {
 .seriesId-popup.visible.transition{
     display: none !important;
 }
+
+.ui.button .searchCase_tooltip_button{
+    background-color: transparent;
+
+}

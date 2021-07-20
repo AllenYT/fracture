@@ -27,6 +27,7 @@ import HomepagePanel from "../panels/HomepagePanel";
 import preprocess from "../panels/preprocess";
 import ViewerPanel from "../panels/ViewerPanel";
 import AdminManagePanel from "../panels/AdminManagePanel";
+import md5 from "js-md5";
 
 class Main extends Component {
   constructor(props) {
@@ -140,7 +141,7 @@ class Main extends Component {
 
       const user = {
         username: this.state.username,
-        password: this.config.loginId.password,
+        password: md5(this.config.loginId.password),
       };
       const auth = {
         username: this.state.username,
