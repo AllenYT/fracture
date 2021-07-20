@@ -2722,7 +2722,7 @@ class CornerstoneElement extends Component {
                     size="large"
                   ></Icon>
                 </Button>
-                <Button
+                {/* <Button
                   onClick={() => {
                     this.setState({ immersive: true });
                   }}
@@ -2731,7 +2731,7 @@ class CornerstoneElement extends Component {
                   className="funcbtn"
                 >
                   <Icon name="expand arrows alternate" size="large"></Icon>
-                </Button>
+                </Button> */}
               </Button.Group>
             </Menu.Item>
             <span id="line-right"></span>
