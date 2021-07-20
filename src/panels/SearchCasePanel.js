@@ -254,8 +254,7 @@ export class SearchPanel extends Component {
       .then((res) => {
         const filename = res.data;
         console.log("Filename", filename);
-        window.location.href =
-          "http://data.deepln.deepx.machineilab.org/data/zip/" + filename;
+        window.location.href = this.config.data.download + "/" + filename;
         this.setState({ loading: false });
         // window.location.reload()
       })

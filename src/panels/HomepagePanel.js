@@ -34,7 +34,8 @@ class HomepagePanel extends Component {
     super(props);
     this.state = {
       fileList: [],
-      activeItem: "upload",
+      // activeItem: "upload",
+      activeItem: "myAnnos",
     };
     this.config = JSON.parse(localStorage.getItem("config"));
     this.singlefile = this.singlefile.bind(this);
@@ -72,7 +73,8 @@ class HomepagePanel extends Component {
     });
     document.getElementById("downloadList").style.display = "none";
     document.getElementById("myReviews").style.display = "none";
-    document.getElementById("myAnnos").style.display = "none";
+    // document.getElementById("myAnnos").style.display = "none";
+    document.getElementById("upload").style.display = "none";
     document.getElementById("myqueue").style.display = "none";
   }
 
