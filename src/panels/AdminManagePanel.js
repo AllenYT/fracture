@@ -37,12 +37,13 @@ class AdminManagePanel extends Component {
       currentPage: 1,
       totalPage: 10,
       orderBy: 'createTime desc,username desc',
-      message: {
+      addMessage: {
         messageVisible: false,
         messageType: 'failed',
         messageHeader: '',
         messageContent: '',
       },
+      editMessage: [{}],
     }
     this.config = JSON.parse(localStorage.getItem('config'))
   }
@@ -110,49 +111,40 @@ class AdminManagePanel extends Component {
     console.log(totalPage)
   }
   validateUserInfo(username, password, valPassword, role) {
-    const message = this.state.message
-    if (!username && username.length < 1) {
+    const message = {}
+    if (!username || username.length < 1) {
       console.log('username length error')
       message.messageVisible = true
       message.messageType = 'failed'
       message.messageHeader = '用户名长度不符'
       message.messageContent = '用户名长度不符'
-      this.setState({
-        message,
-      })
-      return false
+      return message
     } else if (password !== valPassword) {
       console.log('two time password not match erro')
       message.messageVisible = true
       message.messageType = 'failed'
       message.messageHeader = '两次密码不匹配'
       message.messageContent = '两次密码不匹配'
-      this.setState({
-        message,
-      })
-      return false
+
+      return message
     } else if (password.length > 16 || password.length < 6) {
       console.log('password length error')
       message.messageVisible = true
       message.messageType = 'failed'
       message.messageHeader = '密码长度不符'
       message.messageContent = '密码长度需要大于等于6位小于等于16位'
-      this.setState({
-        message,
-      })
-      return false
+
+      return message
     } else if (!role) {
       console.log('not choose role error')
       message.messageVisible = true
       message.messageType = 'failed'
       message.messageHeader = '没有选择角色'
       message.messageContent = '没有选择角色'
-      this.setState({
-        message,
-      })
-      return false
+      return message
     } else {
-      return true
+      message.messageVisible = false
+      return message
     }
   }
   addUser() {
@@ -194,7 +186,8 @@ class AdminManagePanel extends Component {
     //   this.setState({
     //     message,
     //   })
-    if (this.validateUserInfo(newUsername, newPassword, newValPassword, newRole)) {
+    const message = this.validateUserInfo(newUsername, newPassword, newValPassword, newRole)
+    if (!message.messageVisible) {
       axios
         .post(
           this.config.user.insertUserInfoForAdmin,
@@ -224,11 +217,30 @@ class AdminManagePanel extends Component {
             alert('添加失败')
           }
         })
+    } else {
+      if (this.timer != null) {
+        clearInterval(this.timer)
+      }
+      this.setState(
+        {
+          addMessage: message,
+        },
+        () => {
+          this.timer = setInterval(() => {
+            const addMessage = this.state.addMessage
+            addMessage.messageVisible = false
+            this.setState({
+              addMessage,
+            })
+          }, 3000)
+        }
+      )
     }
   }
   editUser(index) {
-    const { editUsername, editPassword, editValPassword, editRole, message } = this.state
-    if (this.validateUserInfo(editUsername, editPassword, editValPassword, editRole)) {
+    const { editUsername, editPassword, editValPassword, editRole } = this.state
+    const message = this.validateUserInfo(editUsername, editPassword, editValPassword, editRole)
+    if (!message.messageVisible) {
       axios
         .post(
           this.config.user.insertUserInfoForAdmin,
@@ -248,6 +260,26 @@ class AdminManagePanel extends Component {
             alert('修改失败')
           }
         })
+    } else {
+      const editMessage = this.state.editMessage
+      editMessage[index] = message
+      if (this.timer != null) {
+        clearInterval(this.timer)
+      }
+      this.setState(
+        {
+          editMessage,
+        },
+        () => {
+          this.timer = setInterval(() => {
+            const editMessage = this.state.editMessage
+            editMessage[index].messageVisible = false
+            this.setState({
+              editMessage,
+            })
+          }, 3000)
+        }
+      )
     }
   }
   deleteUser(index) {
@@ -409,11 +441,18 @@ class AdminManagePanel extends Component {
       }
     )
   }
-  handleDismiss() {
-    const message = this.state.message
-    message.messageVisible = false
+  handleDismissAddMessage() {
+    const addMessage = this.state.addMessage
+    addMessage.messageVisible = false
     this.setState({
-      message,
+      addMessage,
+    })
+  }
+  handleDismissEditMessage(index) {
+    const editMessage = this.state.editMessage
+    editMessage[index].messageVisible = false
+    this.setState({
+      editMessage,
     })
   }
   orderUsersList(sortColumn) {
@@ -486,13 +525,22 @@ class AdminManagePanel extends Component {
       editRole,
       currentPage,
       totalPage,
-      message,
+      addMessage,
+      editMessage,
       orderBy,
     } = this.state
-    let visibleMessage = <></>
-    if (message.messageVisible) {
-      visibleMessage = <Message color="red" onDismiss={this.handleDismiss.bind(this)} header={message.messageHeader} content={message.messageContent} />
+    let visibleAddMessage = <></>
+    if (addMessage.messageVisible) {
+      visibleAddMessage = <Message color="red" onDismiss={this.handleDismissAddMessage.bind(this)} header={addMessage.messageHeader} content={addMessage.messageContent} />
     }
+    let visibleEditMessage = editMessage.map((item, index) => {
+      if (item.messageVisible) {
+        return <Message color="red" onDismiss={this.handleDismissEditMessage.bind(this, index)} header={item.messageHeader} content={item.messageContent} />
+      } else {
+        return <></>
+      }
+    })
+
     const copyRoles = [].concat(allRoles)
     const adminIndex = copyRoles.indexOf('admin')
     copyRoles.splice(adminIndex, 1)
@@ -562,6 +610,7 @@ class AdminManagePanel extends Component {
                       修改
                     </AntdButton>
                   </Form.Item>
+                  {visibleEditMessage[index]}
                 </Form>
               </div>
             </Modal>
@@ -662,7 +711,7 @@ class AdminManagePanel extends Component {
                     添加
                   </AntdButton>
                 </Form.Item>
-                {visibleMessage}
+                {visibleAddMessage}
               </Form>
             </div>
           </Modal>
