@@ -323,7 +323,7 @@ class Main extends Component {
                     name='cov19List'>
                     新冠肺炎
                 </Menu.Item> */}
-        <Menu.Item
+        {/* <Menu.Item
           active={activeItem === "preprocess"}
           onClick={this.handleItemClick}
           as={Link}
@@ -331,7 +331,7 @@ class Main extends Component {
           name="preprocess"
         >
           预处理
-        </Menu.Item>
+        </Menu.Item> */}
       </>
     );
 
