@@ -231,9 +231,11 @@ export class SearchPanel extends Component {
     const value = e.currentTarget.value;
     const name = e.currentTarget.name;
     this.setState({ activePage: 1 });
-    if (name === "pid" && !isNaN(value)) {
+    // var reg = new RegExp("^[A-Za-z0-9]+$");
+    // if (name === "pid" && !isNaN(value)) {
+    if (name === "pid") {
       this.setState({ pidKeyword: value });
-    } else if (name === "date" && !isNaN(value)) {
+    } else if (name === "date") {
       this.setState({ dateKeyword: value });
     }
   }
