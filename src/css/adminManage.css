@@ -140,3 +140,25 @@
 .admin-manage-log-form-button:focus {
   background-color: rgba(10, 10, 0, 0.7);
 }
+.admin-manage-table-header-cell-order {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+.admin-manage-table-header-cell-order-right {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+}
+.admin-manage-table-header-icon-hide {
+  color: rgba(160, 160, 160, 0.9);
+}
+.admin-manage-table-header-icon-up {
+  position: relative;
+  bottom: -4px;
+}
+.admin-manage-table-header-icon-down {
+  position: relative;
+  top: -4px;
+}

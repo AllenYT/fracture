@@ -2928,10 +2928,14 @@ class CornerstoneElement extends Component {
                             this.element = input;
                           }}
                         >
-                          <canvas className="cornerstone-canvas" id="canvas" style={{
-                            width: this.state.crossCanvasWidth,
-                            height: this.state.crossCanvasHeight,
-                          }}/>
+                          <canvas
+                            className="cornerstone-canvas"
+                            id="canvas"
+                            style={{
+                              width: this.state.crossCanvasWidth,
+                              height: this.state.crossCanvasHeight,
+                            }}
+                          />
                           {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                           {/* {canvas} */}
                           {dicomTagPanel}
@@ -3058,10 +3062,13 @@ class CornerstoneElement extends Component {
                             this.element = input;
                           }}
                         >
-                          <canvas className="cornerstone-canvas" id="canvas" style={{
-                            width: this.state.verticalCanvasWidth,
-                            height: this.state.verticalCanvasHeight,
-                          }}
+                          <canvas
+                            className="cornerstone-canvas"
+                            id="canvas"
+                            style={{
+                              width: this.state.verticalCanvasWidth,
+                              height: this.state.verticalCanvasHeight,
+                            }}
                           />
                           {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                           {/* {canvas} */}
@@ -4048,8 +4055,8 @@ class CornerstoneElement extends Component {
         const transY = this.state.viewport.translation.y;
         const scale = this.state.viewport.scale;
         const halfValue = 256;
-        let canvasHeight = document.getElementById("canvas").height / 2
-        let canvaseWidth = document.getElementById("canvas").width / 2
+        let canvasHeight = document.getElementById("canvas").height / 2;
+        let canvaseWidth = document.getElementById("canvas").width / 2;
         x = (clickX - scale * transX - canvaseWidth) / scale + halfValue;
         y = (clickY - scale * transY - canvasHeight) / scale + halfValue;
       } else {
@@ -4152,8 +4159,8 @@ class CornerstoneElement extends Component {
         const transY = this.state.viewport.translation.y;
         const scale = this.state.viewport.scale;
         const halfValue = 256;
-        let canvasHeight = document.getElementById("canvas").height / 2
-        let canvaseWidth = document.getElementById("canvas").width / 2
+        let canvasHeight = document.getElementById("canvas").height / 2;
+        let canvaseWidth = document.getElementById("canvas").width / 2;
         x = (clickX - scale * transX - canvaseWidth) / scale + halfValue;
         y = (clickY - scale * transY - canvasHeight) / scale + halfValue;
       } else {
@@ -4470,8 +4477,8 @@ class CornerstoneElement extends Component {
         const transY = this.state.viewport.translation.y;
         const scale = this.state.viewport.scale;
         const halfValue = 256;
-        let canvasHeight = document.getElementById("canvas").height / 2
-        let canvaseWidth = document.getElementById("canvas").width / 2
+        let canvasHeight = document.getElementById("canvas").height / 2;
+        let canvaseWidth = document.getElementById("canvas").width / 2;
         x = (clickX - scale * transX - canvaseWidth) / scale + halfValue;
         y = (clickY - scale * transY - canvasHeight) / scale + halfValue;
       } else {
@@ -4614,8 +4621,8 @@ class CornerstoneElement extends Component {
         const scale = this.state.viewport.scale;
 
         const halfValue = 256; //256
-        let canvasHeight = document.getElementById("canvas").height / 2
-        let canvaseWidth = document.getElementById("canvas").width / 2
+        let canvasHeight = document.getElementById("canvas").height / 2;
+        let canvaseWidth = document.getElementById("canvas").width / 2;
         x = (clickX - scale * transX - canvaseWidth) / scale + halfValue;
         y = (clickY - scale * transY - canvasHeight) / scale + halfValue;
       } else {
@@ -5265,47 +5272,38 @@ class CornerstoneElement extends Component {
   }
 
   resizeScreen(e) {
-    // let canva = document.getElementById('origin-canvas')
-    // // canva.style.width = e.target.innerWidth * 400/1920
-    // canva.style.width = document.body.clientWidth * 860/1920
-    // canva.style.height = canva.style.width
-
-    let canvasColumn = document.getElementById("canvas-column");
-    let report = document.getElementById("report");
-    let list = document.getElementsByClassName("nodule-card-container")[0];
-    report.style.height = canvasColumn.clientHeight / 3 + "px";
-    list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
     let crossCanvasWidth = (e.target.innerWidth * 870) / 1920;
     let crossCanvasHeight = (e.target.innerHeight * 870) / 1080;
     let verticalCanvasWidth = (e.target.innerWidth * 840) / 1080;
     let verticalCanvasheight = (e.target.innerHeight * 1080) / 1920;
-    console.log(
-      "resizeBrowser",
-      report.clientHeight,
-      list.clientHeight,
-      canvasColumn.clientHeight
+    console.log("resizeBrowser");
+    this.setState(
+      {
+        windowWidth: e.target.innerWidth,
+        windowHeight: e.target.innerHeight,
+        crossCanvasWidth: crossCanvasWidth,
+        crossCanvasHeight: crossCanvasHeight,
+        verticalCanvasWidth: verticalCanvasWidth,
+        verticalCanvasheight: verticalCanvasheight,
+      },
+      () => {
+        let canvasColumn = document.getElementById("canvas-column");
+        let report = document.getElementById("report");
+        let list = document.getElementsByClassName("nodule-card-container")[0];
+        report.style.height = canvasColumn.clientHeight / 3 + "px";
+        list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
+      }
     );
-    // this.setState({windowWidth:document.body.clientWidth, windowHeight:document.body.clientHeight})
-    this.setState({
-      windowWidth: e.target.innerWidth,
-      windowHeight: e.target.innerHeight,
-      crossCanvasWidth: crossCanvasWidth,
-      crossCanvasHeight: crossCanvasHeight,
-      verticalCanvasWidth: verticalCanvasWidth,
-      verticalCanvasheight: verticalCanvasheight,
-    });
   }
 
   firstLayout() {
-    let canvasColumn = document.getElementById("canvas-column");
-    let report = document.getElementById("report");
-    let list = document.getElementsByClassName("nodule-card-container")[0];
-    report.style.height = canvasColumn.clientHeight / 3 + "px";
-    list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
-    // let closeHistogram = document.getElementById('closeVisualContent')
-    // let histogram = document.getElementsByClassName('histogram')[0]
-
-    this.setState({ firstlayout: 1 });
+    this.setState({ firstlayout: 1 }, () => {
+      let canvasColumn = document.getElementById("canvas-column");
+      let report = document.getElementById("report");
+      let list = document.getElementsByClassName("nodule-card-container")[0];
+      report.style.height = canvasColumn.clientHeight / 3 + "px";
+      list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
+    });
   }
 
   refreshImage(initial, imageId, newIdx) {
@@ -5415,7 +5413,6 @@ class CornerstoneElement extends Component {
         // }
 
         document.addEventListener("keydown", this.onKeydown);
-        window.addEventListener("resize", this.resizeScreen.bind(this));
       }
       // window.addEventListener("resize", this.onWindowResize) if (!initial) {
       // this.setState({currentIdx: newIdx}) }
@@ -5458,6 +5455,7 @@ class CornerstoneElement extends Component {
   }
 
   componentDidMount() {
+    window.addEventListener("resize", this.resizeScreen.bind(this));
     // this.getNoduleIfos()
     // this.visualize()
     if (localStorage.getItem("token") == null) {

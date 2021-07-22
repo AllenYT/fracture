@@ -3,10 +3,13 @@ import axios from 'axios'
 import qs from 'qs'
 import _ from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTimesCircle, faChevronCircleUp, faChevronCircleDown, faUser, faLock } from '@fortawesome/free-solid-svg-icons'
+import { faTimesCircle, faChevronCircleUp, faChevronCircleDown, faUser, faLock, faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons'
 
 import { Form, Input, Button as AntdButton, Select, Pagination } from 'antd'
 import { Button, Table, Modal, Message } from 'semantic-ui-react'
+import md5 from 'js-md5'
+import LowerAuth from '../components/LowerAuth'
+
 // import { Slider, Select, Space, Checkbox, Tabs } from 'antd'
 import '../css/adminManage.css'
 import { alloc } from 'dicom-parser'
@@ -33,6 +36,7 @@ class AdminManagePanel extends Component {
       allRoles: [],
       currentPage: 1,
       totalPage: 10,
+      orderBy: 'createTime desc,username desc',
       message: {
         messageVisible: false,
         messageType: 'failed',
@@ -72,14 +76,15 @@ class AdminManagePanel extends Component {
         })
       }
     })
-    this.getUserInfoByPage(1)
+    this.updateUserInfoByPage(1)
   }
-  getUserInfoByPage(page) {
+  updateUserInfoByPage(page) {
     axios
       .post(
         this.config.user.getUserAtPage,
         qs.stringify({
           page: page,
+          orderBy: this.state.orderBy,
         })
       )
       .then((res) => {
@@ -101,9 +106,12 @@ class AdminManagePanel extends Component {
         }
       })
   }
+  updateUserInfoByTotalPage(totalPage) {
+    console.log(totalPage)
+  }
   validateUserInfo(username, password, valPassword, role) {
     const message = this.state.message
-    if (!username || username.length < 1) {
+    if (!username && username.length < 1) {
       console.log('username length error')
       message.messageVisible = true
       message.messageType = 'failed'
@@ -123,12 +131,12 @@ class AdminManagePanel extends Component {
         message,
       })
       return false
-    } else if (password.length > 16 && password.length < 6) {
+    } else if (password.length > 16 || password.length < 6) {
       console.log('password length error')
       message.messageVisible = true
       message.messageType = 'failed'
       message.messageHeader = '密码长度不符'
-      message.messageContent = '密码长度不符'
+      message.messageContent = '密码长度需要大于等于6位小于等于16位'
       this.setState({
         message,
       })
@@ -192,18 +200,28 @@ class AdminManagePanel extends Component {
           this.config.user.insertUserInfoForAdmin,
           qs.stringify({
             createUsername: newUsername,
-            createPassword: newPassword,
+            createPassword: md5(newPassword),
             roles: newRole,
           })
         )
         .then((res) => {
           console.log('insertUserInfoForAdmin request', res)
           if (res.status === 200 && res.data && res.data.status === 'ok') {
+            const totalPage = res.data.newTotalPage
+            this.setState(
+              {
+                totalPage,
+                currentPage: 1,
+                orderBy: 'createTime desc,username desc',
+              },
+              () => {
+                this.updateUserInfoByPage(1)
+              }
+            )
+            alert('添加成功')
             this.setAddUserModalOpen(false)
-            this.getUserInfoByPage(this.state.currentPage)
-            alert('登录成功')
           } else {
-            alert('登录失败')
+            alert('添加失败')
           }
         })
     }
@@ -216,16 +234,16 @@ class AdminManagePanel extends Component {
           this.config.user.insertUserInfoForAdmin,
           qs.stringify({
             createUsername: editUsername,
-            createPassword: editPassword,
+            createPassword: md5(editPassword),
             roles: editRole,
           })
         )
         .then((res) => {
           console.log('updateRolesForUser request', res)
           if (res.status === 200 && res.data && res.data.status === 'ok') {
-            this.setEditUserModalOpen(index, false)
-            this.getUserInfoByPage(this.state.currentPage)
+            this.updateUserInfoByPage(this.state.currentPage)
             alert('修改成功')
+            this.setEditUserModalOpen(index, false)
           } else {
             alert('修改失败')
           }
@@ -243,10 +261,34 @@ class AdminManagePanel extends Component {
       )
       .then((res) => {
         console.log('delUser request', res)
-        if (res.status === 200 && res.data && res.data === 1) {
-          this.setDeleteUserModalOpen(index, false)
-          this.getUserInfoByPage(this.state.currentPage)
+        if (res.status === 200 && res.data && res.data.status === 'ok') {
+          const totalPage = res.data.newTotalPage
+          const currentPage = this.state.currentPage
+          if (currentPage > totalPage) {
+            this.setState(
+              {
+                totalPage,
+                currentPage: totalPage,
+                orderBy: 'createTime desc,username desc',
+              },
+              () => {
+                this.updateUserInfoByPage(totalPage)
+              }
+            )
+          } else {
+            this.setState(
+              {
+                totalPage,
+                currentPage: currentPage,
+                orderBy: 'createTime desc,username desc',
+              },
+              () => {
+                this.updateUserInfoByPage(currentPage)
+              }
+            )
+          }
           alert('删除成功')
+          this.setDeleteUserModalOpen(index, false)
         } else {
           alert('删除失败')
         }
@@ -363,7 +405,7 @@ class AdminManagePanel extends Component {
         currentPage: page,
       },
       () => {
-        this.getUserInfoByPage(page)
+        this.updateUserInfoByPage(page)
       }
     )
   }
@@ -373,6 +415,56 @@ class AdminManagePanel extends Component {
     this.setState({
       message,
     })
+  }
+  orderUsersList(sortColumn) {
+    let resultOrderBy = ''
+    const orderBy = this.state.orderBy
+    const orderByList = orderBy.split(',')
+    for (let i = 0; i < orderByList.length; i++) {
+      const orderByItem = orderByList[i]
+      const orderByItemList = orderByItem.split(' ')
+      if (orderByItemList.length === 2 && orderByItemList[0] === sortColumn) {
+        if (orderByItemList[1] === 'asc') {
+          orderByItemList[1] = 'desc'
+        } else {
+          orderByItemList[1] = 'asc'
+        }
+      }
+      if (i === orderByList.length - 1) {
+        resultOrderBy += orderByItemList[0] + ' ' + orderByItemList[1]
+      } else {
+        resultOrderBy += orderByItemList[0] + ' ' + orderByItemList[1] + ','
+      }
+    }
+    this.setState({
+      orderBy: resultOrderBy,
+    })
+    axios
+      .post(
+        this.config.user.getUserAtPage,
+        qs.stringify({
+          page: this.state.currentPage,
+          orderBy: resultOrderBy,
+        })
+      )
+      .then((res) => {
+        console.log('getUserAtPage request', res)
+        const usersList = []
+        const data = res.data
+        if (data) {
+          data.forEach((item) => {
+            const user = {
+              username: item.username,
+              createTime: item.createTime,
+              roles: item.roles.content,
+            }
+            usersList.push(user)
+          })
+          this.setState({
+            usersList,
+          })
+        }
+      })
   }
   render() {
     const {
@@ -395,6 +487,7 @@ class AdminManagePanel extends Component {
       currentPage,
       totalPage,
       message,
+      orderBy,
     } = this.state
     let visibleMessage = <></>
     if (message.messageVisible) {
@@ -433,9 +526,9 @@ class AdminManagePanel extends Component {
                 </Button>
               }>
               {/* <Modal.Header>Select a Photo</Modal.Header> */}
-              <div className={'admin-manage-log-block ' + (addUserModalToggled ? 'admin-manage-log-block-toggled' : '')}>
+              <div className={'admin-manage-log-block ' + (editUserModalToggleds[index] ? 'admin-manage-log-block-toggled' : '')}>
                 <div className={'admin-manage-log-heading'}>
-                  添加用户
+                  修改用户信息
                   <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={faTimesCircle} onClick={this.setEditUserModalOpen.bind(this, index, false)} />
                   <FontAwesomeIcon
                     className={'admin-manage-log-heading-icon'}
@@ -484,9 +577,9 @@ class AdminManagePanel extends Component {
                 </Button>
               }>
               {/* <Modal.Header>Select a Photo</Modal.Header> */}
-              <div className={'admin-manage-log-block ' + (addUserModalToggled ? 'admin-manage-log-block-toggled' : '')}>
+              <div className={'admin-manage-log-block ' + (deleteUserModalToggleds[index] ? 'admin-manage-log-block-toggled' : '')}>
                 <div className={'admin-manage-log-heading'}>
-                  添加用户
+                  删除该用户
                   <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={faTimesCircle} onClick={this.setDeleteUserModalOpen.bind(this, index, false)} />
                   <FontAwesomeIcon
                     className={'admin-manage-log-heading-icon'}
@@ -497,10 +590,10 @@ class AdminManagePanel extends Component {
                 <Form className={'admin-manage-log-form'} labelCol={{ offset: 0, span: 0 }} wrapperCol={{ offset: 0, span: 24 }}>
                   <Form.Item>
                     <AntdButton className={'admin-manage-log-form-button'} style={{ marginRight: '6%' }} onClick={this.setDeleteUserModalOpen.bind(this, index, false)}>
-                      取消删除
+                      取消
                     </AntdButton>
                     <AntdButton className={'admin-manage-log-form-button'} onClick={this.deleteUser.bind(this, index)}>
-                      确定删除
+                      删除
                     </AntdButton>
                   </Form.Item>
                 </Form>
@@ -510,7 +603,20 @@ class AdminManagePanel extends Component {
         </Table.Row>
       )
     })
-    return (
+    let usernameDirection = ''
+    let createTimeDirection = ''
+    const orderByList = orderBy.split(',')
+    for (let i = 0; i < orderByList.length; i++) {
+      const orderByItem = orderByList[i]
+      const orderByItemList = orderByItem.split(' ')
+      if (orderByItemList.length === 2 && orderByItemList[0] === 'username') {
+        usernameDirection = orderByItemList[1]
+      }
+      if (orderByItemList.length === 2 && orderByItemList[0] === 'createTime') {
+        createTimeDirection = orderByItemList[1]
+      }
+    }
+    return localStorage.getItem('auths') !== null && JSON.parse(localStorage.getItem('auths')).indexOf('nodule_search') > -1 ? (
       <div className="admin-manage-out-container">
         <div>
           <Modal
@@ -526,7 +632,7 @@ class AdminManagePanel extends Component {
             {/* <Modal.Header>Select a Photo</Modal.Header> */}
             <div className={'admin-manage-log-block ' + (addUserModalToggled ? 'admin-manage-log-block-toggled' : '')}>
               <div className={'admin-manage-log-heading'}>
-                添加用户
+                添加新用户
                 <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={faTimesCircle} onClick={this.setAddUserModalOpen.bind(this, false)} />
                 <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={addUserModalToggled ? faChevronCircleDown : faChevronCircleUp} onClick={this.setAddUserModalToggled.bind(this)} />
               </div>
@@ -565,9 +671,25 @@ class AdminManagePanel extends Component {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell>ID</Table.HeaderCell>
-              <Table.HeaderCell>用户名</Table.HeaderCell>
+              <Table.HeaderCell>
+                <div className={'admin-manage-table-header-cell-order'}>
+                  <span>用户名</span>
+                  <span className={'admin-manage-table-header-cell-order-right'} onClick={this.orderUsersList.bind(this, 'username')}>
+                    <FontAwesomeIcon className={(usernameDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faCaretUp} />
+                    <FontAwesomeIcon className={(usernameDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faCaretDown} />
+                  </span>
+                </div>
+              </Table.HeaderCell>
               <Table.HeaderCell>角色</Table.HeaderCell>
-              <Table.HeaderCell>添加时期</Table.HeaderCell>
+              <Table.HeaderCell>
+                <div className={'admin-manage-table-header-cell-order'}>
+                  <span>添加日期</span>
+                  <span className={'admin-manage-table-header-cell-order-right'} onClick={this.orderUsersList.bind(this, 'createTime')}>
+                    <FontAwesomeIcon className={(createTimeDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faCaretUp} />
+                    <FontAwesomeIcon className={(createTimeDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faCaretDown} />
+                  </span>
+                </div>
+              </Table.HeaderCell>
               <Table.HeaderCell>操作</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
@@ -577,6 +699,8 @@ class AdminManagePanel extends Component {
           <Pagination current={currentPage} defaultCurrent={currentPage} total={totalPage * 10} onChange={this.onPageChange.bind(this)} />
         </div>
       </div>
+    ) : (
+      <LowerAuth></LowerAuth>
     )
   }
 }
