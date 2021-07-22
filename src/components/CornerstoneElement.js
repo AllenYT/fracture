@@ -5297,13 +5297,28 @@ class CornerstoneElement extends Component {
   }
 
   firstLayout() {
-    this.setState({ firstlayout: 1 }, () => {
-      let canvasColumn = document.getElementById("canvas-column");
-      let report = document.getElementById("report");
-      let list = document.getElementsByClassName("nodule-card-container")[0];
-      report.style.height = canvasColumn.clientHeight / 3 + "px";
-      list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
-    });
+    let crossCanvasWidth = (document.body.clientWidth * 870) / 1920;
+    let crossCanvasHeight = (document.body.clientHeight * 870) / 1080;
+    let verticalCanvasWidth = (document.body.clientWidth * 840) / 1080;
+    let verticalCanvasheight = (document.body.clientHeight * 1080) / 1920;
+    this.setState(
+      {
+        firstlayout: 1,
+        windowWidth: document.body.clientWidth,
+        windowHeight: document.body.clientHeight,
+        crossCanvasWidth: crossCanvasWidth,
+        crossCanvasHeight: crossCanvasHeight,
+        verticalCanvasWidth: verticalCanvasWidth,
+        verticalCanvasheight: verticalCanvasheight,
+      },
+      () => {
+        let canvasColumn = document.getElementById("canvas-column");
+        let report = document.getElementById("report");
+        let list = document.getElementsByClassName("nodule-card-container")[0];
+        report.style.height = canvasColumn.clientHeight / 3 + "px";
+        list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
+      }
+    );
   }
 
   refreshImage(initial, imageId, newIdx) {
