@@ -1,12 +1,12 @@
 {
     "data": {
-        "getDataListForCaseId": "http://192.168.7.198:8095/data/getDataListForCaseId",
-        "getDataListForCov19CaseId":"http://192.168.7.198:8095/data/getCovidMaskListForCaseId",
-        "getSingleJpg":"http://192.168.7.198:8095/data/covidMask",
-        "getHist":"http://192.168.7.198:8095/covid/getHist",
+        "getDataListForCaseId": "http://192.168.7.193:8095/data/getDataListForCaseId",
+        "getDataListForCov19CaseId":"http://192.168.7.193:8095/data/getCovidMaskListForCaseId",
+        "getSingleJpg":"http://192.168.7.193:8095/data/covidMask",
+        "getHist":"http://192.168.7.193:8095/covid/getHist",
         "uploadMutiply":"http://192.168.7.193:8095/data/uploadMutiply",
-        "preprocess":"http://192.168.7.198:8095/preprocess/exec",
-        "getMhaListForCaseId": "http://192.168.7.198:8095/data/getMhaListForCaseId"
+        "preprocess":"http://192.168.7.193:8095/preprocess/exec",
+        "getMhaListForCaseId": "http://192.168.7.193:8095/data/getMhaListForCaseId"
     },
 
     "user": {

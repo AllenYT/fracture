@@ -22,19 +22,21 @@ class DisplayPanel extends Component {
   nextPath(path) {
     this.props.history.push(path);
   }
-  handleClickScreen(e, href) {
+  handleClickScreen(e, href, status) {
     console.log("card", href);
-    if (
-      window.location.pathname.split("/case/")[1].split("/")[0] !==
-      href.split("/case/")[1].split("/")[0]
-    ) {
-      this.setState({
-        caseId: href.split("/case/")[1].split("/")[0],
-        username: href.split("/")[3],
-        show: false,
-      });
-      // this.nextPath(href)
-      window.location.href = href;
+    if (status === "ok") {
+      if (
+        window.location.pathname.split("/case/")[1].split("/")[0] !==
+        href.split("/case/")[1].split("/")[0]
+      ) {
+        this.setState({
+          caseId: href.split("/case/")[1].split("/")[0],
+          username: href.split("/")[3],
+          show: false,
+        });
+        // this.nextPath(href)
+        window.location.href = href;
+      }
     }
   }
 
