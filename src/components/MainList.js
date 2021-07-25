@@ -41,8 +41,10 @@ class MainList extends Component {
       const params = {
         page: this.props.currentPage,
         type: this.props.type,
-        pidKeyword: this.props.pidKeyword.toUpperCase(),
-        dateKeyword: this.props.dateKeyword.toUpperCase(),
+        // pidKeyword: this.props.pidKeyword.toUpperCase(),
+        // dateKeyword: this.props.dateKeyword.toUpperCase(),
+        pidKeyword: this.props.pidKeyword,
+        dateKeyword: this.props.dateKeyword,
       };
 
       axios
