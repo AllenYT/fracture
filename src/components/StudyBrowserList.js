@@ -89,9 +89,43 @@ class StudyBrowserList extends Component {
           }
         }, reject);
     });
-    await getStudyListPromise;
-    let dateSeries = this.state.dateSeries;
+    const dateSeries = await getStudyListPromise;
+    // const dateSeries = this.state.dateSeries;
     var dataValidContnt = [];
+    // console.log("dateSeries", dateSeries, dateSeries.length);
+
+    // dateSeries.forEach((dateSerie) => {
+    //   console.log("dateSerie", dateSerie);
+    // });
+
+    // for (let i = 0; i < dateSeries.length; i++) {
+    // console.log("dateSerie", dateSeries.length, dateSeries[0], dateSeries[1]);
+    // }
+
+    // const dateSeriesPromises = dateSeries.map((dateSerie) => {
+    // new Promise((reject, resolve) => {
+    // console.log("dateSerie", dateSerie);
+    //   let statusParams = {
+    //     caseId: dateSerie.caseId,
+    //   };
+    //   axios
+    //     .post(this.config.draft.dataValid, qs.stringify(statusParams))
+    //     .then((validResponse) => {
+    //       var validInfo = validResponse.data;
+    //       let validContent = {
+    //         caseId: dateSerie.caseId,
+    //         validInfo: validInfo,
+    //       };
+    //       console.log("validContent", validContent);
+    //       dataValidContnt.push(validContent);
+    //       resolve(validContent);
+    //     }, reject);
+    // });
+    // });
+    // Promise.all(dateSeriesPromises).then((validContent) => {
+    //   // console.log("validContent", validContent);
+    // });
+
     for (let i = 0; i < dateSeries.length; i++) {
       var statusParams = {
         caseId: dateSeries[i].caseId,
