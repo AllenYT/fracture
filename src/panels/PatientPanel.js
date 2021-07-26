@@ -221,7 +221,7 @@ class PatientPanel extends Component {
             otherKeyword: ''
         }
 
-        axios.post(this.config.record.getSubList, qs.stringify(params)).then((response) => {
+        axios.post(this.config.record.getSubListForMainItem_front, qs.stringify(params)).then((response) => {
             const data = response.data
             if (data.status !== 'okay') {
                 console.log("Not okay")

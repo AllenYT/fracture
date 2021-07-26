@@ -136,6 +136,10 @@ class FollowUpElement extends Component {
     Promise.all([curImagePromise, preImagePromise]).then(() => {})
   }
 
+  componentWillMount() {
+    document.getElementById('header').style.display = 'none'
+  }
+
   componentDidUpdate(prevProps, prevState) {
     if (prevState.activeViewportIndex !== this.state.activeViewportIndex) {
       console.log('activeidx', this.state.activeViewportIndex)
@@ -171,15 +175,25 @@ class FollowUpElement extends Component {
     console.log('change location', this.state.curBoxes)
   }
 
-  handleListClick = (currentIdx, index) => {
+  handleListClick = (currentIdx, index, status) => {
     //点击list-item
-    const { curListsActiveIndex } = this.state
-    const newIndex = curListsActiveIndex === index ? -1 : index
-    console.log('curidx', index, curListsActiveIndex)
-    this.setState({
-      curListsActiveIndex: newIndex,
-      currentIdx: currentIdx,
-    })
+    if (status === 'current') {
+      const { curListsActiveIndex } = this.state
+      const newIndex = curListsActiveIndex === index ? -1 : index
+      console.log('curidx', index, curListsActiveIndex)
+      this.setState({
+        curListsActiveIndex: newIndex,
+        currentIdx: currentIdx,
+      })
+    } else if (status === 'previews') {
+      const { preListsActiveIndex } = this.state
+      const newIndex = preListsActiveIndex === index ? -1 : index
+      console.log('curidx', index, preListsActiveIndex)
+      this.setState({
+        preListsActiveIndex: newIndex,
+        previewsIdx: currentIdx,
+      })
+    }
   }
 
   representChange = (e, { value, name }) => {
@@ -288,7 +302,7 @@ class FollowUpElement extends Component {
       }
       return (
         <div key={idx}>
-          <Accordion.Title index={idx} onClick={this.handleListClick.bind(this, inside.slice_idx, idx)} active={curListsActiveIndex === idx} className="current-nodule-accordion-title">
+          <Accordion.Title index={idx} onClick={this.handleListClick.bind(this, inside.slice_idx, idx, 'current')} active={curListsActiveIndex === idx} className="current-nodule-accordion-title">
             <Row gutter={1}>
               <Col span={1}>
                 <Text level={4}>{idx + 1}</Text>
@@ -344,81 +358,65 @@ class FollowUpElement extends Component {
       )
     })
 
-    // preListsActiveIndex = this.state.preBoxes.map((inside,idx) => {
-    //     let ll = 0
-    //     let sl = 0
-    //     if(inside.measure !== undefined && inside.measure !== null){
-    //         ll = Math.sqrt(Math.pow((inside.measure.x1 - inside.measure.x2),2) + Math.pow((inside.measure.y1 - inside.measure.y2),2))
-    //         sl = Math.sqrt(Math.pow((inside.measure.x3 - inside.measure.x4),2) + Math.pow((inside.measure.y3 - inside.measure.y4),2))
-    //         if(isNaN(ll)){
-    //             ll=0
-    //         }
-    //         if(isNaN(sl)){
-    //             sl=0
-    //         }
-    //     }
-    //     return(
-    //     <div key={idx}>
-    //         <Accordion.Title index={idx} onClick={this.handleListClick.bind(this,inside.slice_idx,idx)} active={preListsActiveIndex === idx} className="current-nodule-accordion-title">
-    //             <Row gutter={1}>
-    //                 <Col span={1}>
-    //                     <Text level={4}>{idx+1}</Text>
-    //                 </Col>
-    //                 <Col span={1}>
-    //                     <Text>位置</Text>
-    //                 </Col>
-    //                 <Col span={5}>
-    //                     <Cascader options={segmentConfig} onChange={this.onLungLocationChange.bind(this,idx)}>
-    //                         <a href="#">{lungLoc[inside.segment]}</a>
-    //                     </Cascader>
-    //                 </Col>
-    //                 <Col span={3}>
-    //                     <Cascader options={dangerLevelConfig} onChange={this.onDangerLevelChange.bind(this,idx)}>
-    //                         <a href="#">{dangerLevel[inside.malignancy]}</a>
-    //                     </Cascader>
-    //                 </Col>
-    //                 <Col span={3}>
-    //                     <Text>{Math.floor(inside.malProb*1000)/10+'%'}</Text>
-    //                 </Col>
-    //             </Row>
-    //         </Accordion.Title>
-    //         <Accordion.Content active={preListsActiveIndex === idx} className="current-nodule-accordion-content">
-    //             <Row gutter={4}>
-    //                 <Col span={1}>
-    //                     <Text type="success">{inside.slice_idx}</Text>
-    //                 </Col>
-    //                 <Col span={4}>
-    //                     <Text>{'\xa0\xa0'+(ll/10).toFixed(2) + '\xa0\xa0' +  ' ×' +'\xa0\xa0' + (sl/10).toFixed(2) + ' cm'}</Text>
-    //                 </Col>
-    //                 <Col span={3}>
-    //                     <Text>{
-    //                             inside.volume!==undefined?
-    //                             (Math.floor(inside.volume * 100) / 100).toFixed(2)+'\xa0cm³'
-    //                             :
-    //                             null
-    //                         }
-    //                     </Text>
-    //                 </Col>
-    //                 <Col span={4}>{
-    //                     inside.huMin!==undefined && inside.huMax!==undefined?
-    //                     inside.huMin +'~' + inside.huMax + 'HU'
-    //                     :
-    //                     null
-    //                 }
-    //                 </Col>
-    //                 <Col>
-    //                     <Text>表征:</Text>
-    //                 </Col>
-    //                 <Col>
-
-    //                 </Col>
-    //             </Row>
-
-    //         </Accordion.Content>
-    //     </div>
-
-    //     )
-    // })
+    preBoxesAccord = this.state.preBoxes.map((inside, idx) => {
+      let ll = 0
+      let sl = 0
+      if (inside.measure !== undefined && inside.measure !== null) {
+        ll = Math.sqrt(Math.pow(inside.measure.x1 - inside.measure.x2, 2) + Math.pow(inside.measure.y1 - inside.measure.y2, 2))
+        sl = Math.sqrt(Math.pow(inside.measure.x3 - inside.measure.x4, 2) + Math.pow(inside.measure.y3 - inside.measure.y4, 2))
+        if (isNaN(ll)) {
+          ll = 0
+        }
+        if (isNaN(sl)) {
+          sl = 0
+        }
+      }
+      return (
+        <div key={idx}>
+          <Accordion.Title index={idx} onClick={this.handleListClick.bind(this, inside.slice_idx, idx, 'previews')} active={preListsActiveIndex === idx} className="current-nodule-accordion-title">
+            <Row gutter={1}>
+              <Col span={1}>
+                <Text level={4}>{idx + 1}</Text>
+              </Col>
+              <Col span={1}>
+                <Text>位置</Text>
+              </Col>
+              <Col span={5}>
+                <Cascader options={segmentConfig} onChange={this.onLungLocationChange.bind(this, idx)}>
+                  <a href="#">{lungLoc[inside.segment]}</a>
+                </Cascader>
+              </Col>
+              <Col span={3}>
+                <Cascader options={dangerLevelConfig} onChange={this.onDangerLevelChange.bind(this, idx)}>
+                  <a href="#">{dangerLevel[inside.malignancy]}</a>
+                </Cascader>
+              </Col>
+              <Col span={3}>
+                <Text>{Math.floor(inside.malProb * 1000) / 10 + '%'}</Text>
+              </Col>
+            </Row>
+          </Accordion.Title>
+          <Accordion.Content active={preListsActiveIndex === idx} className="current-nodule-accordion-content">
+            <Row gutter={4}>
+              <Col span={1}>
+                <Text type="success">{inside.slice_idx}</Text>
+              </Col>
+              <Col span={4}>
+                <Text>{'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}</Text>
+              </Col>
+              <Col span={3}>
+                <Text>{inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}</Text>
+              </Col>
+              <Col span={4}>{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</Col>
+              <Col>
+                <Text>表征:</Text>
+              </Col>
+              <Col></Col>
+            </Row>
+          </Accordion.Content>
+        </div>
+      )
+    })
 
     return (
       <div id="follow-up">
@@ -543,7 +541,7 @@ class FollowUpElement extends Component {
               <Col span={12}>
                 <Accordion>{curBoxesAccord}</Accordion>
               </Col>
-              <Col span={12}></Col>
+              <Col span={12}>{preBoxesAccord}</Col>
             </Row>
           </div>
         ) : (
