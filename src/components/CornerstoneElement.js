@@ -216,6 +216,10 @@ class CornerstoneElement extends Component {
       lengthBox: [],
       firstlayout: 0,
       imageCaching: false,
+      crossCanvasWidth: 870,
+      crossCanvasHeight: 870,
+      verticalCanvasWidth: 840,
+      verticalCanvasHeight: 1080,
     }
     this.config = JSON.parse(localStorage.getItem('config'))
     this.nextPath = this.nextPath.bind(this)
@@ -743,7 +747,14 @@ class CornerstoneElement extends Component {
   }
 
   onSelectPlace = (event) => {
-    let places = { 0: '选择位置', 1: '右肺中叶', 2: '右肺上叶', 3: '右肺下叶', 4: '左肺上叶', 5: '左肺下叶' }
+    let places = {
+      0: '选择位置',
+      1: '右肺中叶',
+      2: '右肺上叶',
+      3: '右肺下叶',
+      4: '左肺上叶',
+      5: '左肺下叶',
+    }
     let segments = {
       S1: '右肺上叶-尖段',
       S2: '右肺上叶-后段',
@@ -801,7 +812,16 @@ class CornerstoneElement extends Component {
   }
 
   representChange = (e, { value, name }) => {
-    let represents = { lobulation: '分叶', spiculation: '毛刺', calcification: '钙化', pin: '胸膜凹陷', cav: '空洞', vss: '血管集束', bea: '空泡', bro: '支气管充气' }
+    let represents = {
+      lobulation: '分叶',
+      spiculation: '毛刺',
+      calcification: '钙化',
+      pin: '胸膜凹陷',
+      cav: '空洞',
+      vss: '血管集束',
+      bea: '空泡',
+      bro: '支气管充气',
+    }
     console.log('测量', value, name.split('dropdown')[1])
     // let boxes = this.state.selectBoxes
     let boxes = this.state.boxes
@@ -1072,7 +1092,7 @@ class CornerstoneElement extends Component {
   }
 
   toSegView() {
-    window.location.href = '/segView/' + this.state.caseId
+    window.location.href = '/segView/' + this.state.caseId + '/' + this.state.modelName
   }
 
   handleLogin() {
@@ -1173,14 +1193,14 @@ class CornerstoneElement extends Component {
           </Tab.Pane>
         ),
       },
-      {
-        menuItem: '留言',
-        render: () => (
-          <Tab.Pane>
-            <MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} />
-          </Tab.Pane>
-        ),
-      },
+      // {
+      //   menuItem: "留言",
+      //   render: () => (
+      //     <Tab.Pane>
+      //       <MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} />
+      //     </Tab.Pane>
+      //   ),
+      // },
     ]
     const {
       showNodules,
@@ -1277,7 +1297,14 @@ class CornerstoneElement extends Component {
     let canvas
     let slideLabel
     let dicomTagPanel
-    let places = { 0: '选择位置', 1: '右肺中叶', 2: '右肺上叶', 3: '右肺下叶', 4: '左肺上叶', 5: '左肺下叶' }
+    let places = {
+      0: '选择位置',
+      1: '右肺中叶',
+      2: '右肺上叶',
+      3: '右肺下叶',
+      4: '左肺上叶',
+      5: '左肺下叶',
+    }
     // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
     let noduleNumTab = '结节(' + this.state.boxes.length + ')'
     // let inflammationTab = '炎症(有)'
@@ -1431,17 +1458,63 @@ class CornerstoneElement extends Component {
           </div>
           {slideLabel}
           <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-          <div style={{ position: 'absolute', color: 'white', top: '20px', right: '5px' }}>ACC No: {dicomTag.string('x00080050')}</div>
-          <div style={{ position: 'absolute', color: 'white', top: '35px', right: '5px' }}>{dicomTag.string('x00090010')}</div>
-          <div style={{ position: 'absolute', color: 'white', top: '50px', right: '5px' }}>{dicomTag.string('x0008103e')}</div>
-          <div style={{ position: 'absolute', color: 'white', top: '65px', right: '5px' }}>{dicomTag.string('x00080020')}</div>
-          <div style={{ position: 'absolute', color: 'white', top: '80px', right: '5px' }}>T: {dicomTag.string('x00180050')}</div>
+          <div
+            style={{
+              position: 'absolute',
+              color: 'white',
+              top: '20px',
+              right: '5px',
+            }}>
+            ACC No: {dicomTag.string('x00080050')}
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              color: 'white',
+              top: '35px',
+              right: '5px',
+            }}>
+            {dicomTag.string('x00090010')}
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              color: 'white',
+              top: '50px',
+              right: '5px',
+            }}>
+            {dicomTag.string('x0008103e')}
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              color: 'white',
+              top: '65px',
+              right: '5px',
+            }}>
+            {dicomTag.string('x00080020')}
+          </div>
+          <div
+            style={{
+              position: 'absolute',
+              color: 'white',
+              top: '80px',
+              right: '5px',
+            }}>
+            T: {dicomTag.string('x00180050')}
+          </div>
         </div>
         <div style={{ position: 'absolute', color: 'white', bottom: '30px' }}>
           Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
         </div>
         <div style={{ position: 'absolute', color: 'white', bottom: '10px' }}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-        <div style={{ position: 'absolute', color: 'white', bottom: '20px', right: '5px' }}>
+        <div
+          style={{
+            position: 'absolute',
+            color: 'white',
+            bottom: '20px',
+            right: '5px',
+          }}>
           WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}/ {Math.round(this.state.viewport.voi.windowCenter)}
         </div>
       </div>
@@ -2071,11 +2144,9 @@ class CornerstoneElement extends Component {
         <div id="cornerstone">
           <Menu className="corner-header">
             <Menu.Item>
-              <Image src={src1} avatar size="mini" />
+              {/* <Image src={src1} avatar size="mini" /> */}
               <a id="sys-name" href="/searchCase">
-                DeepLN肺结节全周期
-                <br />
-                管理数据平台
+                肺结节CT影像辅助检测软件
               </a>
             </Menu.Item>
             <Menu.Item className="hucolumn">
@@ -2238,16 +2309,16 @@ class CornerstoneElement extends Component {
                                         </Grid>
                                     )} */}
                 <Button icon onClick={this.toHidebox} className="funcbtn" id="showNodule" title="显示结节">
-                  <Icon id="cache-button" name="eye" size="large"></Icon>
+                  <Icon name="eye" size="large"></Icon>
                 </Button>
                 <Button icon onClick={this.toHidebox} className="funcbtn" id="hideNodule" title="隐藏结节">
-                  <Icon id="cache-button" name="eye slash" size="large"></Icon>
+                  <Icon name="eye slash" size="large"></Icon>
                 </Button>
                 <Button icon onClick={this.toHideInfo} className="funcbtn" id="showInfo" title="显示信息">
-                  <Icon id="cache-button" name="content" size="large"></Icon>
+                  <Icon name="content" size="large"></Icon>
                 </Button>
                 <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
-                  <Icon id="cache-button" name="delete calendar" size="large"></Icon>
+                  <Icon name="delete calendar" size="large"></Icon>
                 </Button>
                 <Button
                   onClick={() => {
@@ -2336,7 +2407,11 @@ class CornerstoneElement extends Component {
               <Dropdown text={welcome}>
                 <Dropdown.Menu id="logout-menu">
                   <Dropdown.Item icon="home" text="我的主页" onClick={this.toHomepage} />
-                  <Dropdown.Item icon="write" text="留言" onClick={this.handleWriting} />
+                  {/* <Dropdown.Item
+                    icon="write"
+                    text="留言"
+                    onClick={this.handleWriting}
+                  /> */}
                   <Dropdown.Item icon="log out" text="注销" onClick={this.handleLogout} />
                 </Dropdown.Menu>
               </Dropdown>
@@ -2356,11 +2431,21 @@ class CornerstoneElement extends Component {
                         {/* <div className='canvas-style' id='canvas-border'> */}
                         <div
                           id="origin-canvas"
-                          style={{ weight: (this.state.windowHeight * 960) / 1080, height: (this.state.windowHeight * 960) / 1080 }}
+                          style={{
+                            width: this.state.crossCanvasWidth,
+                            height: this.state.crossCanvasHeight,
+                          }}
                           ref={(input) => {
                             this.element = input
                           }}>
-                          <canvas className="cornerstone-canvas" id="canvas" />
+                          <canvas
+                            className="cornerstone-canvas"
+                            id="canvas"
+                            style={{
+                              width: this.state.crossCanvasWidth,
+                              height: this.state.crossCanvasHeight,
+                            }}
+                          />
                           {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                           {/* {canvas} */}
                           {dicomTagPanel}
@@ -2398,7 +2483,11 @@ class CornerstoneElement extends Component {
                     <div className="nodule-card-container">
                       <Tabs type="card" animated defaultActiveKey={1} size="small">
                         <TabPane tab={noduleNumTab} key="1">
-                          <div id="elec-table" style={{ height: (this.state.windowHeight * 1) / 2 }}>
+                          <div
+                            id="elec-table"
+                            style={{
+                              height: (this.state.windowHeight * 1) / 2,
+                            }}>
                             <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                               {tableContent}
                             </Accordion>
@@ -2415,7 +2504,16 @@ class CornerstoneElement extends Component {
                   </Grid.Row>
                   <Grid.Row>
                     <div id="report" style={{ height: this.state.windowHeight / 3 }}>
-                      <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true, size: 'huge' }} panes={panes} />
+                      <Tab
+                        menu={{
+                          borderless: false,
+                          inverted: false,
+                          attached: true,
+                          tabular: true,
+                          size: 'huge',
+                        }}
+                        panes={panes}
+                      />
                     </div>
                   </Grid.Row>
                 </Grid.Column>
@@ -2435,11 +2533,21 @@ class CornerstoneElement extends Component {
                         {/* <div className='canvas-style' id='canvas-border'> */}
                         <div
                           id="origin-canvas"
-                          style={{ weight: (this.state.windowHeight * 960) / 1080, height: (this.state.windowHeight * 960) / 1080 }}
+                          style={{
+                            width: this.state.verticalCanvasWidth,
+                            height: this.state.verticalCanvasHeight,
+                          }}
                           ref={(input) => {
                             this.element = input
                           }}>
-                          <canvas className="cornerstone-canvas" id="canvas" />
+                          <canvas
+                            className="cornerstone-canvas"
+                            id="canvas"
+                            style={{
+                              width: this.state.verticalCanvasWidth,
+                              height: this.state.verticalCanvasHeight,
+                            }}
+                          />
                           {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
                           {/* {canvas} */}
                           {dicomTagPanel}
@@ -2495,7 +2603,16 @@ class CornerstoneElement extends Component {
                 </Grid.Column>
                 <Grid.Column width={6}>
                   <div id="report" style={{ height: this.state.windowHeight / 3 }}>
-                    <Tab menu={{ borderless: false, inverted: false, attached: true, tabular: true, size: 'huge' }} panes={panes} />
+                    <Tab
+                      menu={{
+                        borderless: false,
+                        inverted: false,
+                        attached: true,
+                        tabular: true,
+                        size: 'huge',
+                      }}
+                      panes={panes}
+                    />
                   </div>
                 </Grid.Column>
               </Grid.Row>
@@ -2532,21 +2649,95 @@ class CornerstoneElement extends Component {
               <canvas className="cornerstone-canvas" id="canvas" />
               {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
               <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-              <div style={{ position: 'absolute', color: 'white', top: '20px', left: '-95px' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '20px',
+                  left: '-95px',
+                }}>
                 {dicomTag.string('x00101010')} {dicomTag.string('x00100040')}
               </div>
-              <div style={{ position: 'absolute', color: 'white', top: '35px', left: '-95px' }}>{dicomTag.string('x00100020')}</div>
-              <div style={{ position: 'absolute', color: 'white', top: '50px', left: '-95px' }}>{dicomTag.string('x00185100')}</div>
-              <div style={{ position: 'absolute', color: 'white', top: '65px', left: '-95px' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '35px',
+                  left: '-95px',
+                }}>
+                {dicomTag.string('x00100020')}
+              </div>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '50px',
+                  left: '-95px',
+                }}>
+                {dicomTag.string('x00185100')}
+              </div>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '65px',
+                  left: '-95px',
+                }}>
                 IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}
               </div>
               <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-              <div style={{ position: 'absolute', color: 'white', top: '20px', right: '-95px' }}>ACC No: {dicomTag.string('x00080050')}</div>
-              <div style={{ position: 'absolute', color: 'white', top: '35px', right: '-95px' }}>{dicomTag.string('x00090010')}</div>
-              <div style={{ position: 'absolute', color: 'white', top: '50px', right: '-95px' }}>{dicomTag.string('x0008103e')}</div>
-              <div style={{ position: 'absolute', color: 'white', top: '65px', right: '-95px' }}>{dicomTag.string('x00080020')}</div>
-              <div style={{ position: 'absolute', color: 'white', top: '80px', right: '-95px' }}>T: {dicomTag.string('x00180050')}</div>
-              <div style={{ position: 'absolute', color: 'white', bottom: '20px', left: '-95px' }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '20px',
+                  right: '-95px',
+                }}>
+                ACC No: {dicomTag.string('x00080050')}
+              </div>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '35px',
+                  right: '-95px',
+                }}>
+                {dicomTag.string('x00090010')}
+              </div>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '50px',
+                  right: '-95px',
+                }}>
+                {dicomTag.string('x0008103e')}
+              </div>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '65px',
+                  right: '-95px',
+                }}>
+                {dicomTag.string('x00080020')}
+              </div>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '80px',
+                  right: '-95px',
+                }}>
+                T: {dicomTag.string('x00180050')}
+              </div>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  bottom: '20px',
+                  left: '-95px',
+                }}>
                 Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
               </div>
               <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
@@ -3177,7 +3368,9 @@ class CornerstoneElement extends Component {
           let y_dia = mouseCurPos.y - mousePrePos.y
           if (this.state.leftBtnSpeed !== 0) {
             var slice_len = Math.round(y_dia / this.state.leftBtnSpeed)
-            this.setState({ slideSpan: Math.round(curPosition / this.state.leftBtnSpeed) })
+            this.setState({
+              slideSpan: Math.round(curPosition / this.state.leftBtnSpeed),
+            })
             if (y_dia > 0) {
               let newCurrentIdx = this.state.currentIdx + slice_len
               if (newCurrentIdx < this.state.imageIds.length) {
@@ -3204,9 +3397,10 @@ class CornerstoneElement extends Component {
         const transY = this.state.viewport.translation.y
         const scale = this.state.viewport.scale
         const halfValue = 256
-        let offsetminus = document.getElementById('canvas').width / 2
-        x = (clickX - scale * transX - offsetminus) / scale + halfValue
-        y = (clickY - scale * transY - offsetminus) / scale + halfValue
+        let canvasHeight = document.getElementById('canvas').height / 2
+        let canvaseWidth = document.getElementById('canvas').width / 2
+        x = (clickX - scale * transX - canvaseWidth) / scale + halfValue
+        y = (clickY - scale * transY - canvasHeight) / scale + halfValue
       } else {
         x = clickX / 2.5
         y = clickY / 2.5
@@ -3277,9 +3471,10 @@ class CornerstoneElement extends Component {
         const transY = this.state.viewport.translation.y
         const scale = this.state.viewport.scale
         const halfValue = 256
-        let offsetminus = document.getElementById('canvas').width / 2
-        x = (clickX - scale * transX - offsetminus) / scale + halfValue
-        y = (clickY - scale * transY - offsetminus) / scale + halfValue
+        let canvasHeight = document.getElementById('canvas').height / 2
+        let canvaseWidth = document.getElementById('canvas').width / 2
+        x = (clickX - scale * transX - canvaseWidth) / scale + halfValue
+        y = (clickY - scale * transY - canvasHeight) / scale + halfValue
       } else {
         x = clickX / 2.5
         y = clickY / 2.5
@@ -3502,9 +3697,10 @@ class CornerstoneElement extends Component {
         const transY = this.state.viewport.translation.y
         const scale = this.state.viewport.scale
         const halfValue = 256
-        let offsetminus = document.getElementById('canvas').width / 2
-        x = (clickX - scale * transX - offsetminus) / scale + halfValue
-        y = (clickY - scale * transY - offsetminus) / scale + halfValue
+        let canvasHeight = document.getElementById('canvas').height / 2
+        let canvaseWidth = document.getElementById('canvas').width / 2
+        x = (clickX - scale * transX - canvaseWidth) / scale + halfValue
+        y = (clickY - scale * transY - canvasHeight) / scale + halfValue
       } else {
         x = clickX / 2.5
         y = clickY / 2.5
@@ -3622,10 +3818,10 @@ class CornerstoneElement extends Component {
         const scale = this.state.viewport.scale
 
         const halfValue = 256 //256
-        let offsetminus = document.getElementById('canvas').width / 2
-        // console.log('off',offsetminus)
-        x = (clickX - scale * transX - offsetminus) / scale + halfValue
-        y = (clickY - scale * transY - offsetminus) / scale + halfValue
+        let canvasHeight = document.getElementById('canvas').height / 2
+        let canvaseWidth = document.getElementById('canvas').width / 2
+        x = (clickX - scale * transX - canvaseWidth) / scale + halfValue
+        y = (clickY - scale * transY - canvasHeight) / scale + halfValue
       } else {
         x = clickX / 2.5
         y = clickY / 2.5
@@ -3644,7 +3840,11 @@ class CornerstoneElement extends Component {
         } else {
           document.getElementById('canvas').style.cursor = 'auto'
         }
-        this.setState({ clicked: true, clickedArea: content, tmpCoord: coords })
+        this.setState({
+          clicked: true,
+          clickedArea: content,
+          tmpCoord: coords,
+        })
       } else if (this.state.leftButtonTools === 3) {
         //bidirection
         const coords = {
@@ -3661,7 +3861,11 @@ class CornerstoneElement extends Component {
         }
         let content = this.findMeasureArea(x, y)
         console.log('cotnt', content)
-        this.setState({ clicked: true, clickedArea: content, tmpCoord: coords })
+        this.setState({
+          clicked: true,
+          clickedArea: content,
+          tmpCoord: coords,
+        })
       } else if (this.state.leftButtonTools === 4) {
         //length
         const coords = {
@@ -3672,7 +3876,11 @@ class CornerstoneElement extends Component {
         }
         let content = this.findLengthArea(x, y)
         console.log('contnt', content)
-        this.setState({ clicked: true, clickedArea: content, tmpCoord: coords })
+        this.setState({
+          clicked: true,
+          clickedArea: content,
+          tmpCoord: coords,
+        })
       }
       // this.setState({clicked: true, clickedArea: content, tmpBox: coords})
     } else if (event.button == 1) {
@@ -3688,7 +3896,12 @@ class CornerstoneElement extends Component {
       window.detachEvent('mousewheel', this.onWheel)
     }
     if (this.state.clicked) {
-      this.setState({ clicked: false, tmpBox: {}, tmpCoord: {}, clickedArea: {} })
+      this.setState({
+        clicked: false,
+        tmpBox: {},
+        tmpCoord: {},
+        clickedArea: {},
+      })
     }
   }
 
@@ -3893,7 +4106,12 @@ class CornerstoneElement extends Component {
     console.log('params', qs.stringify(params))
     window.sessionStorage.setItem('currentModelId', 'none')
     const userId = sessionStorage.getItem('userId')
-    Promise.all([axios.get(this.config.user.get_session, { headers }), axios.post(this.config.draft.createNewDraft, qs.stringify(params), { headers })])
+    Promise.all([
+      axios.get(this.config.user.get_session, { headers }),
+      axios.post(this.config.draft.createNewDraft, qs.stringify(params), {
+        headers,
+      }),
+    ])
       .then(([response, NewDraftRes]) => {
         console.log(response.data.status)
         console.log(NewDraftRes.data)
@@ -3934,7 +4152,12 @@ class CornerstoneElement extends Component {
     }
     window.sessionStorage.setItem('currentModelId', currentModel)
     console.log('params', params)
-    Promise.all([axios.get(this.config.user.get_session, { headers }), axios.post(this.config.draft.createNewDraft, qs.stringify(params), { headers })])
+    Promise.all([
+      axios.get(this.config.user.get_session, { headers }),
+      axios.post(this.config.draft.createNewDraft, qs.stringify(params), {
+        headers,
+      }),
+    ])
       .then(([response, NewDraftRes]) => {
         console.log(response.data.status)
         console.log(NewDraftRes.data)
@@ -4187,31 +4410,38 @@ class CornerstoneElement extends Component {
   }
 
   resizeScreen(e) {
-    // let canva = document.getElementById('origin-canvas')
-    // // canva.style.width = e.target.innerWidth * 400/1920
-    // canva.style.width = document.body.clientWidth * 860/1920
-    // canva.style.height = canva.style.width
-
-    let canvasColumn = document.getElementById('canvas-column')
-    let report = document.getElementById('report')
-    let list = document.getElementsByClassName('nodule-card-container')[0]
-    report.style.height = canvasColumn.clientHeight / 3 + 'px'
-    list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
-    console.log('resizeBrowser', report.clientHeight, list.clientHeight, canvasColumn.clientHeight)
-    // this.setState({windowWidth:document.body.clientWidth, windowHeight:document.body.clientHeight})
-    this.setState({ windowWidth: e.target.innerWidth, windowHeight: e.target.innerHeight })
+    let crossCanvasWidth = (e.target.innerWidth * 870) / 1920
+    let crossCanvasHeight = (e.target.innerHeight * 870) / 1080
+    let verticalCanvasWidth = (e.target.innerWidth * 840) / 1080
+    let verticalCanvasheight = (e.target.innerHeight * 1080) / 1920
+    console.log('resizeBrowser')
+    this.setState(
+      {
+        windowWidth: e.target.innerWidth,
+        windowHeight: e.target.innerHeight,
+        crossCanvasWidth: crossCanvasWidth,
+        crossCanvasHeight: crossCanvasHeight,
+        verticalCanvasWidth: verticalCanvasWidth,
+        verticalCanvasheight: verticalCanvasheight,
+      },
+      () => {
+        let canvasColumn = document.getElementById('canvas-column')
+        let report = document.getElementById('report')
+        let list = document.getElementsByClassName('nodule-card-container')[0]
+        report.style.height = canvasColumn.clientHeight / 3 + 'px'
+        list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
+      }
+    )
   }
 
   firstLayout() {
-    let canvasColumn = document.getElementById('canvas-column')
-    let report = document.getElementById('report')
-    let list = document.getElementsByClassName('nodule-card-container')[0]
-    report.style.height = canvasColumn.clientHeight / 3 + 'px'
-    list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
-    // let closeHistogram = document.getElementById('closeVisualContent')
-    // let histogram = document.getElementsByClassName('histogram')[0]
-
-    this.setState({ firstlayout: 1 })
+    this.setState({ firstlayout: 1 }, () => {
+      let canvasColumn = document.getElementById('canvas-column')
+      let report = document.getElementById('report')
+      let list = document.getElementsByClassName('nodule-card-container')[0]
+      report.style.height = canvasColumn.clientHeight / 3 + 'px'
+      list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
+    })
   }
 
   refreshImage(initial, imageId, newIdx) {
@@ -4223,9 +4453,9 @@ class CornerstoneElement extends Component {
       this.setState({ currentIdx: newIdx })
     }
 
-    // const element = this.element
+    // const element = this.element;
 
-    // const element = document.getElementById('origin-canvas')
+    // const element = document.getElementById("origin-canvas");
     const element = document.querySelector('#origin-canvas')
     // console.log('element',element)
     // console.log('element',element)
@@ -4318,7 +4548,6 @@ class CornerstoneElement extends Component {
         // }
 
         document.addEventListener('keydown', this.onKeydown)
-        window.addEventListener('resize', this.resizeScreen.bind(this))
       }
       // window.addEventListener("resize", this.onWindowResize) if (!initial) {
       // this.setState({currentIdx: newIdx}) }
@@ -4361,6 +4590,7 @@ class CornerstoneElement extends Component {
   }
 
   componentDidMount() {
+    window.addEventListener('resize', this.resizeScreen.bind(this))
     // this.getNoduleIfos()
     // this.visualize()
     if (localStorage.getItem('token') == null) {
@@ -4401,7 +4631,7 @@ class CornerstoneElement extends Component {
     //     if(!flag)
     //         resImageIds.push(imageIds[i])
     // }
-
+    this.firstLayout()
     console.log('annoImage', annoImageIds)
 
     const annoPromises = annoImageIds.map((annoImageId) => {
@@ -4421,7 +4651,6 @@ class CornerstoneElement extends Component {
     })
     this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
 
-    this.firstLayout()
     const token = localStorage.getItem('token')
     const headers = {
       Authorization: 'Bearer '.concat(token),
@@ -4437,7 +4666,9 @@ class CornerstoneElement extends Component {
     console.log('okParams', okParams)
 
     axios
-      .post(this.config.review.isOkayForReview, qs.stringify(okParams), { headers })
+      .post(this.config.review.isOkayForReview, qs.stringify(okParams), {
+        headers,
+      })
       .then((res) => {
         // console.log('1484', res)
       })

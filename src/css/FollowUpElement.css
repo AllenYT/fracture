@@ -30,3 +30,13 @@ h3.ant-typography,
   background: rgba(119, 164, 212, 0.997);
   /* border: 0.5px solid whitesmoke; */
 }
+
+.structured-report {
+  background-color: rgba(8, 101, 184, 0.678);
+  border-radius: 2px;
+}
+
+.nodule-report {
+  margin-top: 10px;
+  width: 96%;
+}

@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import { Grid, Button, Checkbox, Message, Form } from 'semantic-ui-react'
+import { message } from 'antd'
 import '../css/loginPanel.css'
 import axios from 'axios'
 import qs from 'qs'
@@ -10,21 +11,26 @@ class LoginPanel extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      messageVisible: false,
       username: '',
       password: '',
     }
-    this.handleDismiss = this.handleDismiss.bind(this)
     this.handleClick = this.handleClick.bind(this)
     this.handleUsernameChange = this.handleUsernameChange.bind(this)
     this.handlePasswordChange = this.handlePasswordChange.bind(this)
     this.config = JSON.parse(localStorage.getItem('config'))
   }
 
-  handleDismiss() {
-    this.setState({
-      messageVisible: false,
+  async componentWillMount() {
+    const configPromise = new Promise((resolve, reject) => {
+      axios.get(process.env.PUBLIC_URL + '/config.json').then((res) => {
+        const config = res.data
+        console.log('config', config)
+        localStorage.setItem('config', JSON.stringify(config))
+        resolve(config)
+      }, reject)
     })
+    const config = await configPromise
+    this.config = config
   }
 
   handleUsernameChange(e) {
@@ -53,7 +59,7 @@ class LoginPanel extends Component {
       .then(([loginResponse, authResponse]) => {
         console.log(authResponse.data)
         if (loginResponse.data.status === 'failed') {
-          this.setState({ messageVisible: true })
+          message.error('登录失败：用户名或密码错误！请重新登录')
         } else {
           localStorage.setItem('token', loginResponse.data.token)
           localStorage.setItem('realname', loginResponse.data.realname)
@@ -70,25 +76,22 @@ class LoginPanel extends Component {
             window.location.href = sessionStorage.getItem('location')
             // this.props.history.push(sessionStorage.getItem('location')+'deepln')
           } else {
-            window.location.href = '/dataCockpit'
+            if (authResponse.data.indexOf('auth_manage') > -1) {
+              window.location.href = '/dataCockpit'
+            } else {
+              window.location.href = '/searchCase'
+            }
             // this.props.history.push('/dataCockpit')
           }
         }
       })
       .catch((error) => {
+        message.warning('登陆超时！')
         console.log(error)
       })
   }
 
   render() {
-    console.log('d')
-
-    let errorMessage
-
-    if (this.state.messageVisible) {
-      errorMessage = <Message color="red" onDismiss={this.handleDismiss} header="登录失败！" content="输入用户名或密码错误！" />
-    }
-
     return (
       <div id="login-container">
         <div id="total">
@@ -97,7 +100,7 @@ class LoginPanel extends Component {
               <Grid.Column width={4} className="left-bg">
                 <div id="left-align1">欢迎来到</div>
                 <div id="left-align2">DEEPLN</div>
-                <div id="left-align1">肺癌全周期影像数据智能管理平台</div>
+                <div id="left-align1">肺结节CT影像辅助检测软件</div>
               </Grid.Column>
               <Grid.Column width={8}>
                 <h1 className="login-header">系统登录</h1>
@@ -119,7 +122,6 @@ class LoginPanel extends Component {
                     {/* <label>密码</label> */}
                     <Form.Input type="password" value={this.state.password} onChange={this.handlePasswordChange} icon="lock" iconPosition="left" placeholder="密码" id="input-textBox" maxLength={32} />
                   </Form.Field>
-                  {errorMessage}
                   <div>
                     <Grid divided="vertically">
                       <Grid.Row columns={2}>

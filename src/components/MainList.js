@@ -1,5 +1,6 @@
 import React, {Component,createRef} from 'react'
 import {Menu, Grid} from 'semantic-ui-react'
+import {notification} from 'antd'
 import axios from 'axios'
 import qs from 'qs'
 import '../css/spinner.css'
@@ -49,13 +50,19 @@ class MainList extends Component {
     
             axios.post(this.config.record.getMainList, qs.stringify(params), {headers}).then((response) => {
                 const data = response.data
-                if (data.status !== 'okay') {
-                    // window.location.href = '/'
+                if (data.status === 'okay') {
+                    const mainList = data.mainList
+                    if(mainList.length === 0){
+                        notification.warning({
+                            top:48,
+                            duration: 6,
+                            message: '提醒',
+                            description:
+                            '查询数据未入库，请联系厂家技术支持工程师'
+                        });
+                    }
+                    this.setState({mainList: mainList,show: true})
                 }
-                // console.log('data:',data)
-    
-                const mainList = data.mainList
-                this.setState({mainList: mainList,show: true})
             }).catch((error) => {
                 console.log(error)
             })
@@ -71,13 +78,19 @@ class MainList extends Component {
             }
             axios.post(this.config.record.getMainListForSubset, qs.stringify(params)).then((response) => {
                 const data = response.data
-                if (data.status !== 'okay') {
-                    // window.location.href = '/'
+                if (data.status === 'okay') {
+                    const mainList = data.mainList
+                    if(mainList.length === 0){
+                        notification.warning({
+                            top:48,
+                            duration: 6,
+                            message: '提醒',
+                            description:
+                            '查询数据未入库，请联系厂家技术支持工程师'
+                        });
+                    }
+                    this.setState({mainList: mainList,show: true})
                 }
-                // console.log('data:',data)
-    
-                const mainList = data.mainList
-                this.setState({mainList: mainList,show: true})
             }).catch((error) => {
                 console.log(error)
             })
@@ -98,24 +111,10 @@ class MainList extends Component {
             this.setState({selectMainItem: '',show: false})
             this.loadMainList()
         }
-        else if(prevProps.search !==this.props.search){
+        else if(prevProps.search !==this.props.search && this.props.search === true){
             this.setState({selectMainItem: '',show: false})
             this.loadMainList()
         }
-
-        // else if (prevProps.pidKeyword !== this.props.pidKeyword) {
-        //     if(this.props.pidKeyword.length>3 || this.props.pidKeyword.length==0){
-        //         this.setState({selectMainItem: '',show: false})
-        //         this.loadMainList()
-        //     }
-        // }
-        // else if(prevProps.dateKeyword !== this.props.dateKeyword){
-        //     if(this.props.dateKeyword.length>3|| this.props.dateKeyword.length==0){
-        //         this.setState({selectMainItem: '',show: false})
-        //         this.loadMainList()
-        //     }
-            
-        // }
         else if(prevProps.type !== this.props.type){
             this.setState({selectMainItem: '',show: false})
             this.loadMainList()

@@ -22,6 +22,7 @@ import src3 from '../images/scu-logo.png'
 import HomepagePanel from '../panels/HomepagePanel'
 import preprocess from '../panels/preprocess'
 import ViewerPanel from '../panels/ViewerPanel'
+import AdminManagePanel from '../panels/AdminManagePanel'
 import md5 from 'js-md5'
 
 class Main extends Component {
@@ -162,11 +163,10 @@ class Main extends Component {
     console.log('localtoken', localStorage.getItem('token'))
     console.log('token', token)
     if (token !== null) {
-      console.log('token:', token)
       const headers = {
         Authorization: 'Bearer '.concat(token),
       }
-
+      console.log('headers', headers)
       axios
         .get(this.config.user.get_session, { headers })
         .then((response) => {
@@ -194,19 +194,35 @@ class Main extends Component {
     let logButtonPlace = ''
     console.log(window.location.pathname)
 
+    const mainSearchNodule =
+      localStorage.getItem('auths') !== null && JSON.parse(localStorage.getItem('auths')).indexOf('nodule_search') > -1 ? (
+        <Menu.Item active={activeItem === 'searchNodule'} onClick={this.handleItemClick} as={Link} to="/searchNodule" name="searchNodule">
+          结节检索
+        </Menu.Item>
+      ) : (
+        <></>
+      )
+
+    const mainAdminManage =
+      localStorage.getItem('auths') !== null && JSON.parse(localStorage.getItem('auths')).indexOf('nodule_search') > -1 ? (
+        <Menu.Item active={activeItem === 'adminManage'} onClick={this.handleItemClick} as={Link} to="/adminManage" name="adminManage">
+          用户管理
+        </Menu.Item>
+      ) : (
+        <></>
+      )
     const mainMenus = (
       <>
         <Menu.Item onClick={this.handleItemClick} as={Link} to="/dataCockpit" name="home">
-          DeepLN肺癌全周期影像数据智能管理平台
+          肺结节CT影像辅助检测软件
         </Menu.Item>
 
         <Menu.Item active={activeItem === 'searchCase'} onClick={this.handleItemClick} as={Link} to="/searchCase" name="searchCase">
           数据检索
         </Menu.Item>
 
-        <Menu.Item active={activeItem === 'searchNodule'} onClick={this.handleItemClick} as={Link} to="/searchNodule" name="searchNodule">
-          结节检索
-        </Menu.Item>
+        {mainSearchNodule}
+        {mainAdminManage}
 
         {/* <Menu.Item
                     active={activeItem === 'myAnnos'}
@@ -313,7 +329,7 @@ class Main extends Component {
         logButtonPlace = (
           <Menu id="header" pointing secondary>
             <Menu.Item onClick={this.handleItemClick} as={Link} to="/" name="home">
-              DeepLN肺癌全周期影像数据智能管理平台
+              肺结节CT影像辅助检测软件
             </Menu.Item>
 
             <Menu.Item position="right">
@@ -348,6 +364,7 @@ class Main extends Component {
             <Route path="/preprocess/" component={preprocess} />
             <Route path="/segView/" component={ViewerPanel} />
             <Route path="/followup/" component={FollowUpDisplayPanel} />
+            <Route path="/adminManage" component={AdminManagePanel} />
           </div>
           <div className="ui inverted vertical footer segment">
             <div className="inline" style={{ verticalAlign: 'middle' }}>
