@@ -35,31 +35,31 @@ var ageTotalData = [
   {
     //总体年龄分布
     type: "未知",
-    value: 10,
+    value: 0,
   },
   {
     type: "35 岁以下",
-    value: 5,
+    value: 0,
   },
   {
     type: "36-45 岁",
-    value: 20,
+    value: 0,
   },
   {
     type: "46-55 岁",
-    value: 45,
+    value: 0,
   },
   {
     type: "56-60 岁",
-    value: 55,
+    value: 0,
   },
   {
     type: "61-65 岁",
-    value: 214,
+    value: 0,
   },
   {
     type: "65 岁以上",
-    value: 185,
+    value: 0,
   },
 ];
 
@@ -67,23 +67,23 @@ var diaTotalData = [
   {
     //总体结节直径分布
     type: "0-3 mm",
-    value: 10,
+    value: 0,
   },
   {
     type: "3-5 mm",
-    value: 5,
+    value: 0,
   },
   {
     type: "5-8 mm",
-    value: 20,
+    value: 0,
   },
   {
     type: "8-30 mm",
-    value: 45,
+    value: 0,
   },
   {
     type: ">30 mm",
-    value: 55,
+    value: 0,
   },
 ];
 
@@ -91,11 +91,11 @@ var benmaliData = [
   {
     //良恶性分布
     type: "良性",
-    value: 10,
+    value: 0,
   },
   {
     type: "恶性",
-    value: 50,
+    value: 0,
   },
 ];
 
@@ -143,102 +143,102 @@ var diaDistributionData = [
   {
     type: "毛刺",
     diameter: "0-3mm",
-    value: 30,
+    value: 0,
   },
   {
     type: "分叶",
     diameter: "0-3mm",
-    value: 35,
+    value: 0,
   },
   {
     type: "钙化",
     diameter: "0-3mm",
-    value: 28,
+    value: 0,
   },
   {
     type: "磨玻璃",
     diameter: "0-3mm",
-    value: 21,
+    value: 0,
   },
   {
     type: "毛刺",
     diameter: "3-5mm",
-    value: 40,
+    value: 0,
   },
   {
     type: "分叶",
     diameter: "3-5mm",
-    value: 65,
+    value: 0,
   },
   {
     type: "钙化",
     diameter: "3-5mm",
-    value: 47,
+    value: 0,
   },
   {
     type: "磨玻璃",
     diameter: "3-5mm",
-    value: 66,
+    value: 0,
   },
   {
     type: "毛刺",
     diameter: "5-8mm",
-    value: 23,
+    value: 0,
   },
   {
     type: "分叶",
     diameter: "5-8mm",
-    value: 18,
+    value: 0,
   },
   {
     type: "钙化",
     diameter: "5-8mm",
-    value: 20,
+    value: 0,
   },
   {
     type: "磨玻璃",
     diameter: "5-8mm",
-    value: 10,
+    value: 0,
   },
   {
     type: "毛刺",
     diameter: "8-30mm",
-    value: 35,
+    value: 0,
   },
   {
     type: "分叶",
     diameter: "8-30mm",
-    value: 30,
+    value: 0,
   },
   {
     type: "钙化",
     diameter: "8-30mm",
-    value: 25,
+    value: 0,
   },
   {
     type: "磨玻璃",
     diameter: "8-30mm",
-    value: 21,
+    value: 0,
   },
   {
     type: "毛刺",
     diameter: ">=30mm",
-    value: 35,
+    value: 0,
   },
   {
     type: "分叶",
     diameter: ">=30mm",
-    value: 30,
+    value: 0,
   },
   {
     type: "钙化",
     diameter: ">=30mm",
-    value: 25,
+    value: 0,
   },
   {
     type: "磨玻璃",
     diameter: ">=30mm",
-    value: 2,
+    value: 0,
   },
 ];
 
@@ -246,23 +246,23 @@ var diaNonGlitchData = [
   {
     //非毛刺直径分布
     type: "0-3 mm",
-    value: 10,
+    value: 0,
   },
   {
     type: "3-5 mm",
-    value: 5,
+    value: 0,
   },
   {
     type: "5-8 mm",
-    value: 20,
+    value: 0,
   },
   {
     type: "8-30 mm",
-    value: 45,
+    value: 0,
   },
   {
     type: ">30 mm",
-    value: 55,
+    value: 0,
   },
 ];
 
@@ -270,23 +270,23 @@ var diaNonSublobeData = [
   {
     //非分叶直径分布
     type: "0-3 mm",
-    value: 10,
+    value: 0,
   },
   {
     type: "3-5 mm",
-    value: 5,
+    value: 0,
   },
   {
     type: "5-8 mm",
-    value: 20,
+    value: 0,
   },
   {
     type: "8-30 mm",
-    value: 45,
+    value: 0,
   },
   {
     type: ">30 mm",
-    value: 55,
+    value: 0,
   },
 ];
 
@@ -294,23 +294,23 @@ var diaNonCalcifyData = [
   {
     //非钙化直径分布
     type: "0-3 mm",
-    value: 10,
+    value: 0,
   },
   {
     type: "3-5 mm",
-    value: 5,
+    value: 0,
   },
   {
     type: "5-8 mm",
-    value: 20,
+    value: 0,
   },
   {
     type: "8-30 mm",
-    value: 45,
+    value: 0,
   },
   {
     type: ">30 mm",
-    value: 55,
+    value: 0,
   },
 ];
 
@@ -318,74 +318,74 @@ var diaNonGGOData = [
   {
     //实性直径分布
     type: "0-3 mm",
-    value: 10,
+    value: 0,
   },
   {
     type: "3-5 mm",
-    value: 5,
+    value: 0,
   },
   {
     type: "5-8 mm",
-    value: 20,
+    value: 0,
   },
   {
     type: "8-30 mm",
-    value: 45,
+    value: 0,
   },
   {
     type: ">30 mm",
-    value: 55,
+    value: 0,
   },
 ];
 
 //毛刺良恶性分布
 const maliGlitchData = [
-  { type: "良性", value: 40 },
-  { type: "恶性", value: 21 },
+  { type: "良性", value: 0 },
+  { type: "恶性", value: 0 },
 ];
 
 //分叶良恶性分布
 const maliSublobeData = [
-  { type: "良性", value: 40 },
-  { type: "恶性", value: 21 },
+  { type: "良性", value: 0 },
+  { type: "恶性", value: 0 },
 ];
 
 //钙化良恶性分布
 const maliCalcifyData = [
-  { type: "良性", value: 40 },
-  { type: "恶性", value: 21 },
+  { type: "良性", value: 0 },
+  { type: "恶性", value: 0 },
 ];
 
 //GGO良恶性分布
 const maliGGOData = [
-  { type: "良性", value: 40 },
-  { type: "恶性", value: 21 },
+  { type: "良性", value: 0 },
+  { type: "恶性", value: 0 },
 ];
 //胸膜凹陷征 pleural indenlation sign
 const pleuralData = [
-  { type: "胸膜凹陷", value: 10 },
-  { type: "非胸膜凹陷", value: 5 },
+  { type: "胸膜凹陷", value: 0 },
+  { type: "非胸膜凹陷", value: 0 },
 ];
 
 //空洞征
 const cavity = [
-  { type: "空洞", value: 10 },
-  { type: "非空洞", value: 15 },
+  { type: "空洞", value: 0 },
+  { type: "非空洞", value: 0 },
 ];
 
 //血管集束 Vessel convergence sign
 const vcs = [
-  { type: "血管集束", value: 10 },
-  { type: "非血管集束", value: 15 },
+  { type: "血管集束", value: 0 },
+  { type: "非血管集束", value: 0 },
 ];
 
 //空泡
 const vacuole = [
-  { type: "空泡", value: 10 },
-  { type: "非空泡", value: 15 },
+  { type: "空泡", value: 0 },
+  { type: "非空泡", value: 0 },
 ];
 
-const sexData = { female: 6, male: 1 };
+const sexData = { female: 0, male: 0 };
 
 class DataCockpit extends Component {
   constructor(props) {

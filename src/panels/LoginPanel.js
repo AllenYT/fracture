@@ -61,6 +61,7 @@ class LoginPanel extends Component {
         if (loginResponse.data.status === 'failed') {
           message.error('登录失败：用户名或密码错误！请重新登录')
         } else {
+          console.log('loginResponse', loginResponse)
           localStorage.setItem('token', loginResponse.data.token)
           localStorage.setItem('realname', loginResponse.data.realname)
           localStorage.setItem('username', loginResponse.data.username)
