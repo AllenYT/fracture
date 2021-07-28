@@ -26,6 +26,7 @@ import {
   Image,
   Menu,
   Label,
+  Header,
 } from "semantic-ui-react";
 import "../css/cornerstone.css";
 import qs from "qs";
@@ -234,8 +235,8 @@ class CornerstoneElement extends Component {
       lengthBox: [],
       firstlayout: 0,
       imageCaching: false,
-      crossCanvasWidth: 870,
-      crossCanvasHeight: 870,
+      crossCanvasWidth: 940,
+      crossCanvasHeight: 940,
       verticalCanvasWidth: 840,
       verticalCanvasHeight: 1080,
     };
@@ -2967,6 +2968,7 @@ class CornerstoneElement extends Component {
                   {visualContent}
                   <button
                     id="closeVisualContent"
+                    className="closeVisualContent-cross"
                     onClick={this.closeVisualContent}
                   >
                     ×
@@ -2988,16 +2990,35 @@ class CornerstoneElement extends Component {
                               height: (this.state.windowHeight * 1) / 2,
                             }}
                           >
-                            <Accordion
-                              styled
-                              id="cornerstone-accordion"
-                              fluid
-                              onDoubleClick={this.doubleClickListItems.bind(
-                                this
-                              )}
-                            >
-                              {tableContent}
-                            </Accordion>
+                            {this.state.boxes.length === 0 ? (
+                              <div
+                                style={{
+                                  height: "100%",
+                                  background: "#021c38",
+                                  display: "flex",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <Header as="h2" inverted>
+                                  <Icon name="low vision" />
+                                  <Header.Content>
+                                    未检测出任何结节
+                                  </Header.Content>
+                                </Header>
+                              </div>
+                            ) : (
+                              <Accordion
+                                styled
+                                id="cornerstone-accordion"
+                                fluid
+                                onDoubleClick={this.doubleClickListItems.bind(
+                                  this
+                                )}
+                              >
+                                {tableContent}
+                              </Accordion>
+                            )}
                           </div>
                         </TabPane>
                         {/* <TabPane tab={inflammationTab} key="2">
@@ -3101,6 +3122,7 @@ class CornerstoneElement extends Component {
                   {visualContent}
                   <button
                     id="closeVisualContent"
+                    className="closeVisualContent-vertical"
                     onClick={this.closeVisualContent}
                   >
                     ×
@@ -3121,14 +3143,35 @@ class CornerstoneElement extends Component {
                           id="elec-table"
                           style={{ height: (this.state.windowHeight * 1) / 2 }}
                         >
-                          <Accordion
-                            styled
-                            id="cornerstone-accordion"
-                            fluid
-                            onDoubleClick={this.doubleClickListItems.bind(this)}
-                          >
-                            {tableContent}
-                          </Accordion>
+                          {this.state.boxes.length === 0 ? (
+                            <div
+                              style={{
+                                height: "100%",
+                                background: "#021c38",
+                                display: "flex",
+                                justifyContent: "center",
+                                alignItems: "center",
+                              }}
+                            >
+                              <Header as="h2" inverted>
+                                <Icon name="low vision" />
+                                <Header.Content>
+                                  未检测出任何结节
+                                </Header.Content>
+                              </Header>
+                            </div>
+                          ) : (
+                            <Accordion
+                              styled
+                              id="cornerstone-accordion"
+                              fluid
+                              onDoubleClick={this.doubleClickListItems.bind(
+                                this
+                              )}
+                            >
+                              {tableContent}
+                            </Accordion>
+                          )}
                         </div>
                       </TabPane>
                       {/* <TabPane tab={inflammationTab} key="2">
@@ -4827,7 +4870,15 @@ class CornerstoneElement extends Component {
       x: 0,
       y: 0,
     };
-    viewport.scale = document.getElementById("canvas").width / 512;
+    if (
+      document.getElementById("canvas").width >
+      document.getElementById("canvas").height
+    ) {
+      viewport.scale = document.getElementById("canvas").width / 512;
+    } else {
+      viewport.scale = document.getElementById("canvas").height / 512;
+    }
+    // viewport.scale = document.getElementById("canvas").width / 512;
     cornerstone.setViewport(this.element, viewport);
     this.setState({ viewport });
     console.log("to pulmonary", viewport);
@@ -5272,15 +5323,14 @@ class CornerstoneElement extends Component {
   }
 
   resizeScreen(e) {
-    let crossCanvasWidth = (e.target.innerWidth * 870) / 1920;
-    let crossCanvasHeight = (e.target.innerHeight * 870) / 1080;
-    let verticalCanvasWidth = (e.target.innerWidth * 840) / 1080;
-    let verticalCanvasheight = (e.target.innerHeight * 1080) / 1920;
-    console.log("resizeBrowser");
+    let crossCanvasWidth = (document.body.clientWidth * 940) / 1920;
+    let crossCanvasHeight = (document.body.clientHeight * 940) / 1080;
+    let verticalCanvasWidth = (document.body.clientWidth * 840) / 1080;
+    let verticalCanvasheight = (document.body.clientHeight * 1080) / 1920;
     this.setState(
       {
-        windowWidth: e.target.innerWidth,
-        windowHeight: e.target.innerHeight,
+        windowWidth: document.body.clientWidth,
+        windowHeight: document.body.clientHeight,
         crossCanvasWidth: crossCanvasWidth,
         crossCanvasHeight: crossCanvasHeight,
         verticalCanvasWidth: verticalCanvasWidth,
@@ -5292,13 +5342,30 @@ class CornerstoneElement extends Component {
         let list = document.getElementsByClassName("nodule-card-container")[0];
         report.style.height = canvasColumn.clientHeight / 3 + "px";
         list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
+        let viewport = cornerstone.getViewport(this.element);
+        const windowWidth = this.state.windowWidth;
+        const windowHeight = this.state.windowHeight;
+        viewport.translation = {
+          x: 0,
+          y: 0,
+        };
+        if (
+          document.getElementById("canvas").width >
+          document.getElementById("canvas").height
+        ) {
+          viewport.scale = document.getElementById("canvas").width / 512;
+        } else {
+          viewport.scale = document.getElementById("canvas").height / 512;
+        }
+        cornerstone.setViewport(this.element, viewport);
+        this.setState({ viewport });
       }
     );
   }
 
   firstLayout() {
-    let crossCanvasWidth = (document.body.clientWidth * 870) / 1920;
-    let crossCanvasHeight = (document.body.clientHeight * 870) / 1080;
+    let crossCanvasWidth = (document.body.clientWidth * 940) / 1920;
+    let crossCanvasHeight = (document.body.clientHeight * 940) / 1080;
     let verticalCanvasWidth = (document.body.clientWidth * 840) / 1080;
     let verticalCanvasheight = (document.body.clientHeight * 1080) / 1920;
     this.setState(
@@ -5334,6 +5401,8 @@ class CornerstoneElement extends Component {
 
     // const element = document.getElementById("origin-canvas");
     const element = document.querySelector("#origin-canvas");
+    const windowWidth = this.state.windowWidth;
+    const windowHeight = this.state.windowHeight;
     // console.log('element',element)
     // console.log('element',element)
     if (initial) {
@@ -5381,7 +5450,17 @@ class CornerstoneElement extends Component {
       // cornerstoneTools
       //     .wwwc
       //     .activate(element, 2) // ww/wc is the default tool for middle mouse button
+
       if (initial) {
+        let scale = 0;
+        if (
+          document.getElementById("canvas").width >
+          document.getElementById("canvas").height
+        ) {
+          scale = document.getElementById("canvas").width / 512;
+        } else {
+          scale = document.getElementById("canvas").height / 512;
+        }
         let viewport = {
           invert: false,
           pixelReplication: false,
@@ -5389,7 +5468,7 @@ class CornerstoneElement extends Component {
             windowWidth: 1600,
             windowCenter: -600,
           },
-          scale: document.getElementById("canvas").width / 512,
+          scale: scale,
           translation: {
             x: 0,
             y: 0,

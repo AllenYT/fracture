@@ -472,15 +472,15 @@ class Main extends Component {
             <Route path="/segView/" component={ViewerPanel} />
             <Route path="/adminManage" component={AdminManagePanel} />
           </div>
-          {/* <div className="ui inverted vertical footer segment">
-            <div className="inline" style={{ verticalAlign: 'middle' }}>
+          <div className="ui inverted vertical footer segment">
+            <div className="inline" style={{ verticalAlign: "middle" }}>
               © 2019 Sichuan University. All rights reserved
             </div>
 
             <div className="inline">
               <Image src={src3} id="img-size"></Image>
             </div>
-          </div> */}
+          </div>
         </div>
       </Router>
     );

@@ -104,7 +104,11 @@ input[type="range"]:focus {
   z-index: 1;
 }
 
-#closeVisualContent {
+.highlightTbl {
+  border-bottom: 2px solid black;
+}
+
+.closeVisualContent-cross {
   position: absolute;
   left: 80%;
   bottom: 23%;
@@ -118,6 +122,22 @@ input[type="range"]:focus {
   text-decoration: none;
   z-index: 2;
 }
+
+.closeVisualContent-vertical {
+  position: absolute;
+  left: 85%;
+  bottom: 28%;
+  /* bottom: 225px;
+  left: 940px; */
+  background: transparent;
+  font-size: 20px;
+  color: white;
+  border: none;
+  text-align: center;
+  text-decoration: none;
+  z-index: 2;
+}
+
 .ui.bottom.center.popup#defWindow {
   width: 200px;
 }

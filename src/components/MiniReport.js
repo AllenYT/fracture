@@ -366,24 +366,24 @@ class MiniReport extends Component {
       5: "左肺下叶",
     };
     let segments = {
-      S1: "右肺上叶-尖段",
-      S2: "右肺上叶-后段",
-      S3: "右肺上叶-前段",
-      S4: "右肺中叶-外侧段",
-      S5: "右肺中叶-内侧段",
-      S6: "右肺下叶-背段",
-      S7: "右肺下叶-内基底段",
-      S8: "右肺下叶-前基底段",
-      S9: "右肺下叶-外基底段",
-      S10: "右肺下叶-后基底段",
-      S11: "左肺上叶-尖后段",
-      S12: "左肺上叶-前段",
-      S13: "左肺上叶-上舌段",
-      S14: "左肺上叶-下舌段",
-      S15: "左肺下叶-背段",
-      S16: "左肺下叶-内前基底段",
-      S17: "左肺下叶-外基底段",
-      S18: "左肺下叶-后基底段",
+      S1: "右肺上叶尖段",
+      S2: "右肺上叶后段",
+      S3: "右肺上叶前段",
+      S4: "右肺中叶外侧段",
+      S5: "右肺中叶内侧段",
+      S6: "右肺下叶背段",
+      S7: "右肺下叶内基底段",
+      S8: "右肺下叶前基底段",
+      S9: "右肺下叶外基底段",
+      S10: "右肺下叶后基底段",
+      S11: "左肺上叶尖后段",
+      S12: "左肺上叶前段",
+      S13: "左肺上叶上舌段",
+      S14: "左肺上叶下舌段",
+      S15: "左肺下叶背段",
+      S16: "左肺下叶内前基底段",
+      S17: "左肺下叶外基底段",
+      S18: "左肺下叶后基底段",
     };
     if (this.props.type === "影像所见") {
       let texts = "";
@@ -423,16 +423,55 @@ class MiniReport extends Component {
               place = segments[this.props.boxes[i]["segment"]];
             }
           }
-          if (this.props.boxes[i]["diameter"] !== undefined) {
+          // if (this.props.boxes[i]["diameter"] !== undefined) {
+          //   diameter =
+          //     Math.floor(this.props.boxes[i]["diameter"] * 10) / 100 + "cm";
+          let ll = 0;
+          let sl = 0;
+          if (this.props.boxes[i]["measure"] !== undefined) {
+            ll = Math.sqrt(
+              Math.pow(
+                this.props.boxes[i].measure.x1 - this.props.boxes[i].measure.x2,
+                2
+              ) +
+                Math.pow(
+                  this.props.boxes[i].measure.y1 -
+                    this.props.boxes[i].measure.y2,
+                  2
+                )
+            );
+            sl = Math.sqrt(
+              Math.pow(
+                this.props.boxes[i].measure.x3 - this.props.boxes[i].measure.x4,
+                2
+              ) +
+                Math.pow(
+                  this.props.boxes[i].measure.y3 -
+                    this.props.boxes[i].measure.y4,
+                  2
+                )
+            );
+            if (isNaN(ll)) {
+              ll = 0;
+            }
+            if (isNaN(sl)) {
+              sl = 0;
+            }
             diameter =
-              Math.floor(this.props.boxes[i]["diameter"] * 10) / 100 + "cm";
+              "\xa0\xa0" +
+              (ll / 10).toFixed(2) +
+              "\xa0" +
+              "×" +
+              "\xa0" +
+              (sl / 10).toFixed(2) +
+              " 厘米";
           } else {
             diameter = "未知";
           }
           if (this.props.boxes[i]["texture"] === 2) {
             texture = "实性";
           } else if (this.props.boxes[i]["texture"] === 3) {
-            texture = "半实性";
+            texture = "混合磨玻璃";
           } else {
             texture = "磨玻璃";
           }
@@ -485,7 +524,9 @@ class MiniReport extends Component {
             texts +
             place +
             " ( Im " +
-            this.props.boxes[i]["slice_idx"] +
+            (parseInt(this.props.boxes[i]["slice_idx"]) + 1) +
+            "/" +
+            this.props.imageIds.length +
             ") 见" +
             texture +
             "结节, 大小为" +
@@ -531,20 +572,54 @@ class MiniReport extends Component {
               segments[this.props.boxes[this.props.activeItem]["segment"]];
           }
         }
-        if (this.props.boxes[this.props.activeItem]["diameter"] !== undefined) {
+        let ll = 0;
+        let sl = 0;
+        if (this.props.boxes[this.props.activeItem]["measure"] !== undefined) {
+          ll = Math.sqrt(
+            Math.pow(
+              this.props.boxes[this.props.activeItem].measure.x1 -
+                this.props.boxes[this.props.activeItem].measure.x2,
+              2
+            ) +
+              Math.pow(
+                this.props.boxes[this.props.activeItem].measure.y1 -
+                  this.props.boxes[this.props.activeItem].measure.y2,
+                2
+              )
+          );
+          sl = Math.sqrt(
+            Math.pow(
+              this.props.boxes[this.props.activeItem].measure.x3 -
+                this.props.boxes[this.props.activeItem].measure.x4,
+              2
+            ) +
+              Math.pow(
+                this.props.boxes[this.props.activeItem].measure.y3 -
+                  this.props.boxes[this.props.activeItem].measure.y4,
+                2
+              )
+          );
+          if (isNaN(ll)) {
+            ll = 0;
+          }
+          if (isNaN(sl)) {
+            sl = 0;
+          }
           diameter =
-            Math.floor(
-              this.props.boxes[this.props.activeItem]["diameter"] * 10
-            ) /
-              100 +
-            "cm";
+            "\xa0\xa0" +
+            (ll / 10).toFixed(2) +
+            "\xa0" +
+            "×" +
+            "\xa0" +
+            (sl / 10).toFixed(2) +
+            " 厘米";
         } else {
           diameter = "未知";
         }
         if (this.props.boxes[this.props.activeItem]["texture"] === 2) {
           texture = "实性";
         } else if (this.props.boxes[this.props.activeItem]["texture"] === 3) {
-          texture = "半实性";
+          texture = "混合磨玻璃";
         } else {
           texture = "磨玻璃";
         }
@@ -604,7 +679,9 @@ class MiniReport extends Component {
           texts +
           place +
           " ( Im " +
-          this.props.boxes[this.props.activeItem]["slice_idx"] +
+          (parseInt(this.props.boxes[this.props.activeItem]["slice_idx"]) + 1) +
+          "/" +
+          this.props.imageIds.length +
           ") 见" +
           texture +
           "结节, 大小为" +
@@ -1266,7 +1343,8 @@ class MiniReport extends Component {
                               <Table.Row>
                                 <Table.Cell>直径</Table.Cell>
                                 <Table.Cell>
-                                  {Math.floor(nodule["diameter"] * 10) / 100}cm
+                                  {Math.floor(nodule["diameter"] * 10) / 100}
+                                  厘米
                                 </Table.Cell>
                               </Table.Row>
 
