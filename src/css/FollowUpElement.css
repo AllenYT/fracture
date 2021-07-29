@@ -32,11 +32,48 @@ h3.ant-typography,
 }
 
 .structured-report {
-  background-color: rgba(8, 101, 184, 0.678);
+  background-color: rgba(14, 48, 78, 0.493);
+  /* background-color: aliceblue; */
   border-radius: 2px;
 }
 
 .nodule-report {
   margin-top: 10px;
   width: 96%;
+}
+
+.vertical-divider-nodule {
+  margin: auto;
+  height: 3em;
+}
+
+.horizontal-divider-nodule {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.register-nodule-card {
+  background-color: rgba(8, 34, 58, 0.678);
+}
+
+/* .tabs-diagnose {
+  background-color: rgba(32, 136, 228, 0.678);
+  border: none;
+} */
+
+.ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab-active,
+.ant-tabs-card.ant-tabs-top > div > .ant-tabs-nav .ant-tabs-tab-active {
+  background-color: rgba(32, 136, 228, 0.678);
+  color: white;
+  border: none;
+}
+
+.doublingTimeText {
+  color: white;
+  font-size: 12px;
+}
+
+.all-nodule-table {
+  overflow: auto;
+  height: 200px;
 }

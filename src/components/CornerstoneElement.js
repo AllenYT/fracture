@@ -278,7 +278,7 @@ class CornerstoneElement extends Component {
     this.checkHash = this.checkHash.bind(this)
     this.ZoomIn = this.ZoomIn.bind(this)
     this.ZoomOut = this.ZoomOut.bind(this)
-    this.imagesFilp = this.imagesFilp.bind(this)
+    this.imagesFlip = this.imagesFlip.bind(this)
     this.visualize = this.visualize.bind(this)
     this.handleLogout = this.handleLogout.bind(this)
     this.handleLogin = this.handleLogin.bind(this)
@@ -2234,7 +2234,7 @@ class CornerstoneElement extends Component {
                   icon
                   title="灰度反转"
                   // style={{width:55,height:60,fontSize:14,fontSize:14}}
-                  onClick={this.imagesFilp}
+                  onClick={this.imagesFlip}
                   className="funcbtn">
                   <Icon name="adjust" size="large"></Icon>
                 </Button>
@@ -4004,7 +4004,7 @@ class CornerstoneElement extends Component {
     console.log('to pulmonary', viewport)
   }
 
-  imagesFilp() {
+  imagesFlip() {
     let viewport = cornerstone.getViewport(this.element)
     if (viewport.invert === true) {
       viewport.invert = false
