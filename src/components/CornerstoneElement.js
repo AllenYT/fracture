@@ -1447,7 +1447,7 @@ class CornerstoneElement extends Component {
     dicomTagPanel = (
       <div>
         <div id="dicomTag">
-          <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+          <div style={{ position: 'absolute', color: 'white', top: '5px' }}>{dicomTag.string('x00100010')}</div>
           <div style={{ position: 'absolute', color: 'white', top: '20px' }}>
             {dicomTag.string('x00101010')} {dicomTag.string('x00100040')}
           </div>
@@ -1457,7 +1457,15 @@ class CornerstoneElement extends Component {
             IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}
           </div>
           {slideLabel}
-          <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+          <div
+            style={{
+              position: 'absolute',
+              color: 'white',
+              top: '5px',
+              right: '5px',
+            }}>
+            {dicomTag.string('x00080080')}
+          </div>
           <div
             style={{
               position: 'absolute',
@@ -2320,7 +2328,7 @@ class CornerstoneElement extends Component {
                 <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
                   <Icon name="delete calendar" size="large"></Icon>
                 </Button>
-                {/* <Button
+                <Button
                   onClick={() => {
                     this.setState({ immersive: true })
                   }}
@@ -2328,7 +2336,7 @@ class CornerstoneElement extends Component {
                   title="沉浸模式"
                   className="funcbtn">
                   <Icon name="expand arrows alternate" size="large"></Icon>
-                </Button> */}
+                </Button>
               </Button.Group>
             </Menu.Item>
             <span id="line-right"></span>
@@ -2648,7 +2656,15 @@ class CornerstoneElement extends Component {
               }}>
               <canvas className="cornerstone-canvas" id="canvas" />
               {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-              <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '5px',
+                  left: '-95px',
+                }}>
+                {dicomTag.string('x00100010')}
+              </div>
               <div
                 style={{
                   position: 'absolute',
@@ -2685,7 +2701,15 @@ class CornerstoneElement extends Component {
                 }}>
                 IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}
               </div>
-              <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+              <div
+                style={{
+                  position: 'absolute',
+                  color: 'white',
+                  top: '5px',
+                  right: '-95px',
+                }}>
+                {dicomTag.string('x00080080')}
+              </div>
               <div
                 style={{
                   position: 'absolute',
@@ -4428,35 +4452,22 @@ class CornerstoneElement extends Component {
         let canvasColumn = document.getElementById('canvas-column')
         let report = document.getElementById('report')
         let list = document.getElementsByClassName('nodule-card-container')[0]
-        report.style.height = canvasColumn.clientHeight / 3 + 'px'
-        list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
+        if (!this.state.immersive) {
+          report.style.height = canvasColumn.clientHeight / 3 + 'px'
+          list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
+        }
       }
     )
   }
 
   firstLayout() {
-    let crossCanvasWidth = (document.body.clientWidth * 870) / 1920
-    let crossCanvasHeight = (document.body.clientHeight * 870) / 1080
-    let verticalCanvasWidth = (document.body.clientWidth * 840) / 1080
-    let verticalCanvasheight = (document.body.clientHeight * 1080) / 1920
-    this.setState(
-      {
-        firstlayout: 1,
-        windowWidth: document.body.clientWidth,
-        windowHeight: document.body.clientHeight,
-        crossCanvasWidth: crossCanvasWidth,
-        crossCanvasHeight: crossCanvasHeight,
-        verticalCanvasWidth: verticalCanvasWidth,
-        verticalCanvasheight: verticalCanvasheight,
-      },
-      () => {
-        let canvasColumn = document.getElementById('canvas-column')
-        let report = document.getElementById('report')
-        let list = document.getElementsByClassName('nodule-card-container')[0]
-        report.style.height = canvasColumn.clientHeight / 3 + 'px'
-        list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
-      }
-    )
+    this.setState({ firstlayout: 1 }, () => {
+      let canvasColumn = document.getElementById('canvas-column')
+      let report = document.getElementById('report')
+      let list = document.getElementsByClassName('nodule-card-container')[0]
+      report.style.height = canvasColumn.clientHeight / 3 + 'px'
+      list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
+    })
   }
 
   refreshImage(initial, imageId, newIdx) {
