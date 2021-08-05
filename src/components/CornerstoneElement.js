@@ -234,10 +234,10 @@ class CornerstoneElement extends Component {
       lengthBox: [],
       firstlayout: 0,
       imageCaching: false,
-      crossCanvasWidth: 870,
-      crossCanvasHeight: 870,
-      verticalCanvasWidth: 840,
-      verticalCanvasHeight: 1080,
+      crossCanvasWidth: (document.body.clientWidth * 870) / 1920,
+      crossCanvasHeight: (document.body.clientHeight * 870) / 1080,
+      verticalCanvasWidth: (document.body.clientWidth * 840) / 1080,
+      verticalCanvasHeight: (document.body.clientHeight * 1080) / 1920,
     };
     this.config = JSON.parse(localStorage.getItem("config"));
     this.nextPath = this.nextPath.bind(this);
@@ -5297,19 +5297,9 @@ class CornerstoneElement extends Component {
   }
 
   firstLayout() {
-    let crossCanvasWidth = (document.body.clientWidth * 870) / 1920;
-    let crossCanvasHeight = (document.body.clientHeight * 870) / 1080;
-    let verticalCanvasWidth = (document.body.clientWidth * 840) / 1080;
-    let verticalCanvasheight = (document.body.clientHeight * 1080) / 1920;
     this.setState(
       {
         firstlayout: 1,
-        windowWidth: document.body.clientWidth,
-        windowHeight: document.body.clientHeight,
-        crossCanvasWidth: crossCanvasWidth,
-        crossCanvasHeight: crossCanvasHeight,
-        verticalCanvasWidth: verticalCanvasWidth,
-        verticalCanvasheight: verticalCanvasheight,
       },
       () => {
         let canvasColumn = document.getElementById("canvas-column");
