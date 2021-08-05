@@ -25,7 +25,6 @@ class SubList extends Component {
     this.handleClick = this.handleClick.bind(this)
 
     this.handlePidClick = this.handlePidClick.bind(this)
-    this.exportCaseId = this.exportCaseId.bind(this)
     this.saveCart = this.saveCart.bind(this)
     this.config = JSON.parse(localStorage.getItem('config'))
   }
@@ -105,12 +104,6 @@ class SubList extends Component {
     if (prevState.random !== this.state.random) {
       this.saveCart()
     }
-  }
-
-  //导出caseid传入下载界面
-  exportCaseId() {
-    console.log('cid', this.props.storecid)
-    this.nextPath('/download')
   }
 
   loadDetailedData() {
@@ -239,11 +232,6 @@ class SubList extends Component {
             {panels}
           </Accordion>
         </div>
-
-        {/* {panels.length!==0 && icon==='calendar'?
-                <Button  inverted color='blue' onClick={this.exportCaseId} id='output'>导出</Button>
-                :null
-            } */}
       </div>
     )
   }

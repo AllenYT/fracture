@@ -269,9 +269,15 @@ class Main extends Component {
                     name='cov19List'>
                     新冠肺炎
                 </Menu.Item> */}
-        <Menu.Item active={activeItem === 'preprocess'} onClick={this.handleItemClick} as={Link} to="/preprocess" name="preprocess">
+        {/* <Menu.Item
+          active={activeItem === "preprocess"}
+          onClick={this.handleItemClick}
+          as={Link}
+          to="/preprocess"
+          name="preprocess"
+        >
           预处理
-        </Menu.Item>
+        </Menu.Item> */}
       </>
     )
 
@@ -366,7 +372,7 @@ class Main extends Component {
             <Route path="/followup/" component={FollowUpDisplayPanel} />
             <Route path="/adminManage" component={AdminManagePanel} />
           </div>
-          <div className="ui inverted vertical footer segment">
+          {/* <div className="ui inverted vertical footer segment">
             <div className="inline" style={{ verticalAlign: 'middle' }}>
               © 2019 Sichuan University. All rights reserved
             </div>
@@ -374,7 +380,7 @@ class Main extends Component {
             <div className="inline">
               <Image src={src3} id="img-size"></Image>
             </div>
-          </div>
+          </div> */}
         </div>
       </Router>
     )

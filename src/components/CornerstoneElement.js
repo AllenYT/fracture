@@ -2320,7 +2320,7 @@ class CornerstoneElement extends Component {
                 <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
                   <Icon name="delete calendar" size="large"></Icon>
                 </Button>
-                <Button
+                {/* <Button
                   onClick={() => {
                     this.setState({ immersive: true })
                   }}
@@ -2328,7 +2328,7 @@ class CornerstoneElement extends Component {
                   title="沉浸模式"
                   className="funcbtn">
                   <Icon name="expand arrows alternate" size="large"></Icon>
-                </Button>
+                </Button> */}
               </Button.Group>
             </Menu.Item>
             <span id="line-right"></span>
