@@ -115,7 +115,15 @@ export class SearchPanel extends Component {
   onKeyDown(event) {
     // console.log('enter',event.which)
     if (event.which === 13) {
-      this.setState({ search: true });
+      const patientValue = document.getElementById("patient-search").value;
+      const dataValue = document.getElementById("date-search").value;
+      this.setState({
+        activePage: 1,
+        pidKeyword: patientValue,
+        dateKeyword: dataValue,
+        search: true,
+        activePage: 1,
+      });
       this.getTotalPages();
       this.setState({ search: false });
     }
@@ -419,8 +427,8 @@ export class SearchPanel extends Component {
               <div className="searchBar">
                 <Input
                   name="pid"
-                  value={this.state.pidKeyword}
-                  onChange={this.handleInputChange}
+                  // value={this.state.pidKeyword}
+                  // onChange={this.handleInputChange}
                   id="patient-search"
                   icon="user"
                   iconPosition="left"
@@ -439,8 +447,8 @@ export class SearchPanel extends Component {
 
                 <Input
                   name="date"
-                  value={this.state.dateKeyword}
-                  onChange={this.handleInputChange}
+                  // value={this.state.dateKeyword}
+                  // onChange={this.handleInputChange}
                   id="date-search"
                   icon="calendar"
                   iconPosition="left"
