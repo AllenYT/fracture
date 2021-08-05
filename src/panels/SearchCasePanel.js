@@ -115,7 +115,15 @@ export class SearchPanel extends Component {
   onKeyDown(event) {
     // console.log('enter',event.which)
     if (event.which === 13) {
-      this.setState({ search: true });
+      const patientValue = document.getElementById("patient-search").value;
+      const dataValue = document.getElementById("date-search").value;
+      this.setState({
+        activePage: 1,
+        pidKeyword: patientValue,
+        dateKeyword: dataValue,
+        search: true,
+        activePage: 1,
+      });
       this.getTotalPages();
       this.setState({ search: false });
     }
@@ -231,9 +239,11 @@ export class SearchPanel extends Component {
     const value = e.currentTarget.value;
     const name = e.currentTarget.name;
     this.setState({ activePage: 1 });
-    if (name === "pid" && !isNaN(value)) {
+    // var reg = new RegExp("^[A-Za-z0-9]+$");
+    // if (name === "pid" && !isNaN(value)) {
+    if (name === "pid") {
       this.setState({ pidKeyword: value });
-    } else if (name === "date" && !isNaN(value)) {
+    } else if (name === "date") {
       this.setState({ dateKeyword: value });
     }
   }
@@ -254,8 +264,7 @@ export class SearchPanel extends Component {
       .then((res) => {
         const filename = res.data;
         console.log("Filename", filename);
-        window.location.href =
-          "http://data.deepln.deepx.machineilab.org/data/zip/" + filename;
+        window.location.href = this.config.data.download + "/" + filename;
         this.setState({ loading: false });
         // window.location.reload()
       })
@@ -418,8 +427,8 @@ export class SearchPanel extends Component {
               <div className="searchBar">
                 <Input
                   name="pid"
-                  value={this.state.pidKeyword}
-                  onChange={this.handleInputChange}
+                  // value={this.state.pidKeyword}
+                  // onChange={this.handleInputChange}
                   id="patient-search"
                   icon="user"
                   iconPosition="left"
@@ -438,8 +447,8 @@ export class SearchPanel extends Component {
 
                 <Input
                   name="date"
-                  value={this.state.dateKeyword}
-                  onChange={this.handleInputChange}
+                  // value={this.state.dateKeyword}
+                  // onChange={this.handleInputChange}
                   id="date-search"
                   icon="calendar"
                   iconPosition="left"

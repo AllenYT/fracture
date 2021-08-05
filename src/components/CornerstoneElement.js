@@ -2320,7 +2320,7 @@ class CornerstoneElement extends Component {
                 <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
                   <Icon name="delete calendar" size="large"></Icon>
                 </Button>
-                <Button
+                {/* <Button
                   onClick={() => {
                     this.setState({ immersive: true })
                   }}
@@ -2328,7 +2328,7 @@ class CornerstoneElement extends Component {
                   title="沉浸模式"
                   className="funcbtn">
                   <Icon name="expand arrows alternate" size="large"></Icon>
-                </Button>
+                </Button> */}
               </Button.Group>
             </Menu.Item>
             <span id="line-right"></span>
@@ -4435,13 +4435,28 @@ class CornerstoneElement extends Component {
   }
 
   firstLayout() {
-    this.setState({ firstlayout: 1 }, () => {
-      let canvasColumn = document.getElementById('canvas-column')
-      let report = document.getElementById('report')
-      let list = document.getElementsByClassName('nodule-card-container')[0]
-      report.style.height = canvasColumn.clientHeight / 3 + 'px'
-      list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
-    })
+    let crossCanvasWidth = (document.body.clientWidth * 870) / 1920
+    let crossCanvasHeight = (document.body.clientHeight * 870) / 1080
+    let verticalCanvasWidth = (document.body.clientWidth * 840) / 1080
+    let verticalCanvasheight = (document.body.clientHeight * 1080) / 1920
+    this.setState(
+      {
+        firstlayout: 1,
+        windowWidth: document.body.clientWidth,
+        windowHeight: document.body.clientHeight,
+        crossCanvasWidth: crossCanvasWidth,
+        crossCanvasHeight: crossCanvasHeight,
+        verticalCanvasWidth: verticalCanvasWidth,
+        verticalCanvasheight: verticalCanvasheight,
+      },
+      () => {
+        let canvasColumn = document.getElementById('canvas-column')
+        let report = document.getElementById('report')
+        let list = document.getElementsByClassName('nodule-card-container')[0]
+        report.style.height = canvasColumn.clientHeight / 3 + 'px'
+        list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
+      }
+    )
   }
 
   refreshImage(initial, imageId, newIdx) {

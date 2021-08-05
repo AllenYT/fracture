@@ -1,82 +1,91 @@
-import React, { Component } from 'react'
-import axios from 'axios'
-import qs from 'qs'
-import _ from 'lodash'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTimesCircle, faChevronCircleUp, faChevronCircleDown, faUser, faLock, faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons'
+import React, { Component } from "react";
+import axios from "axios";
+import qs from "qs";
+import _ from "lodash";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faTimesCircle,
+  faChevronCircleUp,
+  faChevronCircleDown,
+  faUser,
+  faLock,
+  faCaretUp,
+  faCaretDown,
+} from "@fortawesome/free-solid-svg-icons";
 
-import { Form, Input, Button as AntdButton, Select, Pagination } from 'antd'
-import { Button, Table, Modal, Message } from 'semantic-ui-react'
-import md5 from 'js-md5'
-import LowerAuth from '../components/LowerAuth'
+import { Form, Input, Button as AntdButton, Select, Pagination } from "antd";
+import { Button, Table, Modal, Message } from "semantic-ui-react";
+import md5 from "js-md5";
+import LowerAuth from "../components/LowerAuth";
 
 // import { Slider, Select, Space, Checkbox, Tabs } from 'antd'
-import '../css/adminManage.css'
-import { alloc } from 'dicom-parser'
-const { Option } = Select
+import "../css/adminManage.css";
+import { alloc } from "dicom-parser";
+const { Option } = Select;
 class AdminManagePanel extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-      usersList: [{ username: '1', createTime: '20', roles: ['s'] }],
+      usersList: [{ username: "1", createTime: "20", roles: ["s"] }],
       addUserModalOpen: false,
       addUserModalToggled: false,
       editUserModalOpens: [],
       editUserModalToggleds: [],
       deleteUserModalOpens: [],
       deleteUserModalToggleds: [],
-      newPassword: '',
-      newValPassword: '',
-      newUsername: '',
-      newRole: '',
-      editPassword: '',
-      editValPassword: '',
-      editUsername: '',
-      editRole: '',
+      newPassword: "",
+      newValPassword: "",
+      newUsername: "",
+      newRole: "",
+      editPassword: "",
+      editValPassword: "",
+      editUsername: "",
+      editRole: "",
       allRoles: [],
       currentPage: 1,
       totalPage: 10,
-      orderBy: 'createTime desc,username desc',
-      message: {
+      orderBy: "createTime desc,username desc",
+      addMessage: {
         messageVisible: false,
-        messageType: 'failed',
-        messageHeader: '',
-        messageContent: '',
+        messageType: "failed",
+        messageHeader: "",
+        messageContent: "",
       },
-    }
-    this.config = JSON.parse(localStorage.getItem('config'))
+      editMessage: [{}],
+    };
+    this.config = JSON.parse(localStorage.getItem("config"));
   }
   async componentDidMount() {
     const pagePromise = new Promise((resolve, reject) => {
       return axios.get(this.config.user.getTotalUserPages).then((res) => {
-        console.log('getTotalUserPage request', res)
-        const data = res.data
+        console.log("getTotalUserPage request", res);
+        const data = res.data;
         if (data) {
           this.setState({
             totalPage: data,
-          })
+          });
         }
-        resolve(data)
-      }, reject)
-    })
-    await pagePromise
+        resolve(data);
+      }, reject);
+    });
+    await pagePromise;
     axios.get(this.config.role.getAllRole).then((res) => {
-      console.log('getAllRole request', res)
-      const data = res.data
+      console.log("getAllRole request", res);
+      const data = res.data;
       if (data) {
-        let newRole = ''
+        let newRole = "";
         if (data.length >= 2) {
-          newRole = data[1]
+          newRole = data[1];
         } else {
-          newRole = data[0]
+          newRole = data[0];
         }
         this.setState({
           allRoles: data,
           newRole: newRole,
-        })
+        });
       }
-    })
-    this.updateUserInfoByPage(1)
+    });
+    this.updateUserInfoByPage(1);
   }
   updateUserInfoByPage(page) {
     axios
@@ -88,76 +97,67 @@ class AdminManagePanel extends Component {
         })
       )
       .then((res) => {
-        console.log('getUserAtPage request', res)
-        const usersList = []
-        const data = res.data
+        console.log("getUserAtPage request", res);
+        const usersList = [];
+        const data = res.data;
         if (data) {
           data.forEach((item) => {
             const user = {
               username: item.username,
               createTime: item.createTime,
               roles: item.roles.content,
-            }
-            usersList.push(user)
-          })
+            };
+            usersList.push(user);
+          });
           this.setState({
             usersList,
-          })
+          });
         }
-      })
+      });
   }
   updateUserInfoByTotalPage(totalPage) {
-    console.log(totalPage)
+    console.log(totalPage);
   }
   validateUserInfo(username, password, valPassword, role) {
-    const message = this.state.message
-    if (!username && username.length < 1) {
-      console.log('username length error')
-      message.messageVisible = true
-      message.messageType = 'failed'
-      message.messageHeader = '用户名长度不符'
-      message.messageContent = '用户名长度不符'
-      this.setState({
-        message,
-      })
-      return false
+    const message = {};
+    if (!username || username.length < 1) {
+      console.log("username length error");
+      message.messageVisible = true;
+      message.messageType = "failed";
+      message.messageHeader = "用户名长度不符";
+      message.messageContent = "用户名长度不符";
+      return message;
     } else if (password !== valPassword) {
-      console.log('two time password not match erro')
-      message.messageVisible = true
-      message.messageType = 'failed'
-      message.messageHeader = '两次密码不匹配'
-      message.messageContent = '两次密码不匹配'
-      this.setState({
-        message,
-      })
-      return false
+      console.log("two time password not match erro");
+      message.messageVisible = true;
+      message.messageType = "failed";
+      message.messageHeader = "两次密码不匹配";
+      message.messageContent = "两次密码不匹配";
+
+      return message;
     } else if (password.length > 16 || password.length < 6) {
-      console.log('password length error')
-      message.messageVisible = true
-      message.messageType = 'failed'
-      message.messageHeader = '密码长度不符'
-      message.messageContent = '密码长度需要大于等于6位小于等于16位'
-      this.setState({
-        message,
-      })
-      return false
+      console.log("password length error");
+      message.messageVisible = true;
+      message.messageType = "failed";
+      message.messageHeader = "密码长度不符";
+      message.messageContent = "密码长度需要大于等于6位小于等于16位";
+
+      return message;
     } else if (!role) {
-      console.log('not choose role error')
-      message.messageVisible = true
-      message.messageType = 'failed'
-      message.messageHeader = '没有选择角色'
-      message.messageContent = '没有选择角色'
-      this.setState({
-        message,
-      })
-      return false
+      console.log("not choose role error");
+      message.messageVisible = true;
+      message.messageType = "failed";
+      message.messageHeader = "没有选择角色";
+      message.messageContent = "没有选择角色";
+      return message;
     } else {
-      return true
+      message.messageVisible = false;
+      return message;
     }
   }
   addUser() {
-    const { newUsername, newPassword, newValPassword, newRole } = this.state
-    console.log(newUsername, newPassword, newValPassword, newRole)
+    const { newUsername, newPassword, newValPassword, newRole } = this.state;
+    console.log(newUsername, newPassword, newValPassword, newRole);
     // if (!newUsername || newUsername.length < 1) {
     //   console.log('username length error')
     //   message.messageVisible = true
@@ -194,7 +194,13 @@ class AdminManagePanel extends Component {
     //   this.setState({
     //     message,
     //   })
-    if (this.validateUserInfo(newUsername, newPassword, newValPassword, newRole)) {
+    const message = this.validateUserInfo(
+      newUsername,
+      newPassword,
+      newValPassword,
+      newRole
+    );
+    if (!message.messageVisible) {
       axios
         .post(
           this.config.user.insertUserInfoForAdmin,
@@ -205,53 +211,100 @@ class AdminManagePanel extends Component {
           })
         )
         .then((res) => {
-          console.log('insertUserInfoForAdmin request', res)
-          if (res.status === 200 && res.data && res.data.status === 'ok') {
-            const totalPage = res.data.newTotalPage
+          console.log("insertUserInfoForAdmin request", res);
+          if (res.status === 200 && res.data && res.data.status === "ok") {
+            const totalPage = res.data.newTotalPage;
             this.setState(
               {
                 totalPage,
                 currentPage: 1,
-                orderBy: 'createTime desc,username desc',
+                orderBy: "createTime desc,username desc",
               },
               () => {
-                this.updateUserInfoByPage(1)
+                this.updateUserInfoByPage(1);
               }
-            )
-            alert('添加成功')
-            this.setAddUserModalOpen(false)
+            );
+            alert("添加成功");
+            this.setAddUserModalOpen(false);
+          } else if (res.data.status === "existed") {
+            alert("已存在的用户，添加失败");
           } else {
-            alert('添加失败')
+            alert("添加失败");
           }
-        })
+        });
+    } else {
+      if (this.timer != null) {
+        clearInterval(this.timer);
+      }
+      this.setState(
+        {
+          addMessage: message,
+        },
+        () => {
+          this.timer = setInterval(() => {
+            const addMessage = this.state.addMessage;
+            addMessage.messageVisible = false;
+            this.setState({
+              addMessage,
+            });
+          }, 3000);
+        }
+      );
     }
   }
   editUser(index) {
-    const { editUsername, editPassword, editValPassword, editRole, message } = this.state
-    if (this.validateUserInfo(editUsername, editPassword, editValPassword, editRole)) {
+    const { editUsername, editPassword, editValPassword, editRole } =
+      this.state;
+    const message = this.validateUserInfo(
+      editUsername,
+      editPassword,
+      editValPassword,
+      editRole
+    );
+    if (!message.messageVisible) {
       axios
         .post(
-          this.config.user.insertUserInfoForAdmin,
+          this.config.user.updateUserInfoForAdmin,
           qs.stringify({
-            createUsername: editUsername,
-            createPassword: md5(editPassword),
-            roles: editRole,
+            username: editUsername,
+            newPassword: md5(editPassword),
+            newRoles: editRole,
           })
         )
         .then((res) => {
-          console.log('updateRolesForUser request', res)
-          if (res.status === 200 && res.data && res.data.status === 'ok') {
-            this.updateUserInfoByPage(this.state.currentPage)
-            alert('修改成功')
-            this.setEditUserModalOpen(index, false)
+          console.log("updateRolesForUser request", res);
+          if (res.status === 200 && res.data && res.data.status === "ok") {
+            this.updateUserInfoByPage(this.state.currentPage);
+            alert("修改成功");
+            this.setEditUserModalOpen(index, false);
           } else {
-            alert('修改失败')
+            alert("修改失败");
           }
-        })
+        });
+    } else {
+      const editMessage = this.state.editMessage;
+      editMessage[index] = message;
+      if (this.timer != null) {
+        clearInterval(this.timer);
+      }
+      this.setState(
+        {
+          editMessage,
+        },
+        () => {
+          this.timer = setInterval(() => {
+            const editMessage = this.state.editMessage;
+            editMessage[index].messageVisible = false;
+            this.setState({
+              editMessage,
+            });
+          }, 3000);
+        }
+      );
     }
   }
   deleteUser(index) {
-    const username = this.state.usersList[index].username
+    const username = this.state.usersList[index].username;
     axios
       .post(
         this.config.user.delUser,
@@ -260,144 +313,144 @@ class AdminManagePanel extends Component {
         })
       )
       .then((res) => {
-        console.log('delUser request', res)
-        if (res.status === 200 && res.data && res.data.status === 'ok') {
-          const totalPage = res.data.newTotalPage
-          const currentPage = this.state.currentPage
+        console.log("delUser request", res);
+        if (res.status === 200 && res.data && res.data.status === "ok") {
+          const totalPage = res.data.newTotalPage;
+          const currentPage = this.state.currentPage;
           if (currentPage > totalPage) {
             this.setState(
               {
                 totalPage,
                 currentPage: totalPage,
-                orderBy: 'createTime desc,username desc',
+                orderBy: "createTime desc,username desc",
               },
               () => {
-                this.updateUserInfoByPage(totalPage)
+                this.updateUserInfoByPage(totalPage);
               }
-            )
+            );
           } else {
             this.setState(
               {
                 totalPage,
                 currentPage: currentPage,
-                orderBy: 'createTime desc,username desc',
+                orderBy: "createTime desc,username desc",
               },
               () => {
-                this.updateUserInfoByPage(currentPage)
+                this.updateUserInfoByPage(currentPage);
               }
-            )
+            );
           }
-          alert('删除成功')
-          this.setDeleteUserModalOpen(index, false)
+          alert("删除成功");
+          this.setDeleteUserModalOpen(index, false);
         } else {
-          alert('删除失败')
+          alert("删除失败");
         }
-      })
+      });
   }
   setAddUserModalOpen(addUserModalOpen) {
     if (!addUserModalOpen) {
       this.setState({
-        newUsername: '',
-        newPassword: '',
-        newValPassword: '',
-        newRole: '',
-      })
+        newUsername: "",
+        newPassword: "",
+        newValPassword: "",
+        newRole: "",
+      });
     }
     this.setState({
       addUserModalOpen,
-    })
+    });
   }
   setAddUserModalToggled() {
-    const addUserModalToggled = this.state.addUserModalToggled
+    const addUserModalToggled = this.state.addUserModalToggled;
     this.setState({
       addUserModalToggled: !addUserModalToggled,
-    })
+    });
   }
   setEditUserModalOpen(index, editUserModalOpen) {
-    const editUserModalOpens = this.state.editUserModalOpens
-    editUserModalOpens[index] = editUserModalOpen
+    const editUserModalOpens = this.state.editUserModalOpens;
+    editUserModalOpens[index] = editUserModalOpen;
     if (!editUserModalOpen) {
       this.setState({
-        editUsername: '',
-        editPassword: '',
-        editValPassword: '',
-        editRole: '',
-      })
+        editUsername: "",
+        editPassword: "",
+        editValPassword: "",
+        editRole: "",
+      });
     }
     if (editUserModalOpen) {
-      const user = this.state.usersList[index]
+      const user = this.state.usersList[index];
       this.setState({
         editUsername: user.username,
-      })
+      });
     } else {
       this.setState({
-        editUsername: '',
-      })
+        editUsername: "",
+      });
     }
     this.setState({
       editUserModalOpens,
-    })
+    });
   }
   setEditUserModalToggled(index) {
-    const editUserModalToggleds = this.state.editUserModalToggleds
-    editUserModalToggleds[index] = !editUserModalToggleds[index]
+    const editUserModalToggleds = this.state.editUserModalToggleds;
+    editUserModalToggleds[index] = !editUserModalToggleds[index];
     this.setState({
       editUserModalToggleds,
-    })
+    });
   }
   setDeleteUserModalOpen(index, deleteUserModalOpen) {
-    const deleteUserModalOpens = this.state.deleteUserModalOpens
-    deleteUserModalOpens[index] = deleteUserModalOpen
+    const deleteUserModalOpens = this.state.deleteUserModalOpens;
+    deleteUserModalOpens[index] = deleteUserModalOpen;
     this.setState({
       deleteUserModalOpens,
-    })
+    });
   }
   setDeleteUserModalToggled(index) {
-    const deleteUserModalToggleds = this.state.deleteUserModalToggleds
-    deleteUserModalToggleds[index] = !deleteUserModalToggleds[index]
+    const deleteUserModalToggleds = this.state.deleteUserModalToggleds;
+    deleteUserModalToggleds[index] = !deleteUserModalToggleds[index];
     this.setState({
       deleteUserModalToggleds,
-    })
+    });
   }
   onUsernameInputChange(e) {
     this.setState({
       newUsername: e.target.value,
-    })
+    });
   }
   onPasswordInputChange(e) {
     this.setState({
       newPassword: e.target.value,
-    })
+    });
   }
   onValPasswordInputChange(e) {
     this.setState({
       newValPassword: e.target.value,
-    })
+    });
   }
   onRoleSelectChange(value) {
     this.setState({
       newRole: value,
-    })
+    });
   }
   onEditUsernameInputChange(e) {
     this.setState({
       editUsername: e.target.value,
-    })
+    });
   }
   onEditPasswordInputChange(e) {
     this.setState({
       editPassword: e.target.value,
-    })
+    });
   }
   onEditValPasswordInputChange(e) {
     this.setState({
       editValPassword: e.target.value,
-    })
+    });
   }
   onEditRoleSelectChange(value) {
     this.setState({
       editRole: value,
-    })
+    });
   }
   onPageChange(page) {
     this.setState(
@@ -405,40 +458,47 @@ class AdminManagePanel extends Component {
         currentPage: page,
       },
       () => {
-        this.updateUserInfoByPage(page)
+        this.updateUserInfoByPage(page);
       }
-    )
+    );
   }
-  handleDismiss() {
-    const message = this.state.message
-    message.messageVisible = false
+  handleDismissAddMessage() {
+    const addMessage = this.state.addMessage;
+    addMessage.messageVisible = false;
     this.setState({
-      message,
-    })
+      addMessage,
+    });
+  }
+  handleDismissEditMessage(index) {
+    const editMessage = this.state.editMessage;
+    editMessage[index].messageVisible = false;
+    this.setState({
+      editMessage,
+    });
   }
   orderUsersList(sortColumn) {
-    let resultOrderBy = ''
-    const orderBy = this.state.orderBy
-    const orderByList = orderBy.split(',')
+    let resultOrderBy = "";
+    const orderBy = this.state.orderBy;
+    const orderByList = orderBy.split(",");
     for (let i = 0; i < orderByList.length; i++) {
-      const orderByItem = orderByList[i]
-      const orderByItemList = orderByItem.split(' ')
+      const orderByItem = orderByList[i];
+      const orderByItemList = orderByItem.split(" ");
       if (orderByItemList.length === 2 && orderByItemList[0] === sortColumn) {
-        if (orderByItemList[1] === 'asc') {
-          orderByItemList[1] = 'desc'
+        if (orderByItemList[1] === "asc") {
+          orderByItemList[1] = "desc";
         } else {
-          orderByItemList[1] = 'asc'
+          orderByItemList[1] = "asc";
         }
       }
       if (i === orderByList.length - 1) {
-        resultOrderBy += orderByItemList[0] + ' ' + orderByItemList[1]
+        resultOrderBy += orderByItemList[0] + " " + orderByItemList[1];
       } else {
-        resultOrderBy += orderByItemList[0] + ' ' + orderByItemList[1] + ','
+        resultOrderBy += orderByItemList[0] + " " + orderByItemList[1] + ",";
       }
     }
     this.setState({
       orderBy: resultOrderBy,
-    })
+    });
     axios
       .post(
         this.config.user.getUserAtPage,
@@ -448,23 +508,23 @@ class AdminManagePanel extends Component {
         })
       )
       .then((res) => {
-        console.log('getUserAtPage request', res)
-        const usersList = []
-        const data = res.data
+        console.log("getUserAtPage request", res);
+        const usersList = [];
+        const data = res.data;
         if (data) {
           data.forEach((item) => {
             const user = {
               username: item.username,
               createTime: item.createTime,
               roles: item.roles.content,
-            }
-            usersList.push(user)
-          })
+            };
+            usersList.push(user);
+          });
           this.setState({
             usersList,
-          })
+          });
         }
-      })
+      });
   }
   render() {
     const {
@@ -486,28 +546,51 @@ class AdminManagePanel extends Component {
       editRole,
       currentPage,
       totalPage,
-      message,
+      addMessage,
+      editMessage,
       orderBy,
-    } = this.state
-    let visibleMessage = <></>
-    if (message.messageVisible) {
-      visibleMessage = <Message color="red" onDismiss={this.handleDismiss.bind(this)} header={message.messageHeader} content={message.messageContent} />
+    } = this.state;
+    let visibleAddMessage = <></>;
+    if (addMessage.messageVisible) {
+      visibleAddMessage = (
+        <Message
+          color="red"
+          onDismiss={this.handleDismissAddMessage.bind(this)}
+          header={addMessage.messageHeader}
+          content={addMessage.messageContent}
+        />
+      );
     }
-    const copyRoles = [].concat(allRoles)
-    const adminIndex = copyRoles.indexOf('admin')
-    copyRoles.splice(adminIndex, 1)
+    let visibleEditMessage = editMessage.map((item, index) => {
+      if (item.messageVisible) {
+        return (
+          <Message
+            color="red"
+            onDismiss={this.handleDismissEditMessage.bind(this, index)}
+            header={item.messageHeader}
+            content={item.messageContent}
+          />
+        );
+      } else {
+        return <></>;
+      }
+    });
+
+    const copyRoles = [].concat(allRoles);
+    const adminIndex = copyRoles.indexOf("admin");
+    copyRoles.splice(adminIndex, 1);
     const rolesOp = copyRoles.map((item, index) => {
       return (
         <Option key={index} value={item}>
           {item}
         </Option>
-      )
-    })
+      );
+    });
     const usersInfo = usersList.map((item, index) => {
-      let roleString = ''
+      let roleString = "";
       item.roles.forEach((role) => {
-        roleString += role
-      })
+        roleString += role;
+      });
       return (
         <Table.Row key={index}>
           <Table.Cell>{index + 1}</Table.Cell>
@@ -516,7 +599,7 @@ class AdminManagePanel extends Component {
           <Table.Cell>{item.createTime}</Table.Cell>
           <Table.Cell>
             <Modal
-              className={'admin-manage-modal'}
+              className={"admin-manage-modal"}
               onClose={this.setEditUserModalOpen.bind(this, index, false)}
               onOpen={this.setEditUserModalOpen.bind(this, index, true)}
               open={editUserModalOpens[index]}
@@ -524,75 +607,170 @@ class AdminManagePanel extends Component {
                 <Button inverted color="blue" size="tiny">
                   编辑
                 </Button>
-              }>
+              }
+            >
               {/* <Modal.Header>Select a Photo</Modal.Header> */}
-              <div className={'admin-manage-log-block ' + (editUserModalToggleds[index] ? 'admin-manage-log-block-toggled' : '')}>
-                <div className={'admin-manage-log-heading'}>
+              <div
+                className={
+                  "admin-manage-log-block " +
+                  (editUserModalToggleds[index]
+                    ? "admin-manage-log-block-toggled"
+                    : "")
+                }
+              >
+                <div className={"admin-manage-log-heading"}>
                   修改用户信息
-                  <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={faTimesCircle} onClick={this.setEditUserModalOpen.bind(this, index, false)} />
                   <FontAwesomeIcon
-                    className={'admin-manage-log-heading-icon'}
-                    icon={editUserModalToggleds[index] ? faChevronCircleDown : faChevronCircleUp}
+                    className={"admin-manage-log-heading-icon"}
+                    icon={faTimesCircle}
+                    onClick={this.setEditUserModalOpen.bind(this, index, false)}
+                  />
+                  <FontAwesomeIcon
+                    className={"admin-manage-log-heading-icon"}
+                    icon={
+                      editUserModalToggleds[index]
+                        ? faChevronCircleDown
+                        : faChevronCircleUp
+                    }
                     onClick={this.setEditUserModalToggled.bind(this, index)}
                   />
                 </div>
-                <Form className={'admin-manage-log-form'} labelCol={{ offset: 0, span: 0 }} wrapperCol={{ offset: 0, span: 24 }}>
+                <Form
+                  className={"admin-manage-log-form"}
+                  labelCol={{ offset: 0, span: 0 }}
+                  wrapperCol={{ offset: 0, span: 24 }}
+                >
                   <Form.Item>
-                    <Input addonBefore={'用户名'} placeholder="输入用户名" value={editUsername} disabled onChange={this.onEditUsernameInputChange.bind(this)} />
+                    <Input
+                      addonBefore={"用户名"}
+                      placeholder="输入用户名"
+                      value={editUsername}
+                      disabled
+                      onChange={this.onEditUsernameInputChange.bind(this)}
+                    />
                   </Form.Item>
                   <Form.Item>
-                    <Input addonBefore={'密 码'} type="password" placeholder="输入密码" value={editPassword} onChange={this.onEditPasswordInputChange.bind(this)} />
+                    <Input
+                      addonBefore={"密 码"}
+                      type="password"
+                      placeholder="输入密码"
+                      value={editPassword}
+                      onChange={this.onEditPasswordInputChange.bind(this)}
+                    />
                   </Form.Item>
                   <Form.Item>
-                    <Input addonBefore={'确认密码'} type="password" placeholder="确认密码" value={editValPassword} onChange={this.onEditValPasswordInputChange.bind(this)} />
+                    <Input
+                      addonBefore={"确认密码"}
+                      type="password"
+                      placeholder="确认密码"
+                      value={editValPassword}
+                      onChange={this.onEditValPasswordInputChange.bind(this)}
+                    />
                   </Form.Item>
                   <Form.Item>
-                    <div style={{ display: 'flex', flexDirection: 'row' }}>
+                    <div style={{ display: "flex", flexDirection: "row" }}>
                       <span className="ant-input-group-addon">选择角色</span>
-                      <Select defaultValue={editRole} onChange={this.onEditRoleSelectChange.bind(this)}>
+                      <Select
+                        defaultValue={editRole}
+                        onChange={this.onEditRoleSelectChange.bind(this)}
+                      >
                         {rolesOp}
                       </Select>
                     </div>
                   </Form.Item>
                   <Form.Item>
-                    <AntdButton className={'admin-manage-log-form-button'} style={{ marginRight: '6%' }} onClick={this.setEditUserModalOpen.bind(this, index, false)}>
+                    <AntdButton
+                      className={"admin-manage-log-form-button"}
+                      style={{ marginRight: "6%" }}
+                      onClick={this.setEditUserModalOpen.bind(
+                        this,
+                        index,
+                        false
+                      )}
+                    >
                       取消
                     </AntdButton>
-                    <AntdButton className={'admin-manage-log-form-button'} onClick={this.editUser.bind(this, index, item.username)}>
+                    <AntdButton
+                      className={"admin-manage-log-form-button"}
+                      onClick={this.editUser.bind(this, index, item.username)}
+                    >
                       修改
                     </AntdButton>
                   </Form.Item>
+                  {visibleEditMessage[index]}
                 </Form>
               </div>
             </Modal>
 
             <Modal
-              className={'admin-manage-modal'}
+              className={"admin-manage-modal"}
               onClose={this.setDeleteUserModalOpen.bind(this, index, false)}
               onOpen={this.setDeleteUserModalOpen.bind(this, index, true)}
               open={deleteUserModalOpens[index]}
               trigger={
-                <Button inverted color="blue" size="tiny" style={item.roles.includes('admin') ? { display: 'none' } : {}}>
+                <Button
+                  inverted
+                  color="blue"
+                  size="tiny"
+                  style={
+                    item.roles.includes("admin") ? { display: "none" } : {}
+                  }
+                >
                   删除用户
                 </Button>
-              }>
+              }
+            >
               {/* <Modal.Header>Select a Photo</Modal.Header> */}
-              <div className={'admin-manage-log-block ' + (deleteUserModalToggleds[index] ? 'admin-manage-log-block-toggled' : '')}>
-                <div className={'admin-manage-log-heading'}>
+              <div
+                className={
+                  "admin-manage-log-block " +
+                  (deleteUserModalToggleds[index]
+                    ? "admin-manage-log-block-toggled"
+                    : "")
+                }
+              >
+                <div className={"admin-manage-log-heading"}>
                   删除该用户
-                  <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={faTimesCircle} onClick={this.setDeleteUserModalOpen.bind(this, index, false)} />
                   <FontAwesomeIcon
-                    className={'admin-manage-log-heading-icon'}
-                    icon={deleteUserModalToggleds[index] ? faChevronCircleDown : faChevronCircleUp}
+                    className={"admin-manage-log-heading-icon"}
+                    icon={faTimesCircle}
+                    onClick={this.setDeleteUserModalOpen.bind(
+                      this,
+                      index,
+                      false
+                    )}
+                  />
+                  <FontAwesomeIcon
+                    className={"admin-manage-log-heading-icon"}
+                    icon={
+                      deleteUserModalToggleds[index]
+                        ? faChevronCircleDown
+                        : faChevronCircleUp
+                    }
                     onClick={this.setDeleteUserModalToggled.bind(this, index)}
                   />
                 </div>
-                <Form className={'admin-manage-log-form'} labelCol={{ offset: 0, span: 0 }} wrapperCol={{ offset: 0, span: 24 }}>
+                <Form
+                  className={"admin-manage-log-form"}
+                  labelCol={{ offset: 0, span: 0 }}
+                  wrapperCol={{ offset: 0, span: 24 }}
+                >
                   <Form.Item>
-                    <AntdButton className={'admin-manage-log-form-button'} style={{ marginRight: '6%' }} onClick={this.setDeleteUserModalOpen.bind(this, index, false)}>
+                    <AntdButton
+                      className={"admin-manage-log-form-button"}
+                      style={{ marginRight: "6%" }}
+                      onClick={this.setDeleteUserModalOpen.bind(
+                        this,
+                        index,
+                        false
+                      )}
+                    >
                       取消
                     </AntdButton>
-                    <AntdButton className={'admin-manage-log-form-button'} onClick={this.deleteUser.bind(this, index)}>
+                    <AntdButton
+                      className={"admin-manage-log-form-button"}
+                      onClick={this.deleteUser.bind(this, index)}
+                    >
                       删除
                     </AntdButton>
                   </Form.Item>
@@ -601,26 +779,28 @@ class AdminManagePanel extends Component {
             </Modal>
           </Table.Cell>
         </Table.Row>
-      )
-    })
-    let usernameDirection = ''
-    let createTimeDirection = ''
-    const orderByList = orderBy.split(',')
+      );
+    });
+    let usernameDirection = "";
+    let createTimeDirection = "";
+    const orderByList = orderBy.split(",");
     for (let i = 0; i < orderByList.length; i++) {
-      const orderByItem = orderByList[i]
-      const orderByItemList = orderByItem.split(' ')
-      if (orderByItemList.length === 2 && orderByItemList[0] === 'username') {
-        usernameDirection = orderByItemList[1]
+      const orderByItem = orderByList[i];
+      const orderByItemList = orderByItem.split(" ");
+      if (orderByItemList.length === 2 && orderByItemList[0] === "username") {
+        usernameDirection = orderByItemList[1];
       }
-      if (orderByItemList.length === 2 && orderByItemList[0] === 'createTime') {
-        createTimeDirection = orderByItemList[1]
+      if (orderByItemList.length === 2 && orderByItemList[0] === "createTime") {
+        createTimeDirection = orderByItemList[1];
       }
     }
-    return localStorage.getItem('auths') !== null && JSON.parse(localStorage.getItem('auths')).indexOf('nodule_search') > -1 ? (
+    return localStorage.getItem("auths") !== null &&
+      JSON.parse(localStorage.getItem("auths")).indexOf("nodule_search") >
+        -1 ? (
       <div className="admin-manage-out-container">
         <div>
           <Modal
-            className={'admin-manage-modal'}
+            className={"admin-manage-modal"}
             onClose={this.setAddUserModalOpen.bind(this, false)}
             onOpen={this.setAddUserModalOpen.bind(this, true)}
             open={addUserModalOpen}
@@ -628,41 +808,90 @@ class AdminManagePanel extends Component {
               <Button inverted color="blue" size="tiny">
                 新增用户
               </Button>
-            }>
+            }
+          >
             {/* <Modal.Header>Select a Photo</Modal.Header> */}
-            <div className={'admin-manage-log-block ' + (addUserModalToggled ? 'admin-manage-log-block-toggled' : '')}>
-              <div className={'admin-manage-log-heading'}>
+            <div
+              className={
+                "admin-manage-log-block " +
+                (addUserModalToggled ? "admin-manage-log-block-toggled" : "")
+              }
+            >
+              <div className={"admin-manage-log-heading"}>
                 添加新用户
-                <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={faTimesCircle} onClick={this.setAddUserModalOpen.bind(this, false)} />
-                <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={addUserModalToggled ? faChevronCircleDown : faChevronCircleUp} onClick={this.setAddUserModalToggled.bind(this)} />
+                <FontAwesomeIcon
+                  className={"admin-manage-log-heading-icon"}
+                  icon={faTimesCircle}
+                  onClick={this.setAddUserModalOpen.bind(this, false)}
+                />
+                <FontAwesomeIcon
+                  className={"admin-manage-log-heading-icon"}
+                  icon={
+                    addUserModalToggled
+                      ? faChevronCircleDown
+                      : faChevronCircleUp
+                  }
+                  onClick={this.setAddUserModalToggled.bind(this)}
+                />
               </div>
-              <Form className={'admin-manage-log-form'} labelCol={{ offset: 0, span: 0 }} wrapperCol={{ offset: 0, span: 24 }}>
+              <Form
+                className={"admin-manage-log-form"}
+                labelCol={{ offset: 0, span: 0 }}
+                wrapperCol={{ offset: 0, span: 24 }}
+              >
                 <Form.Item>
-                  <Input addonBefore={'用户名'} placeholder="输入用户名" value={newUsername} onChange={this.onUsernameInputChange.bind(this)} />
+                  <Input
+                    addonBefore={"用户名"}
+                    placeholder="输入用户名"
+                    value={newUsername}
+                    onChange={this.onUsernameInputChange.bind(this)}
+                  />
                 </Form.Item>
                 <Form.Item>
-                  <Input addonBefore={'密 码'} type="password" placeholder="输入密码" value={newPassword} onChange={this.onPasswordInputChange.bind(this)} />
+                  <Input
+                    addonBefore={"密 码"}
+                    type="password"
+                    placeholder="输入密码"
+                    value={newPassword}
+                    onChange={this.onPasswordInputChange.bind(this)}
+                  />
                 </Form.Item>
                 <Form.Item>
-                  <Input addonBefore={'确认密码'} type="password" placeholder="确认密码" value={newValPassword} onChange={this.onValPasswordInputChange.bind(this)} />
+                  <Input
+                    addonBefore={"确认密码"}
+                    type="password"
+                    placeholder="确认密码"
+                    value={newValPassword}
+                    onChange={this.onValPasswordInputChange.bind(this)}
+                  />
                 </Form.Item>
                 <Form.Item>
-                  <div style={{ display: 'flex', flexDirection: 'row' }}>
+                  <div style={{ display: "flex", flexDirection: "row" }}>
                     <span className="ant-input-group-addon">选择角色</span>
-                    <Select defaultValue={newRole} onChange={this.onRoleSelectChange.bind(this)}>
+                    <Select
+                      defaultValue={newRole}
+                      onChange={this.onRoleSelectChange.bind(this)}
+                    >
                       {rolesOp}
                     </Select>
                   </div>
                 </Form.Item>
                 <Form.Item>
-                  <AntdButton className={'admin-manage-log-form-button'} style={{ marginRight: '6%' }} onClick={this.setAddUserModalOpen.bind(this, false)}>
+                  <AntdButton
+                    className={"admin-manage-log-form-button"}
+                    style={{ marginRight: "6%" }}
+                    onClick={this.setAddUserModalOpen.bind(this, false)}
+                  >
                     取消
                   </AntdButton>
-                  <AntdButton className={'admin-manage-log-form-button'} onClick={this.addUser.bind(this)}>
+                  <AntdButton
+                    className={"admin-manage-log-form-button"}
+                    onClick={this.addUser.bind(this)}
+                  >
                     添加
                   </AntdButton>
                 </Form.Item>
-                {visibleMessage}
+                {visibleAddMessage}
               </Form>
             </div>
           </Modal>
@@ -672,21 +901,55 @@ class AdminManagePanel extends Component {
             <Table.Row>
               <Table.HeaderCell>ID</Table.HeaderCell>
               <Table.HeaderCell>
-                <div className={'admin-manage-table-header-cell-order'}>
+                <div className={"admin-manage-table-header-cell-order"}>
                   <span>用户名</span>
-                  <span className={'admin-manage-table-header-cell-order-right'} onClick={this.orderUsersList.bind(this, 'username')}>
-                    <FontAwesomeIcon className={(usernameDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faCaretUp} />
-                    <FontAwesomeIcon className={(usernameDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faCaretDown} />
+                  <span
+                    className={"admin-manage-table-header-cell-order-right"}
+                    onClick={this.orderUsersList.bind(this, "username")}
+                  >
+                    <FontAwesomeIcon
+                      className={
+                        (usernameDirection === "desc"
+                          ? "admin-manage-table-header-icon-hide"
+                          : "") + " admin-manage-table-header-icon-up"
+                      }
+                      icon={faCaretUp}
+                    />
+                    <FontAwesomeIcon
+                      className={
+                        (usernameDirection === "asc"
+                          ? "admin-manage-table-header-icon-hide"
+                          : "") + " admin-manage-table-header-icon-down"
+                      }
+                      icon={faCaretDown}
+                    />
                   </span>
                 </div>
               </Table.HeaderCell>
               <Table.HeaderCell>角色</Table.HeaderCell>
               <Table.HeaderCell>
-                <div className={'admin-manage-table-header-cell-order'}>
+                <div className={"admin-manage-table-header-cell-order"}>
                   <span>添加日期</span>
-                  <span className={'admin-manage-table-header-cell-order-right'} onClick={this.orderUsersList.bind(this, 'createTime')}>
-                    <FontAwesomeIcon className={(createTimeDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faCaretUp} />
-                    <FontAwesomeIcon className={(createTimeDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faCaretDown} />
+                  <span
+                    className={"admin-manage-table-header-cell-order-right"}
+                    onClick={this.orderUsersList.bind(this, "createTime")}
+                  >
+                    <FontAwesomeIcon
+                      className={
+                        (createTimeDirection === "desc"
+                          ? "admin-manage-table-header-icon-hide"
+                          : "") + " admin-manage-table-header-icon-up"
+                      }
+                      icon={faCaretUp}
+                    />
+                    <FontAwesomeIcon
+                      className={
+                        (createTimeDirection === "asc"
+                          ? "admin-manage-table-header-icon-hide"
+                          : "") + " admin-manage-table-header-icon-down"
+                      }
+                      icon={faCaretDown}
+                    />
                   </span>
                 </div>
               </Table.HeaderCell>
@@ -696,13 +959,18 @@ class AdminManagePanel extends Component {
           <Table.Body>{usersInfo}</Table.Body>
         </Table>
         <div className="admin-manage-container-bottom">
-          <Pagination current={currentPage} defaultCurrent={currentPage} total={totalPage * 10} onChange={this.onPageChange.bind(this)} />
+          <Pagination
+            current={currentPage}
+            defaultCurrent={currentPage}
+            total={totalPage * 10}
+            onChange={this.onPageChange.bind(this)}
+          />
         </div>
       </div>
     ) : (
       <LowerAuth></LowerAuth>
-    )
+    );
   }
 }
 
-export default AdminManagePanel
+export default AdminManagePanel;

@@ -11,7 +11,7 @@ import MyReviewsPanel from '../panels/MyReviewsPanel'
 import PatientPanel from '../panels/PatientPanel'
 import SearchCasePanel from '../panels/SearchCasePanel'
 import SearchNodulePanel from '../panels/SearchNodulePanel'
-import FollowUpDisplayPanel from '../panels/FollowUpDisplayPanel'
+// import FollowUpDisplayPanel from '../panels/FollowUpDisplayPanel'
 import '../css/main.css'
 import axios from 'axios'
 import src1 from '../images/MILab.png'
@@ -269,9 +269,15 @@ class Main extends Component {
                     name='cov19List'>
                     新冠肺炎
                 </Menu.Item> */}
-        <Menu.Item active={activeItem === 'preprocess'} onClick={this.handleItemClick} as={Link} to="/preprocess" name="preprocess">
+        {/* <Menu.Item
+          active={activeItem === "preprocess"}
+          onClick={this.handleItemClick}
+          as={Link}
+          to="/preprocess"
+          name="preprocess"
+        >
           预处理
-        </Menu.Item>
+        </Menu.Item> */}
       </>
     )
 
@@ -363,10 +369,10 @@ class Main extends Component {
             <Route path="/homepage/" component={HomepagePanel} />
             <Route path="/preprocess/" component={preprocess} />
             <Route path="/segView/" component={ViewerPanel} />
-            <Route path="/followup/" component={FollowUpDisplayPanel} />
+            {/* <Route path="/followup/" component={FollowUpDisplayPanel} /> */}
             <Route path="/adminManage" component={AdminManagePanel} />
           </div>
-          <div className="ui inverted vertical footer segment">
+          {/* <div className="ui inverted vertical footer segment">
             <div className="inline" style={{ verticalAlign: 'middle' }}>
               © 2019 Sichuan University. All rights reserved
             </div>
@@ -374,7 +380,7 @@ class Main extends Component {
             <div className="inline">
               <Image src={src3} id="img-size"></Image>
             </div>
-          </div>
+          </div> */}
         </div>
       </Router>
     )

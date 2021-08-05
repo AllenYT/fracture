@@ -1,25 +1,25 @@
 #main {
-    /* min-height: 100%; */
-    min-height: calc(100vh);
+  /* min-height: 100%; */
+  min-height: calc(90vh);
 }
 #content {
-    /* height: calc(100vh); */
-    /* background: url(../images/app-bg.jpg) repeat; */
-    background-image: url(../images/bg.png);
+  min-height: calc(100vh);
+  /* background: url(../images/app-bg.jpg) repeat; */
+  background-image: url(../images/bg.png);
+  /* background-size: 100% 100%; */
 }
 
-
 #logout-menu {
-    min-width: 100px;
-    margin-top: 10px;
+  min-width: 100px;
+  margin-top: 10px;
 }
 
 .footer {
-    margin-top: 130px;
+  margin-top: 130px;
 }
 
-#bg-img{
-    background-image: url(../images/logo.jpg);
+#bg-img {
+  background-image: url(../images/logo.jpg);
 }
 
 /* .banner {
@@ -27,39 +27,39 @@
 } */
 
 .banner {
-    background-color: transparent;
+  background-color: transparent;
 }
 
-.inline{
-     display: inline-block;
-    margin-left: 60px;
-    color:#66cfec;
-    font-size: 1.4em;
-    vertical-align: middle;
-    /* float: left;  */
+.inline {
+  display: inline-block;
+  margin-left: 60px;
+  color: #66cfec;
+  font-size: 1.4em;
+  vertical-align: middle;
+  /* float: left;  */
 }
 
-#img-size{
-    width:50px;
-    height:50px;
+#img-size {
+  width: 50px;
+  height: 50px;
 }
 
 #header {
-    background-color: #02182f;
+  background-color: #02182f;
 }
 
 #header > a.item {
-    background-color: transparent !important;
-    color: #66cfec !important;
-    font-size: 1.2em;
+  background-color: transparent !important;
+  color: #66cfec !important;
+  font-size: 1.2em;
 }
 
 #header > a.item:hover {
-    border-color: white;
+  border-color: white;
 }
 
 .invisible-login-button {
-    visibility: hidden;
+  visibility: hidden;
 }
 
 /* @media screen and (min-width: 2340px)  and (max-width:2660px){
@@ -67,4 +67,3 @@
         min-height: 1400px;
     }
 } */
-
