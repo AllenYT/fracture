@@ -3,7 +3,7 @@ import { Card, Loader } from 'semantic-ui-react'
 // import {StudyBrowser, Thumbnail} from 'react-viewerbase'
 import qs from 'qs'
 import axios from 'axios'
-import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined } from '@ant-design/icons'
+import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
 import ReactHtmlParser from 'react-html-parser'
 import '../css/studyBrowser.css'
 
@@ -215,6 +215,8 @@ class StudyBrowserList extends Component {
             }
           } else if (validStatus === 'ok') {
             statusIcon = <CheckCircleOutlined style={{ color: '#52c41a' }} />
+          } else {
+            statusIcon = <SyncOutlined spin />
           }
           let previewId = 'preview-' + index
           let keyId = 'key-' + index

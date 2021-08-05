@@ -2395,12 +2395,12 @@ class CornerstoneElement extends Component {
                     <Icon name="user delete" size="large"></Icon>
                   </Button>
                 )}
-                <Button title="3D" className="funcbtn" onClick={this.toSegView}>
+                {/* <Button title="3D" className="funcbtn" onClick={this.toSegView}>
                   3D
-                </Button>
-                <Button title="随访" className="funcbtn" onClick={this.toFollowUp}>
+                </Button> */}
+                {/* <Button title="随访" className="funcbtn" onClick={this.toFollowUp}>
                   随访
-                </Button>
+                </Button> */}
               </Button.Group>
             </Menu.Item>
             <Menu.Item position="right">
