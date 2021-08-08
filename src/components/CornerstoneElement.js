@@ -19,7 +19,7 @@ import { Grid, Icon, Button, Accordion, Modal, Dropdown, Tab, Image, Menu, Label
 import '../css/cornerstone.css'
 import qs from 'qs'
 import axios from 'axios'
-import { Slider, Select, Space, Checkbox, Tabs } from 'antd'
+import { Slider, Select, Space, Checkbox, Tabs, Popconfirm } from 'antd'
 // import { Slider, RangeSlider } from 'rsuite'
 import MiniReport from './MiniReport'
 import MessagePanel from '../panels/MessagePanel'
@@ -644,8 +644,9 @@ class CornerstoneElement extends Component {
     this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
   }
 
-  delNodule(event) {
-    const delNoduleId = event.target.id
+  delNodule(delId) {
+    const delNoduleId = delId
+    console.log('delId', delId)
     const nodule_no = delNoduleId.split('-')[1]
     // let selectBoxes = this.state.selectBoxes
     // let measureStateList = this.state.measureStateList
@@ -2062,7 +2063,9 @@ class CornerstoneElement extends Component {
                     {probContnt}
 
                     <Grid.Column width={1} textAlign="center">
-                      <Icon name="trash alternate" onClick={this.delNodule} id={delId}></Icon>
+                      <Popconfirm placement="topLeft" title={'确认删除当前结节？'} onConfirm={this.delNodule.bind(this, delId)} id={delId} okText="Yes" cancelText="No">
+                        <Icon name="trash alternate"></Icon>
+                      </Popconfirm>
                     </Grid.Column>
                   </Grid.Row>
                 </Grid>
@@ -4218,54 +4221,56 @@ class CornerstoneElement extends Component {
     this.props.history.push(path)
   }
   submit() {
-    console.log('createuser')
-    const token = localStorage.getItem('token')
-    let boxes = this.state.boxes
-    // const selectBoxes = this.state.selectBoxes
-    // const selectBoxesMapIndex = this.state.selectBoxesMapIndex
-    // let deleteBoxes=[]
+    if (window.confirm('是否提交当前用户标注？') === true) {
+      console.log('createuser')
+      const token = localStorage.getItem('token')
+      let boxes = this.state.boxes
+      // const selectBoxes = this.state.selectBoxes
+      // const selectBoxesMapIndex = this.state.selectBoxesMapIndex
+      // let deleteBoxes=[]
 
-    // for(let i=0;i<selectBoxesMapIndex.length;i++){//仅修改
-    //     if(selectBoxes[i]!=="delete"){
-    //         boxes[selectBoxes[i]]=selectBoxes[i]
-    //     }
-    //     else{
-    //         deleteBoxes.push(selectBoxesMapIndex[i])//存在删除情况
-    //     }
-    // }
+      // for(let i=0;i<selectBoxesMapIndex.length;i++){//仅修改
+      //     if(selectBoxes[i]!=="delete"){
+      //         boxes[selectBoxes[i]]=selectBoxes[i]
+      //     }
+      //     else{
+      //         deleteBoxes.push(selectBoxesMapIndex[i])//存在删除情况
+      //     }
+      // }
 
-    // for(let i=0;i<deleteBoxes.length;i++){//存在删除情况
-    //     boxes.splice(deleteBoxes[i], 1)
-    //     for (let i = deleteBoxes[i]; i < boxes.length; i++) {
-    //         boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
-    //     }
-    // }
+      // for(let i=0;i<deleteBoxes.length;i++){//存在删除情况
+      //     boxes.splice(deleteBoxes[i], 1)
+      //     for (let i = deleteBoxes[i]; i < boxes.length; i++) {
+      //         boxes[i].nodule_no=(parseInt(boxes[i].nodule_no)-1).toString()
+      //     }
+      // }
 
-    const headers = {
-      Authorization: 'Bearer '.concat(token),
+      const headers = {
+        Authorization: 'Bearer '.concat(token),
+      }
+      const params = {
+        caseId: this.state.caseId,
+        // username:this.state.username,
+        newRectStr: JSON.stringify(boxes),
+      }
+      axios
+        .post(this.config.draft.createUser, qs.stringify(params), { headers })
+        .then((res) => {
+          console.log(res)
+          if (res.data.status === 'okay') {
+            console.log('createUser')
+            // this.nextPath(res.data.nextPath)
+            window.location.href = res.data.nextPath
+          } else if (res.data.status === 'alreadyExisted') {
+            console.log('alreadyExistedUser')
+            // this.nextPath(res.data.nextPath)
+            window.location.href = res.data.nextPath
+          }
+        })
+        .catch((err) => {
+          console.log('err: ' + err)
+        })
     }
-    const params = {
-      caseId: this.state.caseId,
-      // username:this.state.username,
-      newRectStr: JSON.stringify(boxes),
-    }
-    axios
-      .post(this.config.draft.createUser, qs.stringify(params), { headers })
-      .then((res) => {
-        console.log(res)
-        if (res.data.status === 'okay') {
-          console.log('createUser')
-          // this.nextPath(res.data.nextPath)
-          window.location.href = res.data.nextPath
-        } else if (res.data.status === 'alreadyExisted') {
-          console.log('alreadyExistedUser')
-          // this.nextPath(res.data.nextPath)
-          window.location.href = res.data.nextPath
-        }
-      })
-      .catch((err) => {
-        console.log('err: ' + err)
-      })
   }
 
   clearUserNodule() {
@@ -4644,7 +4649,10 @@ class CornerstoneElement extends Component {
         // cornerstone.loadAndCacheImage(imageIds[j])
         // if(!annoHash[this[i]]){
         //     annoHash[this[i]] = true
-        annoImageIds.push(imageIds[j])
+        if (j >= 0 && j < imageIds.length) {
+          annoImageIds.push(imageIds[j])
+        }
+
         // }
       }
     }
