@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { Menu, Dropdown, Button, Image } from "semantic-ui-react";
+import { notification } from "antd";
 import {
   withRouter,
   BrowserRouter as Router,
@@ -109,8 +110,16 @@ class Main extends Component {
       .post(this.config.data.getDiskInfo)
       .then((diskResponse) => {
         const diskInfo = diskResponse.data.usedPercents;
-        console.log("diskinfo", diskInfo);
+        console.log("diskinfo", parseInt(diskInfo));
         this.setState({ diskInfo: diskInfo });
+        if (parseInt(diskInfo) > 90) {
+          notification.warning({
+            top: 48,
+            duration: 6,
+            message: "提醒",
+            description: "磁盘用量已超过90%",
+          });
+        }
       })
       .catch((error) => {
         console.log(error);
