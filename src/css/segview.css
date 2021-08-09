@@ -341,12 +341,12 @@ svg > g > #container {
   border: none !important;
 }
 
-.list-tab >.ui.menu.attached > a {
+.list-tab > .ui.menu.attached > a {
   background-color: #021c38 !important;
   width: 50% !important;
   justify-content: center !important;
 }
-.list-tab >.ui.menu.attached > a.active {
+.list-tab > .ui.menu.attached > a.active {
   background-color: #122c48 !important;
   border: none !important;
 }
@@ -375,7 +375,7 @@ svg > g > #container {
 }
 .segment-list-operation {
   position: absolute;
-  left: 0px;
+  right: 0px;
 }
 .ui.visible.sidebar {
   display: flex;
