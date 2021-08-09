@@ -12,15 +12,9 @@ class DisplayPanel extends Component {
       caseId: window.location.pathname.split("/case/")[1].split("/")[0],
       username: localStorage.getItem("username"),
       modelName: window.location.pathname.split("/")[3],
-      studyList: [],
       stack: {},
       show: false,
     };
-
-    this.nextPath = this.nextPath.bind(this);
-  }
-  nextPath(path) {
-    this.props.history.push(path);
   }
   handleClickScreen(e, href) {
     console.log("card", href);
@@ -51,7 +45,7 @@ class DisplayPanel extends Component {
       console.log(prevState.caseId, this.state.caseId);
       let noduleNo = -1;
       if (this.props.location.hash !== "")
-        noduleNo = parseInt(this.props.location.hash.split("#")[1]);
+        noduleNo = parseInt(this.props.location.hash.split("#").slice(-1)[0]);
 
       const dataParams = {
         caseId: this.state.caseId,
@@ -170,7 +164,7 @@ class DisplayPanel extends Component {
     // send our token to the server, combined with the current pathname
     let noduleNo = -1;
     if (this.props.location.hash !== "")
-      noduleNo = parseInt(this.props.location.hash.split("#")[1]);
+      noduleNo = parseInt(this.props.location.hash.split("#").slice(-1)[0]);
 
     const dataParams = {
       caseId: this.state.caseId,
@@ -267,50 +261,6 @@ class DisplayPanel extends Component {
         });
       });
     }
-
-    // let imageIds = []
-
-    // function pad(num, size) {
-    //     var s = num + "";
-    //     while (s.length < size)
-    //         s = "0" + s;
-    //     return s;
-    // }
-
-    // for (var i = 0; i <= 313; i++) {
-    //     const filename = "dicomweb://localhost:8080/data/0000282967_20180625_BC/" + pad(i, 3) + ".dcm"
-
-    //     imageIds.push(filename)
-    // }
-
-    //   const params = {
-    //     mainItem: window.location.pathname.split('/case/')[1].split('_')[0],
-    //     type: 'pid', //'pid'
-    //     otherKeyword: ''
-    // }
-    // console.log("param",params)
-    // axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(params), {headers}).then((response) => {
-    //     const data = response.data
-    //     if (data.status !== 'okay') {
-    //         console.log("Not okay")
-    //         // window.location.href = '/'
-    //     } else {
-    //         console.log('sublist',data.subList)
-    //         const subList = data.subList
-    //         let totalDates = 0
-    //         let totalStudies = 0
-    //         for (const subKey in subList) {
-    //             totalDates++
-    //             totalStudies += subList[subKey].length
-    //         }
-    //         // console.log('MAINITEM', this.props.mainItem)
-    //         subList = Object.keys(subList)
-    //         console.log("study",subList)
-    //         this.setState({studyList: subList})
-    //     }
-    // }).catch((error) => {
-    //     console.log(error)
-    // })
   }
 
   render() {

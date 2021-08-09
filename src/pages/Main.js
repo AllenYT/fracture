@@ -9,7 +9,8 @@ import {
 import qs from "qs";
 import LoginPanel from "../panels/LoginPanel";
 import DataCockpit from "../panels/DataCockpit";
-import DisplayPanel from "../panels/DisplayPanel";
+// import DisplayPanel from "../panels/DisplayPanel";
+import CornerstoneElement from "../components/CornerstoneElement";
 import MyAnnosPanel from "../panels/MyAnnosPanel";
 import DownloadPanel from "../panels/DownloadPanel";
 import MyReviewsPanel from "../panels/MyReviewsPanel";
@@ -463,7 +464,7 @@ class Main extends Component {
             {/* <Route exact path="/login" component={LoginPanel}/>  */}
             <Route path="/myReviews/" component={MyReviewsPanel} />
             <Route exact path="/download/" component={DownloadPanel} />
-            <Route path="/case/" component={DisplayPanel} />
+            <Route path="/case/" component={CornerstoneElement} />
             <Route path="/patientInfo/" component={PatientPanel} />
             {/* <Route path="/cov19List/" component={Cov19ListPanel} />
                         <Route path='/cov19Case/' component={Cov19DisplayPanel}/> */}

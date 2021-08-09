@@ -27,6 +27,7 @@ import {
   Menu,
   Label,
   Header,
+  Card,
 } from "semantic-ui-react";
 import "../css/cornerstone.css";
 import qs from "qs";
@@ -174,24 +175,28 @@ const { Option } = Select;
 class CornerstoneElement extends Component {
   constructor(props) {
     super(props);
+    this.config = JSON.parse(localStorage.getItem("config"));
     this.state = {
-      caseId: props.caseId,
-      username: props.username,
-      modelName: props.modelName,
-      stack: props.stack,
+      // displayPanel
+      caseId: window.location.pathname.split("/case/")[1].split("/")[0],
+      username: localStorage.getItem("username"),
+      modelName: window.location.pathname.split("/")[3],
+
+      //cornerstoneElement
       viewport: cornerstone.getDefaultViewport(null, undefined),
-      imageIds: props.stack.imageIds === "" ? [] : props.stack.imageIds,
+      // imageIds: props.stack.imageIds === "" ? [] : props.stack.imageIds,
+      imageIds: [],
+      boxes: [],
       currentIdx: 0, //当前所在切片号
       autoRefresh: false,
-      boxes: props.stack.boxes === "" ? [] : props.stack.boxes,
+      // boxes: props.stack.boxes === "" ? [] : props.stack.boxes,
       clicked: false,
       clickedArea: {},
       tmpCoord: {},
       tmpBox: {},
       showNodules: true,
       immersive: false,
-      readonly: props.stack.readonly,
-      // activeIndex: -1,//右上方results活动item
+      readonly: false,
       listsActiveIndex: -1, //右方list活动item
       dropDownOpen: -1,
 
@@ -200,12 +205,12 @@ class CornerstoneElement extends Component {
       reviewResults: '<p style="color:white;">暂无结果</p>',
       modalOpenNew: false,
       modalOpenCur: false,
-      draftStatus: props.stack.draftStatus,
+      draftStatus: {},
       okayForReview: false,
       random: Math.random(),
       wwDefine: 500,
       wcDefine: 500,
-      dicomTag: props.stack.dicomTag,
+      dicomTag: null,
       showInfo: true,
       newAnno: true,
       isbidirectionnal: false,
@@ -220,7 +225,6 @@ class CornerstoneElement extends Component {
       prePosition: 0,
       curPosition: 0,
       doubleClick: false,
-      studyList: props.studyList,
       menuTools: "",
       isPlaying: false,
       windowWidth: document.body.clientWidth,
@@ -228,10 +232,6 @@ class CornerstoneElement extends Component {
       slideSpan: 0,
       preListActiveIdx: -1,
       currentImage: null,
-      // selectTiny:0,
-      // selectTexture:-1,
-      // selectBoxesMapIndex:[],
-      // selectBoxes:props.stack.boxes===""?[]:props.stack.boxes,
       lengthBox: [],
       firstlayout: 0,
       imageCaching: false,
@@ -239,6 +239,8 @@ class CornerstoneElement extends Component {
       crossCanvasHeight: (document.body.clientHeight * 940) / 1080,
       verticalCanvasWidth: (document.body.clientWidth * 840) / 1080,
       verticalCanvasHeight: (document.body.clientHeight * 1080) / 1920,
+      //studybrowserList
+      dateSeries: [],
     };
     this.config = JSON.parse(localStorage.getItem("config"));
     this.nextPath = this.nextPath.bind(this);
@@ -332,6 +334,10 @@ class CornerstoneElement extends Component {
     this.drawLength = this.drawLength.bind(this);
     this.createLength = this.createLength.bind(this);
     this.firstLayout = this.firstLayout.bind(this);
+    this.loadDisplay = this.loadDisplay.bind(this);
+    this.updateDisplay = this.updateDisplay.bind(this);
+    this.loadStudyBrowser = this.loadStudyBrowser.bind(this);
+    this.updateStudyBrowser = this.updateStudyBrowser.bind(this);
     // this.showMask = this
     //     .showMask
     //     .bind(this)
@@ -751,6 +757,14 @@ class CornerstoneElement extends Component {
     this.setState({ modalOpenNew: false });
   }
 
+  sliceIdxSort(prop) {
+    return function (a, b) {
+      var value1 = a[prop];
+      var value2 = b[prop];
+      return value1 - value2;
+    };
+  }
+
   closeModalCur() {
     this.setState({ modalOpenCur: false });
   }
@@ -976,6 +990,21 @@ class CornerstoneElement extends Component {
     );
   }
 
+  handleClickScreen(e, href) {
+    console.log("card", href);
+    if (
+      window.location.pathname.split("/case/")[1].split("/")[0] !==
+      href.split("/case/")[1].split("/")[0]
+    ) {
+      this.setState({
+        caseId: href.split("/case/")[1].split("/")[0],
+        username: href.split("/")[3],
+      });
+      // this.nextPath(href)
+      window.location.href = href;
+    }
+  }
+
   startAnnos() {
     // this.setState({isbidirectionnal:true,toolState:'EllipticalRoi'})
     // const element = document.querySelector('#origin-canvas')
@@ -1169,17 +1198,6 @@ class CornerstoneElement extends Component {
 
   render() {
     let sliderMarks = {};
-
-    // if(this.state.imageIds.length<=100){
-    //     for(let i=0;i<this.state.selectBoxes.length;i++){
-    //         sliderMarks[this.state.selectBoxes[i].slice_idx+1]=''
-    //     }
-    // }
-    // else{
-    //     for(let i=0;i<this.state.selectBoxes.length;i++){
-    //         sliderMarks[this.state.selectBoxes[i].slice_idx]=''
-    //     }
-    // }
     if (this.state.imageIds.length <= 100) {
       for (let i = 0; i < this.state.boxes.length; i++) {
         sliderMarks[this.state.boxes[i].slice_idx + 1] = "";
@@ -1240,7 +1258,6 @@ class CornerstoneElement extends Component {
       wwDefine,
       wcDefine,
       dicomTag,
-      studyList,
       menuTools,
       cacheModal,
       windowWidth,
@@ -1248,6 +1265,7 @@ class CornerstoneElement extends Component {
       slideSpan,
       measureStateList,
       maskStateList,
+      dateSeries,
     } = this.state;
     // if(windowWidth <= 1600 && windowWidth > 1440){
     //     bottomLeftStyle = {
@@ -1474,95 +1492,97 @@ class CornerstoneElement extends Component {
     //     )
     // }
     // else{
-    dicomTagPanel = (
-      <div>
-        <div id="dicomTag">
-          <div style={topLeftStyle}>{dicomTag.string("x00100010")}</div>
-          <div style={{ position: "absolute", color: "white", top: "20px" }}>
-            {dicomTag.string("x00101010")} {dicomTag.string("x00100040")}
+
+    dicomTagPanel =
+      dicomTag === null ? null : (
+        <div>
+          <div id="dicomTag">
+            <div style={topLeftStyle}>{dicomTag.string("x00100010")}</div>
+            <div style={{ position: "absolute", color: "white", top: "20px" }}>
+              {dicomTag.string("x00101010")} {dicomTag.string("x00100040")}
+            </div>
+            <div style={{ position: "absolute", color: "white", top: "35px" }}>
+              {dicomTag.string("x00100020")}
+            </div>
+            <div style={{ position: "absolute", color: "white", top: "50px" }}>
+              {dicomTag.string("x00185100")}
+            </div>
+            <div style={{ position: "absolute", color: "white", top: "65px" }}>
+              IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}
+            </div>
+            {slideLabel}
+            <div style={topRightStyle}>{dicomTag.string("x00080080")}</div>
+            <div
+              style={{
+                position: "absolute",
+                color: "white",
+                top: "20px",
+                right: "5px",
+              }}
+            >
+              ACC No: {dicomTag.string("x00080050")}
+            </div>
+            <div
+              style={{
+                position: "absolute",
+                color: "white",
+                top: "35px",
+                right: "5px",
+              }}
+            >
+              {dicomTag.string("x00090010")}
+            </div>
+            <div
+              style={{
+                position: "absolute",
+                color: "white",
+                top: "50px",
+                right: "5px",
+              }}
+            >
+              {dicomTag.string("x0008103e")}
+            </div>
+            <div
+              style={{
+                position: "absolute",
+                color: "white",
+                top: "65px",
+                right: "5px",
+              }}
+            >
+              {dicomTag.string("x00080020")}
+            </div>
+            <div
+              style={{
+                position: "absolute",
+                color: "white",
+                top: "80px",
+                right: "5px",
+              }}
+            >
+              T: {dicomTag.string("x00180050")}
+            </div>
           </div>
-          <div style={{ position: "absolute", color: "white", top: "35px" }}>
-            {dicomTag.string("x00100020")}
+          <div style={{ position: "absolute", color: "white", bottom: "30px" }}>
+            Offset: {this.state.viewport.translation["x"].toFixed(1)},{" "}
+            {this.state.viewport.translation["y"].toFixed(1)}
           </div>
-          <div style={{ position: "absolute", color: "white", top: "50px" }}>
-            {dicomTag.string("x00185100")}
+          <div style={{ position: "absolute", color: "white", bottom: "10px" }}>
+            Zoom: {Math.round(this.state.viewport.scale * 100)}%
           </div>
-          <div style={{ position: "absolute", color: "white", top: "65px" }}>
-            IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}
-          </div>
-          {slideLabel}
-          <div style={topRightStyle}>{dicomTag.string("x00080080")}</div>
           <div
             style={{
               position: "absolute",
               color: "white",
-              top: "20px",
+              bottom: "20px",
               right: "5px",
             }}
           >
-            ACC No: {dicomTag.string("x00080050")}
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              color: "white",
-              top: "35px",
-              right: "5px",
-            }}
-          >
-            {dicomTag.string("x00090010")}
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              color: "white",
-              top: "50px",
-              right: "5px",
-            }}
-          >
-            {dicomTag.string("x0008103e")}
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              color: "white",
-              top: "65px",
-              right: "5px",
-            }}
-          >
-            {dicomTag.string("x00080020")}
-          </div>
-          <div
-            style={{
-              position: "absolute",
-              color: "white",
-              top: "80px",
-              right: "5px",
-            }}
-          >
-            T: {dicomTag.string("x00180050")}
+            WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}/{" "}
+            {Math.round(this.state.viewport.voi.windowCenter)}
           </div>
         </div>
-        <div style={{ position: "absolute", color: "white", bottom: "30px" }}>
-          Offset: {this.state.viewport.translation["x"].toFixed(1)},{" "}
-          {this.state.viewport.translation["y"].toFixed(1)}
-        </div>
-        <div style={{ position: "absolute", color: "white", bottom: "10px" }}>
-          Zoom: {Math.round(this.state.viewport.scale * 100)}%
-        </div>
-        <div
-          style={{
-            position: "absolute",
-            color: "white",
-            bottom: "20px",
-            right: "5px",
-          }}
-        >
-          WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}/{" "}
-          {Math.round(this.state.viewport.voi.windowCenter)}
-        </div>
-      </div>
-    );
+      );
     // }
     if (window.location.pathname.split("/")[3] === "origin")
       createDraftModal = (
@@ -2900,10 +2920,32 @@ class CornerstoneElement extends Component {
             <Grid celled className="corner-contnt">
               <Grid.Row className="corner-row" columns={3}>
                 <Grid.Column width={2}>
-                  <StudyBrowserList
+                  {/* <StudyBrowserList
                     caseId={this.state.caseId}
-                    handleClickScreen={this.props.handleClickScreen}
-                  />
+                    handleClickScreen={this.handleClickScreen.bind(this)}
+                  /> */}
+                  <div className="preview">
+                    {dateSeries.map((serie, index) => {
+                      let previewId = "preview-" + index;
+                      let keyId = "key-" + index;
+                      // console.log('render',previewId)
+                      return (
+                        <Card
+                          onClick={(e) =>
+                            this.props.handleClickScreen(e, serie.href)
+                          }
+                          key={keyId}
+                        >
+                          <div className="preview-canvas" id={previewId}></div>
+                          <Card.Content>
+                            <Card.Description>
+                              {serie.date + "\n " + serie.Description}
+                            </Card.Description>
+                          </Card.Content>
+                        </Card>
+                      );
+                    })}
+                  </div>
                 </Grid.Column>
                 <Grid.Column
                   width={10}
@@ -2956,7 +2998,7 @@ class CornerstoneElement extends Component {
                           // onAfterChange={this.handleRangeChange.bind(this)}
                           min={1}
                           step={1}
-                          max={this.state.stack.imageIds.length}
+                          max={this.state.imageIds.length}
                         ></Slider>
                       </Grid.Column>
                     </Grid.Row>
@@ -3054,10 +3096,32 @@ class CornerstoneElement extends Component {
             <Grid celled className="corner-contnt">
               <Grid.Row className="corner-row" columns={2}>
                 <Grid.Column width={1}>
-                  <StudyBrowserList
+                  {/* <StudyBrowserList
                     caseId={this.state.caseId}
-                    handleClickScreen={this.props.handleClickScreen}
-                  />
+                    handleClickScreen={this.handleClickScreen.bind(this)}
+                  /> */}
+                  <div className="preview">
+                    {dateSeries.map((serie, index) => {
+                      let previewId = "preview-" + index;
+                      let keyId = "key-" + index;
+                      // console.log('render',previewId)
+                      return (
+                        <Card
+                          onClick={(e) =>
+                            this.props.handleClickScreen(e, serie.href)
+                          }
+                          key={keyId}
+                        >
+                          <div className="preview-canvas" id={previewId}></div>
+                          <Card.Content>
+                            <Card.Description>
+                              {serie.date + "\n " + serie.Description}
+                            </Card.Description>
+                          </Card.Content>
+                        </Card>
+                      );
+                    })}
+                  </div>
                 </Grid.Column>
                 <Grid.Column
                   width={15}
@@ -3110,7 +3174,7 @@ class CornerstoneElement extends Component {
                           // onAfterChange={this.handleRangeChange.bind(this)}
                           min={1}
                           step={1}
-                          max={this.state.stack.imageIds.length}
+                          max={this.state.imageIds.length}
                         ></Slider>
                       </Grid.Column>
                     </Grid.Row>
@@ -3141,7 +3205,9 @@ class CornerstoneElement extends Component {
                       <TabPane tab={noduleNumTab} key="1">
                         <div
                           id="elec-table"
-                          style={{ height: (this.state.windowHeight * 1) / 2 }}
+                          style={{
+                            height: (this.state.windowHeight * 1) / 2,
+                          }}
                         >
                           {this.state.boxes.length === 0 ? (
                             <div
@@ -3350,20 +3416,7 @@ class CornerstoneElement extends Component {
           </div>
 
           <div>
-            {/* <input
-                            className="invisible"
-                            id="slice-slider"
-                            onChange={this.handleRangeChange}
-                            type="range"
-                            value={this.state.currentIdx + 1}
-                            name="volume"
-                            step="1"
-                            min="1"
-                            max={this.state.stack.imageIds.length}></input> */}
             <div id="immersive-button-container">
-              {/* <p>{this.state.currentIdx + 1}
-                                / {this.state.imageIds.length}</p> */}
-
               <Button
                 color="blue"
                 onClick={this.toPulmonary}
@@ -5519,7 +5572,7 @@ class CornerstoneElement extends Component {
   }
 
   checkHash() {
-    const noduleNo = this.props.stack.noduleNo;
+    const noduleNo = this.state.noduleNo;
     if (this.state.boxes[noduleNo] !== undefined) {
       const boxes = this.state.boxes;
       const toIdx = this.state.boxes[noduleNo].slice_idx;
@@ -5533,9 +5586,397 @@ class CornerstoneElement extends Component {
       });
     }
   }
+  updateStudyBrowser(prevProps, prevState) {
+    if (prevState !== this.state) {
+      let flag = 0;
+      let dateSeries = this.state.dateSeries;
+      for (let j = 0; j < dateSeries.length; j++) {
+        for (let i = 0; i < dateSeries.length - j - 1; i++) {
+          if (parseInt(dateSeries[i].date) < parseInt(dateSeries[i + 1].date)) {
+            let temp = dateSeries[i];
+            dateSeries[i] = dateSeries[i + 1];
+            dateSeries[i + 1] = temp;
+            flag = 1;
+          }
+        }
+      }
+      if (flag === 1) {
+        this.setState({ dateSeries: dateSeries });
+      } else {
+        dateSeries.map((serie, index) => {
+          const previewId = "preview-" + index;
 
-  componentWillMount() {
-    // this.checkHash()
+          const element = document.getElementById(previewId);
+          let imageId = serie.image;
+          // console.log('preview',element)
+          cornerstone.enable(element);
+          cornerstone.loadAndCacheImage(imageId).then(function (image) {
+            // console.log('cache')
+            var viewport = cornerstone.getDefaultViewportForImage(
+              element,
+              image
+            );
+            viewport.voi.windowWidth = 1600;
+            viewport.voi.windowCenter = -600;
+            viewport.scale = 0.3;
+            cornerstone.setViewport(element, viewport);
+            cornerstone.displayImage(element, image);
+          });
+        });
+      }
+    }
+  }
+
+  loadStudyBrowser() {
+    const token = localStorage.getItem("token");
+    const params = {
+      mainItem: this.state.caseId.split("_")[0],
+      type: "pid",
+      otherKeyword: "",
+    };
+    const headers = {
+      Authorization: "Bearer ".concat(token),
+    };
+
+    axios
+      .post(
+        this.config.record.getSubListForMainItem_front,
+        qs.stringify(params)
+      )
+      .then((response) => {
+        const data = response.data;
+        console.log("data", data);
+        if (data.status !== "okay") {
+          console.log("Not okay");
+          // window.location.href = '/'
+        } else {
+          const subList = data.subList;
+          let theList = [];
+          // const params={caseId:this.state.caseId}
+          Object.keys(subList).map((key, value) => {
+            // console.log('leftkey',key)
+            const seriesLst = subList[key];
+            seriesLst.map((serie, index) => {
+              Promise.all([
+                axios.post(
+                  this.config.draft.getDataPath,
+                  qs.stringify({ caseId: serie.split("#")[0] }),
+                  { headers }
+                ),
+                axios.post(
+                  this.config.data.getDataListForCaseId,
+                  qs.stringify({ caseId: serie.split("#")[0] })
+                ),
+              ]).then(([annotype, dicom]) => {
+                theList.push({
+                  date: key,
+                  caseId: serie.split("#")[0],
+                  Description: serie.split("#")[1],
+                  href: "/case/" + serie.split("#")[0] + "/" + annotype.data,
+                  image: dicom.data[parseInt(dicom.data.length / 3)],
+                });
+                this.setState({ dateSeries: theList });
+              });
+            });
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+
+  updateDisplay(prevProps, prevState) {
+    if (prevState.caseId !== this.state.caseId) {
+      console.log(prevState.caseId, this.state.caseId);
+      let noduleNo = -1;
+      if (this.props.location.hash !== "")
+        noduleNo = parseInt(this.props.location.hash.split("#").slice(-1)[0]);
+
+      const dataParams = {
+        caseId: this.state.caseId,
+      };
+      const draftParams = {
+        caseId: this.state.caseId,
+        username: this.state.modelName,
+        // username:'deepln'
+      };
+      const readonlyParams = {
+        caseId: this.state.caseId,
+        username: this.state.username,
+        // username: this.state.modelName,
+      };
+
+      const token = localStorage.getItem("token");
+      const headers = {
+        Authorization: "Bearer ".concat(token), //add the fun of check
+      };
+
+      if (this.state.modelName === "origin") {
+        axios
+          .post(this.config.data.getDataListForCaseId, qs.stringify(dataParams))
+          .then((dataResponse) => {
+            cornerstone
+              .loadAndCacheImage(dataResponse.data[0])
+              .then((image) => {
+                // const readonly = readonlyResponse.data.readonly === 'true'
+                console.log("image info", image.data);
+                // console.log('parse',dicomParser.parseDicom(image))
+
+                const dicomtag = image.data;
+                const imageIds = dataResponse.data;
+                const boxes = [];
+                const draftStatus = -1;
+
+                this.setState({
+                  dicomtag,
+                  imageIds,
+                  boxes,
+                  draftStatus,
+                });
+              });
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      } else {
+        // const token = localStorage.getItem('token')
+        // const headers = {
+        //     'Authorization': 'Bearer '.concat(token)//add the fun of check
+        // }
+        Promise.all([
+          axios.post(
+            this.config.data.getDataListForCaseId,
+            qs.stringify(dataParams)
+          ),
+          axios.post(
+            this.config.draft.getRectsForCaseIdAndUsername,
+            qs.stringify(draftParams)
+          ),
+          axios.post(this.config.draft.readonly, qs.stringify(readonlyParams), {
+            headers,
+          }),
+        ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
+          const readonly = readonlyResponse.data.readonly === "true";
+          console.log("readonly", readonly);
+          // const readonly = false
+          cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
+            // const readonly = readonlyResponse.data.readonly === 'true'
+            console.log("image info", image.data);
+            // console.log('parse',dicomParser.parseDicom(image))
+            const dicomTag = image.data;
+            const imageIds = dataResponse.data;
+            let draftStatus = -1;
+            // if (!readonly)
+            draftStatus = readonlyResponse.data.status;
+            let boxes = draftResponse.data;
+            boxes.sort(this.sliceIdxSort("slice_idx"));
+            for (var i = 0; i < boxes.length; i++) {
+              boxes[i].nodule_no = "" + i;
+              boxes[i].rect_no = "a00" + i;
+            }
+            console.log("boxidx", boxes);
+            console.log("test", dicomTag);
+            console.log("draftdata", draftResponse, draftParams);
+            console.log("dataResponse", dataResponse);
+            this.setState({
+              imageIds,
+              boxes,
+              readonly,
+              draftStatus,
+              dicomTag,
+            });
+          });
+        });
+      }
+    }
+  }
+
+  async loadDisplay() {
+    const promise = new Promise((resolve, reject) => {
+      axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
+        const config = res.data;
+        console.log("config", config);
+        localStorage.setItem("config", JSON.stringify(config));
+        resolve(config);
+      }, reject);
+    });
+    const config = await promise;
+    this.config = config;
+    // first let's check the status to display the proper contents.
+    // const pathname = window.location.pathname
+    // send our token to the server, combined with the current pathname
+    let noduleNo = -1;
+    if (this.props.location.hash !== "")
+      noduleNo = parseInt(this.props.location.hash.split("#").slice(-1)[0]);
+
+    const dataParams = {
+      caseId: this.state.caseId,
+    };
+    const draftParams = {
+      caseId: this.state.caseId,
+      username: this.state.modelName,
+      // username:'deepln'
+    };
+    const readonlyParams = {
+      caseId: this.state.caseId,
+      username: this.state.username,
+      // username: this.state.modelName,
+    };
+
+    const token = localStorage.getItem("token");
+    const headers = {
+      Authorization: "Bearer ".concat(token), //add the fun of check
+    };
+
+    if (this.state.modelName === "origin") {
+      axios
+        .post(this.config.data.getDataListForCaseId, qs.stringify(dataParams))
+        .then((dataResponse) => {
+          cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
+            // const readonly = readonlyResponse.data.readonly === 'true'
+            console.log("image info", image.data);
+            // console.log('parse',dicomParser.parseDicom(image))
+            const dicomtag = image.data;
+            const imageIds = dataResponse.data;
+            const boxes = [];
+            const draftStatus = -1;
+            this.setState({
+              dicomtag,
+              imageIds,
+              boxes,
+              draftStatus,
+            });
+          });
+        })
+        .catch((error) => {
+          console.log(error);
+        });
+    } else {
+      // const token = localStorage.getItem('token')
+      // const headers = {
+      //     'Authorization': 'Bearer '.concat(token)//add the fun of check
+      // }
+      Promise.all([
+        axios.post(
+          this.config.data.getDataListForCaseId,
+          qs.stringify(dataParams)
+        ),
+        axios.post(
+          this.config.draft.getRectsForCaseIdAndUsername,
+          qs.stringify(draftParams)
+        ),
+        axios.post(this.config.draft.readonly, qs.stringify(readonlyParams), {
+          headers,
+        }),
+      ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
+        const readonly = readonlyResponse.data.readonly === "true";
+        console.log("readonly", readonly);
+        // const readonly = false
+        cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
+          console.log("image info", image.data);
+          const dicomtag = image.data;
+
+          let draftStatus = -1;
+          draftStatus = readonlyResponse.data.status;
+          let boxes = draftResponse.data;
+          console.log("boxes", boxes);
+          if (boxes !== "") boxes.sort(this.sliceIdxSort("slice_idx"));
+          for (var i = 0; i < boxes.length; i++) {
+            boxes[i].nodule_no = "" + i;
+            boxes[i].rect_no = "a00" + i;
+          }
+
+          const imageIds = dataResponse.data;
+          const annoImageIds = [];
+
+          for (let i = 0; i < boxes.length; i++) {
+            let slice_idx = boxes[i].slice_idx;
+            console.log("cornerstone", slice_idx, imageIds[slice_idx]);
+            for (let j = slice_idx - 5; j < slice_idx + 5; j++) {
+              // cornerstone.loadAndCacheImage(imageIds[j])
+              // if(!annoHash[this[i]]){
+              //     annoHash[this[i]] = true
+              annoImageIds.push(imageIds[j]);
+              // }
+            }
+          }
+          console.log("boxidx", boxes);
+          const annoPromises = annoImageIds.map((annoImageId) => {
+            return cornerstone.loadAndCacheImage(annoImageId);
+          });
+          Promise.all(annoPromises).then((value) => {
+            console.log("promise", value);
+          });
+
+          const promises = imageIds.map((imageId) => {
+            // console.log(imageId)
+            return cornerstone.loadAndCacheImage(imageId);
+          });
+          Promise.all(promises).then((value) => {
+            console.log("promise", value);
+            // console.log("111",promise)
+          });
+          this.refreshImage(true, imageIds[this.state.currentIdx], undefined);
+
+          const token = localStorage.getItem("token");
+          const headers = {
+            Authorization: "Bearer ".concat(token),
+          };
+          const params = {
+            caseId: this.state.caseId,
+          };
+          const okParams = {
+            caseId: this.state.caseId,
+            username: window.location.pathname.split("/")[3],
+          };
+          console.log("token", token);
+          console.log("okParams", okParams);
+
+          axios
+            .post(this.config.review.isOkayForReview, qs.stringify(okParams), {
+              headers,
+            })
+            .then((res) => {
+              // console.log('1484', res)
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+
+          if (document.getElementById("hideNodule") != null) {
+            document.getElementById("hideNodule").style.display = "none";
+          }
+          if (document.getElementById("hideInfo") != null) {
+            document.getElementById("hideInfo").style.display = "none";
+          }
+
+          document.getElementById("closeVisualContent").style.display = "none";
+
+          if (this.state.imageIds.length !== 0) {
+            const leftBtnSpeed = Math.floor(
+              document.getElementById("canvas").offsetWidth /
+                this.state.imageIds.length
+            );
+            this.setState({ leftBtnSpeed: leftBtnSpeed });
+          }
+          var stateListLength = this.state.boxes.length;
+          var measureArr = new Array(stateListLength).fill(false);
+
+          var maskArr = new Array(stateListLength).fill(true);
+          this.setState({
+            dicomtag,
+            imageIds,
+            boxes,
+            draftStatus,
+            readonly,
+            measureStateList: measureArr,
+            maskStateList: maskArr,
+            imageCaching: true,
+          });
+        });
+      });
+    }
   }
 
   componentDidMount() {
@@ -5560,116 +6001,9 @@ class CornerstoneElement extends Component {
     // const height = document.body.clientHeight
     // // const width = window.outerHeight
     // this.setState({windowWidth : width, windowHeight: height})
-
-    const imageIds = this.state.imageIds;
-    var annoHash = {};
-    const annoImageIds = [];
-    const resImageIds = imageIds;
-
-    for (let i = 0; i < this.state.boxes.length; i++) {
-      let slice_idx = this.state.boxes[i].slice_idx;
-      console.log("cornerstone", slice_idx, imageIds[slice_idx]);
-      for (let j = slice_idx - 5; j < slice_idx + 5; j++) {
-        // cornerstone.loadAndCacheImage(imageIds[j])
-        // if(!annoHash[this[i]]){
-        //     annoHash[this[i]] = true
-        annoImageIds.push(imageIds[j]);
-        // }
-      }
-    }
-
-    // for(let i=0;i<imageIds.length;i++){
-    //     var flag = false
-    //     for(let j=0;j<annoImageIds.length;i++){
-    //         if(i == j) flag = true
-    //     }
-    //     if(!flag)
-    //         resImageIds.push(imageIds[i])
-    // }
     this.firstLayout();
-    console.log("annoImage", annoImageIds);
-
-    const annoPromises = annoImageIds.map((annoImageId) => {
-      return cornerstone.loadAndCacheImage(annoImageId);
-    });
-    Promise.all(annoPromises).then((value) => {
-      console.log("promise", value);
-    });
-
-    const promises = resImageIds.map((imageId) => {
-      // console.log(imageId)
-      return cornerstone.loadAndCacheImage(imageId);
-    });
-    Promise.all(promises).then((value) => {
-      console.log("promise", value);
-      // console.log("111",promise)
-    });
-    this.refreshImage(
-      true,
-      this.state.imageIds[this.state.currentIdx],
-      undefined
-    );
-
-    const token = localStorage.getItem("token");
-    const headers = {
-      Authorization: "Bearer ".concat(token),
-    };
-    const params = {
-      caseId: this.state.caseId,
-    };
-    const okParams = {
-      caseId: this.state.caseId,
-      username: window.location.pathname.split("/")[3],
-    };
-    console.log("token", token);
-    console.log("okParams", okParams);
-
-    axios
-      .post(this.config.review.isOkayForReview, qs.stringify(okParams), {
-        headers,
-      })
-      .then((res) => {
-        // console.log('1484', res)
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-
-    if (document.getElementById("hideNodule") != null) {
-      document.getElementById("hideNodule").style.display = "none";
-    }
-    if (document.getElementById("hideInfo") != null) {
-      document.getElementById("hideInfo").style.display = "none";
-    }
-
-    document.getElementById("closeVisualContent").style.display = "none";
-
-    if (this.state.imageIds.length !== 0) {
-      const leftBtnSpeed = Math.floor(
-        document.getElementById("canvas").offsetWidth /
-          this.state.imageIds.length
-      );
-      this.setState({ leftBtnSpeed: leftBtnSpeed });
-    }
-
-    // var stateListLength = this.state.selectBoxes.length
-    var stateListLength = this.state.boxes.length;
-    var measureArr = new Array(stateListLength).fill(false);
-    // console.log('measureArr',measureArr)
-    this.setState({ measureStateList: measureArr });
-
-    var maskArr = new Array(stateListLength).fill(true);
-    this.setState({ maskStateList: maskArr });
-    this.setState({ imageCaching: true });
-    // const origin = document.getElementById('origin-canvas')
-    // const canvas = document.getElementById('canvas')
-    // console.log('origin-canvas',canvas)
-    // const canvas_ROI = document.createElement('canvas')
-    // canvas_ROI.id = 'canvasROI'
-    // canvas_ROI.height = 500
-    // canvas_ROI.width = 500
-    // origin.appendChild(canvas_ROI)
-    // canvas_ROI.style.position = 'absolute'
+    this.loadDisplay();
+    this.loadStudyBrowser();
   }
 
   componentWillUnmount() {
@@ -5748,6 +6082,8 @@ class CornerstoneElement extends Component {
     ) {
       this.setState({ preListActiveIdx: prevState.listsActiveIndex });
     }
+    this.updateDisplay(prevProps, prevState);
+    this.updateStudyBrowser(prevProps, prevState);
   }
 }
 
