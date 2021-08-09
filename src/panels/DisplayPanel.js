@@ -267,50 +267,6 @@ class DisplayPanel extends Component {
         });
       });
     }
-
-    // let imageIds = []
-
-    // function pad(num, size) {
-    //     var s = num + "";
-    //     while (s.length < size)
-    //         s = "0" + s;
-    //     return s;
-    // }
-
-    // for (var i = 0; i <= 313; i++) {
-    //     const filename = "dicomweb://localhost:8080/data/0000282967_20180625_BC/" + pad(i, 3) + ".dcm"
-
-    //     imageIds.push(filename)
-    // }
-
-    //   const params = {
-    //     mainItem: window.location.pathname.split('/case/')[1].split('_')[0],
-    //     type: 'pid', //'pid'
-    //     otherKeyword: ''
-    // }
-    // console.log("param",params)
-    // axios.post(recordConfig.getSubListForMainItem_front, qs.stringify(params), {headers}).then((response) => {
-    //     const data = response.data
-    //     if (data.status !== 'okay') {
-    //         console.log("Not okay")
-    //         // window.location.href = '/'
-    //     } else {
-    //         console.log('sublist',data.subList)
-    //         const subList = data.subList
-    //         let totalDates = 0
-    //         let totalStudies = 0
-    //         for (const subKey in subList) {
-    //             totalDates++
-    //             totalStudies += subList[subKey].length
-    //         }
-    //         // console.log('MAINITEM', this.props.mainItem)
-    //         subList = Object.keys(subList)
-    //         console.log("study",subList)
-    //         this.setState({studyList: subList})
-    //     }
-    // }).catch((error) => {
-    //     console.log(error)
-    // })
   }
 
   render() {
