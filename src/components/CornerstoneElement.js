@@ -7993,7 +7993,7 @@ class CornerstoneElement extends Component {
     }
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     window.addEventListener("resize", this.resizeScreen.bind(this));
     // this.getNoduleIfos()
     // this.visualize()
@@ -8019,6 +8019,226 @@ class CornerstoneElement extends Component {
     this.loadDisplay();
     this.loadStudyBrowser();
     this.loadReport();
+    const token = localStorage.getItem("token");
+    const headers = {
+      Authorization: "Bearer ".concat(token),
+    };
+
+    const urlsPromise = new Promise((resolve, reject) => {
+      axios
+        .post(
+          this.config.data.getMhaListForCaseId,
+          qs.stringify({
+            caseId: this.state.caseId,
+          }),
+          {
+            headers,
+          }
+        )
+        .then((res) => {
+          console.log(res);
+          // const urls = res.data
+          function sortUrl(x, y) {
+            // small to big
+            if (x[x.length - 5] < y[y.length - 5]) {
+              return -1;
+            } else if (x[x.length - 5] > y[y.length - 5]) {
+              return 1;
+            } else {
+              return 0;
+            }
+          }
+          // console.log('url request data', res.data)
+          const urlData = res.data;
+          const urls = [];
+          let count = 0;
+          let lobesLength = 0;
+          let airwayLength = 0;
+          let nodulesLength = 0;
+          if (urlData) {
+            if (urlData.lung && urlData.lung.length > 0) {
+            }
+            if (urlData.lobe && urlData.lobe.length > 0) {
+              const prevCount = count;
+              urlData.lobe.sort(sortUrl);
+              urlData.lobe.forEach((item, index) => {
+                const order = Math.round(item[item.length - 5]);
+                const type = 2 + order;
+                urls.push({
+                  url: item,
+                  order,
+                  index: index + prevCount,
+                  class: dictList[type].class,
+                  name: dictList[type].name,
+                  color: dictList[type].color,
+                });
+                count += 1;
+                lobesLength += 1;
+              });
+            }
+            if (urlData.airway && urlData.airway.length > 0) {
+              const prevCount = count;
+              urlData.airway.forEach((item, index) => {
+                const order = 0;
+                const type = 1;
+                urls.push({
+                  url: item,
+                  order,
+                  index: index + prevCount,
+                  class: dictList[type].class,
+                  name: dictList[type].name,
+                  color: dictList[type].color,
+                });
+                count += 1;
+                airwayLength += 1;
+              });
+            }
+            if (urlData.nodule && urlData.nodule.length > 0) {
+              const prevCount = count;
+              urlData.nodule.sort(sortUrl);
+              urlData.nodule.forEach((item, index) => {
+                const order = Math.round(item[item.length - 5]);
+                const type = 2;
+                urls.push({
+                  url: item,
+                  order,
+                  index: index + prevCount,
+                  class: dictList[type].class,
+                  name: dictList[type].name + order,
+                  color: dictList[type].color,
+                });
+                count += 1;
+                nodulesLength += 1;
+              });
+            }
+          }
+          const segments = Object.keys(urls).map((key) => null);
+          const percent = Object.keys(urls).map((key) => 0);
+          const listLoading = Object.keys(urls).map((key) => true);
+          this.setState({
+            urls: urls,
+            lobesLength,
+            airwayLength,
+            nodulesLength,
+            segments: segments,
+            percent: percent,
+            listLoading: listLoading,
+          });
+          urls.forEach((item, index) => {
+            this.DownloadSegment(item.index);
+          });
+          resolve(urls);
+        }, reject)
+        .catch((error) => {
+          console.log(error);
+        });
+    });
+    const urls = await urlsPromise;
+    console.log("urls", urls);
+    // function sortByProp(prop) {
+    //   return function (a, b) {
+    //     var value1 = a[prop]
+    //     var value2 = b[prop]
+    //     return value1 - value2
+    //   }
+    // }
+    axios
+      .post(
+        this.config.draft.getLobeInfo,
+        qs.stringify({
+          caseId: this.state.caseId,
+        })
+      )
+      .then((res) => {
+        console.log("lobe info request", res);
+        const data = res.data;
+        if (data.lobes) {
+          const lobesData = data.lobes;
+          lobesData.forEach((item, index) => {
+            item.index = index;
+            item.order = urls[index].order;
+            item.lobeName = lobeName[item.name];
+          });
+          this.saveLobesData(lobesData);
+        }
+      });
+    // const lobesData = lobes.lobes
+    // console.log(lobesData)
+    // lobesData.forEach((item, index) => {
+    //   item.index = index
+    //   item.order = urls[index].order
+    // })
+    // this.saveLobesData(lobesData)
+    axios
+      .post(
+        this.config.draft.getRectsForCaseIdAndUsername,
+        qs.stringify({
+          caseId: this.state.caseId,
+          username: this.state.modelName,
+        })
+      )
+      .then((res) => {
+        console.log("nodule request", res);
+        const data = res.data;
+        const nodulesData = [];
+        if (data && data.length !== 0) {
+          data.forEach((item, index) => {
+            let position = nodulePosition[item.place];
+            let malignancyName = noduleMalignancyName[item.malignancy];
+            if (!position) {
+              position = "待定";
+            }
+            if (!malignancyName) {
+              malignancyName = "待定";
+            }
+            const { lobesLength, airwayLength } = this.state;
+            const urlIndex = index + lobesLength + airwayLength;
+            if (urlIndex <= urls.length - 1) {
+              nodulesData.push({
+                index: urlIndex,
+                order: urls[urlIndex].order,
+                name: urls[urlIndex].name,
+                position,
+                malignancy: item.malignancy,
+                malignancyName,
+              });
+            }
+          });
+        }
+
+        this.saveNodulesData(nodulesData);
+      });
+    //local test
+    // const fileList = []
+    // for (let i = 0; i < 282; i++) {
+    //   if (i < 10) {
+    //     fileList.push('http://localhost:3000/dcms/00' + i + '.dcm')
+    //   } else if (i < 100) {
+    //     fileList.push('http://localhost:3000/dcms/0' + i + '.dcm')
+    //   } else {
+    //     fileList.push('http://localhost:3000/dcms/' + i + '.dcm')
+    //   }
+    // }
+    // const localImageIds = []
+    // const filePromises = fileList.map((file) => {
+    //   return axios.get(file, { responseType: 'blob' }).then((res) => {
+    //     const file = res.data
+    //     const imageId = cornerstoneWADOImageLoader.wadouri.fileManager.add(file)
+    //     localImageIds.push(imageId)
+    //   })
+    // })
+    // Promise.all(filePromises).then(() => {
+    //   this.getMPRInfo(localImageIds)
+    // })
+    // const origin = document.getElementById('origin-canvas')
+    // const canvas = document.getElementById('canvas')
+    // console.log('origin-canvas',canvas)
+    // const canvas_ROI = document.createElement('canvas')
+    // canvas_ROI.id = 'canvasROI'
+    // canvas_ROI.height = 500
+    // canvas_ROI.width = 500
+    // origin.appendChild(canvas_ROI)
+    // canvas_ROI.style.position = 'absolute'
   }
 
   componentWillUnmount() {
@@ -8492,6 +8712,12 @@ class CornerstoneElement extends Component {
       lobesVisible,
       lobesOpacityChangeable,
     };
+    lobesData.forEach((item, index) => {
+      lobesData[index].volume = item.volumn;
+      lobesData[index].percent = item.precent;
+      delete lobesData[index].volumn;
+      delete lobesData[index].precent;
+    });
     this.setState({
       lobesData,
       lobesController,
