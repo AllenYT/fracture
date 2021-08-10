@@ -1,0 +1,17 @@
+<svg width="1024" height="1024" xmlns="http://www.w3.org/2000/svg" class="icon">
+ <defs>
+  <style type="text/css"/>
+ </defs>
+ <g>
+  <title>background</title>
+  <rect fill="none" id="canvas_background" height="402" width="582" y="-1" x="-1"/>
+ </g>
+ <g>
+  <title>Layer 1</title>
+  <path id="svg_1" fill="#BFC0C3" d="m469.333,469.333l-341.333,0l0,-341.333l341.333,0l0,341.333zm-256,-85.333l170.667,0l0,-170.667l-170.667,0l0,170.667z"/>
+  <path id="svg_2" fill="#BFC0C3" d="m896,469.333l-341.333,0l0,-341.333l341.333,0l0,341.333zm-256,-85.333l170.667,0l0,-170.667l-170.667,0l0,170.667z"/>
+  <path id="svg_3" fill="#BFC0C3" d="m469.333,896l-341.333,0l0,-341.333l341.333,0l0,341.333zm-256,-85.333l170.667,0l0,-170.667l-170.667,0l0,170.667z"/>
+  <path id="svg_4" fill="#BFC0C3" d="m896,896l-341.333,0l0,-341.333l341.333,0l0,341.333zm-256,-85.333l170.667,0l0,-170.667l-170.667,0l0,170.667z"/>
+  <line stroke="#bfc0c3" stroke-linecap="undefined" stroke-linejoin="undefined" id="svg_5" y2="910.000024" x2="106.999989" y1="96.666649" x1="911.444429" stroke-width="80.5" fill="none"/>
+ </g>
+</svg>

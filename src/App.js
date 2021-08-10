@@ -1,9 +1,8 @@
 import React, { Component } from 'react'
-import './App.css'
-import UnLogged from './pages/UnLogged.js'
-import Expiration from './pages/Expiration.js'
 import Main from './pages/Main.js'
-import axios from 'axios'
+import AOS from 'aos'
+import 'aos/dist/aos.css'
+import './App.css'
 
 class App extends Component {
   constructor(props) {
@@ -20,7 +19,9 @@ class App extends Component {
     // })
     // await promise
   }
-
+  componentDidMount() {
+    AOS.init({})
+  }
   render() {
     // if (this.state.isLoggedIn) {
     //   return (

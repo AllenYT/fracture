@@ -22,6 +22,7 @@ import '../css/cornerstone.css'
 import qs from 'qs'
 import axios from 'axios'
 import { Slider, Select, Space, Checkbox, Tabs } from 'antd'
+import * as echarts from 'echarts'
 // import { Slider, RangeSlider } from 'rsuite'
 import MiniReport from './MiniReport'
 import MessagePanel from '../panels/MessagePanel'
@@ -29,7 +30,8 @@ import src1 from '../images/scu-logo.jpg'
 import $ from 'jquery'
 import InputColor from 'react-input-color'
 import { vec3, vec4, mat4 } from 'gl-matrix'
-import * as echarts from 'echarts'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 
 import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor'
 import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper'
@@ -94,6 +96,9 @@ let allROIToolData = {}
 let toolROITypes = ['EllipticalRoi', 'Bidirectional']
 const cacheSize = 5
 let playTimer = undefined
+let flipTimer = undefined
+let leftSlideTimer = undefined
+let RightSlideTimer = undefined
 let imageLoadTimer = undefined
 
 const dictList = {
@@ -334,6 +339,8 @@ class CornerstoneElement extends Component {
       verticalCanvasHeight: (document.body.clientHeight * 1080) / 1920,
 
       show3DVisualization: false,
+      showStudyList: true,
+      enterStudyListOption: false,
       /*显示变量*/
       windowWidth: window.screen.width,
       windowHeight: window.screen.height,
@@ -1243,34 +1250,130 @@ class CornerstoneElement extends Component {
     // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
   }
   show3D() {
+    clearInterval(flipTimer)
     // const element = document.querySelector('#origin-canvas')
-    cornerstone.disable(this.element)
+    const centerPanel = document.getElementById('cor-container')
+    if (centerPanel) {
+      centerPanel.style.transform = 'rotateY(180deg)'
+    }
+    const rightTopPanel = document.getElementsByClassName('nodule-card-container')[0]
+    if (rightTopPanel) {
+      rightTopPanel.style.transform = 'translateY(-200px)'
+      rightTopPanel.style.opacity = 0
+    }
+    const rightDownPanel = document.getElementById('report')
+    if (rightDownPanel) {
+      rightDownPanel.style.transform = 'translateY(200px)'
+      rightDownPanel.style.opacity = 0
+    }
     const canvasColumn = document.getElementById('canvas-column')
     const cWidth = canvasColumn.clientWidth
     const cHeight = canvasColumn.clientHeight
-    this.setState(
-      {
-        show3DVisualization: true,
-      },
-      () => {
-        this.resizeViewer(cWidth, cHeight)
-      }
-    )
+    flipTimer = setInterval(() => {
+      cornerstone.disable(this.element)
+      this.setState(
+        {
+          show3DVisualization: true,
+        },
+        () => {
+          this.resizeViewer(cWidth, cHeight)
+        }
+      )
+      clearInterval(flipTimer)
+    }, 1000)
   }
   hide3D() {
-    this.setState(
-      {
-        show3DVisualization: false,
-      },
-      () => {
-        // const element = document.querySelector('#origin-canvas')
-        cornerstone.enable(this.element)
-        cornerstone.setViewport(this.element, this.state.viewport)
-        cornerstone.displayImage(this.element, this.state.currentImage)
+    clearInterval(flipTimer)
+    const centerPanel = document.getElementById('segment-container')
+    if (centerPanel) {
+      centerPanel.style.transform = 'rotateY(180deg)'
+    }
+    const threeDList = document.getElementsByClassName('list-tab')[0]
+    if (threeDList) {
+      threeDList.style.transform = 'translateX(200px)'
+      threeDList.style.opacity = 0
+    }
+    flipTimer = setInterval(() => {
+      this.setState({
+        MPR: false,
+      })
+      this.changeMode(1)
+      this.setState(
+        {
+          show3DVisualization: false,
+        },
+        () => {
+          // const element = document.querySelector('#origin-canvas')
+          const element = this.element
+          cornerstone.enable(element)
+          cornerstone.setViewport(element, this.state.viewport)
+          cornerstone.displayImage(element, this.state.currentImage)
+          if (!this.state.immersive) {
+            cornerstoneTools.addToolForElement(element, pan)
+            cornerstoneTools.setToolActiveForElement(
+              element,
+              'Pan',
+              {
+                mouseButtonMask: 4, //middle mouse button
+              },
+              ['Mouse']
+            )
+            cornerstoneTools.addToolForElement(element, zoomWheel)
+            cornerstoneTools.setToolActiveForElement(element, 'Zoom', {
+              mouseButtonMask: 2,
+            })
+          }
+          element.addEventListener('cornerstoneimagerendered', this.onImageRendered)
+          element.addEventListener('cornerstonenewimage', this.onNewImage)
+          element.addEventListener('contextmenu', this.onRightClick)
+          // if (!this.state.readonly) {
+          element.addEventListener('mousedown', this.onMouseDown)
+          element.addEventListener('mousemove', this.onMouseMove)
+          element.addEventListener('mouseup', this.onMouseUp)
+          element.addEventListener('mouseout', this.onMouseOut)
+          element.addEventListener('mouseover', this.onMouseOver)
 
-        // this.resizeScreen()
-      }
-    )
+          this.resizeScreen()
+        }
+      )
+      clearInterval(flipTimer)
+    }, 1000)
+  }
+  showStudyList() {
+    clearInterval(leftSlideTimer)
+    const leftPanel = document.getElementsByClassName('corner-left-block')[0]
+    if (leftPanel) {
+      leftPanel.style.transform = 'translateX(0)'
+    }
+    leftSlideTimer = setInterval(() => {
+      this.setState({
+        showStudyList: true,
+      })
+    }, 1500)
+  }
+  hideStudyList() {
+    clearInterval(leftSlideTimer)
+    const leftPanel = document.getElementsByClassName('corner-left-block')[0]
+    if (leftPanel) {
+      leftPanel.style.transform = 'translateX(-200px)'
+    }
+    leftSlideTimer = setInterval(() => {
+      this.setState({
+        showStudyList: false,
+      })
+    }, 1500)
+  }
+  enterStudyListOption() {
+    // console.log('enter')
+    this.setState({
+      enterStudyListOption: true,
+    })
+  }
+  leaveStudyListOption() {
+    // console.log('leave')
+    this.setState({
+      enterStudyListOption: false,
+    })
   }
   handleLogin() {
     this.setState({
@@ -1430,6 +1533,8 @@ class CornerstoneElement extends Component {
       airwayCenterVolumes,
       lineActors,
       show3DVisualization,
+      showStudyList,
+      enterStudyListOption,
     } = this.state
     // if(windowWidth <= 1600 && windowWidth > 1440){
     //     bottomLeftStyle = {
@@ -2980,15 +3085,130 @@ class CornerstoneElement extends Component {
                 )}
                 {show3DVisualization ? (
                   <Button icon title="隐藏3D" className="funcbtn" onClick={this.hide3D.bind(this)}>
-                    <Icon className="icon-custom-hide-3d" size="large"></Icon>
+                    <Icon className="icon-custom icon-custom-hide-3d" size="large"></Icon>
                   </Button>
                 ) : (
                   <Button icon title="显示3D" className="funcbtn" onClick={this.show3D.bind(this)}>
-                    <Icon className="icon-custom-show-3d" size="large"></Icon>
+                    <Icon className="icon-custom icon-custom-show-3d" size="large"></Icon>
                   </Button>
                 )}
               </Button.Group>
             </Menu.Item>
+            <span id="line-left" hidden={!show3DVisualization}></span>
+            <Menu.Item className="funcolumn" hidden={!show3DVisualization}>
+              <Button.Group>
+                {/* <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, "TEST")} title="放大"><Icon name='search plus' size='large'/></Button> */}
+                <Button icon className="funcBtn" hidden={MPR} onClick={this.handleFuncButton.bind(this, 'MPR')} title="MPR">
+                  <Icon className="icon-custom icon-custom-mpr-show" size="large" />
+                </Button>
+                <Button icon className="funcBtn" hidden={!MPR} onClick={this.handleFuncButton.bind(this, 'STMPR')} title="取消MPR">
+                  <Icon className="icon-custom icon-custom-mpr-hide" size="large" />
+                </Button>
+
+                {show3DVisualization && MPR ? (
+                  <>
+                    <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'RC')} title="重置相机" description="reset camera">
+                      <Icon name="redo" size="large" />
+                    </Button>
+                    {/* <Button icon className='funcBtn' active={crosshairsTool} onClick={this.handleFuncButton.bind(this, "TC")} title="十字线" description="toggle crosshairs"><Icon name='plus' size='large'/></Button> */}
+                    <Button icon className="funcBtn" hidden={!displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'HC')} title="隐藏十字线" description="hidden crosshairs">
+                      <Icon className="icon-custom icon-custom-HC" size="large" />
+                    </Button>
+                    <Button icon className="funcBtn" hidden={displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'SC')} title="显示十字线" description="show crosshairs">
+                      <Icon className="icon-custom icon-custom-SC" size="large" />
+                    </Button>
+
+                    <Button icon className="funcBtn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} title="停止勾画" description="end painting">
+                      <Icon name="window close outline" size="large" />
+                    </Button>
+                    <Button icon className="funcBtn" hidden={painting} onClick={this.handleFuncButton.bind(this, 'BP')} title="开始勾画" description="begin painting">
+                      <Icon name="paint brush" size="large" />
+                    </Button>
+                    <Button icon className="funcBtn" hidden={!painting} active={!erasing} onClick={this.handleFuncButton.bind(this, 'DP')} title="勾画" description="do painting">
+                      <Icon name="paint brush" size="large" />
+                    </Button>
+                    <Button icon className="funcBtn" hidden={!painting} active={erasing} onClick={this.handleFuncButton.bind(this, 'DE')} title="擦除" description="do erasing">
+                      <Icon name="eraser" size="large" />
+                    </Button>
+                    <Popup
+                      on="click"
+                      trigger={
+                        <Button icon className="funcBtn" hidden={!painting}>
+                          <Icon name="dot circle" size="large" />
+                        </Button>
+                      }
+                      position="bottom center"
+                      style={{
+                        backgroundColor: '#021c38',
+                        borderColor: '#021c38',
+                        width: '200px',
+                        padding: '2px 4px 2px 4px',
+                      }}>
+                      <div>
+                        <div className="segment-widget-radius-container">
+                          画笔半径:
+                          <Slider
+                            className="segment-widget-radius-slider"
+                            value={paintRadius}
+                            min={1}
+                            step={1}
+                            max={10}
+                            tooltipVisible={false}
+                            onChange={this.changeRadius.bind(this)}
+                            onAfterChange={this.afterChangeRadius.bind(this)}
+                          />
+                        </div>
+                        <div className="segment-label-threshold-container">
+                          标记阈值:
+                          <Slider
+                            className="segment-label-threshold-slider"
+                            value={labelThreshold}
+                            min={100}
+                            step={100}
+                            max={1000}
+                            tooltipVisible={false}
+                            onChange={this.changeThreshold.bind(this)}
+                            onAfterChange={this.afterChangeThreshold.bind(this)}
+                          />
+                        </div>
+                      </div>
+                    </Popup>
+                    <Popup
+                      on="click"
+                      trigger={
+                        <Button icon className="funcBtn" hidden={!painting}>
+                          <Icon name="eye dropper" size="large" />
+                        </Button>
+                      }
+                      position="bottom center"
+                      style={{
+                        backgroundColor: '#021c38',
+                        borderColor: '#021c38',
+                        width: '150px',
+                        padding: '2px 4px 2px 4px',
+                      }}>
+                      <div className="segment-label-color-selector">
+                        颜色选择器：
+                        <InputColor initialValue="#FF0000" onChange={this.setPaintColor.bind(this)} placement="right" />
+                      </div>
+                    </Popup>
+
+                    <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'CPR')} title="CPR" hidden={CPR}>
+                      <Icon className="icon-custom icon-custom-CPR" size="large" />
+                    </Button>
+                    <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'STCPR')} title="取消CPR" hidden={!CPR}>
+                      <Icon name="window close outline" size="large" />
+                    </Button>
+                    <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'RA')} title="重建气道" description="reconstruct airway">
+                      <Icon className="icon-custom icon-custom-RA" size="large" />
+                    </Button>
+                  </>
+                ) : (
+                  <></>
+                )}
+              </Button.Group>
+            </Menu.Item>
+            <span id="line-left" hidden={!show3DVisualization || !MPR}></span>
             <Menu.Item position="right">
               <Dropdown text={welcome}>
                 <Dropdown.Menu id="logout-menu">
@@ -3004,134 +3224,140 @@ class CornerstoneElement extends Component {
             </Menu.Item>
           </Menu>
           {windowHeight < windowWidth ? (
-            <Grid celled className="corner-contnt">
-              <Grid.Row className="corner-row" columns={3}>
-                <Grid.Column width={2}>
+            <Grid className="corner-contnt">
+              {/* <Grid.Row className="corner-row" columns={3}> */}
+              <Grid.Column width={2}>
+                <div className="corner-left-block">
                   <StudyBrowserList caseId={this.state.caseId} handleClickScreen={this.props.handleClickScreen} />
-                </Grid.Column>
-                <Grid.Column width={10} textAlign="center" style={{ position: 'relative' }}>
-                  {show3DVisualization ? (
-                    <div className="segment-container" id="segment-container">
-                      <div style={{ width: viewerWidth, height: viewerHeight }}>{panel}</div>
-                    </div>
-                  ) : (
-                    <Grid celled style={{ margin: 0 }}>
-                      {/* <Grid.Row columns={2} id='canvas-column' style={{height:this.state.windowHeight*37/40}}> */}
-                      <Grid.Row columns={2} id="canvas-column">
-                        <Grid.Column width={15} className="canvas-style" id="canvas-border">
-                          {/* <div className='canvas-style' id='canvas-border'> */}
-                          <div
-                            id="origin-canvas"
+                  <div className="study-browser-option-block" onMouseEnter={this.enterStudyListOption.bind(this)} onMouseLeave={this.leaveStudyListOption.bind(this)}>
+                    {showStudyList ? (
+                      <FontAwesomeIcon className="study-browser-option-icon" icon={faChevronLeft} onClick={this.hideStudyList.bind(this)} />
+                    ) : (
+                      <FontAwesomeIcon className="study-browser-option-icon" icon={faChevronRight} onClick={this.showStudyList.bind(this)} />
+                    )}
+                  </div>
+                </div>
+              </Grid.Column>
+              <Grid.Column width={10} textAlign="center" style={{ position: 'relative' }}>
+                {show3DVisualization ? (
+                  <div className="segment-container center-viewport-panel" id="segment-container" data-aos="flip-left" data-aos-duration="1500">
+                    <div style={{ width: viewerWidth, height: viewerHeight }}>{panel}</div>
+                  </div>
+                ) : (
+                  <Grid celled style={{ margin: 0 }} className="cor-containter center-viewport-panel" id="cor-container" data-aos="flip-left" data-aos-duration="1500">
+                    {/* <Grid.Row columns={2} id='canvas-column' style={{height:this.state.windowHeight*37/40}}> */}
+                    <Grid.Row columns={2} id="canvas-column">
+                      <Grid.Column width={15} className="canvas-style" id="canvas-border">
+                        {/* <div className='canvas-style' id='canvas-border'> */}
+                        <div
+                          id="origin-canvas"
+                          style={{
+                            width: this.state.crossCanvasWidth,
+                            height: this.state.crossCanvasHeight,
+                          }}
+                          ref={(input) => {
+                            this.element = input
+                          }}>
+                          <canvas
+                            className="cornerstone-canvas"
+                            id="canvas"
                             style={{
                               width: this.state.crossCanvasWidth,
                               height: this.state.crossCanvasHeight,
                             }}
-                            ref={(input) => {
-                              this.element = input
+                          />
+                          {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
+                          {/* {canvas} */}
+                          {dicomTagPanel}
+                        </div>
+
+                        {/* </div> */}
+                      </Grid.Column>
+                      <Grid.Column width={1}>
+                        <Slider
+                          id="antd-slide"
+                          vertical
+                          reverse
+                          tipFormatter={null}
+                          marks={sliderMarks}
+                          value={this.state.currentIdx + 1}
+                          onChange={this.handleRangeChange}
+                          // onAfterChange={this.handleRangeChange.bind(this)}
+                          min={1}
+                          step={1}
+                          max={this.state.stack.imageIds.length}></Slider>
+                      </Grid.Column>
+                    </Grid.Row>
+                  </Grid>
+                )}
+
+                {/* <div className='antd-slider'> */}
+
+                {/* </div> */}
+                {visualContent}
+                <button id="closeVisualContent" className="closeVisualContent-cross" onClick={this.closeVisualContent}>
+                  ×
+                </button>
+              </Grid.Column>
+              <Grid.Column width={4}>
+                {show3DVisualization ? (
+                  <Tab className="list-tab" panes={panes3D} data-aos="fade-left" data-aos-duration="1500" />
+                ) : (
+                  <div className="corner-right-block">
+                    <div className="nodule-card-container" data-aos="fade-down" data-aos-duration="1500">
+                      <Tabs type="card" animated defaultActiveKey={1} size="small">
+                        <TabPane tab={noduleNumTab} key="1">
+                          <div
+                            id="elec-table"
+                            style={{
+                              height: (this.state.windowHeight * 1) / 2,
                             }}>
-                            <canvas
-                              className="cornerstone-canvas"
-                              id="canvas"
-                              style={{
-                                width: this.state.crossCanvasWidth,
-                                height: this.state.crossCanvasHeight,
-                              }}
-                            />
-                            {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                            {/* {canvas} */}
-                            {dicomTagPanel}
-                          </div>
-
-                          {/* </div> */}
-                        </Grid.Column>
-                        <Grid.Column width={1}>
-                          <Slider
-                            id="antd-slide"
-                            vertical
-                            reverse
-                            tipFormatter={null}
-                            marks={sliderMarks}
-                            value={this.state.currentIdx + 1}
-                            onChange={this.handleRangeChange}
-                            // onAfterChange={this.handleRangeChange.bind(this)}
-                            min={1}
-                            step={1}
-                            max={this.state.stack.imageIds.length}></Slider>
-                        </Grid.Column>
-                      </Grid.Row>
-                    </Grid>
-                  )}
-
-                  {/* <div className='antd-slider'> */}
-
-                  {/* </div> */}
-                  {visualContent}
-                  <button id="closeVisualContent" className="closeVisualContent-cross" onClick={this.closeVisualContent}>
-                    ×
-                  </button>
-                </Grid.Column>
-                <Grid.Column widescreen={4} computer={4}>
-                  {show3DVisualization ? (
-                    <Tab className="list-tab" panes={panes3D} />
-                  ) : (
-                    <>
-                      <Grid.Row>
-                        <div className="nodule-card-container">
-                          <Tabs type="card" animated defaultActiveKey={1} size="small">
-                            <TabPane tab={noduleNumTab} key="1">
+                            {this.state.boxes.length === 0 ? (
                               <div
-                                id="elec-table"
                                 style={{
-                                  height: (this.state.windowHeight * 1) / 2,
+                                  height: '100%',
+                                  background: '#021c38',
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
                                 }}>
-                                {this.state.boxes.length === 0 ? (
-                                  <div
-                                    style={{
-                                      height: '100%',
-                                      background: '#021c38',
-                                      display: 'flex',
-                                      justifyContent: 'center',
-                                      alignItems: 'center',
-                                    }}>
-                                    <Header as="h2" inverted>
-                                      <Icon name="low vision" />
-                                      <Header.Content>未检测出任何结节</Header.Content>
-                                    </Header>
-                                  </div>
-                                ) : (
-                                  <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
-                                    {tableContent}
-                                  </Accordion>
-                                )}
+                                <Header as="h2" inverted>
+                                  <Icon name="low vision" />
+                                  <Header.Content>未检测出任何结节</Header.Content>
+                                </Header>
                               </div>
-                            </TabPane>
-                            {/* <TabPane tab={inflammationTab} key="2">
+                            ) : (
+                              <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
+                                {tableContent}
+                              </Accordion>
+                            )}
+                          </div>
+                        </TabPane>
+                        {/* <TabPane tab={inflammationTab} key="2">
                                                         Content of Tab Pane 2
                                                         </TabPane>
                                                         <TabPane tab={lymphnodeTab} key="3">
                                                         Content of Tab Pane 3
                                                         </TabPane> */}
-                          </Tabs>
-                        </div>
-                      </Grid.Row>
-                      <Grid.Row>
-                        <div id="report" style={{ height: this.state.windowHeight / 3 }}>
-                          <Tab
-                            menu={{
-                              borderless: false,
-                              inverted: false,
-                              attached: true,
-                              tabular: true,
-                              size: 'huge',
-                            }}
-                            panes={panes}
-                          />
-                        </div>
-                      </Grid.Row>
-                    </>
-                  )}
-                </Grid.Column>
-              </Grid.Row>
+                      </Tabs>
+                    </div>
+
+                    <div id="report" style={{ height: this.state.windowHeight / 3 }} data-aos="fade-up" data-aos-duration="1500">
+                      <Tab
+                        menu={{
+                          borderless: false,
+                          inverted: false,
+                          attached: true,
+                          tabular: true,
+                          size: 'huge',
+                        }}
+                        panes={panes}
+                      />
+                    </div>
+                  </div>
+                )}
+              </Grid.Column>
+              {/* </Grid.Row> */}
             </Grid>
           ) : (
             <Grid celled className="corner-contnt">
@@ -3881,6 +4107,7 @@ class CornerstoneElement extends Component {
   //    }
 
   onWheel(event) {
+    console.log('onWheel')
     // this.preventMouseWheel(event)
     var delta = 0
     if (!event) {
@@ -3901,7 +4128,6 @@ class CornerstoneElement extends Component {
   }
 
   onMouseOver(event) {
-    // console.log("mouseover")
     try {
       window.addEventListener('mousewheel', this.onWheel) || window.addEventListener('DOMMouseScroll', this.onWheel)
     } catch (e) {
@@ -3974,9 +4200,9 @@ class CornerstoneElement extends Component {
 
   onMouseMove(event) {
     // console.log('onmouse Move')
-    if (this.state.show3DVisualization) {
-      return
-    }
+    // if (this.state.show3DVisualization) {
+    //   return
+    // }
     const clickX = event.offsetX
     const clickY = event.offsetY
     let x = 0
@@ -4374,9 +4600,9 @@ class CornerstoneElement extends Component {
   }
 
   onKeydown(event) {
-    if (this.state.show3DVisualization) {
-      return
-    }
+    // if (this.state.show3DVisualization) {
+    //   return
+    // }
     console.log(event.which)
     if (document.getElementById('slice-slider') !== null) document.getElementById('slice-slider').blur()
     if (event.which == 77) {
@@ -5282,6 +5508,7 @@ class CornerstoneElement extends Component {
   }
 
   async componentDidMount() {
+    this.apis = []
     window.addEventListener('resize', this.resizeScreen.bind(this))
     // this.getNoduleIfos()
     // this.visualize()
@@ -5598,6 +5825,114 @@ class CornerstoneElement extends Component {
     // Promise.all(filePromises).then(() => {
     //   this.getMPRInfo(localImageIds)
     // })
+    const firstImageId = imageIds[imageIds.length - 1]
+    const firstImageIdPromise = new Promise((resolve, reject) => {
+      cornerstone.loadAndCacheImage(firstImageId).then((img) => {
+        console.log('first img', img)
+        let dataSet = img.data
+        let imagePositionPatientString = dataSet.string('x00200032')
+        let imagePositionPatient = imagePositionPatientString.split('\\')
+        let imageOrientationPatientString = dataSet.string('x00200037')
+        let imageOrientationPatient = imageOrientationPatientString.split('\\')
+        let rowCosines = [imageOrientationPatient[0], imageOrientationPatient[1], imageOrientationPatient[2]]
+        let columnCosines = [imageOrientationPatient[3], imageOrientationPatient[4], imageOrientationPatient[5]]
+
+        const xVoxels = img.columns
+        const yVoxels = img.rows
+        const zVoxels = imageIds.length
+        const xSpacing = img.columnPixelSpacing
+        const ySpacing = img.rowPixelSpacing
+        const zSpacing = 1.0
+        const rowCosineVec = vec3.fromValues(...rowCosines)
+        const colCosineVec = vec3.fromValues(...columnCosines)
+        const scanAxisNormal = vec3.cross([], rowCosineVec, colCosineVec)
+        const direction = [...rowCosineVec, ...colCosineVec, ...scanAxisNormal]
+        const origin = imagePositionPatient
+
+        const { slope, intercept } = img
+        const pixelArray = new Float32Array(xVoxels * yVoxels * zVoxels).fill(intercept)
+        const scalarArray = vtkDataArray.newInstance({
+          name: 'Pixels',
+          numberOfComponents: 1,
+          values: pixelArray,
+        })
+
+        const imageData = vtkImageData.newInstance()
+
+        imageData.setDimensions(xVoxels, yVoxels, zVoxels)
+        imageData.setSpacing(xSpacing, ySpacing, zSpacing)
+        imageData.setDirection(direction)
+        imageData.setOrigin(...origin)
+        imageData.getPointData().setScalars(scalarArray)
+
+        const { actor } = this.createActorMapper(imageData)
+        const volumesRange = imageData.getBounds()
+        const segRange = {
+          xMin: volumesRange[0],
+          xMax: volumesRange[1],
+          yMin: volumesRange[2],
+          yMax: volumesRange[3],
+          zMin: volumesRange[4],
+          zMax: volumesRange[5],
+        }
+        const originXBorder = Math.round(xVoxels * xSpacing)
+        const originYBorder = Math.round(yVoxels * ySpacing)
+        const originZBorder = Math.round(zVoxels * zSpacing)
+        console.log('segRange', segRange)
+        const numVolumePixels = xVoxels * yVoxels * zVoxels
+
+        // If you want to load a segmentation labelmap, you would want to load
+        // it into this array at this point.
+        const threeDimensionalPixelData = new Float32Array(numVolumePixels)
+        // Create VTK Image Data with buffer as input
+        const labelMap = vtkImageData.newInstance()
+
+        // right now only support 256 labels
+        const dataArray = vtkDataArray.newInstance({
+          numberOfComponents: 1, // labelmap with single component
+          values: threeDimensionalPixelData,
+        })
+
+        labelMap.getPointData().setScalars(dataArray)
+        labelMap.setDimensions(xVoxels, yVoxels, zVoxels)
+        labelMap.setSpacing(...imageData.getSpacing())
+        labelMap.setOrigin(...imageData.getOrigin())
+        labelMap.setDirection(...imageData.getDirection())
+
+        this.setState({
+          vtkImageData: imageData,
+          volumes: [actor],
+          labelMapInputData: labelMap,
+          origin: [(segRange.xMax + segRange.xMin) / 2, (segRange.yMax + segRange.yMin) / 2, (segRange.zMax + segRange.zMin) / 2],
+          dimensions: [xVoxels, yVoxels, zVoxels],
+          spacing: [xSpacing, ySpacing, zSpacing],
+          originXBorder,
+          originYBorder,
+          originZBorder,
+          segRange,
+        })
+        resolve(true)
+      }, reject)
+    })
+    await firstImageIdPromise
+    axios
+      .post(
+        this.config.draft.getCenterLine,
+        qs.stringify({
+          caseId: this.state.caseId,
+        })
+      )
+      .then((res) => {
+        console.log('centerLine request', res)
+        const data = res.data
+        if (data.centerline) {
+          const coos = data.centerline
+          this.processCenterLine(coos)
+        }
+      })
+    // this.processCenterLine()
+    // this.processOneAirway()
+    this.getMPRInfoWithPriority(imageIds)
     // const origin = document.getElementById('origin-canvas')
     // const canvas = document.getElementById('canvas')
     // console.log('origin-canvas',canvas)
@@ -6277,6 +6612,7 @@ class CornerstoneElement extends Component {
     return loadingStyle
   }
   resizeViewer(viewerWidth, viewerHeight) {
+    console.log('resizeViewer', viewerWidth, viewerHeight)
     if (typeof viewerWidth == 'undefined') {
       viewerWidth = this.state.viewerWidth
     }
