@@ -28,6 +28,9 @@ import {
   Label,
   Header,
   Card,
+  Table,
+  Divider,
+  Form,
 } from "semantic-ui-react";
 import "../css/cornerstone.css";
 import qs from "qs";
@@ -40,6 +43,8 @@ import src1 from "../images/scu-logo.jpg";
 import $ from "jquery";
 
 import * as echarts from "echarts";
+import html2pdf from "html2pdf.js";
+import copy from "copy-to-clipboard";
 //import  'echarts/lib/chart/bar';
 //import 'echarts/lib/component/tooltip';
 //import 'echarts/lib/component/title';
@@ -172,6 +177,8 @@ const toolstrigger = (
 
 const { Option } = Select;
 
+let buttonflag = 0;
+
 class CornerstoneElement extends Component {
   constructor(props) {
     super(props);
@@ -241,6 +248,18 @@ class CornerstoneElement extends Component {
       verticalCanvasHeight: (document.body.clientHeight * 1080) / 1920,
       //studybrowserList
       dateSeries: [],
+
+      //MiniReport
+      patientName: "",
+      patientBirth: "",
+      patientSex: "",
+      patientId: "",
+      date: "",
+      age: 0,
+      temp: 0,
+      templateText: "",
+      dealchoose: "中华共识",
+      nodules: [],
     };
     this.config = JSON.parse(localStorage.getItem("config"));
     this.nextPath = this.nextPath.bind(this);
@@ -334,24 +353,24 @@ class CornerstoneElement extends Component {
     this.drawLength = this.drawLength.bind(this);
     this.createLength = this.createLength.bind(this);
     this.firstLayout = this.firstLayout.bind(this);
+
+    //DisplayPanel
     this.loadDisplay = this.loadDisplay.bind(this);
     this.updateDisplay = this.updateDisplay.bind(this);
+    //StudyBrowser
     this.loadStudyBrowser = this.loadStudyBrowser.bind(this);
     this.updateStudyBrowser = this.updateStudyBrowser.bind(this);
-    // this.showMask = this
-    //     .showMask
-    //     .bind(this)
+    //MiniReport
+    this.loadReport = this.loadReport.bind(this);
+    this.updateReport = this.updateReport.bind(this);
+
+    this.showImages = this.showImages.bind(this);
+    this.exportPDF = this.exportPDF.bind(this);
+    this.template = this.template.bind(this);
+    this.dealChoose = this.dealChoose.bind(this);
+    this.handleTextareaChange = this.handleTextareaChange.bind(this);
+    this.handleCopyClick = this.handleCopyClick.bind(this);
   }
-
-  // handleClick = (e, titleProps) => {
-  //     const {index} = titleProps
-  //     const {activeIndex} = this.state
-  //     const newIndex = activeIndex === index
-  //         ? -1
-  //         : index
-
-  //     this.setState({activeIndex: newIndex})
-  // }
 
   handleSliderChange = (e, { name, value }) => {
     //窗宽
@@ -1213,7 +1232,7 @@ class CornerstoneElement extends Component {
         menuItem: "影像所见",
         render: () => (
           <Tab.Pane>
-            <MiniReport
+            {/* <MiniReport
               type="影像所见"
               caseId={this.state.caseId}
               username={this.state.modelName}
@@ -1224,7 +1243,384 @@ class CornerstoneElement extends Component {
                   ? "all"
                   : this.state.listsActiveIndex
               }
-            />
+            /> */}
+            <Grid divided="vertically">
+              <Grid.Row
+                verticalAlign="middle"
+                columns={4}
+                style={{ height: 40 }}
+              >
+                <Grid.Column textAlign="left" width={6}>
+                  <div style={{ fontSize: 18 }}></div>
+                </Grid.Column>
+
+                <Grid.Column width={4} textAlign="right"></Grid.Column>
+                <Grid.Column textAlign="center" width={2}>
+                  <Modal
+                    trigger={
+                      <Button
+                        icon="expand arrows alternate"
+                        title="放大"
+                        className="inverted blue button"
+                        onClick={this.showImages}
+                      ></Button>
+                    }
+                  >
+                    <Modal.Header>
+                      <Grid>
+                        <Grid.Row>
+                          <Grid.Column width={3} textAlign="left">
+                            影像诊断报告
+                          </Grid.Column>
+                          <Grid.Column width={6}></Grid.Column>
+                          <Grid.Column width={3} textAlign="right">
+                            {this.state.temp === 1 ? (
+                              <Button color="blue" onClick={this.exportPDF}>
+                                导出pdf
+                              </Button>
+                            ) : (
+                              <Button color="blue" loading>
+                                Loading
+                              </Button>
+                            )}
+                          </Grid.Column>
+                        </Grid.Row>
+                      </Grid>
+                    </Modal.Header>
+                    <Modal.Content image scrolling id="pdf">
+                      <Modal.Description>
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <Header>病人编号:</Header>
+                              </td>
+                              <td>{this.state.patientId}</td>
+
+                              <td>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                              </td>
+                              <td align="right">
+                                <Header>姓名:</Header>
+                              </td>
+                              <td>&nbsp;</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>出生日期:</Header>
+                              </td>
+                              <td>{this.state.patientBirth}</td>
+                              <td>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                              </td>
+
+                              <td align="right">
+                                <Header>年龄:</Header>
+                              </td>
+                              <td>{this.state.age}</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>性别:</Header>
+                              </td>
+                              <td>{this.state.patientSex}</td>
+                              <td>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                              </td>
+                              <td align="right">
+                                <Header>检查日期:</Header>
+                              </td>
+                              <td>{this.state.date}</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>检查编号:</Header>
+                              </td>
+                              <td>12580359</td>
+                              <td>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                              </td>
+                              <td align="right">
+                                <Header>入库编号:</Header>
+                              </td>
+                              <td>&nbsp;</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>报告撰写日期:</Header>
+                              </td>
+                              <td>&nbsp;</td>
+                              <td>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                              </td>
+                              <td align="right">
+                                <Header>请求过程描述:</Header>
+                              </td>
+                              <td>&nbsp;</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <Divider />
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td width="50%">
+                                <Header>体重:</Header>
+                              </td>
+                              <td></td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>身高:</Header>
+                              </td>
+                              <td align="right">
+                                <Header>体重系数:</Header>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+
+                        <Divider />
+
+                        <div style={{ fontSize: 20, color: "#6495ED" }}>
+                          扫描参数
+                        </div>
+                        <Table celled>
+                          <Table.Header>
+                            <Table.Row>
+                              <Table.HeaderCell>检查日期</Table.HeaderCell>
+                              <Table.HeaderCell>
+                                像素大小(毫米)
+                              </Table.HeaderCell>
+                              <Table.HeaderCell>
+                                厚度 / 间距(毫米)
+                              </Table.HeaderCell>
+                              <Table.HeaderCell>kV</Table.HeaderCell>
+                              <Table.HeaderCell>mA</Table.HeaderCell>
+                              <Table.HeaderCell>mAs</Table.HeaderCell>
+                              {/* <Table.HeaderCell>Recon Name</Table.HeaderCell> */}
+                              <Table.HeaderCell>厂商</Table.HeaderCell>
+                            </Table.Row>
+                          </Table.Header>
+                          <Table.Body></Table.Body>
+                        </Table>
+                        <div style={{ fontSize: 20, color: "#6495ED" }}>
+                          肺部详情
+                        </div>
+                        <Table celled>
+                          <Table.Header>
+                            <Table.Row>
+                              <Table.HeaderCell>检查日期</Table.HeaderCell>
+                              <Table.HeaderCell>体积</Table.HeaderCell>
+                              <Table.HeaderCell>结节总体积</Table.HeaderCell>
+                            </Table.Row>
+                          </Table.Header>
+                          <Table.Body></Table.Body>
+                        </Table>
+                        <div style={{}}></div>
+                        {this.state.nodules.map((nodule, index) => {
+                          let nodule_id =
+                            "nodule-" +
+                            nodule.nodule_no +
+                            "-" +
+                            nodule.slice_idx;
+                          let visualId = "visual" + index;
+                          // console.log('visualId',visualId)
+                          return (
+                            <div key={index}>
+                              <Divider />
+                              <div>&nbsp;</div>
+                              <div
+                                style={{ fontSize: 20, color: "#6495ED" }}
+                                id="noduleDivide"
+                              >
+                                结节 {index + 1}
+                              </div>
+                              <Table celled textAlign="center">
+                                <Table.Header>
+                                  <Table.Row>
+                                    <Table.HeaderCell width={7}>
+                                      检查日期
+                                    </Table.HeaderCell>
+                                    <Table.HeaderCell width={11}>
+                                      {this.state.date}
+                                    </Table.HeaderCell>
+                                  </Table.Row>
+                                </Table.Header>
+                                <Table.Body>
+                                  <Table.Row>
+                                    <Table.Cell>切片号</Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["slice_idx"] + 1}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>肺叶位置</Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["place"] === undefined ||
+                                      nodule["place"] === 0
+                                        ? ""
+                                        : places[nodule["place"]]}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>肺段位置</Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["segment"] === undefined
+                                        ? ""
+                                        : segments[nodule["segment"]]}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>危险程度</Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["malignancy"] === 2
+                                        ? "高危"
+                                        : "低危"}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>毛刺</Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["spiculation"] === 2
+                                        ? "毛刺"
+                                        : "非毛刺"}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>分叶</Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["lobulation"] === 2
+                                        ? "分叶"
+                                        : "非分叶"}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>钙化</Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["calcification"] === 2
+                                        ? "钙化"
+                                        : "非钙化"}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>密度</Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["texture"] === 2
+                                        ? "实性"
+                                        : "磨玻璃"}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>直径</Table.Cell>
+                                    <Table.Cell>
+                                      {Math.floor(nodule["diameter"] * 10) /
+                                        100}
+                                      厘米
+                                    </Table.Cell>
+                                  </Table.Row>
+
+                                  <Table.Row>
+                                    <Table.Cell>体积</Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["volume"] === undefined
+                                        ? null
+                                        : Math.floor(nodule["volume"] * 100) /
+                                            100 +
+                                          "cm³"}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>
+                                      HU(最小值/均值/最大值)
+                                    </Table.Cell>
+                                    <Table.Cell>
+                                      {nodule["huMin"] === undefined
+                                        ? null
+                                        : nodule["huMin"] +
+                                          " / " +
+                                          nodule["huMean"] +
+                                          " / " +
+                                          nodule["huMax"]}
+                                    </Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>结节部分</Table.Cell>
+                                    <Table.Cell>
+                                      <div
+                                        id={nodule_id}
+                                        style={{
+                                          width: "300px",
+                                          height: "250px",
+                                          margin: "0 auto",
+                                        }}
+                                      ></div>
+                                    </Table.Cell>
+                                    {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>直方图</Table.Cell>
+                                    <Table.Cell>
+                                      <div
+                                        id={visualId}
+                                        style={{ margin: "0 auto" }}
+                                      ></div>
+                                    </Table.Cell>
+                                  </Table.Row>
+                                </Table.Body>
+                              </Table>
+                            </div>
+                          );
+                        })}
+                        <Divider />
+                      </Modal.Description>
+                    </Modal.Content>
+                  </Modal>
+                </Grid.Column>
+                <Grid.Column textAlign="left" width={2}>
+                  <Button
+                    title="复制"
+                    className="inverted blue button"
+                    icon="copy outline"
+                    onClick={this.handleCopyClick}
+                  ></Button>
+                </Grid.Column>
+              </Grid.Row>
+              <Divider></Divider>
+              <Grid.Row>
+                <Grid.Column textAlign="center">
+                  <Form.TextArea
+                    style={{
+                      fontSize: "medium",
+                      overflowY: "auto",
+                      width: "100%",
+                      height: document.body.clientHeight / 7,
+                      background: "transparent",
+                      border: "0rem",
+                      marginLeft: "0px",
+                    }}
+                    id="textarea"
+                    placeholder="在此填写诊断报告"
+                    onChange={this.handleTextareaChange}
+                    value={this.state.templateText}
+                    maxLength={500}
+                  >
+                    {/* {this.template().split('*').map((content,index)=>{
+                                return(
+                                    <p key={index}>
+                                        {content}
+                                    </p>
+                                )
+                                
+                            })} */}
+                  </Form.TextArea>
+                </Grid.Column>
+              </Grid.Row>
+            </Grid>
           </Tab.Pane>
         ),
       },
@@ -1232,11 +1628,74 @@ class CornerstoneElement extends Component {
         menuItem: "处理建议",
         render: () => (
           <Tab.Pane>
-            <MiniReport
+            {/* <MiniReport
               type="处理建议"
               imageIds={this.state.imageIds}
               boxes={this.state.boxes}
-            />
+            /> */}
+            <Grid divided="vertically">
+              <Grid.Row
+                verticalAlign="middle"
+                columns={3}
+                style={{ height: 40 }}
+              >
+                <Grid.Column width={6}></Grid.Column>
+                <Grid.Column widescreen={5} computer={6} textAlign="right">
+                  <Dropdown
+                    style={{ background: "none", fontSize: 16 }}
+                    text={this.state.dealchoose}
+                    id="dealchoose"
+                  >
+                    <Dropdown.Menu>
+                      <Dropdown.Item onClick={this.dealChoose}>
+                        中华共识
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.dealChoose}>
+                        Fleischner
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.dealChoose}>
+                        NCCN
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.dealChoose}>
+                        Lung-RADS
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.dealChoose}>
+                        亚洲共识
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </Grid.Column>
+                <Grid.Column textAlign="center" width={2}>
+                  <Button
+                    title="复制"
+                    className="inverted blue button"
+                    icon="copy outline"
+                    onClick={this.handleCopyClick}
+                  ></Button>
+                </Grid.Column>
+              </Grid.Row>
+              <Divider></Divider>
+              <Grid.Row>
+                <Grid.Column textAlign="center">
+                  <Form.TextArea
+                    style={{
+                      fontSize: "medium",
+                      overflowY: "auto",
+                      width: "100%",
+                      height: document.body.clientHeight / 7,
+                      background: "transparent",
+                      border: "0rem",
+                      marginLeft: "0px",
+                    }}
+                    id="textarea"
+                    placeholder="在此填写处理建议"
+                    value={this.state.templateText}
+                    onChange={this.handleTextareaChange}
+                    maxLength={500}
+                  ></Form.TextArea>
+                </Grid.Column>
+              </Grid.Row>
+            </Grid>
           </Tab.Pane>
         ),
       },
@@ -1267,74 +1726,6 @@ class CornerstoneElement extends Component {
       maskStateList,
       dateSeries,
     } = this.state;
-    // if(windowWidth <= 1600 && windowWidth > 1440){
-    //     bottomLeftStyle = {
-    //         bottom: "5px",
-    //         left: "-50px",
-    //         position: "absolute",
-    //         color: "white"
-    //     }
-
-    //     bottomRightStyle = {
-    //         bottom: "5px",
-    //         right: "-10px",
-    //         position: "absolute",
-    //         color: "white"
-    //     }
-
-    //     topLeftStyle = {
-    //         top: "5px",
-    //         left: "-50px", // 5px
-    //         position: "absolute",
-    //         color: "white"
-    //     }
-
-    //     topRightStyle = {
-    //         top: "5px",
-    //         right: "-10px", //5px
-    //         position: "absolute",
-    //         color: "white"
-    //     }
-    // }
-    // else if(windowWidth <= 1440){
-    //     bottomLeftStyle = {
-    //         bottom: "5px",
-    //         left: "-40px",
-    //         position: "absolute",
-    //         color: "white"
-    //     }
-
-    //     bottomRightStyle = {
-    //         bottom: "5px",
-    //         right: "-30px",
-    //         position: "absolute",
-    //         color: "white"
-    //     }
-
-    //     topLeftStyle = {
-    //         top: "5px",
-    //         left: "-40px", // 5px
-    //         position: "absolute",
-    //         color: "white"
-    //     }
-
-    //     topRightStyle = {
-    //         top: "5px",
-    //         right: "-30px", //5px
-    //         position: "absolute",
-    //         color: "white"
-    //     }
-    // }
-    // console.log('dicomTag',dicomTag.elements)
-    // var keys = [];
-    // for(var propertyName in dicomTag.elements) {
-    //     keys.push(propertyName);
-    // }
-    // keys.sort();
-    // console.log('keys',keys)
-    // var propertyName = keys[0];
-    // var element = dicomTag.elements[propertyName];
-    // console.log('element',element)
     let tableContent = "";
     let visualContent = "";
     let createDraftModal;
@@ -1352,10 +1743,6 @@ class CornerstoneElement extends Component {
       4: "左肺上叶",
       5: "左肺下叶",
     };
-    // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
-    let noduleNumTab = "结节(" + this.state.boxes.length + ")";
-    // let inflammationTab = '炎症(有)'
-    // let lymphnodeTab = '淋巴结(0)'
     let segments = {
       S1: "右肺上叶-尖段",
       S2: "右肺上叶-后段",
@@ -1377,6 +1764,11 @@ class CornerstoneElement extends Component {
       S18: "左肺下叶-后基底段",
     };
 
+    // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
+    let noduleNumTab = "结节(" + this.state.boxes.length + ")";
+    // let inflammationTab = '炎症(有)'
+    // let lymphnodeTab = '淋巴结(0)'
+
     const options = [
       { key: "分叶", text: "分叶", value: "分叶" },
       { key: "毛刺", text: "毛刺", value: "毛刺" },
@@ -1387,11 +1779,6 @@ class CornerstoneElement extends Component {
       { key: "空洞", text: "空洞", value: "空洞" },
       { key: "支气管充气", text: "支气管充气", value: "支气管充气" },
     ];
-    // let options = ['分叶','毛刺','钙化','胸膜凹陷','血管集束','空泡','空洞','支气管充气']
-    // let children=[]
-    // for(let i=0;i<options.length;i++){
-    //     children.push(<Option key={i}>{options[i]}</Option>)
-    // }
 
     const locationOptions = [
       { key: "分叶", text: "分叶", value: "分叶" },
@@ -1435,63 +1822,6 @@ class CornerstoneElement extends Component {
     } else {
       slideLabel = null;
     }
-
-    // if(windowWidth <=1600 && windowWidth > 1440){
-    //     dicomTagPanel = (
-    //         <div>
-    //         <div id='dicomTag'>
-    //             <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-    //             <div style={{position:'absolute',color:'white',top:'20px',left:'-50px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-    //             <div style={{position:'absolute',color:'white',top:'35px',left:'-50px'}}>{dicomTag.string('x00100020')}</div>
-    //             <div style={{position:'absolute',color:'white',top:'50px',left:'-50px'}}>{dicomTag.string('x00185100')}</div>
-    //             <div style={{position:'absolute',color:'white',top:'65px',left:'-50px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-
-    //             <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-    //             <div style={{position:'absolute',color:'white',top:'20px',right:'-10px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-    //             <div style={{position:'absolute',color:'white',top:'35px',right:'-10px'}}>{dicomTag.string('x00090010')}</div>
-    //             <div style={{position:'absolute',color:'white',top:'50px',right:'-10px'}}>{dicomTag.string('x0008103e')}</div>
-    //             <div style={{position:'absolute',color:'white',top:'65px',right:'-10px'}}>{dicomTag.string('x00080020')}</div>
-    //             <div style={{position:'absolute',color:'white',top:'80px',right:'-10px'}}>T: {dicomTag.string('x00180050')}</div>
-    //         </div>
-    //         <div style={{position:'absolute',color:'white',bottom:'20px',left:'-50px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-    //         </div>
-    //         <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-    //         <div style={bottomRightStyle}>
-    //             WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-    //             /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-    //         </div>
-    //     </div>
-    //     )
-
-    // }
-    // else if(windowWidth <= 1440){
-    //     dicomTagPanel= (
-    //         <div>
-    //             <div id='dicomTag'>
-    //                 <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
-    //                 <div style={{position:'absolute',color:'white',top:'20px',left:'-40px'}}>{dicomTag.string('x00101010')} {dicomTag.string('x00100040')}</div>
-    //                 <div style={{position:'absolute',color:'white',top:'35px',left:'-40px'}}>{dicomTag.string('x00100020')}</div>
-    //                 <div style={{position:'absolute',color:'white',top:'50px',left:'-40px'}}>{dicomTag.string('x00185100')}</div>
-    //                 <div style={{position:'absolute',color:'white',top:'65px',left:'-40px'}}>IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}</div>
-
-    //                 <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
-    //                 <div style={{position:'absolute',color:'white',top:'20px',right:'-30px'}}>ACC No: {dicomTag.string('x00080050')}</div>
-    //                 <div style={{position:'absolute',color:'white',top:'35px',right:'-30px'}}>{dicomTag.string('x00090010')}</div>
-    //                 <div style={{position:'absolute',color:'white',top:'50px',right:'-30px'}}>{dicomTag.string('x0008103e')}</div>
-    //                 <div style={{position:'absolute',color:'white',top:'65px',right:'-30px'}}>{dicomTag.string('x00080020')}</div>
-    //                 <div style={{position:'absolute',color:'white',top:'80px',right:'-30px'}}>T: {dicomTag.string('x00180050')}</div>
-    //             </div>
-    //             <div style={{position:'absolute',color:'white',bottom:'20px',left:'-40px'}}>Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
-    //             </div>
-    //             <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-    //             <div style={bottomRightStyle}>
-    //                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}
-    //                 /{" "} {Math.round(this.state.viewport.voi.windowCenter)}
-    //             </div>
-    //         </div>
-    //     )
-    // }
-    // else{
 
     dicomTagPanel =
       dicomTag === null ? null : (
@@ -5586,6 +5916,814 @@ class CornerstoneElement extends Component {
       });
     }
   }
+
+  dealChoose(e) {
+    // console.log('list',e.currentTarget.innerHTML)
+    this.setState({ dealchoose: e.currentTarget.innerHTML });
+  }
+
+  exportPDF() {
+    const element = document.getElementById("pdf");
+    const opt = {
+      margin: [1, 1, 1, 1],
+      filename: "minireport.pdf",
+      pagebreak: { before: "#noduleDivide", avoid: "canvas" },
+      image: { type: "jpeg", quality: 0.98 }, // 导出的图片质量和格式
+      html2canvas: { scale: 2, useCORS: true }, // useCORS很重要，解决文档中图片跨域问题
+      jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+    };
+    if (element) {
+      html2pdf().set(opt).from(element).save(); // 导出
+    }
+  }
+
+  handleCopyClick(e) {
+    copy(this.state.templateText);
+  }
+
+  showImages() {
+    const nodules = this.state.nodules;
+    const imageIds = this.state.imageIds;
+    if (nodules.length === 0) {
+      return;
+    }
+    // console.log('imagesid',imageIds)
+    let nodule_id =
+      "nodule-" + nodules[0].nodule_no + "-" + nodules[0].slice_idx;
+    let that = this;
+    var timer = setInterval(function () {
+      if (document.getElementById(nodule_id) != null) {
+        nodules.map((nodule, index) => {
+          // console.log('nodules1',nodule)
+          const visId = "visual" + index;
+          var dom = document.getElementById(visId);
+          dom.style.display = "";
+          dom.style.height = "300px";
+          dom.style.width = "450px";
+          let myChart = echarts.init(dom);
+          // console.log(visId)
+          // document.getElementById(visId).innerHTML=''
+          const hist_data = nodule.nodule_hist;
+          if (hist_data !== undefined) {
+            let bins = hist_data.bins;
+            let ns = hist_data.n;
+
+            myChart.setOption({
+              color: ["#00FFFF"],
+              tooltip: {
+                trigger: "axis",
+                axisPointer: {
+                  // 坐标轴指示器，坐标轴触发有效
+                  type: "shadow", // 默认为直线，可选为：'line' | 'shadow'
+                },
+              },
+              toolbox: {
+                feature: {
+                  saveAsImage: {},
+                },
+              },
+              grid: {
+                left: "15%",
+                right: "4%",
+                bottom: "3%",
+                top: "10%",
+                containLabel: true,
+              },
+              xAxis: [
+                {
+                  type: "category",
+                  scale: "true",
+                  data: bins,
+                  // min: minValue,
+                  // max: maxValue,
+                  axisTick: {
+                    alignWithLabel: true,
+                  },
+                  axisLabel: {
+                    color: "rgb(191,192,195)",
+                  },
+                },
+              ],
+              yAxis: [
+                {
+                  type: "value",
+
+                  axisLabel: {
+                    color: "rgb(191,192,195)",
+                  },
+                  minInterval: 1,
+                },
+              ],
+              series: [
+                {
+                  name: "count",
+                  type: "bar",
+                  barWidth: "60%",
+                  data: ns,
+                },
+              ],
+            });
+          }
+          nodule_id = "nodule-" + nodule.nodule_no + "-" + nodule.slice_idx;
+          const element = document.getElementById(nodule_id);
+          let imageId = imageIds[nodule.slice_idx];
+          cornerstone.enable(element);
+          cornerstone.loadAndCacheImage(imageId).then(function (image) {
+            // console.log('cache')
+            var viewport = cornerstone.getDefaultViewportForImage(
+              element,
+              image
+            );
+            viewport.voi.windowWidth = 1600;
+            viewport.voi.windowCenter = -600;
+            viewport.scale = 2;
+            // console.log('nodules2',nodule)
+            const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2;
+            const yCenter = nodule.y1 + (nodule.y2 - nodule.y1) / 2;
+            viewport.translation.x = 250 - xCenter;
+            viewport.translation.y = 250 - yCenter;
+            // console.log('viewport',viewport)
+            cornerstone.setViewport(element, viewport);
+            cornerstone.displayImage(element, image);
+            buttonflag += 1;
+            // console.log('buttonflag',buttonflag)
+            if (buttonflag === nodules.length) {
+              that.setState({ temp: 1 });
+            }
+          });
+        });
+        clearInterval(timer);
+      }
+    }, 100);
+  }
+
+  template() {
+    let places = {
+      0: "选择位置",
+      1: "右肺中叶",
+      2: "右肺上叶",
+      3: "右肺下叶",
+      4: "左肺上叶",
+      5: "左肺下叶",
+    };
+    let segments = {
+      S1: "右肺上叶尖段",
+      S2: "右肺上叶后段",
+      S3: "右肺上叶前段",
+      S4: "右肺中叶外侧段",
+      S5: "右肺中叶内侧段",
+      S6: "右肺下叶背段",
+      S7: "右肺下叶内基底段",
+      S8: "右肺下叶前基底段",
+      S9: "右肺下叶外基底段",
+      S10: "右肺下叶后基底段",
+      S11: "左肺上叶尖后段",
+      S12: "左肺上叶前段",
+      S13: "左肺上叶上舌段",
+      S14: "左肺上叶下舌段",
+      S15: "左肺下叶背段",
+      S16: "左肺下叶内前基底段",
+      S17: "左肺下叶外基底段",
+      S18: "左肺下叶后基底段",
+    };
+    if (this.props.type === "影像所见") {
+      let texts = "";
+      if (this.props.activeItem === -1) {
+        this.setState({ templateText: "" });
+      } else if (this.props.activeItem === "all") {
+        // console.log('length',this.props.boxes.length)
+        for (let i = 0; i < this.props.boxes.length; i++) {
+          let place = "";
+          let diameter = "";
+          let texture = "";
+          let representArray = [];
+          let represent = "";
+          let malignancy = "";
+          if (
+            this.props.boxes[i]["place"] === 0 ||
+            this.props.boxes[i]["place"] === undefined ||
+            this.props.boxes[i]["place"] === ""
+          ) {
+            if (
+              this.props.boxes[i]["segment"] === undefined ||
+              this.props.boxes[i]["segment"] === "" ||
+              this.props.boxes[i]["segment"] === "None"
+            ) {
+              place = "未知位置";
+            } else {
+              place = segments[this.props.boxes[i]["segment"]];
+            }
+          } else {
+            if (
+              this.props.boxes[i]["segment"] === undefined ||
+              this.props.boxes[i]["segment"] === "" ||
+              this.props.boxes[i]["segment"] === "None"
+            ) {
+              place = places[this.props.boxes[i]["place"]];
+            } else {
+              place = segments[this.props.boxes[i]["segment"]];
+            }
+          }
+          // if (this.props.boxes[i]["diameter"] !== undefined) {
+          //   diameter =
+          //     Math.floor(this.props.boxes[i]["diameter"] * 10) / 100 + "cm";
+          let ll = 0;
+          let sl = 0;
+          if (this.props.boxes[i]["measure"] !== undefined) {
+            ll = Math.sqrt(
+              Math.pow(
+                this.props.boxes[i].measure.x1 - this.props.boxes[i].measure.x2,
+                2
+              ) +
+                Math.pow(
+                  this.props.boxes[i].measure.y1 -
+                    this.props.boxes[i].measure.y2,
+                  2
+                )
+            );
+            sl = Math.sqrt(
+              Math.pow(
+                this.props.boxes[i].measure.x3 - this.props.boxes[i].measure.x4,
+                2
+              ) +
+                Math.pow(
+                  this.props.boxes[i].measure.y3 -
+                    this.props.boxes[i].measure.y4,
+                  2
+                )
+            );
+            if (isNaN(ll)) {
+              ll = 0;
+            }
+            if (isNaN(sl)) {
+              sl = 0;
+            }
+            diameter =
+              "\xa0\xa0" +
+              (ll / 10).toFixed(2) +
+              "\xa0" +
+              "×" +
+              "\xa0" +
+              (sl / 10).toFixed(2) +
+              " 厘米";
+          } else {
+            diameter = "未知";
+          }
+          if (this.props.boxes[i]["texture"] === 2) {
+            texture = "实性";
+          } else if (this.props.boxes[i]["texture"] === 3) {
+            texture = "混合磨玻璃";
+          } else {
+            texture = "磨玻璃";
+          }
+
+          if (this.props.boxes[i]["lobulation"] === 2) {
+            representArray.push("分叶");
+          }
+          if (this.props.boxes[i]["spiculation"] === 2) {
+            representArray.push("毛刺");
+          }
+          if (this.props.boxes[i]["calcification"] === 2) {
+            representArray.push("钙化");
+          }
+          if (this.props.boxes[i]["pin"] === 2) {
+            representArray.push("胸膜凹陷");
+          }
+          if (this.props.boxes[i]["cav"] === 2) {
+            representArray.push("空洞");
+          }
+          if (this.props.boxes[i]["vss"] === 2) {
+            representArray.push("血管集束");
+          }
+          if (this.props.boxes[i]["bea"] === 2) {
+            representArray.push("空泡");
+          }
+          if (this.props.boxes[i]["bro"] === 2) {
+            representArray.push("支气管充气");
+          }
+          for (let index = 0; index < representArray.length; index++) {
+            if (index === 0) {
+              represent = representArray[index];
+            } else {
+              represent = represent + "、" + representArray[index];
+            }
+          }
+          if (this.props.boxes[i]["malignancy"] === 3) {
+            malignancy = "风险较高。";
+          } else if (this.props.boxes[i]["malignancy"] === 2) {
+            malignancy = "风险中等。";
+          } else {
+            malignancy = "风险较低。";
+          }
+          texts =
+            texts +
+            place +
+            " ( Im " +
+            (parseInt(this.props.boxes[i]["slice_idx"]) + 1) +
+            "/" +
+            this.props.imageIds.length +
+            ") 见" +
+            texture +
+            "结节, 大小为" +
+            diameter +
+            ", 可见" +
+            represent +
+            ", " +
+            malignancy +
+            "\n\n";
+        }
+        this.setState({ templateText: texts });
+      } else {
+        let place = "";
+        let diameter = "";
+        let texture = "";
+        let representArray = [];
+        let represent = "";
+        let malignancy = "";
+        if (
+          this.props.boxes[this.props.activeItem]["place"] === 0 ||
+          this.props.boxes[this.props.activeItem]["place"] === undefined ||
+          this.props.boxes[this.props.activeItem]["place"] === ""
+        ) {
+          if (
+            this.props.boxes[this.props.activeItem]["segment"] === undefined ||
+            this.props.boxes[this.props.activeItem]["segment"] === "" ||
+            this.props.boxes[this.props.activeItem]["segment"] === "None"
+          ) {
+            place = "未知位置";
+          } else {
+            place =
+              segments[this.props.boxes[this.props.activeItem]["segment"]];
+          }
+        } else {
+          if (
+            this.props.boxes[this.props.activeItem]["segment"] === undefined ||
+            this.props.boxes[this.props.activeItem]["segment"] === "" ||
+            this.props.boxes[this.props.activeItem]["segment"] === "None"
+          ) {
+            place = places[this.props.boxes[this.props.activeItem]["place"]];
+          } else {
+            place =
+              segments[this.props.boxes[this.props.activeItem]["segment"]];
+          }
+        }
+        let ll = 0;
+        let sl = 0;
+        if (this.props.boxes[this.props.activeItem]["measure"] !== undefined) {
+          ll = Math.sqrt(
+            Math.pow(
+              this.props.boxes[this.props.activeItem].measure.x1 -
+                this.props.boxes[this.props.activeItem].measure.x2,
+              2
+            ) +
+              Math.pow(
+                this.props.boxes[this.props.activeItem].measure.y1 -
+                  this.props.boxes[this.props.activeItem].measure.y2,
+                2
+              )
+          );
+          sl = Math.sqrt(
+            Math.pow(
+              this.props.boxes[this.props.activeItem].measure.x3 -
+                this.props.boxes[this.props.activeItem].measure.x4,
+              2
+            ) +
+              Math.pow(
+                this.props.boxes[this.props.activeItem].measure.y3 -
+                  this.props.boxes[this.props.activeItem].measure.y4,
+                2
+              )
+          );
+          if (isNaN(ll)) {
+            ll = 0;
+          }
+          if (isNaN(sl)) {
+            sl = 0;
+          }
+          diameter =
+            "\xa0\xa0" +
+            (ll / 10).toFixed(2) +
+            "\xa0" +
+            "×" +
+            "\xa0" +
+            (sl / 10).toFixed(2) +
+            " 厘米";
+        } else {
+          diameter = "未知";
+        }
+        if (this.props.boxes[this.props.activeItem]["texture"] === 2) {
+          texture = "实性";
+        } else if (this.props.boxes[this.props.activeItem]["texture"] === 3) {
+          texture = "混合磨玻璃";
+        } else {
+          texture = "磨玻璃";
+        }
+        if (this.props.boxes[this.props.activeItem]["lobulation"] === 2) {
+          representArray.push("分叶");
+        }
+        if (this.props.boxes[this.props.activeItem]["spiculation"] === 2) {
+          representArray.push("毛刺");
+        }
+        if (this.props.boxes[this.props.activeItem]["calcification"] === 2) {
+          representArray.push("钙化");
+        }
+        if (this.props.boxes[this.props.activeItem]["pin"] === 2) {
+          representArray.push("胸膜凹陷");
+        }
+        if (this.props.boxes[this.props.activeItem]["cav"] === 2) {
+          representArray.push("空洞");
+        }
+        if (this.props.boxes[this.props.activeItem]["vss"] === 2) {
+          representArray.push("血管集束");
+        }
+        if (this.props.boxes[this.props.activeItem]["bea"] === 2) {
+          representArray.push("空泡");
+        }
+        if (this.props.boxes[this.props.activeItem]["bro"] === 2) {
+          representArray.push("支气管充气");
+        }
+        for (let index = 0; index < representArray.length; index++) {
+          if (index === 0) {
+            represent = representArray[index];
+          } else {
+            represent = represent + "、" + representArray[index];
+          }
+        }
+        if (this.props.boxes[this.props.activeItem]["malignancy"] === 3) {
+          malignancy = "风险较高。";
+        } else if (
+          this.props.boxes[this.props.activeItem]["malignancy"] === 2
+        ) {
+          malignancy = "风险中等。";
+        } else {
+          malignancy = "风险较低。";
+        }
+        texts =
+          texts +
+          place +
+          " ( Im " +
+          (parseInt(this.props.boxes[this.props.activeItem]["slice_idx"]) + 1) +
+          "/" +
+          this.props.imageIds.length +
+          ") 见" +
+          texture +
+          "结节, 大小为" +
+          diameter +
+          ", 可见" +
+          represent +
+          ", " +
+          malignancy;
+
+        this.setState({ templateText: texts });
+      }
+    } else {
+      if (this.state.dealchoose === "中华共识") {
+        let weight = 0;
+
+        for (let i = 0; i < this.props.boxes.length; i++) {
+          if (this.props.boxes[i]["malignancy"] === 3) {
+            if (this.props.boxes[i]["diameter"] > 8) {
+              weight = 20;
+              break;
+            } else if (
+              this.props.boxes[i]["diameter"] > 6 &&
+              this.props.boxes[i]["diameter"] <= 8
+            ) {
+              weight = weight >= 15 ? weight : 15;
+            } else if (
+              this.props.boxes[i]["diameter"] >= 4 &&
+              this.props.boxes[i]["diameter"] <= 6
+            ) {
+              weight = weight >= 10 ? weight : 10;
+            } else {
+              weight = weight >= 5 ? weight : 5;
+            }
+          } else {
+            if (this.props.boxes[i]["diameter"] > 8) {
+              weight = 20;
+              break;
+            } else if (
+              this.props.boxes[i]["diameter"] > 6 &&
+              this.props.boxes[i]["diameter"] <= 8
+            ) {
+              weight = weight >= 10 ? weight : 10;
+            } else if (
+              this.props.boxes[i]["diameter"] >= 4 &&
+              this.props.boxes[i]["diameter"] <= 6
+            ) {
+              weight = weight >= 5 ? weight : 5;
+            }
+            // else{
+            //     weight=weight>=5?weight:5
+            // }
+          }
+        }
+        switch (weight) {
+          case 20:
+            this.setState({
+              templateText: "根据PET评估结节结果判断手术切除或非手术活检",
+            });
+            break;
+          case 15:
+            this.setState({
+              templateText: "3~6、9~12及24个月，如稳定，年度随访",
+            });
+            break;
+          case 10:
+            this.setState({
+              templateText: "6~12、18~24个月，如稳定，年度随访",
+            });
+            break;
+          case 5:
+            this.setState({ templateText: "12个月，如稳定，年度随访" });
+            break;
+          case 0:
+            this.setState({ templateText: "选择性随访" });
+            break;
+        }
+      } else if (this.state.dealchoose === "Fleischner") {
+        let weight = 0;
+
+        for (let i = 0; i < this.props.boxes.length; i++) {
+          if (this.props.boxes[i]["texture"] === 2) {
+            if (this.props.boxes[i]["diameter"] > 8) {
+              weight = 25;
+              break;
+            } else if (
+              this.props.boxes[i]["diameter"] >= 6 &&
+              this.props.boxes[i]["diameter"] <= 8
+            ) {
+              weight = weight >= 15 ? weight : 15;
+            } else {
+              if (this.props.boxes[i]["malignancy"] === 3) {
+                weight = weight >= 5 ? weight : 5;
+              }
+              // else{
+              //     weight=weight>=0?weight:0
+              // }
+            }
+          } else if (this.props.boxes[i]["texture"] === 3) {
+            if (this.props.boxes[i]["diameter"] >= 6) {
+              weight = weight >= 20 ? weight : 20;
+            }
+            // else{
+            //     weight=weight>=0?weight:0
+            // }
+          } else {
+            if (this.props.boxes[i]["diameter"] >= 6) {
+              weight = weight >= 10 ? weight : 10;
+            }
+            // else{
+            //     weight=0
+            // }
+          }
+        }
+        switch (weight) {
+          case 25:
+            this.setState({ templateText: "3个月考虑CT、PET/CT，或组织样本" });
+            break;
+          case 20:
+            this.setState({
+              templateText:
+                "3-6月行CT确定稳定性。若未改变，并且实性成分<6mm，应每年行CT至5年",
+            });
+            break;
+          case 15:
+            this.setState({
+              templateText: "6-12个月行CT，之后18-24个月考虑CT",
+            });
+            break;
+          case 10:
+            this.setState({
+              templateText: "6-12月行CT确定稳定性，之后每2年行CT至5年",
+            });
+            break;
+          case 5:
+            this.setState({ templateText: "最好在12个月行CT" });
+            break;
+          case 0:
+            this.setState({ templateText: "无常规随访" });
+            break;
+        }
+      } else if (this.state.dealchoose === "NCCN") {
+        let weight = 0;
+
+        for (let i = 0; i < this.props.boxes.length; i++) {
+          if (this.props.boxes[i]["texture"] === 2) {
+            if (this.props.boxes[i]["diameter"] >= 15) {
+              weight = 15;
+              break;
+            } else if (
+              this.props.boxes[i]["diameter"] >= 7 &&
+              this.props.boxes[i]["diameter"] < 15
+            ) {
+              weight = weight >= 10 ? weight : 10;
+            } else if (
+              this.props.boxes[i]["diameter"] >= 6 &&
+              this.props.boxes[i]["diameter"] < 7
+            ) {
+              weight = weight >= 5 ? weight : 5;
+            }
+            // else{
+            //     weight=0
+            // }
+          } else if (this.props.boxes[i]["texture"] === 3) {
+            if (this.props.boxes[i]["diameter"] >= 8) {
+              weight = 15;
+              break;
+            } else if (
+              this.props.boxes[i]["diameter"] >= 7 &&
+              this.props.boxes[i]["diameter"] < 8
+            ) {
+              weight = weight >= 10 ? weight : 10;
+            } else if (
+              this.props.boxes[i]["diameter"] >= 6 &&
+              this.props.boxes[i]["diameter"] < 7
+            ) {
+              weight = weight >= 5 ? weight : 5;
+            }
+            // else{
+            //     weight=0
+            // }
+          } else {
+            if (this.props.boxes[i]["diameter"] >= 20) {
+              weight = weight >= 5 ? weight : 5;
+            }
+            // else{
+            //     weight=0
+            // }
+          }
+        }
+        switch (weight) {
+          case 15:
+            this.setState({ templateText: "胸部增强CT和/或PET/CT" });
+            break;
+          case 10:
+            this.setState({ templateText: "3个月后复查LDCT或考虑PET/CT" });
+            break;
+          case 5:
+            this.setState({ templateText: "6个月后复查LDCT" });
+            break;
+          case 0:
+            this.setState({
+              templateText: "每年复查LDCT，直至患者不再是肺癌潜在治疗对象",
+            });
+            break;
+        }
+      } else if (this.state.dealchoose === "Lung-RADS") {
+        let weight = 0;
+
+        for (let i = 0; i < this.props.boxes.length; i++) {
+          if (
+            this.props.boxes[i]["malignancy"] === 1 ||
+            this.props.boxes[i]["malignancy"] === 2
+          ) {
+            if (this.props.boxes[i]["texture"] === 2) {
+              if (this.props.boxes[i]["diameter"] < 6) {
+                weight = weight >= 0 ? weight : 0;
+              } else {
+                weight = weight >= 5 ? weight : 5;
+              }
+            } else if (this.props.boxes[i]["texture"] === 3) {
+              if (this.props.boxes[i]["diameter"] < 6) {
+                weight = weight >= 0 ? weight : 0;
+              } else {
+                weight = weight >= 5 ? weight : 5;
+              }
+            } else {
+              if (this.props.boxes[i]["diameter"] < 20) {
+                weight = weight >= 0 ? weight : 0;
+              } else {
+                weight = weight >= 5 ? weight : 5;
+              }
+            }
+          } else {
+            if (this.props.boxes[i]["texture"] === 2) {
+              if (
+                this.props.boxes[i]["diameter"] >= 8 &&
+                this.props.boxes[i]["diameter"] < 15
+              ) {
+                weight = weight >= 10 ? weight : 10;
+              } else {
+                weight = 15;
+                break;
+              }
+            } else if (this.props.boxes[i]["texture"] === 3) {
+              if (
+                this.props.boxes[i]["diameter"] >= 6 &&
+                this.props.boxes[i]["diameter"] < 8
+              ) {
+                weight = weight >= 10 ? weight : 10;
+              } else {
+                weight = 15;
+                break;
+              }
+            } else {
+              weight = weight >= 5 ? weight : 5;
+            }
+          }
+        }
+        switch (weight) {
+          case 15:
+            this.setState({
+              templateText:
+                "胸部CT增强或平扫；根据恶性的概率和并发症，选择性进行PET/CT和/或组织活检；存在≥8mm的实性成分时，需进行PET/CT检查",
+            });
+            break;
+          case 10:
+            this.setState({
+              templateText:
+                "3个月低剂量胸部CT筛查；存在≥8mm的实性成分时需PET/CT检查",
+            });
+            break;
+          case 5:
+            this.setState({ templateText: "6个月内低剂量胸部CT筛查" });
+            break;
+          case 0:
+            this.setState({ templateText: "12个月内继续年度低剂量胸部CT筛查" });
+            break;
+        }
+      } else if (this.state.dealchoose === "亚洲共识") {
+        let weight = 0;
+
+        for (let i = 0; i < this.props.boxes.length; i++) {
+          if (this.props.boxes[i]["texture"] === 2) {
+            if (this.props.boxes[i]["diameter"] > 8) {
+              weight = 25;
+              break;
+            } else if (
+              this.props.boxes[i]["diameter"] >= 6 &&
+              this.props.boxes[i]["diameter"] <= 8
+            ) {
+              weight = weight >= 15 ? weight : 15;
+            }
+            // else if(this.state.boxes[i]['diameter']>=4 && this.state.boxes[i]['diameter']<6){
+            //     weight=weight>=15?weight:15
+            // }
+            // else{
+            //     if(this.state.boxes[i]['malignancy']===3){
+            //         weight=weight>=5?weight:5
+            //     }
+            //     // else{
+            //     //     weight=weight>=0?weight:0
+            //     // }
+            // }
+          } else if (this.props.boxes[i]["texture"] === 1) {
+            if (this.props.boxes[i]["diameter"] > 5) {
+              weight = weight >= 5 ? weight : 5;
+            }
+            // else{
+            //     weight=weight>=0?weight:0
+            // }
+          } else {
+            if (this.props.boxes[i]["diameter"] <= 8) {
+              weight = weight >= 10 ? weight : 10;
+            } else {
+              weight = weight >= 15 ? weight : 15;
+            }
+          }
+        }
+        switch (weight) {
+          case 25:
+            this.setState({
+              templateText:
+                "应转介多学科团队到中心进行管理。该中心的诊断能力应包括CT/PET扫描、良性疾病检测和活检",
+            });
+            break;
+          case 20:
+            this.setState({
+              templateText:
+                "3个月后复查CT，如果检测时认为临床合适，考虑经验性抗菌治疗",
+            });
+            break;
+          case 10:
+            this.setState({
+              templateText:
+                "在大约6个月-12个月和18个月-24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测",
+            });
+            break;
+          case 15:
+            this.setState({
+              templateText:
+                "在大约3个月、12个月和24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测",
+            });
+            break;
+          case 5:
+            this.setState({
+              templateText:
+                "每年进行CT监测，持续3年;然后根据临床判断，考虑每年进行CT监测",
+            });
+            break;
+          case 0:
+            this.setState({ templateText: "根据临床判断，考虑每年进行CT监测" });
+            break;
+        }
+      }
+    }
+  }
+  handleTextareaChange(e) {
+    this.setState({ templateText: e.target.value });
+  }
   updateStudyBrowser(prevProps, prevState) {
     if (prevState !== this.state) {
       let flag = 0;
@@ -5723,13 +6861,13 @@ class CornerstoneElement extends Component {
                 console.log("image info", image.data);
                 // console.log('parse',dicomParser.parseDicom(image))
 
-                const dicomtag = image.data;
+                const dicomTag = image.data;
                 const imageIds = dataResponse.data;
                 const boxes = [];
                 const draftStatus = -1;
 
                 this.setState({
-                  dicomtag,
+                  dicomTag,
                   imageIds,
                   boxes,
                   draftStatus,
@@ -5837,12 +6975,12 @@ class CornerstoneElement extends Component {
             // const readonly = readonlyResponse.data.readonly === 'true'
             console.log("image info", image.data);
             // console.log('parse',dicomParser.parseDicom(image))
-            const dicomtag = image.data;
+            const dicomTag = image.data;
             const imageIds = dataResponse.data;
             const boxes = [];
             const draftStatus = -1;
             this.setState({
-              dicomtag,
+              dicomTag,
               imageIds,
               boxes,
               draftStatus,
@@ -5875,7 +7013,7 @@ class CornerstoneElement extends Component {
         // const readonly = false
         cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
           console.log("image info", image.data);
-          const dicomtag = image.data;
+          const dicomTag = image.data;
 
           let draftStatus = -1;
           draftStatus = readonlyResponse.data.status;
@@ -5965,7 +7103,7 @@ class CornerstoneElement extends Component {
 
           var maskArr = new Array(stateListLength).fill(true);
           this.setState({
-            dicomtag,
+            dicomTag,
             imageIds,
             boxes,
             draftStatus,
@@ -5976,6 +7114,61 @@ class CornerstoneElement extends Component {
           });
         });
       });
+    }
+  }
+
+  loadReport() {
+    const params = {
+      caseId: this.state.caseId,
+      username: this.state.modelName,
+    };
+    axios
+      .post(this.config.draft.structedReport, qs.stringify(params))
+      .then((response) => {
+        // console.log('report_nodule', response.data)
+        const data = response.data;
+        this.setState({
+          age: data.age,
+          date: data.date,
+          nodules: data.nodules === undefined ? [] : data.nodules,
+          patientBirth: data.patientBirth,
+          patientId: data.patientID,
+          patientSex: data.patientSex === "M" ? "男" : "女",
+        });
+      })
+      .catch((error) => console.log(error));
+  }
+
+  updateReport(prevProps, prevState) {
+    if (
+      prevProps.activeItem !== this.props.activeItem ||
+      prevState.dealchoose !== this.state.dealchoose
+    ) {
+      // console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
+      this.template();
+    }
+    // console.log('boxes changed',prevProps.boxes,this.props.boxes,prevState.boxes,this.state.boxes)
+    if (prevProps.boxes !== this.props.boxes) {
+      // console.log('boxes changed',prevProps.boxes,this.props.boxes)
+      const params = {
+        caseId: this.state.caseId,
+        username: this.state.modelName,
+      };
+      axios
+        .post(this.config.draft.structedReport, qs.stringify(params))
+        .then((response) => {
+          const data = response.data;
+          // console.log('report:',data,params)
+          this.setState({
+            age: data.age,
+            date: data.date,
+            nodules: data.nodules === undefined ? [] : data.nodules,
+            patientBirth: data.patientBirth,
+            patientId: data.patientID,
+            patientSex: data.patientSex === "M" ? "男" : "女",
+          });
+        })
+        .catch((error) => console.log(error));
     }
   }
 
@@ -6004,6 +7197,7 @@ class CornerstoneElement extends Component {
     this.firstLayout();
     this.loadDisplay();
     this.loadStudyBrowser();
+    this.loadReport();
   }
 
   componentWillUnmount() {
@@ -6084,6 +7278,7 @@ class CornerstoneElement extends Component {
     }
     this.updateDisplay(prevProps, prevState);
     this.updateStudyBrowser(prevProps, prevState);
+    this.updateReport(prevProps, prevState);
   }
 }
 
