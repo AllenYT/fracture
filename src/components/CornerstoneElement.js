@@ -5573,7 +5573,9 @@ class CornerstoneElement extends Component {
         // cornerstone.loadAndCacheImage(imageIds[j])
         // if(!annoHash[this[i]]){
         //     annoHash[this[i]] = true
-        annoImageIds.push(imageIds[j]);
+        if (j >= 0 && j < imageIds.length) {
+          annoImageIds.push(imageIds[j]);
+        }
         // }
       }
     }
