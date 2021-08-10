@@ -1,4 +1,4 @@
-input[type="range"] {
+input[type='range'] {
   background: transparent;
   -webkit-appearance: none;
   transform: rotate(90deg);
@@ -15,12 +15,12 @@ input[type="range"] {
   cursor: pointer;
   zoom: 0.8;
 }
-input[type="range"],
-input[type="range"]::-webkit-slider-runnable-track,
-input[type="range"]::-webkit-slider-thumb {
+input[type='range'],
+input[type='range']::-webkit-slider-runnable-track,
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
 }
-input[type="range"]::-webkit-slider-runnable-track {
+input[type='range']::-webkit-slider-runnable-track {
   -webkit-appearance: none;
   /* width: 200px; */
   height: 10px;
@@ -28,7 +28,7 @@ input[type="range"]::-webkit-slider-runnable-track {
   /* background:linear-gradient(90deg,#0033FF  0%,#000033  50%); */
   background: #000033;
 }
-input[type="range"]::-webkit-slider-thumb {
+input[type='range']::-webkit-slider-thumb {
   -webkit-appearance: none;
   position: relative;
 
@@ -45,9 +45,9 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 50%;
   border: 2px solid white;
 }
-input[type="range"]::-webkit-slider-thumb::before {
+input[type='range']::-webkit-slider-thumb::before {
   position: absolute;
-  content: "";
+  content: '';
   height: 10px; /* equal to height of runnable track */
   width: 500px; /* make this bigger than the widest range input element */
   left: -502px; /* this should be -2px - width */
@@ -55,7 +55,7 @@ input[type="range"]::-webkit-slider-thumb::before {
   background: #777;
   color: #777;
 }
-input[type="range"]:focus {
+input[type='range']:focus {
   outline: none;
 }
 
@@ -384,7 +384,7 @@ option {
 #sys-name {
   color: lightskyblue;
   font-size: medium;
-  font-family: "Microsoft YaHei";
+  font-family: 'Microsoft YaHei';
   font-weight: bold;
   text-align: center;
   line-height: 18px;
@@ -445,10 +445,7 @@ option {
   font-size: medium;
 }
 
-.nodule-card-container
-  .ant-tabs-card.ant-tabs-top
-  > .ant-tabs-nav
-  .ant-tabs-tab,
+.nodule-card-container .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab,
 .ant-tabs-card.ant-tabs-top > div > .ant-tabs-nav .ant-tabs-tab {
   background-color: rgba(10, 31, 53, 0.997);
   border-color: rgba(1, 27, 56, 0.997);
@@ -622,4 +619,17 @@ input:focus {
   margin-left: 350px;
   /* margin-top: 30px; */
   margin-top: 0px;
+}
+
+i.icon.icon-custom-show-3d {
+  width: 28px !important;
+  height: 28px !important;
+  background: url('../icons/cube_show.svg') no-repeat !important;
+  background-size: 28px 28px !important;
+}
+i.icon.icon-custom-hide-3d {
+  width: 28px !important;
+  height: 28px !important;
+  background: url('../icons/cube_hide.svg') no-repeat !important;
+  background-size: 28px 28px !important;
 }
