@@ -157,14 +157,6 @@ const lobeName = {
   4: '左肺上叶',
   5: '左肺下叶',
 }
-const nodulePosition = {
-  0: '选择位置',
-  1: '右肺中叶',
-  2: '右肺上叶',
-  3: '右肺下叶',
-  4: '左肺上叶',
-  5: '左肺下叶',
-}
 const noduleMalignancyName = {
   0: '待定',
   1: '低危',
@@ -178,7 +170,34 @@ const immersiveStyle = {
   // display: "inline",
   color: 'white',
 }
-
+const nodulePlaces = {
+  0: '选择位置',
+  1: '右肺中叶',
+  2: '右肺上叶',
+  3: '右肺下叶',
+  4: '左肺上叶',
+  5: '左肺下叶',
+}
+const noduleSegments = {
+  S1: '右肺上叶-尖段',
+  S2: '右肺上叶-后段',
+  S3: '右肺上叶-前段',
+  S4: '右肺中叶-外侧段',
+  S5: '右肺中叶-内侧段',
+  S6: '右肺下叶-背段',
+  S7: '右肺下叶-内基底段',
+  S8: '右肺下叶-前基底段',
+  S9: '右肺下叶-外基底段',
+  S10: '右肺下叶-后基底段',
+  S11: '左肺上叶-尖后段',
+  S12: '左肺上叶-前段',
+  S13: '左肺上叶-上舌段',
+  S14: '左肺上叶-下舌段',
+  S15: '左肺下叶-背段',
+  S16: '左肺下叶-内前基底段',
+  S17: '左肺下叶-外基底段',
+  S18: '左肺下叶-后基底段',
+}
 let bottomLeftStyle = {
   bottom: '5px',
   left: '-95px',
@@ -949,7 +968,7 @@ class CornerstoneElement extends Component {
   onSelectMal = (event) => {
     const value = event.currentTarget.value
     const noduleId = event.currentTarget.id.split('-')[1]
-    let boxes = this.state.selectBoxes
+    let boxes = this.state.boxes
     for (let i = 0; i < boxes.length; i++) {
       if (boxes[i].nodule_no === noduleId) {
         boxes[i].malignancy = parseInt(value)
@@ -980,34 +999,8 @@ class CornerstoneElement extends Component {
   }
 
   onSelectPlace = (event) => {
-    let places = {
-      0: '选择位置',
-      1: '右肺中叶',
-      2: '右肺上叶',
-      3: '右肺下叶',
-      4: '左肺上叶',
-      5: '左肺下叶',
-    }
-    let noduleSegments = {
-      S1: '右肺上叶-尖段',
-      S2: '右肺上叶-后段',
-      S3: '右肺上叶-前段',
-      S4: '右肺中叶-外侧段',
-      S5: '右肺中叶-内侧段',
-      S6: '右肺下叶-背段',
-      S7: '右肺下叶-内基底段',
-      S8: '右肺下叶-前基底段',
-      S9: '右肺下叶-外基底段',
-      S10: '右肺下叶-后基底段',
-      S11: '左肺上叶-尖后段',
-      S12: '左肺上叶-前段',
-      S13: '左肺上叶-上舌段',
-      S14: '左肺上叶-下舌段',
-      S15: '左肺下叶-背段',
-      S16: '左肺下叶-内前基底段',
-      S17: '左肺下叶-外基底段',
-      S18: '左肺下叶-后基底段',
-    }
+    const places = nodulePlaces
+    const segments = noduleSegments
     const segment = event.currentTarget.innerHTML
     const place = event.currentTarget.id.split('-')[2]
     const noduleId = event.currentTarget.id.split('-')[1]
@@ -1028,8 +1021,8 @@ class CornerstoneElement extends Component {
           boxes[i].segment = ''
           console.log('segment', '')
         } else {
-          for (let item in noduleSegments) {
-            if (noduleSegments[item] === place + '-' + segment) {
+          for (let item in segments) {
+            if (segments[item] === place + '-' + segment) {
               boxes[i].segment = item
               console.log('segment', segment)
             }
@@ -1298,7 +1291,7 @@ class CornerstoneElement extends Component {
     // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
   }
   show3D() {
-    clearInterval(flipTimer)
+    clearTimeout(flipTimer)
     // const element = document.querySelector('#origin-canvas')
     const centerPanel = document.getElementById('cor-container')
     if (centerPanel) {
@@ -1317,7 +1310,7 @@ class CornerstoneElement extends Component {
     const canvasColumn = document.getElementById('canvas-column')
     const cWidth = canvasColumn.clientWidth
     const cHeight = canvasColumn.clientHeight
-    flipTimer = setInterval(() => {
+    flipTimer = setTimeout(() => {
       cornerstone.disable(this.element)
       this.setState(
         {
@@ -1327,11 +1320,11 @@ class CornerstoneElement extends Component {
           this.resizeViewer(cWidth, cHeight)
         }
       )
-      clearInterval(flipTimer)
+      // clearInterval(flipTimer)
     }, 1000)
   }
   hide3D() {
-    clearInterval(flipTimer)
+    clearTimeout(flipTimer)
     const centerPanel = document.getElementById('segment-container')
     if (centerPanel) {
       centerPanel.style.transform = 'rotateY(180deg)'
@@ -1341,7 +1334,7 @@ class CornerstoneElement extends Component {
       threeDList.style.transform = 'translateX(200px)'
       threeDList.style.opacity = 0
     }
-    flipTimer = setInterval(() => {
+    flipTimer = setTimeout(() => {
       this.setState({
         MPR: false,
       })
@@ -1384,34 +1377,34 @@ class CornerstoneElement extends Component {
           this.resizeScreen()
         }
       )
-      clearInterval(flipTimer)
+      // clearInterval(flipTimer)
     }, 1000)
   }
   showStudyList() {
-    clearInterval(leftSlideTimer)
+    clearTimeout(leftSlideTimer)
     const leftPanel = document.getElementsByClassName('corner-left-block')[0]
     if (leftPanel) {
       leftPanel.style.transform = 'translateX(0)'
     }
-    leftSlideTimer = setInterval(() => {
+    leftSlideTimer = setTimeout(() => {
       this.setState({
         showStudyList: true,
       })
-      clearInterval(leftSlideTimer)
+      // clearInterval(leftSlideTimer)
     }, 1500)
   }
   hideStudyList() {
-    clearInterval(leftSlideTimer)
+    clearTimeout(leftSlideTimer)
     const leftPanel = document.getElementsByClassName('corner-left-block')[0]
     const width = leftPanel.clientWidth
     if (leftPanel) {
-      leftPanel.style.transform = `translateX(${10-width}px)`
+      leftPanel.style.transform = `translateX(${10 - width}px)`
     }
-    leftSlideTimer = setInterval(() => {
+    leftSlideTimer = setTimeout(() => {
       this.setState({
         showStudyList: false,
       })
-      clearInterval(leftSlideTimer)
+      // clearInterval(leftSlideTimer)
     }, 1500)
   }
   enterStudyListOption() {
@@ -1478,6 +1471,95 @@ class CornerstoneElement extends Component {
   }
 
   render() {
+    const {
+      showNodules,
+      activeIndex,
+      modalOpenNew,
+      modalOpenCur,
+      listsActiveIndex,
+      wwDefine,
+      wcDefine,
+      dicomTag,
+      menuTools,
+      cacheModal,
+      windowWidth,
+      windowHeight,
+      slideSpan,
+      measureStateList,
+      maskStateList,
+      dateSeries,
+      lobesData,
+      nodulesData,
+      nodulesController,
+      lobesController,
+      opTop,
+      opWidth,
+      opHeight,
+      MPR,
+      CPR,
+      viewerWidth,
+      viewerHeight,
+      displayCrosshairs,
+      labelThreshold,
+      paintRadius,
+      painting,
+      erasing,
+      urls,
+      percent,
+      listLoading,
+      segments,
+      vtkImageData,
+      volumes,
+      volumesLoading,
+      originXBorder,
+      originYBorder,
+      originZBorder,
+      labelMapInputData,
+      mode,
+      segRange,
+      airwayPicking,
+      airwayCenterVolumes,
+      lineActors,
+      show3DVisualization,
+      showStudyList,
+      enterStudyListOption,
+    } = this.state
+
+    let tableContent = ''
+    let visualContent = ''
+    let createDraftModal
+    let submitButton
+    let StartReviewButton
+    let calCount = 0
+    let canvas
+    let slideLabel
+    let dicomTagPanel
+    const places = nodulePlaces
+    // const noduleSegments = noduleSegments 引用了全局变量
+
+    // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
+    let noduleNumTab = '结节(' + this.state.boxes.length + ')'
+    // let inflammationTab = '炎症(有)'
+    // let lymphnodeTab = '淋巴结(0)'
+    const options = [
+      { key: '分叶', text: '分叶', value: '分叶' },
+      { key: '毛刺', text: '毛刺', value: '毛刺' },
+      { key: '钙化', text: '钙化', value: '钙化' },
+      { key: '胸膜凹陷', text: '胸膜凹陷', value: '胸膜凹陷' },
+      { key: '血管集束', text: '血管集束', value: '血管集束' },
+      { key: '空泡', text: '空泡', value: '空泡' },
+      { key: '空洞', text: '空洞', value: '空洞' },
+      { key: '支气管充气', text: '支气管充气', value: '支气管充气' },
+    ]
+
+    const locationOptions = [
+      { key: '分叶', text: '分叶', value: '分叶' },
+      { key: '分叶', text: '分叶', value: '分叶' },
+      { key: '分叶', text: '分叶', value: '分叶' },
+      { key: '分叶', text: '分叶', value: '分叶' },
+    ]
+    const welcome = '欢迎您，' + localStorage.realname
+
     let sliderMarks = {}
     if (this.state.imageIds.length <= 100) {
       for (let i = 0; i < this.state.boxes.length; i++) {
@@ -1684,7 +1766,7 @@ class CornerstoneElement extends Component {
                                   </Table.Row>
                                   <Table.Row>
                                     <Table.Cell>肺段位置</Table.Cell>
-                                    <Table.Cell>{nodule['segment'] === undefined ? '' : segments[nodule['segment']]}</Table.Cell>
+                                    <Table.Cell>{nodule['segment'] === undefined ? '' : noduleSegments[nodule['segment']]}</Table.Cell>
                                   </Table.Row>
                                   <Table.Row>
                                     <Table.Cell>危险程度</Table.Cell>
@@ -1848,120 +1930,7 @@ class CornerstoneElement extends Component {
       //   ),
       // },
     ]
-    const {
-      showNodules,
-      activeIndex,
-      modalOpenNew,
-      modalOpenCur,
-      listsActiveIndex,
-      wwDefine,
-      wcDefine,
-      dicomTag,
-      menuTools,
-      cacheModal,
-      windowWidth,
-      windowHeight,
-      slideSpan,
-      measureStateList,
-      maskStateList,
-      dateSeries,
-      lobesData,
-      nodulesData,
-      nodulesController,
-      lobesController,
-      opTop,
-      opWidth,
-      opHeight,
-      MPR,
-      CPR,
-      viewerWidth,
-      viewerHeight,
-      displayCrosshairs,
-      labelThreshold,
-      paintRadius,
-      painting,
-      erasing,
-      urls,
-      percent,
-      listLoading,
-      segments,
-      vtkImageData,
-      volumes,
-      volumesLoading,
-      originXBorder,
-      originYBorder,
-      originZBorder,
-      labelMapInputData,
-      mode,
-      segRange,
-      airwayPicking,
-      airwayCenterVolumes,
-      lineActors,
-      show3DVisualization,
-      showStudyList,
-      enterStudyListOption,
-    } = this.state
 
-    let tableContent = ''
-    let visualContent = ''
-    let createDraftModal
-    let submitButton
-    let StartReviewButton
-    let calCount = 0
-    let canvas
-    let slideLabel
-    let dicomTagPanel
-    let places = {
-      0: '选择位置',
-      1: '右肺中叶',
-      2: '右肺上叶',
-      3: '右肺下叶',
-      4: '左肺上叶',
-      5: '左肺下叶',
-    }
-    // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
-    let noduleNumTab = '结节(' + this.state.boxes.length + ')'
-    // let inflammationTab = '炎症(有)'
-    // let lymphnodeTab = '淋巴结(0)'
-    let noduleSegments = {
-      S1: '右肺上叶-尖段',
-      S2: '右肺上叶-后段',
-      S3: '右肺上叶-前段',
-      S4: '右肺中叶-外侧段',
-      S5: '右肺中叶-内侧段',
-      S6: '右肺下叶-背段',
-      S7: '右肺下叶-内基底段',
-      S8: '右肺下叶-前基底段',
-      S9: '右肺下叶-外基底段',
-      S10: '右肺下叶-后基底段',
-      S11: '左肺上叶-尖后段',
-      S12: '左肺上叶-前段',
-      S13: '左肺上叶-上舌段',
-      S14: '左肺上叶-下舌段',
-      S15: '左肺下叶-背段',
-      S16: '左肺下叶-内前基底段',
-      S17: '左肺下叶-外基底段',
-      S18: '左肺下叶-后基底段',
-    }
-
-    const options = [
-      { key: '分叶', text: '分叶', value: '分叶' },
-      { key: '毛刺', text: '毛刺', value: '毛刺' },
-      { key: '钙化', text: '钙化', value: '钙化' },
-      { key: '胸膜凹陷', text: '胸膜凹陷', value: '胸膜凹陷' },
-      { key: '血管集束', text: '血管集束', value: '血管集束' },
-      { key: '空泡', text: '空泡', value: '空泡' },
-      { key: '空洞', text: '空洞', value: '空洞' },
-      { key: '支气管充气', text: '支气管充气', value: '支气管充气' },
-    ]
-
-    const locationOptions = [
-      { key: '分叶', text: '分叶', value: '分叶' },
-      { key: '分叶', text: '分叶', value: '分叶' },
-      { key: '分叶', text: '分叶', value: '分叶' },
-      { key: '分叶', text: '分叶', value: '分叶' },
-    ]
-    const welcome = '欢迎您，' + localStorage.realname
     const dicomslice = this.state.imageIds[0]
     // console.log('dicomslice',dicomslice)
     if (this.state.okayForReview) {
@@ -5548,11 +5517,11 @@ class CornerstoneElement extends Component {
   }
 
   resizeScreen(e) {
-    if(!this.state.showStudyList){
+    if (!this.state.showStudyList) {
       const leftPanel = document.getElementsByClassName('corner-left-block')[0]
       const width = leftPanel.clientWidth
       if (leftPanel) {
-        leftPanel.style.transform = `translateX(${10-width}px)`
+        leftPanel.style.transform = `translateX(${10 - width}px)`
       }
     }
 
@@ -7069,7 +7038,7 @@ class CornerstoneElement extends Component {
         const nodulesData = []
         if (data && data.length !== 0) {
           data.forEach((item, index) => {
-            let position = nodulePosition[item.place]
+            let position = nodulePlaces[item.place]
             let malignancyName = noduleMalignancyName[item.malignancy]
             if (!position) {
               position = '待定'
@@ -7946,30 +7915,6 @@ class CornerstoneElement extends Component {
       }
     }
   }
-  // resize(e) {
-  //   // console.log('browser', e.target.innerWidth, e.target.innerHeight)
-  //   if (document.getElementById('segment-container') !== null) {
-  //     const componentRect = findDOMNode(document.getElementById('segment-container')).getBoundingClientRect()
-  //     const clientWidth = document.getElementById('segment-container').clientWidth
-  //     const clientHeight = document.getElementById('segment-container').clientHeight
-  //     // console.log('resize3DView', clientWidth, clientHeight)
-  //     this.resizeViewer(clientWidth, clientHeight)
-  //   }
-
-  //   if (document.getElementsByClassName('segment-list-block') !== null && document.getElementsByClassName('segment-list-block').length > 2) {
-  //     const outElement = document.getElementsByClassName('segment-list-block')[0]
-  //     if (outElement.getElementsByTagName('tr') !== null && outElement.getElementsByTagName('tr').length > 1) {
-  //       const firstElement = outElement.getElementsByTagName('tr')[0]
-  //       const secondElement = outElement.getElementsByTagName('tr')[2]
-
-  //       this.setState({
-  //         opTop: firstElement.clientHeight,
-  //         opWidth: secondElement.clientWidth,
-  //         opHeight: secondElement.clientHeight,
-  //       })
-  //     }
-  //   }
-  // }
   // keydown(e) {
   //   // e.which : +/187, -/189
   //   // if(e.ctrlKey){
@@ -7995,14 +7940,6 @@ class CornerstoneElement extends Component {
   //     })
   //     window.removeEventListener('keyup', keyup)
   //   }
-  // }
-  // mousewheel(e) {}
-  // mousedown(e) {}
-  // click(e) {
-  //   // console.log("click", e)
-  // }
-  // dblclick(e) {
-  //   // console.log("dblclick", e)
   // }
   // rightClick(picked) {
   //   console.log('right click', picked)
