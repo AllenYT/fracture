@@ -913,7 +913,10 @@ class CornerstoneElement extends Component {
 
   toMyAnno() {
     window.location.href =
-      "/case/" + this.state.caseId + "/" + localStorage.getItem("username");
+      "/case/" +
+      this.state.caseId.replace("#", "%23") +
+      "/" +
+      localStorage.getItem("username");
   }
 
   saveToDB() {
@@ -1110,7 +1113,10 @@ class CornerstoneElement extends Component {
 
   toSegView() {
     window.location.href =
-      "/segView/" + this.state.caseId + "/" + this.state.modelName;
+      "/segView/" +
+      this.state.caseId.replace("#", "%23") +
+      "/" +
+      this.state.modelName;
   }
 
   handleLogin() {
@@ -2869,9 +2875,9 @@ class CornerstoneElement extends Component {
                     <Icon name="user delete" size="large"></Icon>
                   </Button>
                 )}
-                {/* <Button title="3D" className="funcbtn" onClick={this.toSegView}>
+                <Button title="3D" className="funcbtn" onClick={this.toSegView}>
                   3D
-                </Button> */}
+                </Button>
               </Button.Group>
             </Menu.Item>
             <Menu.Item position="right">
@@ -4971,7 +4977,7 @@ class CornerstoneElement extends Component {
 
   //标注新模型
   toNewModel() {
-    let caseId = window.location.pathname.split("/case/")[1].split("/")[0];
+    let caseId = this.state.caseId;
     // let currentModel = window.location.pathname.split('/')[3]
     let currentModel = "origin";
     // request, api, modifier
@@ -5027,7 +5033,7 @@ class CornerstoneElement extends Component {
     // let currentBox = this.state.selectBoxes
     let currentBox = this.state.boxes;
     console.log(currentBox);
-    let caseId = window.location.pathname.split("/case/")[1].split("/")[0];
+    let caseId = this.state.caseId;
     let currentModel = window.location.pathname.split("/")[3];
     // request, api, modifier
     const token = localStorage.getItem("token");
@@ -5274,7 +5280,8 @@ class CornerstoneElement extends Component {
     const viewport = cornerstone.getViewport(element);
     if (
       this.state.showNodules === true &&
-      this.state.caseId === window.location.pathname.split("/")[2]
+      this.state.caseId.replace("#", "%23") ===
+        window.location.pathname.split("/")[2]
     ) {
       for (let i = 0; i < this.state.boxes.length; i++) {
         // if (this.state.boxes[i].slice_idx == this.state.currentIdx && this.state.immersive == false)

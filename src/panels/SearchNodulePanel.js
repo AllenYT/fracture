@@ -1326,7 +1326,7 @@ export class SearchNodulePanel extends Component {
                       {lists.map((content, index) => {
                         // let caseId
                         // let noduleNo
-                        // console.log('content:',content)
+                        console.log("content:", content);
                         return (
                           <Table.Row key={index}>
                             <Table.Cell>{content["username"]}</Table.Cell>
@@ -1351,7 +1351,7 @@ export class SearchNodulePanel extends Component {
                                 className="ui green inverted button"
                                 onClick={this.handleLinkClick.bind(
                                   this,
-                                  content["caseId"],
+                                  content["caseId"].replace("#", "%23"),
                                   content["username"],
                                   content["noduleNo"]
                                 )}

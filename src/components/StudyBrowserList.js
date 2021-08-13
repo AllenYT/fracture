@@ -70,7 +70,11 @@ class StudyBrowserList extends Component {
                   date: serie["date"],
                   caseId: serie["caseId"],
                   Description: serie["description"],
-                  href: "/case/" + serie["caseId"] + "/" + annotype.data,
+                  href:
+                    "/case/" +
+                    serie["caseId"].replace("#", "%23") +
+                    "/" +
+                    annotype.data,
                   image: dicom.data[parseInt(dicom.data.length / 3)],
                 });
                 this.setState({ dateSeries: theList });
@@ -108,18 +112,20 @@ class StudyBrowserList extends Component {
           let imageId = serie.image;
           // console.log('preview',element)
           cornerstone.enable(element);
-          cornerstone.loadAndCacheImage(imageId).then(function (image) {
-            // console.log('cache')
-            var viewport = cornerstone.getDefaultViewportForImage(
-              element,
-              image
-            );
-            viewport.voi.windowWidth = 1600;
-            viewport.voi.windowCenter = -600;
-            viewport.scale = 0.3;
-            cornerstone.setViewport(element, viewport);
-            cornerstone.displayImage(element, image);
-          });
+          cornerstone
+            .loadAndCacheImage(imageId.replace("#", "%23"))
+            .then(function (image) {
+              // console.log('cache')
+              var viewport = cornerstone.getDefaultViewportForImage(
+                element,
+                image
+              );
+              viewport.voi.windowWidth = 1600;
+              viewport.voi.windowCenter = -600;
+              viewport.scale = 0.3;
+              cornerstone.setViewport(element, viewport);
+              cornerstone.displayImage(element, image);
+            });
         });
       }
     }

@@ -8,8 +8,9 @@ class DisplayPanel extends Component {
   constructor(props) {
     super(props);
     this.config = JSON.parse(localStorage.getItem("config"));
+    const temp = window.location.pathname.split("/case/")[1].split("/")[0];
     this.state = {
-      caseId: window.location.pathname.split("/case/")[1].split("/")[0],
+      caseId: temp.replace("%23", "#"),
       username: localStorage.getItem("username"),
       modelName: window.location.pathname.split("/")[3],
       studyList: [],
@@ -50,8 +51,8 @@ class DisplayPanel extends Component {
     if (prevState.caseId !== this.state.caseId) {
       console.log(prevState.caseId, this.state.caseId);
       let noduleNo = -1;
-      if (this.props.location.hash !== "")
-        noduleNo = parseInt(this.props.location.hash.split("#")[1]);
+      // if (this.props.location.hash !== "")
+      //   noduleNo = parseInt(this.props.location.hash.split("#")[1]);
 
       const dataParams = {
         caseId: this.state.caseId,
@@ -129,6 +130,9 @@ class DisplayPanel extends Component {
             // if (!readonly)
             draftStatus = readonlyResponse.data.status;
             let boxes = draftResponse.data;
+            // dataResponse.data.forEach((item, index) => {
+            //   dataResponse.data[index] = item.replace("#", "%23");
+            // });
             boxes.sort(this.sliceIdxSort("slice_idx"));
             for (var i = 0; i < boxes.length; i++) {
               boxes[i].nodule_no = "" + i;
@@ -169,8 +173,8 @@ class DisplayPanel extends Component {
     // const pathname = window.location.pathname
     // send our token to the server, combined with the current pathname
     let noduleNo = -1;
-    if (this.props.location.hash !== "")
-      noduleNo = parseInt(this.props.location.hash.split("#")[1]);
+    // if (this.props.location.hash !== "")
+    //   noduleNo = parseInt(this.props.location.hash.split("#")[1]);
 
     const dataParams = {
       caseId: this.state.caseId,
@@ -223,7 +227,7 @@ class DisplayPanel extends Component {
       Promise.all([
         axios.post(
           this.config.data.getDataListForCaseId,
-          qs.stringify(dataParams)
+          qs.stringify({ caseId: this.state.caseId })
         ),
         axios.post(
           this.config.draft.getRectsForCaseIdAndUsername,
@@ -236,41 +240,54 @@ class DisplayPanel extends Component {
         const readonly = readonlyResponse.data.readonly === "true";
         console.log("readonly", readonly);
         // const readonly = false
-        cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
-          console.log("image info", image.data);
-          const dicomtag = image.data;
-          let draftStatus = -1;
-          draftStatus = readonlyResponse.data.status;
-          let boxes = draftResponse.data;
-          console.log("boxes", boxes);
-          if (boxes !== "") boxes.sort(this.sliceIdxSort("slice_idx"));
-          for (var i = 0; i < boxes.length; i++) {
-            boxes[i].nodule_no = "" + i;
-            boxes[i].rect_no = "a00" + i;
-          }
-          console.log("boxidx", boxes);
-          const stack = {
-            imageIds: dataResponse.data,
-            caseId: this.state.caseId,
-            boxes: boxes,
-            // readonly: false,
-            readonly: readonly,
-            draftStatus: draftStatus,
-            noduleNo: noduleNo,
-            dicomTag: dicomtag,
-          };
+        cornerstone
+          .loadAndCacheImage(dataResponse.data[0])
+          // .loadAndCacheImage(dataResponse.data[0].replace("#", "%23"))
+          .then((image) => {
+            console.log("image info", image.data);
+            const dicomtag = image.data;
+            let draftStatus = -1;
+            draftStatus = readonlyResponse.data.status;
+            let boxes = draftResponse.data;
+            // dataResponse.data.forEach((item, index) => {
+            //   dataResponse.data[index] = item.replace("#", "%23");
+            // });
+            console.log("boxes", boxes);
+            if (boxes !== "") boxes.sort(this.sliceIdxSort("slice_idx"));
+            for (var i = 0; i < boxes.length; i++) {
+              boxes[i].nodule_no = "" + i;
+              boxes[i].rect_no = "a00" + i;
+            }
+            console.log("boxidx", boxes);
+            console.log("dataResponse.data", dataResponse.data);
 
-          // console.log('readonly',readonlyResponse)
-          // console.log('draftdata',draftResponse,draftParams)
-          // console.log('dataResponse',dataResponse)
-          this.setState({ stack: stack, show: true });
-        });
+            const stack = {
+              imageIds: dataResponse.data,
+              caseId: this.state.caseId,
+              boxes: boxes,
+              // readonly: false,
+              readonly: readonly,
+              draftStatus: draftStatus,
+              noduleNo: noduleNo,
+              dicomTag: dicomtag,
+            };
+
+            // console.log('readonly',readonlyResponse)
+            // console.log('draftdata',draftResponse,draftParams)
+            // console.log('dataResponse',dataResponse)
+            this.setState({ stack: stack, show: true });
+          });
       });
     }
   }
 
   render() {
-    console.log("stack", this.state.stack);
+    console.log(
+      "stack",
+      this.state.stack,
+      this.state.caseId,
+      this.props.location.hash
+    );
     if (this.state.show) {
       return (
         <div>

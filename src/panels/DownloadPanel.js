@@ -38,13 +38,23 @@ class DownloadPanel extends Component {
     const headers = {
       Authorization: "Bearer ".concat(token),
     };
+    let stringArray = "";
+    for (let item of this.state.cart) {
+      stringArray = stringArray + item["caseId"] + ",";
+      // console.log("items", item);
+    }
+    if (stringArray !== "") {
+      stringArray = stringArray.substring(0, stringArray.length - 1);
+    }
     const params = {
-      cart: Array.from(this.state.cart).join(","),
+      // cart: Array.from(this.state.cart).join(","),
+      cart: stringArray,
     };
+    console.log("caseIdArray", stringArray);
     axios
       .post(this.config.cart.saveCart, qs.stringify(params), { headers })
       .then((res) => {
-        console.log(this.state.cart);
+        // console.log("caseIdArray", caseIdArray);
         console.log(res.data.status);
       })
       .catch((err) => {
@@ -63,7 +73,7 @@ class DownloadPanel extends Component {
         .then((res) => {
           if (res.data.status === "okay") {
             const cartString = res.data.cart;
-            let cart_lst = cartString.split(",");
+            let cart_lst = cartString;
             let cart_set = new Set(cart_lst);
             this.setState({ cart: cart_set });
           }
@@ -117,7 +127,9 @@ class DownloadPanel extends Component {
       localStorage.getItem("auths") !== null &&
       JSON.parse(localStorage.getItem("auths")).indexOf("download") > -1
     ) {
+      console.log("content", this.state.cart);
       const content = Array.from(this.state.cart);
+      console.log("content", content);
 
       if (this.state.loading) {
         return (
@@ -156,13 +168,9 @@ class DownloadPanel extends Component {
                   {content.map((value, idx) => {
                     return (
                       <Table.Row key={idx}>
-                        <Table.Cell>
-                          {value.split("#")[0].split("_")[0]}
-                        </Table.Cell>
-                        <Table.Cell>{value.split("#")[1]}</Table.Cell>
-                        <Table.Cell>
-                          {value.split("#")[0].split("_")[1]}
-                        </Table.Cell>
+                        <Table.Cell>{value["patientId"]}</Table.Cell>
+                        <Table.Cell>{value["description"]}</Table.Cell>
+                        <Table.Cell>{value["date"]}</Table.Cell>
                         <Table.Cell>
                           <a onClick={this.delCase} data-id={value}>
                             删除

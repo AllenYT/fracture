@@ -7,6 +7,7 @@ import CurrentDraftsDisplay from "./CurrentDraftsDisplay";
 
 import "../css/seriesIdList.css";
 import { Link } from "react-router-dom/cjs/react-router-dom.min";
+import { param } from "jquery";
 
 // const storecid = []
 class SeriesIdList extends Component {
@@ -49,10 +50,12 @@ class SeriesIdList extends Component {
           // window.open('/case/' + params.caseId + '/' + res.data,'target','')
           // this.props.history.push('/case/' + params.caseId + '/' + res.data)
           const oa = document.createElement("a");
-          oa.href = "/case/" + params.caseId + "/" + res.data;
+          let newCaseId = params.caseId.replace("#", "%23");
+          oa.href = "/case/" + newCaseId + "/" + res.data;
           oa.setAttribute("target", "_blank");
           oa.setAttribute("rel", "nofollow noreferrer");
           document.body.appendChild(oa);
+          console.log("oa", oa);
           oa.click();
 
           // console.log('data',res.data)
