@@ -758,7 +758,7 @@ class CornerstoneElement extends Component {
   onSelectMal = (event) => {
     const value = event.currentTarget.value;
     const noduleId = event.currentTarget.id.split("-")[1];
-    let boxes = this.state.selectBoxes;
+    let boxes = this.state.boxes;
     for (let i = 0; i < boxes.length; i++) {
       if (boxes[i].nodule_no === noduleId) {
         boxes[i].malignancy = parseInt(value);
@@ -1790,11 +1790,19 @@ class CornerstoneElement extends Component {
                 </select>
               </Grid.Column>
             );
-            probContnt = (
-              <Grid.Column width={4} textAlign="center">
-                <div>{Math.floor(inside.malProb * 1000) / 10}%</div>
-              </Grid.Column>
-            );
+            {
+              inside.modified
+                ? (probContnt = (
+                    <Grid.Column width={4} textAlign="center">
+                      <div>标注</div>
+                    </Grid.Column>
+                  ))
+                : (probContnt = (
+                    <Grid.Column width={4} textAlign="center">
+                      <div>{Math.floor(inside.malProb * 1000) / 10}%</div>
+                    </Grid.Column>
+                  ));
+            }
             // }
             // else{
             //     malignancyContnt = (
@@ -1827,13 +1835,22 @@ class CornerstoneElement extends Component {
                 </select>
               </Grid.Column>
             );
-            probContnt = (
-              <Grid.Column width={4} textAlign="center">
-                <div style={{ color: "green" }}>
-                  {Math.floor(inside.malProb * 1000) / 10}%
-                </div>
-              </Grid.Column>
-            );
+            {
+              inside.modified
+                ? (probContnt = (
+                    <Grid.Column width={4} textAlign="center">
+                      <div style={{ color: "green" }}>标注</div>
+                    </Grid.Column>
+                  ))
+                : (probContnt = (
+                    <Grid.Column width={4} textAlign="center">
+                      <div style={{ color: "green" }}>
+                        {Math.floor(inside.malProb * 1000) / 10}%
+                      </div>
+                    </Grid.Column>
+                  ));
+            }
+
             // }
             // else{
             //     malignancyContnt = (
@@ -1866,13 +1883,22 @@ class CornerstoneElement extends Component {
                 </select>
               </Grid.Column>
             );
-            probContnt = (
-              <Grid.Column width={4} textAlign="center">
-                <div style={{ color: "#fcaf17" }}>
-                  {Math.floor(inside.malProb * 1000) / 10}%
-                </div>
-              </Grid.Column>
-            );
+            {
+              inside.modified
+                ? (probContnt = (
+                    <Grid.Column width={4} textAlign="center">
+                      <div style={{ color: "#fcaf17" }}>标注</div>
+                    </Grid.Column>
+                  ))
+                : (probContnt = (
+                    <Grid.Column width={4} textAlign="center">
+                      <div style={{ color: "#fcaf17" }}>
+                        {Math.floor(inside.malProb * 1000) / 10}%
+                      </div>
+                    </Grid.Column>
+                  ));
+            }
+
             // }
             // else{
             //     malignancyContnt = (
@@ -1905,13 +1931,22 @@ class CornerstoneElement extends Component {
                 </select>
               </Grid.Column>
             );
-            probContnt = (
-              <Grid.Column width={4} textAlign="center">
-                <div style={{ color: "#CC3300" }}>
-                  {Math.floor(inside.malProb * 1000) / 10}%
-                </div>
-              </Grid.Column>
-            );
+            {
+              inside.modified
+                ? (probContnt = (
+                    <Grid.Column width={4} textAlign="center">
+                      <div style={{ color: "#CC3300" }}>标注</div>
+                    </Grid.Column>
+                  ))
+                : (probContnt = (
+                    <Grid.Column width={4} textAlign="center">
+                      <div style={{ color: "#CC3300" }}>
+                        {Math.floor(inside.malProb * 1000) / 10}%
+                      </div>
+                    </Grid.Column>
+                  ));
+            }
+
             // }
             // else{
             //     malignancyContnt = (
@@ -5134,7 +5169,7 @@ class CornerstoneElement extends Component {
         if (res.data.status === "okay") {
           console.log("createUser");
           // this.nextPath(res.data.nextPath)
-          window.location.href = res.data.nextPath;
+          window.location.href = res.data.nextPath.replace("#", "%23");
         } else if (res.data.status === "alreadyExisted") {
           console.log("alreadyExistedUser");
           // this.nextPath(res.data.nextPath)

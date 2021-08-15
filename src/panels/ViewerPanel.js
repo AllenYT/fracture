@@ -138,7 +138,10 @@ class ViewerPanel extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      caseId: window.location.pathname.split("/segView/")[1].split("/")[0],
+      caseId: window.location.pathname
+        .split("/segView/")[1]
+        .split("/")[0]
+        .replace("%23", "#"),
       username: window.location.pathname.split("/segView/")[1].split("/")[1],
 
       /*显示变量*/
@@ -919,7 +922,10 @@ class ViewerPanel extends Component {
     const opacity = 1.0;
     const color = this.state.urls[idx].color;
     const cl = this.state.urls[idx].class;
-    const cur_url = this.state.urls[idx].url + "?caseId=" + this.state.caseId;
+    const cur_url =
+      this.state.urls[idx].url +
+      "?caseId=" +
+      this.state.caseId.replace("#", "%23");
     HttpDataAccessHelper.fetchBinary(cur_url, { progressCallback }).then(
       (binary) => {
         const actor = this.createPipeline(binary, color, opacity, cl);

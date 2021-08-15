@@ -51,8 +51,8 @@ class DisplayPanel extends Component {
     if (prevState.caseId !== this.state.caseId) {
       console.log(prevState.caseId, this.state.caseId);
       let noduleNo = -1;
-      // if (this.props.location.hash !== "")
-      //   noduleNo = parseInt(this.props.location.hash.split("#")[1]);
+      if (this.props.location.hash !== "")
+        noduleNo = parseInt(this.props.location.hash.split("#")[1]);
 
       const dataParams = {
         caseId: this.state.caseId,
@@ -173,8 +173,8 @@ class DisplayPanel extends Component {
     // const pathname = window.location.pathname
     // send our token to the server, combined with the current pathname
     let noduleNo = -1;
-    // if (this.props.location.hash !== "")
-    //   noduleNo = parseInt(this.props.location.hash.split("#")[1]);
+    if (this.props.location.hash !== "")
+      noduleNo = parseInt(this.props.location.hash.split("#")[1]);
 
     const dataParams = {
       caseId: this.state.caseId,
