@@ -22,6 +22,7 @@
         "getRemoteAddr":"http://192.168.7.198:8085/user/getRemoteAddr",
         "getUserAtPage": "http://192.168.7.198:8085/user/getUserAtpage",
         "insertUserInfoForAdmin": "http://192.168.7.198:8085/user/insertUserInfoForAdmin",
+        "updateUserInfoForAdmin": "http://192.168.7.198:8085/user/updateUserInfoForAdmin",
         "getTotalUserPages": "http://192.168.7.198:8085/user/getTotalUserPages",
         "delUser": "http://192.168.7.198:8085/user/delUser",
         "updateRolesForUser": "http://192.168.7.198:8085/user/updateRolesForUser"
