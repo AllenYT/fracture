@@ -126,7 +126,7 @@ class SeriesIdList extends Component {
     for (var i = 0; i < content.length; i++) {
       console.log("content", content[i]);
       const params = {
-        caseId: content[i].split("#")[0],
+        caseId: content[i]["caseId"],
       };
       axios
         .post(this.config.draft.dataValid, qs.stringify(params))
