@@ -71,8 +71,8 @@ class MainList extends Component {
       const params = {
         page: this.props.currentPage,
         type: this.props.type,
-        pidKeyword: this.props.pidKeyword.toUpperCase(),
-        dateKeyword: this.props.dateKeyword.toUpperCase(),
+        pidKeyword: this.props.pidKeyword,
+        dateKeyword: this.props.dateKeyword,
         username: localStorage.getItem("username"),
         subsetName: this.props.subsetName,
       };
@@ -126,8 +126,8 @@ class MainList extends Component {
     }
   }
 
-  render(props) {
-    const elements = this.state.mainList;
+  render() {
+    let elements = this.state.mainList;
     // console.log(elements, this.props.type)
     const selectMainItem = this.state.selectMainItem;
     // let otherKeyword
@@ -139,7 +139,7 @@ class MainList extends Component {
       icon = "calendar";
       otherKeyword = this.props.pidKeyword;
     }
-
+    console.log("mainlist", elements);
     // console.log('props.type', this.props.type)
     if (this.state.show)
       return (
@@ -149,37 +149,61 @@ class MainList extends Component {
               <Grid.Column width={5}>
                 <Menu pointing secondary vertical id="mainList">
                   {elements.map((value, index) => {
-                    let valueL = value.split("_");
-                    let patientId = valueL[0];
-                    // let patientName = valueL[1]
-                    let patientName = "";
-                    let patientSex = valueL[2] == "M" ? "男" : "女";
-                    // const newValue = patientId + ' ' + patientName + ' ' + patientSex
-                    let newValue = [];
                     if (this.props.type === "pid") {
-                      newValue = [patientId, patientName, patientSex];
-                    } else {
-                      newValue = [patientId];
-
-                      // patientSex=' '
+                      // let patientId = value["patientId"];
+                      // patientName = "";
+                      // patientSex =
+                      //   value["gender"] === ""
+                      //     ? ""
+                      //     : value["gender"] === "M"
+                      //     ? "男"
+                      //     : "女";
+                      // newValue = [patientId, patientName, patientSex];
+                      return (
+                        <Menu.Item
+                          icon={icon}
+                          key={index}
+                          active={
+                            this.state.selectMainItem == value["patientId"]
+                          }
+                          onClick={this.handlePatientIdClick}
+                          data-id={value["patientId"]}
+                          // name={newValue}
+                          content={
+                            <tr>
+                              <td>{value["patientId"]}</td>
+                              <td>{""}</td>
+                              <td>
+                                {value["gender"] === ""
+                                  ? ""
+                                  : value["gender"] === "M"
+                                  ? "男"
+                                  : "女"}
+                              </td>
+                            </tr>
+                          }
+                        ></Menu.Item>
+                      );
+                    } else if (
+                      this.props.type === "date" &&
+                      typeof value == "string"
+                    ) {
+                      return (
+                        <Menu.Item
+                          icon={icon}
+                          key={index}
+                          active={this.state.selectMainItem == value}
+                          onClick={this.handlePatientIdClick}
+                          data-id={value}
+                          // name={newValue}
+                          content={
+                            <tr>
+                              <td>{value}</td>
+                            </tr>
+                          }
+                        ></Menu.Item>
+                      );
                     }
-                    return (
-                      <Menu.Item
-                        icon={icon}
-                        key={index}
-                        active={this.state.selectMainItem == patientId}
-                        onClick={this.handlePatientIdClick}
-                        data-id={patientId}
-                        // name={newValue}
-                        content={
-                          <tr>
-                            <td>{newValue[0]}</td>
-                            <td>{newValue[1]}</td>
-                            <td>{newValue[2]}</td>
-                          </tr>
-                        }
-                      ></Menu.Item>
-                    );
                   })}
                 </Menu>
               </Grid.Column>

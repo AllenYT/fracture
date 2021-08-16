@@ -19,15 +19,16 @@ class StudyBrowserList extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      caseId: props.caseId.split("_")[0],
+      patientId: props.caseId.split("_")[0],
       dateSeries: [],
+      load: true,
     };
     this.config = JSON.parse(localStorage.getItem("config"));
   }
   componentDidMount() {
     const token = localStorage.getItem("token");
     const params = {
-      mainItem: this.state.caseId,
+      mainItem: this.state.patientId,
       type: "pid",
       otherKeyword: "",
     };
@@ -57,19 +58,23 @@ class StudyBrowserList extends Component {
               Promise.all([
                 axios.post(
                   this.config.draft.getDataPath,
-                  qs.stringify({ caseId: serie.split("#")[0] }),
+                  qs.stringify({ caseId: serie["caseId"] }),
                   { headers }
                 ),
                 axios.post(
                   this.config.data.getDataListForCaseId,
-                  qs.stringify({ caseId: serie.split("#")[0] })
+                  qs.stringify({ caseId: serie["caseId"] })
                 ),
               ]).then(([annotype, dicom]) => {
                 theList.push({
-                  date: key,
-                  caseId: serie.split("#")[0],
-                  Description: serie.split("#")[1],
-                  href: "/case/" + serie.split("#")[0] + "/" + annotype.data,
+                  date: serie["date"],
+                  caseId: serie["caseId"],
+                  Description: serie["description"],
+                  href:
+                    "/case/" +
+                    serie["caseId"].replace("#", "%23") +
+                    "/" +
+                    annotype.data,
                   image: dicom.data[parseInt(dicom.data.length / 3)],
                 });
                 this.setState({ dateSeries: theList });
@@ -107,18 +112,20 @@ class StudyBrowserList extends Component {
           let imageId = serie.image;
           // console.log('preview',element)
           cornerstone.enable(element);
-          cornerstone.loadAndCacheImage(imageId).then(function (image) {
-            // console.log('cache')
-            var viewport = cornerstone.getDefaultViewportForImage(
-              element,
-              image
-            );
-            viewport.voi.windowWidth = 1600;
-            viewport.voi.windowCenter = -600;
-            viewport.scale = 0.3;
-            cornerstone.setViewport(element, viewport);
-            cornerstone.displayImage(element, image);
-          });
+          cornerstone
+            .loadAndCacheImage(imageId.replace("#", "%23"))
+            .then(function (image) {
+              // console.log('cache')
+              var viewport = cornerstone.getDefaultViewportForImage(
+                element,
+                image
+              );
+              viewport.voi.windowWidth = 1600;
+              viewport.voi.windowCenter = -600;
+              viewport.scale = 0.3;
+              cornerstone.setViewport(element, viewport);
+              cornerstone.displayImage(element, image);
+            });
         });
       }
     }

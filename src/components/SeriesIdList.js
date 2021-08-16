@@ -10,7 +10,7 @@ import CurrentDraftsDisplay from "./CurrentDraftsDisplay";
 
 import "../css/seriesIdList.css";
 import { Link } from "react-router-dom/cjs/react-router-dom.min";
-// import { connect } from '_echarts@5.1.2@echarts'
+import { param } from "jquery";
 
 // const storecid = []
 class SeriesIdList extends Component {
@@ -50,12 +50,23 @@ class SeriesIdList extends Component {
         .then((res) => {
           console.log("result from server", res.data);
           console.log("params", params);
+          // window.open('/case/' + params.caseId + '/' + res.data,'target','')
+          // this.props.history.push('/case/' + params.caseId + '/' + res.data)
           const oa = document.createElement("a");
-          oa.href = "/case/" + params.caseId + "/" + res.data;
+          let newCaseId = params.caseId.replace("#", "%23");
+          oa.href = "/case/" + newCaseId + "/" + res.data;
           oa.setAttribute("target", "_blank");
           oa.setAttribute("rel", "nofollow noreferrer");
           document.body.appendChild(oa);
+          console.log("oa", oa);
           oa.click();
+
+          // console.log('data',res.data)
+          // this.nextPath('/case/' + params.caseId + '/' + res.data)
+          // window.open('/case/' + params.caseId + '/' + res.data, '_blank')
+          // const w=window.open('about:blank');
+          // w.location.href = '/case/' + params.caseId + '/' + res.data
+          // this.nextPath('/case/' + params.caseId + '/deepln')
         })
         .catch((err) => {
           console.log(err);
@@ -197,130 +208,51 @@ class SeriesIdList extends Component {
         display: "block",
       };
     }
-
-    if (dataValidContnt.length !== 0) {
-      resultsPopup = content.map((value, index) => {
-        const idName = value + "_" + index;
-        var popupContent = "";
-        var dataValidbyCaseId = "";
-        var modelStr = "";
-        var annoStr = "";
-        var reviewStr = "";
-        // var
-        console.log("datavalid", dataValidContnt.length);
-        for (let i = 0; i < dataValidContnt.length; i++) {
-          if (dataValidContnt[i].caseId === value.split("#")[0]) {
-            console.log("i", i, dataValidContnt[i].caseId, value.split("#")[0]);
-            dataValidbyCaseId = dataValidContnt[i].validInfo;
-            break;
-          }
-        }
-        console.log("valid", dataValidbyCaseId);
-        if (dataValidbyCaseId.message === "Files been manipulated") {
-          popupContent = "Files been manipulated";
-        } else if (
-          dataValidbyCaseId.message === "Errors occur during preprocess"
-        ) {
-          popupContent = "Errors occur during preprocess";
-        } else if (dataValidbyCaseId.message === "caseId not found") {
-          popupContent = "caseId not found";
-        } else {
-          for (let i = 0; i < allResults.length; i++) {
-            console.log("allresults", allResults[i], value.split("#")[0]);
-            if (allResults[i].caseId === value.split("#")[0]) {
-              console.log("allresults", allResults[i]);
-              if (allResults[i].modelList.length > 0) {
-                for (let j = 0; j < allResults[i].modelList.length; j++) {
-                  modelStr += '<div class="ui blue label">';
-                  modelStr += allResults[i].modelList[j];
-                  modelStr += "</div>";
+    return (
+      <div>
+        {content.map((value, index) => {
+          const idName = value + index;
+          // console.log('idname',idName)
+          return (
+            <div key={index}>
+              <div className="export">
+                <Checkbox
+                  id={idName}
+                  onChange={this.storeCaseId}
+                  value={value}
+                  checked={this.validValue(value)}
+                  style={CheckboxDis}
+                ></Checkbox>
+              </div>
+              <p className="sid">{value["description"]}</p>
+              <Popup
+                className={onPopupIndex === idName ? "" : "seriesId-popup"}
+                trigger={
+                  <Button
+                    size="mini"
+                    inverted
+                    color="green"
+                    data-id={value["caseId"]}
+                    icon="chevron right"
+                    onClick={this.displayStudy.bind(this, idName)}
+                    floated="right"
+                  />
                 }
-              } else {
-                modelStr += '<div class="ui blue label">';
-                modelStr += "暂无结果";
-                modelStr += "</div>";
-              }
-
-              if (allResults[i].annoList.length > 0) {
-                for (let j = 0; j < allResults[i].annoList.length; j++) {
-                  annoStr += '<div class="ui blue label">';
-                  annoStr += allResults[i].annoList[j];
-                  annoStr += "</div>";
-                }
-              } else {
-                annoStr += '<div class="ui blue label">';
-                annoStr += "暂无结果";
-                annoStr += "</div>";
-              }
-
-              if (allResults[i].reviewList.length > 0) {
-                for (let j = 0; j < allResults[i].reviewList.length; j++) {
-                  reviewStr += '<div class="ui blue label">';
-                  reviewStr += allResults[i].reviewList[j];
-                  reviewStr += "</div>";
-                }
-              } else {
-                reviewStr += '<div class="ui blue label">';
-                reviewStr += "暂无结果";
-                reviewStr += "</div>";
-              }
-              popupContent = (
-                <div>
-                  <h4>模型结果</h4>
-                  <div id="model-results">{ReactHtmlParser(modelStr)}</div>
-                  <h4>标注结果</h4>
-                  <div id="anno-results">{ReactHtmlParser(annoStr)}</div>
-                  <h4>审核结果</h4>
-                  <div id="review-results">{ReactHtmlParser(reviewStr)}</div>
-                </div>
-              );
-              break;
-            }
-          }
-        }
-
-        return (
-          <div key={index}>
-            <div className="export">
-              <Checkbox
-                id={idName}
-                onChange={this.storeCaseId}
-                value={value}
-                checked={this.validValue(value)}
-                style={CheckboxDis}
-              ></Checkbox>
-            </div>
-            <p className="sid">{value.split("#")[1]}</p>
-            <div style={{ float: "right" }}>
-              <Tooltip
-                title={popupContent}
-                placement="rightBottom"
-                color={"white"}
+                context={this.state.contextRef}
               >
-                <Button
-                  onClick={this.displayStudy.bind(this, idName)}
-                  shape="circle"
-                  icon={<RightOutlined style={{ color: "#52c41a" }} />}
-                  style={{ background: "transparent" }}
-                ></Button>
-              </Tooltip>
+                <Popup.Content>
+                  <CurrentDraftsDisplay
+                    caseId={value["caseId"]}
+                    onPopupHide={this.onPopupHide.bind(this)}
+                    onPopupIndex={idName}
+                  />
+                </Popup.Content>
+              </Popup>
             </div>
-
-            {/* <Popup 
-                        className={onPopupIndex === idName?'':'seriesId-popup'}
-                        trigger={<Button size='mini' inverted color='green' data-id={value.split('#')[0]} icon='chevron right' onClick={this.displayStudy.bind(this, idName)}  
-                        floated='right'/>}
-                        context={this.state.contextRef}>
-                            <Popup.Content>
-                                <CurrentDraftsDisplay caseId={value.split('#')[0]} onPopupHide={this.onPopupHide.bind(this)} onPopupIndex={idName}/>
-                            </Popup.Content>
-                        </Popup>     */}
-          </div>
-        );
-      });
-    }
-
-    return <div>{resultsPopup}</div>;
+          );
+        })}
+      </div>
+    );
   }
 }
 
