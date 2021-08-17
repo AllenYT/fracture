@@ -1,5 +1,4 @@
-import React, { Component } from "react";
-import { findDOMNode } from "react-dom";
+import React, { Component } from 'react'
 
 // import {CineDialog} from 'react-viewerbase'
 // import { WrappedStudyBrowser } from '../components/wrappedStudyBrowser'
@@ -125,55 +124,61 @@ let leftSlideTimer = undefined;
 let imageLoadTimer = undefined;
 
 const dictList = {
-  0: {
+  'lung': {
     class: 3,
     label: "lung",
     name: "肺",
     color: { c1: 197, c2: 165, c3: 145 },
   },
-  1: {
+  'airway': {
     class: 1,
     label: "airway",
     name: "支气管",
     color: { c1: 182, c2: 228, c3: 255 },
   },
-  2: {
+  'nodule': {
     class: 2,
     label: "nodule",
     name: "结节",
     color: { c1: 178, c2: 34, c3: 34 },
   },
-  3: {
+  'lobe1': {
     class: 0,
     label: "lobe_1",
     name: "右肺中叶",
     color: { c1: 128, c2: 174, c3: 128 },
   },
-  4: {
+  'lobe2': {
     class: 0,
     label: "lobe_2",
     name: "右肺上叶",
     color: { c1: 241, c2: 214, c3: 145 },
   },
-  5: {
+  'lobe3': {
     class: 0,
     label: "lobe_3",
     name: "右肺下叶",
     color: { c1: 177, c2: 122, c3: 101 },
   },
-  6: {
+  'lobe4': {
     class: 0,
     label: "lobe_4",
     name: "左肺上叶",
     color: { c1: 111, c2: 184, c3: 210 },
   },
-  7: {
+  'lobe5': {
     class: 0,
     label: "lobe_5",
     name: "左肺下叶",
     color: { c1: 216, c2: 101, c3: 79 },
   },
-};
+  'vessel': {
+    class: 4,
+    label: 'vessel',
+    name: '血管',
+    color: {c1: 200, c2: 100, c3: 50}
+  }
+}
 const lobeName = {
   1: "右肺中叶",
   2: "右肺上叶",
@@ -374,12 +379,9 @@ class CornerstoneElement extends Component {
       preListActiveIdx: -1,
       currentImage: null,
       lengthBox: [],
-      firstlayout: 0,
       imageCaching: false,
-      crossCanvasWidth: (document.body.clientWidth * 940) / 1920,
-      crossCanvasHeight: (document.body.clientHeight * 940) / 1080,
-      verticalCanvasWidth: (document.body.clientWidth * 840) / 1080,
-      verticalCanvasHeight: (document.body.clientHeight * 1080) / 1920,
+      canvasWidth: 940,
+      canvasHeight: 840,
       //studybrowserList
       dateSeries: [],
 
@@ -411,6 +413,7 @@ class CornerstoneElement extends Component {
       urls: [],
       nodulesData: null,
       lobesData: null,
+      tubularData: null,
       segments: [],
       pointActors: [],
 
@@ -431,6 +434,7 @@ class CornerstoneElement extends Component {
       lobesLength: 0,
       airwayLength: 0,
       nodulesLength: 0,
+      vesselLength: 0,
       spacing: [],
       dimensions: [],
       originXBorder: 1,
@@ -460,6 +464,7 @@ class CornerstoneElement extends Component {
       CPR: false,
       nodulesController: null,
       lobesController: null,
+      tubularController: null,
       airwayPicking: false,
       displayCrosshairs: false,
       editing: false,
@@ -564,10 +569,9 @@ class CornerstoneElement extends Component {
     this.toHideMask = this.toHideMask.bind(this);
     this.eraseMeasures = this.eraseMeasures.bind(this);
     // this.drawTmpBox = this.drawTmpBox.bind(this)
-    this.noduleHist = this.noduleHist.bind(this);
-    this.drawLength = this.drawLength.bind(this);
-    this.createLength = this.createLength.bind(this);
-    this.firstLayout = this.firstLayout.bind(this);
+    this.noduleHist = this.noduleHist.bind(this)
+    this.drawLength = this.drawLength.bind(this)
+    this.createLength = this.createLength.bind(this)
     // this.showMask = this
     //     .showMask
     //     .bind(this)
@@ -1559,14 +1563,20 @@ class CornerstoneElement extends Component {
       cacheModal,
       windowWidth,
       windowHeight,
+      canvasWidth,
+      canvasHeight,
       slideSpan,
       measureStateList,
       maskStateList,
       dateSeries,
+
+
       lobesData,
       nodulesData,
+      tubularData,
       nodulesController,
       lobesController,
+      tubularController,
       opTop,
       opWidth,
       opHeight,
@@ -1598,18 +1608,19 @@ class CornerstoneElement extends Component {
       show3DVisualization,
       showStudyList,
       enterStudyListOption,
-    } = this.state;
+    } = this.state
 
-    let tableContent = "";
-    let visualContent = "";
-    let createDraftModal;
-    let submitButton;
-    let StartReviewButton;
-    let calCount = 0;
-    let canvas;
-    let slideLabel;
-    let dicomTagPanel;
-    const places = nodulePlaces;
+    let tableContent = ''
+    let visualContent = ''
+    let createDraftModal
+    let submitButton
+    let StartReviewButton
+    let calCount = 0
+    let canvas
+    let slideLabel
+    let dicomTagPanel
+    const verticalMode = windowWidth < windowHeight ? true : false
+    const places = nodulePlaces
     // const noduleSegments = noduleSegments 引用了全局变量
 
     // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
@@ -2591,6 +2602,65 @@ class CornerstoneElement extends Component {
         );
       });
     }
+    let tubularInfo = <></>
+    let tubularOp = <></>
+    if (tubularData && tubularData.length > 0){
+      tubularInfo = tubularData.map((item, index) => {
+        return (
+          <Table.Row key={index}>
+            <Table.Cell>{item.name}</Table.Cell>
+            <Table.Cell>{item.number}</Table.Cell>
+          </Table.Row>
+        )
+      })
+      tubularOp = tubularData.map((item, index) => {
+        const inputRangeStyle = {
+          backgroundSize: tubularController.tubularOpacities[index] * 100 + '%',
+        }
+        const segmentListSidebarContentStyle = {
+          width: opWidth,
+          height: opHeight,
+        }
+        return (
+          <Sidebar.Pushable as={'div'} key={index} onClick={this.setActive.bind(this, 1, index, item.index)}>
+            <div className="segment-list-sidebar-content" style={segmentListSidebarContentStyle}></div>
+            <Sidebar animation="overlay" direction="right" visible={tubularController.tubularActive[index]}>
+              <div className="segment-list-sidebar-visibility">
+                <Button inverted color="blue" size="tiny" hidden={tubularController.tubularVisible[index]} onClick={this.setVisible.bind(this, 1, index, item.index)}>
+                  显示
+                </Button>
+                <Button inverted color="blue" size="tiny" hidden={!tubularController.tubularVisible[index]} onClick={this.setVisible.bind(this, 1, index, item.index)}>
+                  隐藏
+                </Button>
+              </div>
+              <div className="segment-list-sidebar-opacity">
+                <Button inverted color="blue" size="tiny" hidden={tubularController.tubularOpacityChangeable[index]} onClick={this.setOpacityChangeable.bind(this, 1, index)}>
+                  透明度
+                </Button>
+                <Button inverted color="blue" size="tiny" hidden={!tubularController.tubularOpacityChangeable[index]} onClick={this.setOpacityChangeable.bind(this, 1, index)}>
+                  关闭
+                </Button>
+                <div
+                  className="segment-list-content-tool-input"
+                  hidden={!tubularController.tubularActive[index] || !tubularController.tubularOpacityChangeable[index]}
+                  onClick={this.selectOpacity.bind(this)}>
+                  {tubularController.tubularOpacities[index] * 100}%
+                  <input
+                    style={inputRangeStyle}
+                    type="range"
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    value={tubularController.tubularOpacities[index]}
+                    onChange={this.changeOpacity.bind(this, 1, index, item.index)}
+                  />
+                </div>
+              </div>
+            </Sidebar>
+          </Sidebar.Pushable>
+        )
+      })
+    }
     const segmentListOperationStyles = {
       top: opTop,
     };
@@ -2645,7 +2715,28 @@ class CornerstoneElement extends Component {
           );
         },
       },
-    ];
+      {
+        menuItem: '气管和血管',
+        render: () => {
+          return (
+            <div className="segment-list-block">
+              <Table celled selectable inverted>
+                <Table.Header>
+                  <Table.Row>
+                    <Table.HeaderCell>名称</Table.HeaderCell>
+                    <Table.HeaderCell>长度</Table.HeaderCell>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>{tubularInfo}</Table.Body>
+              </Table>
+              <div className="segment-list-operation" style={segmentListOperationStyles}>
+                {tubularOp}
+              </div>
+            </div>
+          )
+        },
+      },
+    ]
 
     let loadingList = [];
     const loadingStyle = this.getLoadingStyle();
@@ -2949,197 +3040,37 @@ class CornerstoneElement extends Component {
               dropdownText = "选择位置";
             }
           }
-
-          if (inside.malignancy === -1) {
-            // if(this.state.readonly){
-            malignancyContnt = (
-              <Grid.Column width={2} textAlign="center">
-                <select
-                  id={malId}
-                  style={selectStyle}
-                  value={inside.malignancy}
-                  onChange={this.onSelectMal}
-                >
-                  <option value="-1" disabled="disabled">
-                    选择性质
-                  </option>
-                  <option value="1">低危</option>
-                  <option value="2">中危</option>
-                  <option value="3">高危</option>
-                </select>
-              </Grid.Column>
-            );
-            {
-              inside.modified
-                ? (probContnt = (
-                    <Grid.Column width={4} textAlign="center">
-                      <div>标注</div>
-                    </Grid.Column>
-                  ))
-                : (probContnt = (
-                    <Grid.Column width={4} textAlign="center">
-                      <div>{Math.floor(inside.malProb * 1000) / 10}%</div>
-                    </Grid.Column>
-                  ));
-            }
-            // }
-            // else{
-            //     malignancyContnt = (
-            //         <Grid.Column width={2} textAlign='center'>
-            //             <select id={malId} style={selectStyle} value={inside.malignancy} onChange={this.onSelectMal}>
-            //                 <option value="-1" disabled="disabled">选择性质</option>
-            //                 <option value="1">低危</option>
-            //                 <option value="2">中危</option>
-            //                 <option value="3">高危</option>
-            //             </select>
-            //         </Grid.Column>
-            //     )
-            // }
-          } else if (inside.malignancy === 1) {
-            // if(this.state.readonly){
-            malignancyContnt = (
-              <Grid.Column width={2} textAlign="center">
-                <select
-                  id={malId}
-                  style={lowRiskStyle}
-                  value={"1"}
-                  onChange={this.onSelectMal}
-                >
-                  <option value="-1" disabled="disabled">
-                    选择性质
-                  </option>
-                  <option value="1">低危</option>
-                  <option value="2">中危</option>
-                  <option value="3">高危</option>
-                </select>
-              </Grid.Column>
-            );
-            {
-              inside.modified
-                ? (probContnt = (
-                    <Grid.Column width={4} textAlign="center">
-                      <div style={{ color: "green" }}>标注</div>
-                    </Grid.Column>
-                  ))
-                : (probContnt = (
-                    <Grid.Column width={4} textAlign="center">
-                      <div style={{ color: "green" }}>
-                        {Math.floor(inside.malProb * 1000) / 10}%
-                      </div>
-                    </Grid.Column>
-                  ));
-            }
-
-            // }
-            // else{
-            //     malignancyContnt = (
-            //         <Grid.Column width={2} textAlign='center'>
-            //             <select id={malId} style={lowRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
-            //                 <option value="-1" disabled="disabled">选择性质</option>
-            //                 <option value="1">低危</option>
-            //                 <option value="2">中危</option>
-            //                 <option value="3">高危</option>
-            //             </select>
-            //         </Grid.Column>
-            //     )
-            // }
-          } else if (inside.malignancy === 2) {
-            // if(this.state.readonly){
-            malignancyContnt = (
-              <Grid.Column width={2} textAlign="left">
-                <select
-                  id={malId}
-                  style={middleRiskStyle}
-                  value={"2"}
-                  onChange={this.onSelectMal}
-                >
-                  <option value="-1" disabled="disabled">
-                    选择性质
-                  </option>
-                  <option value="1">低危</option>
-                  <option value="2">中危</option>
-                  <option value="3">高危</option>
-                </select>
-              </Grid.Column>
-            );
-            {
-              inside.modified
-                ? (probContnt = (
-                    <Grid.Column width={4} textAlign="center">
-                      <div style={{ color: "#fcaf17" }}>标注</div>
-                    </Grid.Column>
-                  ))
-                : (probContnt = (
-                    <Grid.Column width={4} textAlign="center">
-                      <div style={{ color: "#fcaf17" }}>
-                        {Math.floor(inside.malProb * 1000) / 10}%
-                      </div>
-                    </Grid.Column>
-                  ));
-            }
-
-            // }
-            // else{
-            //     malignancyContnt = (
-            //         <Grid.Column width={2} textAlign='left'>
-            //             <select id={malId} style={middleRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
-            //                 <option value="-1" disabled="disabled">选择性质</option>
-            //                 <option value="1">低危</option>
-            //                 <option value="2">中危</option>
-            //                 <option value="3">高危</option>
-            //             </select>
-            //         </Grid.Column>
-            //     )
-            // }
-          } else if (inside.malignancy === 3) {
-            // if(this.state.readonly){
-            malignancyContnt = (
-              <Grid.Column width={2} textAlign="left">
-                <select
-                  id={malId}
-                  style={highRiskStyle}
-                  value={"3"}
-                  onChange={this.onSelectMal}
-                >
-                  <option value="-1" disabled="disabled">
-                    选择性质
-                  </option>
-                  <option value="1">低危</option>
-                  <option value="2">中危</option>
-                  <option value="3">高危</option>
-                </select>
-              </Grid.Column>
-            );
-            {
-              inside.modified
-                ? (probContnt = (
-                    <Grid.Column width={4} textAlign="center">
-                      <div style={{ color: "#CC3300" }}>标注</div>
-                    </Grid.Column>
-                  ))
-                : (probContnt = (
-                    <Grid.Column width={4} textAlign="center">
-                      <div style={{ color: "#CC3300" }}>
-                        {Math.floor(inside.malProb * 1000) / 10}%
-                      </div>
-                    </Grid.Column>
-                  ));
-            }
-
-            // }
-            // else{
-            //     malignancyContnt = (
-            //         <Grid.Column width={2} textAlign='left'>
-            //             <select id={malId} style={highRiskStyle} value={inside.malignancy} onChange={this.onSelectMal}>
-            //                 <option value="-1" disabled="disabled">选择性质</option>
-            //                 <option value="1">低危</option>
-            //                 <option value="2">中危</option>
-            //                 <option value="3">高危</option>
-            //             </select>
-            //         </Grid.Column>
-            //     )
-            // }
+          let probContntStyle = {}
+          let malignancyContntStyle = {}
+          if(inside.malignancy === -1){
+            malignancyContntStyle = selectStyle
+          }else if(inside.malignancy === 1){
+            malignancyContntStyle = lowRiskStyle
+            probContntStyle.color = 'green'
+          }else if(inside.malignancy === 2){
+            malignancyContntStyle = middleRiskStyle
+            probContntStyle.color = '#fcaf17'
+          }else if(inside.malignancy === 3){
+            malignancyContntStyle = highRiskStyle
+            probContntStyle.color = '#CC3300'
           }
+          malignancyContnt = (
+            <Grid.Column width={2} textAlign="center">
+              <select id={malId} style={malignancyContntStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+                <option value="-1" disabled="disabled">
+                  选择性质
+                </option>
+                <option value="1">低危</option>
+                <option value="2">中危</option>
+                <option value="3">高危</option>
+              </select>
+            </Grid.Column>
+          )
+          probContnt = (
+            <Grid.Column width={4} textAlign="center">
+              <div style={probContntStyle}>{Math.floor(inside.malProb * 1000) / 10}%</div>
+            </Grid.Column>
+          )
           // if(this.state.readonly){
           return (
             <div key={idx} className="highlightTbl">
@@ -4357,7 +4288,6 @@ class CornerstoneElement extends Component {
               </Dropdown>
             </Menu.Item>
           </Menu>
-          {windowHeight < windowWidth ? (
             <Grid className="corner-contnt">
               {/* <Grid.Row className="corner-row" columns={3}> */}
               <Grid.Column width={2}>
@@ -4410,11 +4340,7 @@ class CornerstoneElement extends Component {
                   </div>
                 </div>
               </Grid.Column>
-              <Grid.Column
-                width={10}
-                textAlign="center"
-                style={{ position: "relative" }}
-              >
+              <Grid.Column width={verticalMode?13:10} textAlign="center" style={{ position: 'relative' }}>
                 {show3DVisualization ? (
                   <div
                     className="segment-container center-viewport-panel"
@@ -4446,8 +4372,8 @@ class CornerstoneElement extends Component {
                         <div
                           id="origin-canvas"
                           style={{
-                            width: this.state.crossCanvasWidth,
-                            height: this.state.crossCanvasHeight,
+                            width: canvasWidth,
+                            height: canvasHeight,
                           }}
                           ref={(input) => {
                             this.element = input;
@@ -4457,8 +4383,8 @@ class CornerstoneElement extends Component {
                             className="cornerstone-canvas"
                             id="canvas"
                             style={{
-                              width: this.state.crossCanvasWidth,
-                              height: this.state.crossCanvasHeight,
+                              width: canvasWidth,
+                              height: canvasHeight,
                             }}
                           />
                           {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
@@ -4499,7 +4425,7 @@ class CornerstoneElement extends Component {
                   ×
                 </button>
               </Grid.Column>
-              <Grid.Column width={4}>
+              <Grid.Column width={verticalMode?16:4}>
                 {show3DVisualization ? (
                   <Tab
                     className="list-tab"
@@ -4508,18 +4434,9 @@ class CornerstoneElement extends Component {
                     data-aos-duration="1500"
                   />
                 ) : (
-                  <div className="corner-right-block">
-                    <div
-                      className="nodule-card-container"
-                      data-aos="fade-down"
-                      data-aos-duration="1500"
-                    >
-                      <Tabs
-                        type="card"
-                        animated
-                        defaultActiveKey={1}
-                        size="small"
-                      >
+                  <div className={verticalMode?'corner-right-block-vertical':'corner-right-block-horizontal'}>
+                    <div className="nodule-card-container" data-aos="fade-down" data-aos-duration="1500">
+                      <Tabs type="card" animated defaultActiveKey={1} size="small">
                         <TabPane tab={noduleNumTab} key="1">
                           <div
                             id="elec-table"
@@ -4608,181 +4525,6 @@ class CornerstoneElement extends Component {
               </Grid.Column>
               {/* </Grid.Row> */}
             </Grid>
-          ) : (
-            <Grid celled className="corner-contnt">
-              <Grid.Row className="corner-row" columns={2}>
-                <Grid.Column width={1}>
-                  {/* <StudyBrowserList
-                    caseId={this.state.caseId}
-                    handleClickScreen={this.handleClickScreen.bind(this)}
-                  /> */}
-                  <div className="preview">
-                    {dateSeries.map((serie, index) => {
-                      let previewId = "preview-" + index;
-                      let keyId = "key-" + index;
-                      // console.log('render',previewId)
-                      return (
-                        <Card
-                          onClick={(e) =>
-                            this.props.handleClickScreen(e, serie.href)
-                          }
-                          key={keyId}
-                        >
-                          <div className="preview-canvas" id={previewId}></div>
-                          <Card.Content>
-                            <Card.Description>
-                              {serie.date + "\n " + serie.Description}
-                            </Card.Description>
-                          </Card.Content>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                </Grid.Column>
-                <Grid.Column
-                  width={15}
-                  textAlign="center"
-                  style={{ position: "relative" }}
-                >
-                  <Grid celled style={{ margin: 0 }}>
-                    {/* <Grid.Row columns={2} id='canvas-column' style={{height:this.state.windowHeight*37/40}}> */}
-                    <Grid.Row columns={2} id="canvas-column">
-                      <Grid.Column
-                        width={15}
-                        className="canvas-style"
-                        id="canvas-border"
-                      >
-                        {/* <div className='canvas-style' id='canvas-border'> */}
-                        <div
-                          id="origin-canvas"
-                          style={{
-                            width: this.state.verticalCanvasWidth,
-                            height: this.state.verticalCanvasHeight,
-                          }}
-                          ref={(input) => {
-                            this.element = input;
-                          }}
-                        >
-                          <canvas
-                            className="cornerstone-canvas"
-                            id="canvas"
-                            style={{
-                              width: this.state.verticalCanvasWidth,
-                              height: this.state.verticalCanvasHeight,
-                            }}
-                          />
-                          {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                          {/* {canvas} */}
-                          {dicomTagPanel}
-                        </div>
-
-                        {/* </div> */}
-                      </Grid.Column>
-                      <Grid.Column width={1}>
-                        <Slider
-                          id="antd-slide"
-                          vertical
-                          reverse
-                          tipFormatter={null}
-                          marks={sliderMarks}
-                          value={this.state.currentIdx + 1}
-                          onChange={this.handleRangeChange}
-                          // onAfterChange={this.handleRangeChange.bind(this)}
-                          min={1}
-                          step={1}
-                          max={this.state.imageIds.length}
-                        ></Slider>
-                      </Grid.Column>
-                    </Grid.Row>
-                  </Grid>
-
-                  {/* <div className='antd-slider'> */}
-
-                  {/* </div> */}
-                  {visualContent}
-                  <button
-                    id="closeVisualContent"
-                    className="closeVisualContent-vertical"
-                    onClick={this.closeVisualContent}
-                  >
-                    ×
-                  </button>
-                </Grid.Column>
-              </Grid.Row>
-              <Grid.Row className="corner-row" columns={2}>
-                <Grid.Column width={10}>
-                  <div className="nodule-card-container">
-                    <Tabs
-                      type="card"
-                      animated
-                      defaultActiveKey={1}
-                      size="small"
-                    >
-                      <TabPane tab={noduleNumTab} key="1">
-                        <div
-                          id="elec-table"
-                          style={{ height: (this.state.windowHeight * 1) / 2 }}
-                        >
-                          {this.state.boxes.length === 0 ? (
-                            <div
-                              style={{
-                                height: "100%",
-                                background: "#021c38",
-                                display: "flex",
-                                justifyContent: "center",
-                                alignItems: "center",
-                              }}
-                            >
-                              <Header as="h2" inverted>
-                                <Icon name="low vision" />
-                                <Header.Content>
-                                  未检测出任何结节
-                                </Header.Content>
-                              </Header>
-                            </div>
-                          ) : (
-                            <Accordion
-                              styled
-                              id="cornerstone-accordion"
-                              fluid
-                              onDoubleClick={this.doubleClickListItems.bind(
-                                this
-                              )}
-                            >
-                              {tableContent}
-                            </Accordion>
-                          )}
-                        </div>
-                      </TabPane>
-                      {/* <TabPane tab={inflammationTab} key="2">
-                                                        Content of Tab Pane 2
-                                                        </TabPane>
-                                                        <TabPane tab={lymphnodeTab} key="3">
-                                                        Content of Tab Pane 3
-                                                        </TabPane> */}
-                    </Tabs>
-                  </div>
-                </Grid.Column>
-                <Grid.Column width={6}>
-                  <div
-                    id="report"
-                    style={{ height: this.state.windowHeight / 3 }}
-                  >
-                    <Tab
-                      menu={{
-                        borderless: false,
-                        inverted: false,
-                        attached: true,
-                        tabular: true,
-                        size: "huge",
-                      }}
-                      panes={panes}
-                    />
-                  </div>
-                </Grid.Column>
-              </Grid.Row>
-            </Grid>
-          )}
           {/* </div> */}
         </div>
       );
@@ -6897,6 +6639,12 @@ class CornerstoneElement extends Component {
   }
 
   resizeScreen(e) {
+    this.setState(
+      {
+        windowWidth: document.body.clientWidth,
+        windowHeight: document.body.clientHeight,
+      }
+    )
     if (!this.state.showStudyList) {
       const leftPanel = document.getElementsByClassName("corner-left-block")[0];
       const width = leftPanel.clientWidth;
@@ -6906,16 +6654,12 @@ class CornerstoneElement extends Component {
     }
 
     if (this.state.show3DVisualization) {
-      if (document.getElementById("segment-container") !== null) {
-        const componentRect = findDOMNode(
-          document.getElementById("segment-container")
-        ).getBoundingClientRect();
-        const clientWidth =
-          document.getElementById("segment-container").clientWidth;
-        const clientHeight =
-          document.getElementById("segment-container").clientHeight;
+      if (document.getElementById('segment-container') !== null) {
+        const segmentContainer = document.getElementById('segment-container')
+        const segmentContainerWidth = segmentContainer.clientWidth
+        const segmentContainerHeight = segmentContainer.clientHeight
         // console.log('resize3DView', clientWidth, clientHeight)
-        this.resizeViewer(clientWidth, clientHeight);
+        this.resizeViewer(segmentContainerWidth, segmentContainerHeight)
       }
 
       if (
@@ -6939,30 +6683,17 @@ class CornerstoneElement extends Component {
         }
       }
     } else {
-      let crossCanvasWidth = (document.body.clientWidth * 940) / 1920;
-      let crossCanvasHeight = (document.body.clientHeight * 940) / 1080;
-      let verticalCanvasWidth = (document.body.clientWidth * 840) / 1080;
-      let verticalCanvasheight = (document.body.clientHeight * 1080) / 1920;
-      this.setState(
-        {
-          windowWidth: document.body.clientWidth,
-          windowHeight: document.body.clientHeight,
-          crossCanvasWidth: crossCanvasWidth,
-          crossCanvasHeight: crossCanvasHeight,
-          verticalCanvasWidth: verticalCanvasWidth,
-          verticalCanvasheight: verticalCanvasheight,
-        },
-        () => {
-          let canvasColumn = document.getElementById("canvas-column");
-          let report = document.getElementById("report");
-          let list = document.getElementsByClassName(
-            "nodule-card-container"
-          )[0];
-          report.style.height = canvasColumn.clientHeight / 3 + "px";
-          list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
-          let viewport = cornerstone.getViewport(this.element);
-          const windowWidth = this.state.windowWidth;
-          const windowHeight = this.state.windowHeight;
+      if(document.getElementById('canvas-border') !== null){
+        const canvasBorder = document.getElementById('canvas-border')
+        const canvasBorderWidth = canvasBorder.clientWidth
+        const canvasBorderHeight = canvasBorder.clientHeight
+
+        // let report = document.getElementById('report')
+        // let list = document.getElementsByClassName('nodule-card-container')[0]
+        // report.style.height = canvasColumn.clientHeight / 3 + 'px'
+        // list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
+        if(cornerstone.getEnabledElements().length>0){
+          let viewport = cornerstone.getViewport(this.element)
           viewport.translation = {
             x: 0,
             y: 0,
@@ -6975,27 +6706,19 @@ class CornerstoneElement extends Component {
           } else {
             viewport.scale = document.getElementById("canvas").height / 512;
           }
-          cornerstone.setViewport(this.element, viewport);
-          this.setState({ viewport });
+          cornerstone.setViewport(this.element, viewport)
+          this.setState({
+            viewport
+          })
         }
-      );
+        this.setState({
+          canvasWidth: canvasBorderWidth - 20,
+          canvasHeight: canvasBorderHeight - 20,
+        })
+      }
     }
   }
 
-  firstLayout() {
-    this.setState(
-      {
-        firstlayout: 1,
-      },
-      () => {
-        let canvasColumn = document.getElementById("canvas-column");
-        let report = document.getElementById("report");
-        let list = document.getElementsByClassName("nodule-card-container")[0];
-        report.style.height = canvasColumn.clientHeight / 3 + "px";
-        list.style.height = (canvasColumn.clientHeight * 2) / 3 + "px";
-      }
-    );
-  }
 
   refreshImage(initial, imageId, newIdx) {
     // let style = $("<style>", {type:"text/css"}).appendTo("head");
@@ -8414,7 +8137,6 @@ class CornerstoneElement extends Component {
     // const height = document.body.clientHeight
     // // const width = window.outerHeight
     // this.setState({windowWidth : width, windowHeight: height})
-    this.firstLayout();
 
     const token = localStorage.getItem("token");
     const headers = {
@@ -8436,10 +8158,12 @@ class CornerstoneElement extends Component {
     const imageIds = await imageIdsPromise;
     this.setState({
       imageIds,
-    });
-    this.loadDisplay();
-    this.loadStudyBrowser();
-    this.loadReport();
+    })
+    this.loadDisplay()
+    this.loadStudyBrowser()
+    this.loadReport()
+    this.resizeScreen()
+
     const urlsPromise = new Promise((resolve, reject) => {
       axios
         .post(
@@ -8465,12 +8189,13 @@ class CornerstoneElement extends Component {
             }
           }
           // console.log('url request data', res.data)
-          const urlData = res.data;
-          const urls = [];
-          let count = 0;
-          let lobesLength = 0;
-          let airwayLength = 0;
-          let nodulesLength = 0;
+          const urlData = res.data
+          const urls = []
+          let count = 0
+          let lobesLength = 0
+          let airwayLength = 0
+          let nodulesLength = 0
+          let vesselLength = 0
           if (urlData) {
             if (urlData.lung && urlData.lung.length > 0) {
             }
@@ -8478,8 +8203,8 @@ class CornerstoneElement extends Component {
               const prevCount = count;
               urlData.lobe.sort(sortUrl);
               urlData.lobe.forEach((item, index) => {
-                const order = Math.round(item[item.length - 5]);
-                const type = 2 + order;
+                const order = Math.round(item[item.length - 5])
+                const type = 'lobe' + order
                 urls.push({
                   url: item,
                   order,
@@ -8495,8 +8220,8 @@ class CornerstoneElement extends Component {
             if (urlData.airway && urlData.airway.length > 0) {
               const prevCount = count;
               urlData.airway.forEach((item, index) => {
-                const order = 0;
-                const type = 1;
+                const order = 0
+                const type = 'airway'
                 urls.push({
                   url: item,
                   order,
@@ -8513,8 +8238,8 @@ class CornerstoneElement extends Component {
               const prevCount = count;
               urlData.nodule.sort(sortUrl);
               urlData.nodule.forEach((item, index) => {
-                const order = Math.round(item[item.length - 5]);
-                const type = 2;
+                const order = Math.round(item[item.length - 5])
+                const type = 'nodule'
                 urls.push({
                   url: item,
                   order,
@@ -8527,6 +8252,23 @@ class CornerstoneElement extends Component {
                 nodulesLength += 1;
               });
             }
+            if(urlData.vessel && urlData.vessel.length > 0){
+              const prevCount = count
+              urlData.vessel.forEach((item, index) => {
+                const order = 0
+                const type = 'vessel'
+                urls.push({
+                  url: item,
+                  order,
+                  index: index + prevCount,
+                  class: dictList[type].class,
+                  name: dictList[type].name,
+                  color: dictList[type].color,
+                })
+                count += 1
+                vesselLength +=1
+              })
+            }
           }
           const segments = Object.keys(urls).map((key) => null);
           const percent = Object.keys(urls).map((key) => 0);
@@ -8536,6 +8278,7 @@ class CornerstoneElement extends Component {
             lobesLength,
             airwayLength,
             nodulesLength,
+            vesselLength,
             segments: segments,
             percent: percent,
             listLoading: listLoading,
@@ -8577,7 +8320,18 @@ class CornerstoneElement extends Component {
           });
           this.saveLobesData(lobesData);
         }
-      });
+      })
+    const tubularData = [{
+        name: '支气管' ,
+        number: '未知',
+        index: 14
+      },
+      {
+        name: '血管' ,
+        number: '未知',
+        index: 5
+      }]
+    this.saveTubularData(tubularData)
     // const lobesData = lobes.lobes
     // console.log(lobesData)
     // lobesData.forEach((item, index) => {
@@ -9109,10 +8863,9 @@ class CornerstoneElement extends Component {
 
   createPipeline(binary, color, opacity, cl) {
     // console.log("createPipeline")
-
-    const vtpReader = vtkXMLPolyDataReader.newInstance();
-    vtpReader.parseAsArrayBuffer(binary);
-    const source = vtpReader.getOutputData();
+    const vtpReader = vtkXMLPolyDataReader.newInstance()
+    vtpReader.parseAsArrayBuffer(binary)
+    const source = vtpReader.getOutputData()
 
     // const lookupTable = vtkColorTransferFunction.newInstance()
     // const scalars = source.getPointData().getScalars();
@@ -9157,31 +8910,32 @@ class CornerstoneElement extends Component {
   }
   DownloadSegment(idx) {
     const progressCallback = (progressEvent) => {
-      const percent = Math.floor(
-        (100 * progressEvent.loaded) / progressEvent.total
-      );
-      const tmp_percent = this.state.percent;
-      tmp_percent[idx] = percent;
-      this.setState({ percent: tmp_percent });
-    };
-    const opacity = 1.0;
-    const color = this.state.urls[idx].color;
-    const cl = this.state.urls[idx].class;
-    const cur_url = this.state.urls[idx].url + "?caseId=" + this.state.caseId;
-    HttpDataAccessHelper.fetchBinary(cur_url, { progressCallback }).then(
-      (binary) => {
-        const actor = this.createPipeline(binary, color, opacity, cl);
-        const tmp_segments = [].concat(this.state.segments);
-        tmp_segments[idx] = actor;
-        const listLoading = this.state.listLoading;
-        this.timer = setTimeout(() => {
-          listLoading[idx] = false;
-        }, 2500);
-        this.setState({
-          segments: tmp_segments,
-        });
+      const percent = Math.floor((100 * progressEvent.loaded) / progressEvent.total)
+      const tmp_percent = this.state.percent
+      tmp_percent[idx] = percent
+      this.setState({ percent: tmp_percent })
+    }
+    const color = this.state.urls[idx].color
+    const cl = this.state.urls[idx].class
+    const cur_url = this.state.urls[idx].url + '?caseId=' + this.state.caseId
+    HttpDataAccessHelper.fetchBinary(cur_url, { progressCallback }).then((binary) => {
+      // let opacity = 1.0
+      let actor
+      if(cl === 0){
+        actor = this.createPipeline(binary, color, 0.6, cl)
+      }else{
+        actor = this.createPipeline(binary, color, 1.0, cl)
       }
-    );
+      const tmp_segments = [].concat(this.state.segments)
+      tmp_segments[idx] = actor
+      const listLoading = this.state.listLoading
+      this.timer = setTimeout(() => {
+        listLoading[idx] = false
+      }, 2500)
+      this.setState({
+        segments: tmp_segments,
+      })
+    })
   }
   updatePointActor(origin) {
     if (typeof origin === "undefined") {
@@ -9239,27 +8993,44 @@ class CornerstoneElement extends Component {
     });
   }
   saveLobesData(lobesData) {
-    console.log("lobesData", lobesData);
-    const lobesOpacities = new Array(lobesData.length).fill(1.0);
-    const lobesActive = new Array(lobesData.length).fill(false);
-    const lobesVisible = new Array(lobesData.length).fill(true);
-    const lobesOpacityChangeable = new Array(lobesData.length).fill(false);
+    console.log('lobesData', lobesData)
+    const lobesOpacities = new Array(lobesData.length).fill(0.6)
+    const lobesActive = new Array(lobesData.length).fill(false)
+    const lobesVisible = new Array(lobesData.length).fill(true)
+    const lobesOpacityChangeable = new Array(lobesData.length).fill(false)
     const lobesController = {
       lobesOpacities,
       lobesActive,
       lobesVisible,
       lobesOpacityChangeable,
     };
-    lobesData.forEach((item, index) => {
-      lobesData[index].volume = item.volumn;
-      lobesData[index].percent = item.precent;
-      delete lobesData[index].volumn;
-      delete lobesData[index].precent;
-    });
+    // lobesData.forEach((item, index) => {
+    //   lobesData[index].volume = item.volumn;
+    //   lobesData[index].percent = item.precent;
+    //   delete lobesData[index].volumn;
+    //   delete lobesData[index].precent;
+    // });
     this.setState({
       lobesData,
       lobesController,
     });
+  }
+  saveTubularData(tubularData) {
+    console.log('tubularData', tubularData)
+    const tubularOpacities = new Array(tubularData.length).fill(1.0)
+    const tubularActive = new Array(tubularData.length).fill(false)
+    const tubularVisible = new Array(tubularData.length).fill(true)
+    const tubularOpacityChangeable = new Array(tubularData.length).fill(false)
+    const tubularController = {
+      tubularOpacities,
+      tubularActive,
+      tubularVisible,
+      tubularOpacityChangeable,
+    }
+    this.setState({
+      tubularData,
+      tubularController,
+    })
   }
   processCenterLine(coos) {
     const segRange = this.state.segRange;
@@ -9733,7 +9504,13 @@ class CornerstoneElement extends Component {
       lobesController.lobesActive[index] = !lobesController.lobesActive[index];
       this.setState({
         lobesController,
-      });
+      })
+    } else if (classfication === 1) {
+      const tubularController = this.state.tubularController
+      tubularController.tubularActive[index] = !tubularController.tubularActive[index]
+      this.setState({
+        tubularController,
+      })
     } else if (classfication === 2) {
       const nodulesController = this.state.nodulesController;
       nodulesController.nodulesActive[index] =
@@ -9765,7 +9542,19 @@ class CornerstoneElement extends Component {
 
       this.setState({
         lobesController,
-      });
+      })
+    } else if (classfication === 1) {
+      const tubularController = this.state.tubularController
+      tubularController.tubularVisible[index] = !tubularController.tubularVisible[index]
+      if (tubularController.tubularVisible[index]) {
+        this.setSegmentOpacity(urlIndex, tubularController.tubularOpacities[index])
+      } else {
+        this.setSegmentOpacity(urlIndex, 0)
+      }
+
+      this.setState({
+        tubularController,
+      })
     } else if (classfication === 2) {
       const nodulesController = this.state.nodulesController;
       nodulesController.nodulesVisible[index] =
@@ -9792,7 +9581,13 @@ class CornerstoneElement extends Component {
         !lobesController.lobesOpacityChangeable[index];
       this.setState({
         lobesController,
-      });
+      })
+    } else if (classfication === 1) {
+      const tubularController = this.state.tubularController
+      tubularController.tubularOpacityChangeable[index] = !tubularController.tubularOpacityChangeable[index]
+      this.setState({
+        tubularController,
+      })
     } else if (classfication === 2) {
       const nodulesController = this.state.nodulesController;
       nodulesController.nodulesOpacityChangeable[index] =
@@ -9811,7 +9606,15 @@ class CornerstoneElement extends Component {
 
       this.setState({
         lobesController,
-      });
+      })
+    } else if (classfication === 1) {
+      const tubularController = this.state.tubularController
+      tubularController.tubularOpacities[index] = e.target.value
+      this.setSegmentOpacity(urlIndex, e.target.value)
+
+      this.setState({
+        tubularController,
+      })
     } else if (classfication === 2) {
       const nodulesController = this.state.nodulesController;
       nodulesController.nodulesOpacities[index] = e.target.value;
@@ -10590,14 +10393,12 @@ class CornerstoneElement extends Component {
     });
   }
   obliqueSlice2Actor(obliqueSlice) {
-    const dimensions = obliqueSlice.getDimensions();
-    const spacing = obliqueSlice.getSpacing();
-    console.log("oblique spacing", spacing);
-    const imageData = vtkImageData.newInstance();
-    const pixelArray = new Float32Array(dimensions[0] * dimensions[1] * 5).fill(
-      -1024
-    );
-    const scalarData = obliqueSlice.getPointData().getScalars().getData();
+    const dimensions = obliqueSlice.getDimensions()
+    const spacing = obliqueSlice.getSpacing()
+    // console.log('oblique spacing', spacing)
+    const imageData = vtkImageData.newInstance()
+    const pixelArray = new Float32Array(dimensions[0] * dimensions[1] * 5).fill(-1024)
+    const scalarData = obliqueSlice.getPointData().getScalars().getData()
     for (let i = 0; i < scalarData.length; i++) {
       pixelArray[i] = scalarData[i];
     }

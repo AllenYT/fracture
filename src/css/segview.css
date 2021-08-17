@@ -355,7 +355,7 @@ svg > g > #container {
 }
 .list-tab > .ui.menu.attached > a {
   background-color: #021c38 !important;
-  width: 50% !important;
+  width: 33.3% !important;
   justify-content: center !important;
 }
 .list-tab > .ui.menu.attached > a.active {

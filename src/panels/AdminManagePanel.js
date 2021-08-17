@@ -158,42 +158,7 @@ class AdminManagePanel extends Component {
   addUser() {
     const { newUsername, newPassword, newValPassword, newRole } = this.state;
     console.log(newUsername, newPassword, newValPassword, newRole);
-    // if (!newUsername || newUsername.length < 1) {
-    //   console.log('username length error')
-    //   message.messageVisible = true
-    //   message.messageType = 'failed'
-    //   message.messageHeader = '用户名长度不符'
-    //   message.messageContent = '用户名长度不符'
-    //   this.setState({
-    //     message,
-    //   })
-    // } else if (newPassword !== newValPassword) {
-    //   console.log('two time password not match erro')
-    //   message.messageVisible = true
-    //   message.messageType = 'failed'
-    //   message.messageHeader = '两次密码不匹配'
-    //   message.messageContent = '两次密码不匹配'
-    //   this.setState({
-    //     message,
-    //   })
-    // } else if (newPassword.length > 16 && newPassword.length < 6) {
-    //   console.log('password length error')
-    //   message.messageVisible = true
-    //   message.messageType = 'failed'
-    //   message.messageHeader = '密码长度不符'
-    //   message.messageContent = '密码长度不符'
-    //   this.setState({
-    //     message,
-    //   })
-    // } else if (!newRole) {
-    //   console.log('not choose role error')
-    //   message.messageVisible = true
-    //   message.messageType = 'failed'
-    //   message.messageHeader = '没有选择角色'
-    //   message.messageContent = '没有选择角色'
-    //   this.setState({
-    //     message,
-    //   })
+
     const message = this.validateUserInfo(
       newUsername,
       newPassword,
