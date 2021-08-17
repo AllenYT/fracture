@@ -13,7 +13,14 @@ import {
   faCaretDown,
 } from "@fortawesome/free-solid-svg-icons";
 
-import { Form, Input, Button as AntdButton, Select, Pagination } from "antd";
+import {
+  Form,
+  Input,
+  Button as AntdButton,
+  Select,
+  Pagination,
+  notification,
+} from "antd";
 import { Button, Table, Modal, Message } from "semantic-ui-react";
 import md5 from "js-md5";
 import LowerAuth from "../components/LowerAuth";
@@ -194,62 +201,94 @@ class AdminManagePanel extends Component {
     //   this.setState({
     //     message,
     //   })
+    let userRegex = new RegExp("^[a-zA-Z]{1}[a-zA-Z0-9]*$");
+    let paswdRegex = new RegExp("^[a-zA-Z0-9]+$");
     const message = this.validateUserInfo(
       newUsername,
       newPassword,
       newValPassword,
       newRole
     );
-    if (!message.messageVisible) {
-      axios
-        .post(
-          this.config.user.insertUserInfoForAdmin,
-          qs.stringify({
-            createUsername: newUsername,
-            createPassword: md5(newPassword),
-            roles: newRole,
-          })
-        )
-        .then((res) => {
-          console.log("insertUserInfoForAdmin request", res);
-          if (res.status === 200 && res.data && res.data.status === "ok") {
-            const totalPage = res.data.newTotalPage;
-            this.setState(
-              {
-                totalPage,
-                currentPage: 1,
-                orderBy: "createTime desc,username desc",
-              },
-              () => {
-                this.updateUserInfoByPage(1);
-              }
-            );
-            alert("添加成功");
-            this.setAddUserModalOpen(false);
-          } else if (res.data.status === "existed") {
-            alert("已存在的用户，添加失败");
-          } else {
-            alert("添加失败");
-          }
-        });
+    if (newUsername.length < 4 || newUsername.length > 12) {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "用户名长度>=4且<=12位",
+      });
+    } else if (newPassword.length < 6 || newPassword.length > 16) {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "密码长度>=6且<=16位",
+      });
+    } else if (!userRegex.test(newUsername)) {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "用户名只包含字母和数字，且以字母开头",
+      });
+    } else if (!paswdRegex.test(newPassword)) {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "密码只包含字母和数字",
+      });
     } else {
-      if (this.timer != null) {
-        clearInterval(this.timer);
-      }
-      this.setState(
-        {
-          addMessage: message,
-        },
-        () => {
-          this.timer = setInterval(() => {
-            const addMessage = this.state.addMessage;
-            addMessage.messageVisible = false;
-            this.setState({
-              addMessage,
-            });
-          }, 3000);
+      if (!message.messageVisible) {
+        axios
+          .post(
+            this.config.user.insertUserInfoForAdmin,
+            qs.stringify({
+              createUsername: newUsername,
+              createPassword: md5(newPassword),
+              roles: newRole,
+            })
+          )
+          .then((res) => {
+            console.log("insertUserInfoForAdmin request", res);
+            if (res.status === 200 && res.data && res.data.status === "ok") {
+              const totalPage = res.data.newTotalPage;
+              this.setState(
+                {
+                  totalPage,
+                  currentPage: 1,
+                  orderBy: "createTime desc,username desc",
+                },
+                () => {
+                  this.updateUserInfoByPage(1);
+                }
+              );
+              alert("添加成功");
+              this.setAddUserModalOpen(false);
+            } else if (res.data.status === "existed") {
+              alert("已存在的用户，添加失败");
+            } else {
+              alert("添加失败");
+            }
+          });
+      } else {
+        if (this.timer != null) {
+          clearInterval(this.timer);
         }
-      );
+        this.setState(
+          {
+            addMessage: message,
+          },
+          () => {
+            this.timer = setInterval(() => {
+              const addMessage = this.state.addMessage;
+              addMessage.messageVisible = false;
+              this.setState({
+                addMessage,
+              });
+            }, 3000);
+          }
+        );
+      }
     }
   }
   editUser(index) {
@@ -261,46 +300,78 @@ class AdminManagePanel extends Component {
       editValPassword,
       editRole
     );
-    if (!message.messageVisible) {
-      axios
-        .post(
-          this.config.user.updateUserInfoForAdmin,
-          qs.stringify({
-            username: editUsername,
-            newPassword: md5(editPassword),
-            newRoles: editRole,
-          })
-        )
-        .then((res) => {
-          console.log("updateRolesForUser request", res);
-          if (res.status === 200 && res.data && res.data.status === "ok") {
-            this.updateUserInfoByPage(this.state.currentPage);
-            alert("修改成功");
-            this.setEditUserModalOpen(index, false);
-          } else {
-            alert("修改失败");
-          }
-        });
+    let userRegex = new RegExp("^[a-zA-Z]{1}[a-zA-Z0-9]*$");
+    let paswdRegex = new RegExp("^[a-zA-Z0-9]+$");
+    if (editUsername.length < 4 || editUsername.length > 12) {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "用户名长度>=4且<=12位",
+      });
+    } else if (editPassword.length < 6 || editPassword.length > 16) {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "密码长度>=6且<=16位",
+      });
+    } else if (!userRegex.test(editUsername)) {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "用户名只包含字母和数字，且以字母开头",
+      });
+    } else if (!paswdRegex.test(editPassword)) {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "密码只包含字母和数字",
+      });
     } else {
-      const editMessage = this.state.editMessage;
-      editMessage[index] = message;
-      if (this.timer != null) {
-        clearInterval(this.timer);
-      }
-      this.setState(
-        {
-          editMessage,
-        },
-        () => {
-          this.timer = setInterval(() => {
-            const editMessage = this.state.editMessage;
-            editMessage[index].messageVisible = false;
-            this.setState({
-              editMessage,
-            });
-          }, 3000);
+      if (!message.messageVisible) {
+        axios
+          .post(
+            this.config.user.updateUserInfoForAdmin,
+            qs.stringify({
+              username: editUsername,
+              newPassword: md5(editPassword),
+              newRoles: editRole,
+            })
+          )
+          .then((res) => {
+            console.log("updateRolesForUser request", res);
+            if (res.status === 200 && res.data && res.data.status === "ok") {
+              this.updateUserInfoByPage(this.state.currentPage);
+              alert("修改成功");
+              this.setEditUserModalOpen(index, false);
+            } else {
+              alert("修改失败");
+            }
+          });
+      } else {
+        const editMessage = this.state.editMessage;
+        editMessage[index] = message;
+        if (this.timer != null) {
+          clearInterval(this.timer);
         }
-      );
+        this.setState(
+          {
+            editMessage,
+          },
+          () => {
+            this.timer = setInterval(() => {
+              const editMessage = this.state.editMessage;
+              editMessage[index].messageVisible = false;
+              this.setState({
+                editMessage,
+              });
+            }, 3000);
+          }
+        );
+      }
     }
   }
   deleteUser(index) {

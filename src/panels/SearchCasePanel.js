@@ -9,6 +9,7 @@ import {
   Header,
   Dropdown,
 } from "semantic-ui-react";
+import { notification } from "antd";
 import MainList from "../components/MainList";
 import "../css/searchCasePanel.css";
 import axios from "axios";
@@ -117,15 +118,27 @@ export class SearchPanel extends Component {
     if (event.which === 13) {
       const patientValue = document.getElementById("patient-search").value;
       const dataValue = document.getElementById("date-search").value;
-      this.setState({
-        activePage: 1,
-        pidKeyword: patientValue,
-        dateKeyword: dataValue,
-        search: true,
-        activePage: 1,
-      });
-      this.getTotalPages();
-      this.setState({ search: false });
+      let regex = new RegExp(
+        "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_#]){1,40}$"
+      );
+      if (regex.test(patientValue) && regex.test(dataValue)) {
+        this.setState({
+          activePage: 1,
+          pidKeyword: patientValue,
+          dateKeyword: dataValue,
+          search: true,
+          activePage: 1,
+        });
+        this.getTotalPages();
+        this.setState({ search: false });
+      } else {
+        notification.warning({
+          top: 48,
+          duration: 6,
+          message: "提醒",
+          description: "队列名称仅支持字母、数字、下划线和#号",
+        });
+      }
     }
   }
 
@@ -433,7 +446,7 @@ export class SearchPanel extends Component {
                   icon="user"
                   iconPosition="left"
                   placeholder="病人ID"
-                  maxLength={16}
+                  maxLength={35}
                   disabled={this.state.checked}
                 />
 
