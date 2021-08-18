@@ -7,6 +7,9 @@ import {
   Link,
 } from "react-router-dom";
 import qs from "qs";
+import { connect } from 'react-redux'
+import { getConfigJson } from '../actions'
+
 import LoginPanel from "../panels/LoginPanel";
 import DataCockpit from "../panels/DataCockpit";
 // import DisplayPanel from "../panels/DisplayPanel";
@@ -22,18 +25,17 @@ import axios from "axios";
 import src1 from "../images/MILab.png";
 import src2 from "../images/logo.jpg";
 import src3 from "../images/scu-logo.png";
-// import Cov19ListPanel from '../panels/Cov19ListPanel';
-// import Cov19DisplayPanel from '../panels/Cov19DisplayPanel';
+
 import HomepagePanel from "../panels/HomepagePanel";
 import preprocess from "../panels/preprocess";
 import ViewerPanel from "../panels/ViewerPanel";
 import AdminManagePanel from "../panels/AdminManagePanel";
+
 import md5 from "js-md5";
 
 class Main extends Component {
   constructor(props) {
     super(props);
-    this.config = JSON.parse(localStorage.getItem("config"));
     this.state = {
       activeItem: "home",
       name: localStorage.realname,
@@ -44,6 +46,7 @@ class Main extends Component {
       isLoggedIn: false,
       expiration: false,
     };
+    this.newConfig = this.props.newConfig
 
     this.handleItemClick = this.handleItemClick.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
@@ -91,17 +94,28 @@ class Main extends Component {
       });
   }
 
-  async componentWillMount() {
-    const configPromise = new Promise((resolve, reject) => {
-      axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-        const config = res.data;
-        console.log("config", config);
-        localStorage.setItem("config", JSON.stringify(config));
-        resolve(config);
-      }, reject);
-    });
-    const config = await configPromise;
-    this.config = config;
+  async componentDidMount() {
+    // localStorage.clear()
+    // console.log("localstorage", localStorage)
+
+    // const configPromise = new Promise((resolve, reject) => {
+    //   axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
+    //     const config = res.data;
+    //     console.log("config", config);
+    //     localStorage.setItem("config", JSON.stringify(config));
+    //     resolve(config);
+    //   }, reject);
+    // });
+    // const config = await configPromise;
+    // this.config = config;
+    if(!localStorage.getItem('config')){
+      await this.props.getConfigJson(process.env.PUBLIC_URL + "/config.json")
+      this.config = this.props.config
+      // localStorage.setItem('config', JSON.stringify(this.config))
+    }else{
+      this.config = JSON.parse(localStorage.getItem("config"))
+    }
+    console.log("main config", this.config)
 
     if (
       localStorage.getItem("username") === null &&
@@ -188,7 +202,7 @@ class Main extends Component {
         });
     }
     const token = localStorage.getItem("token");
-    console.log("localtoken", localStorage.getItem("token"));
+    // console.log("localtoken", localStorage.getItem("token"));
     console.log("token", token);
     if (token !== null) {
       const headers = {
@@ -220,7 +234,7 @@ class Main extends Component {
     const welcome = "欢迎您，" + this.state.name;
 
     let logButtonPlace = "";
-    console.log(window.location.pathname);
+    // console.log(window.location.pathname);
 
     const mainSearchNodule =
       localStorage.getItem("auths") !== null &&
@@ -395,7 +409,7 @@ class Main extends Component {
         );
       }
     } else {
-      console.log(window.location.pathname);
+      // console.log(window.location.pathname);
       // if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
       if (window.location.pathname !== "/") {
         logButtonPlace = (
@@ -488,4 +502,16 @@ class Main extends Component {
   }
 }
 
-export default Main;
+export default connect(
+  state=>{
+    return {
+      config: state.config.config
+    }
+  }, 
+  dispatch=>{
+    return {
+      getConfigJson: url=>dispatch(getConfigJson(url)),
+      dispatch
+    }
+  }
+)(Main)

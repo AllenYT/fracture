@@ -730,7 +730,7 @@ class DataCockpit extends Component {
       diaTotal2chart.tooltip({
         showTitle: false,
         itemTpl:
-          '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}人</li>',
+          '<li><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}人</li>',
       });
       // ['#188B8E','#002687', '#BB7329','#3C1E74', '#061846']/['#FD9F21','#00E2F7','#50b0ec','#8b8ae4','#9d5ee3']
       // diaTotal2chart.legend(false)
@@ -957,7 +957,7 @@ class DataCockpit extends Component {
       thicknessChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       thicknessChart
         .intervalStack()
@@ -1026,7 +1026,7 @@ class DataCockpit extends Component {
       benmaliChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       // {"colors10":["#FF6B3B","#626681","#FFC100","#9FB40F","#76523B","#DAD5B5","#0E8E89","#E19348","#F383A2","#247FEA"],"colors20":["#FF6B3B","#626681","#FFC100","#9FB40F","#76523B","#DAD5B5","#0E8E89","#E19348","#F383A2","#247FEA","#2BCB95","#B1ABF4","#1D42C2","#1D9ED1","#D64BC0","#255634","#8C8C47","#8CDAE5","#8E283B","#791DC9"]}
       benmaliChart
@@ -1108,7 +1108,7 @@ class DataCockpit extends Component {
       sexChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<li><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</li>',
+          '<li><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</li>',
       });
       sexChart
         .intervalStack()
@@ -1231,7 +1231,7 @@ class DataCockpit extends Component {
       diaSublobePie.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       diaSublobePie
         .intervalStack()
@@ -1341,7 +1341,7 @@ class DataCockpit extends Component {
       diaGlitchPie.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       //['#188B8E','#002687', '#E08031','#3C1E74', '#061846']
       diaGlitchPie
@@ -1453,7 +1453,7 @@ class DataCockpit extends Component {
       diaCalcifyPie.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       diaCalcifyPie
         .intervalStack()
@@ -1564,7 +1564,7 @@ class DataCockpit extends Component {
       diaGGOPie.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       diaGGOPie
         .intervalStack()
@@ -1676,7 +1676,7 @@ class DataCockpit extends Component {
       mixGGOPie.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       mixGGOPie
         .intervalStack()
@@ -1787,7 +1787,7 @@ class DataCockpit extends Component {
       diaNonGGOPie.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       diaNonGGOPie
         .intervalStack()
@@ -1849,7 +1849,7 @@ class DataCockpit extends Component {
       maliGlitchChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       maliGlitchChart
         .intervalStack()
@@ -1918,7 +1918,7 @@ class DataCockpit extends Component {
       maliSublobeChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       maliSublobeChart
         .intervalStack()
@@ -1988,7 +1988,7 @@ class DataCockpit extends Component {
       maliCalcifyChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       //['#4682B4','#20B2AA']
       maliCalcifyChart
@@ -2059,7 +2059,7 @@ class DataCockpit extends Component {
       maliGGOChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       maliGGOChart
         .intervalStack()
@@ -2129,7 +2129,7 @@ class DataCockpit extends Component {
       pinMalChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       pinMalChart
         .intervalStack()
@@ -2199,7 +2199,7 @@ class DataCockpit extends Component {
       cavMalChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       cavMalChart
         .intervalStack()
@@ -2269,7 +2269,7 @@ class DataCockpit extends Component {
       vssMalChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       vssMalChart
         .intervalStack()
@@ -2337,7 +2337,7 @@ class DataCockpit extends Component {
       beaMalChart.tooltip({
         showTitle: false,
         itemTpl:
-          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" class="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
+          '<dl><dt type="none">结节数:</dt><dt type="none"><span style="background-color:{color};" className="g2-tooltip-marker"></span>{name}: {value}</dt></dl>',
       });
       beaMalChart
         .intervalStack()
@@ -2437,9 +2437,9 @@ class DataCockpit extends Component {
     } else {
       return localStorage.getItem("auths") !== null &&
         JSON.parse(localStorage.getItem("auths")).indexOf("stat") > -1 ? (
-        <div class="VisualCanvas">
-          <div class="total">
-            <div class="totalcontnt">
+        <div className="VisualCanvas">
+          <div className="total">
+            <div className="totalcontnt">
               <h2 className="sta-header">当前数据</h2>
               <Button inverted color="green" icon>
                 <Icon name="sync" />
@@ -2468,21 +2468,21 @@ class DataCockpit extends Component {
                     </Grid>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">模型进度</h2>
+                    <div className="tit">
+                      <h2 className="tit2">模型进度</h2>
                     </div>
                     <div id="modelProgress"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
                     {/* 薄厚层 */}
-                    <div class="tit">
-                      <h2 class="tit2">薄厚层分布</h2>
+                    <div className="tit">
+                      <h2 className="tit2">薄厚层分布</h2>
                     </div>
                     <div id="thicknessDist"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">结节危险程度</h2>
+                    <div className="tit">
+                      <h2 className="tit2">结节危险程度</h2>
                     </div>
                     <div id="benmali"></div>
                   </Grid.Column>
@@ -2490,15 +2490,15 @@ class DataCockpit extends Component {
                 <Grid.Row columns={4}>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">性别分布</h2>
+                    <div className="tit">
+                      <h2 className="tit2">性别分布</h2>
                     </div>
                     <div id="sexDist"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">总体年龄占比</h2>
-                      <div class="tit1" id="agebt1">
+                    <div className="tit">
+                      <h2 className="tit2">总体年龄占比</h2>
+                      <div className="tit1" id="agebt1">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2511,7 +2511,7 @@ class DataCockpit extends Component {
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit1" id="agebt2">
+                      <div className="tit1" id="agebt2">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2529,9 +2529,9 @@ class DataCockpit extends Component {
                     <div id="ageTotal2"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">总体结节直径分布</h2>
-                      <div class="tit1" id="diabt1">
+                    <div className="tit">
+                      <h2 className="tit2">总体结节直径分布</h2>
+                      <div className="tit1" id="diabt1">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2544,7 +2544,7 @@ class DataCockpit extends Component {
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit1" id="diabt2">
+                      <div className="tit1" id="diabt2">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2566,16 +2566,16 @@ class DataCockpit extends Component {
             </div>
           </div>
 
-          <div class="iconography">
-            <div class="iconContnt">
+          <div className="iconography">
+            <div className="iconContnt">
               <h2 className="sta-header">结节直径分布统计</h2>
               <Grid centered divided>
                 <Grid.Row columns={4}>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">磨玻璃直径分布</h2>
-                      <div class="tit3" id="ggobt1">
+                    <div className="tit">
+                      <h2 className="tit2">磨玻璃直径分布</h2>
+                      <div className="tit3" id="ggobt1">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2588,7 +2588,7 @@ class DataCockpit extends Component {
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="ggobt2">
+                      <div className="tit3" id="ggobt2">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2606,9 +2606,9 @@ class DataCockpit extends Component {
                     <div id="diaGGOPie"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">实性直径分布</h2>
-                      <div class="tit3" id="nonggobt1">
+                    <div className="tit">
+                      <h2 className="tit2">实性直径分布</h2>
+                      <div className="tit3" id="nonggobt1">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2621,7 +2621,7 @@ class DataCockpit extends Component {
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="nonggobt2">
+                      <div className="tit3" id="nonggobt2">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2639,9 +2639,9 @@ class DataCockpit extends Component {
                     <div id="diaNonGGOPie"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">半实性(混合磨玻璃)直径分布</h2>
-                      <div class="tit3" id="mixggobt1">
+                    <div className="tit">
+                      <h2 className="tit2">半实性(混合磨玻璃)直径分布</h2>
+                      <div className="tit3" id="mixggobt1">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2654,7 +2654,7 @@ class DataCockpit extends Component {
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="mixggobt2">
+                      <div className="tit3" id="mixggobt2">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2675,9 +2675,9 @@ class DataCockpit extends Component {
                 <Grid.Row columns={4}>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">钙化征直径分布</h2>
-                      <div class="tit3" id="calcifybt1">
+                    <div className="tit">
+                      <h2 className="tit2">钙化征直径分布</h2>
+                      <div className="tit3" id="calcifybt1">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2690,7 +2690,7 @@ class DataCockpit extends Component {
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="calcifybt2">
+                      <div className="tit3" id="calcifybt2">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2708,9 +2708,9 @@ class DataCockpit extends Component {
                     <div id="diaCalcifyPie"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">毛刺征直径分布</h2>
-                      <div class="tit3" id="glitchbt1">
+                    <div className="tit">
+                      <h2 className="tit2">毛刺征直径分布</h2>
+                      <div className="tit3" id="glitchbt1">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2723,7 +2723,7 @@ class DataCockpit extends Component {
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="glitchbt2">
+                      <div className="tit3" id="glitchbt2">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2741,9 +2741,9 @@ class DataCockpit extends Component {
                     <div id="diaGlitchPie"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">分叶征直径分布</h2>
-                      <div class="tit3" id="sublobebt1">
+                    <div className="tit">
+                      <h2 className="tit2">分叶征直径分布</h2>
+                      <div className="tit3" id="sublobebt1">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2756,7 +2756,7 @@ class DataCockpit extends Component {
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="sublobebt2">
+                      <div className="tit3" id="sublobebt2">
                         <Button
                           icon
                           onClick={this.typeChange}
@@ -2778,45 +2778,45 @@ class DataCockpit extends Component {
             </div>
           </div>
 
-          <div class="iconography">
-            <div class="iconContnt">
+          <div className="iconography">
+            <div className="iconContnt">
               <h2 className="sta-header">特征危险程度统计</h2>
               <Grid centered divided>
                 <Grid.Row>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">毛刺征危险程度</h2>
+                    <h2 className="tit2">毛刺征危险程度</h2>
                     <div id="maliGlitch"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">分叶征危险程度</h2>
+                    <h2 className="tit2">分叶征危险程度</h2>
                     <div id="maliSublobe"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">钙化征危险程度</h2>
+                    <h2 className="tit2">钙化征危险程度</h2>
                     <div id="maliCalcify"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">磨玻璃征危险程度</h2>
+                    <h2 className="tit2">磨玻璃征危险程度</h2>
                     <div id="maliGGO"></div>
                   </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">胸膜凹陷征危险程度</h2>
+                    <h2 className="tit2">胸膜凹陷征危险程度</h2>
                     <div id="pleural"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">空洞征危险程度</h2>
+                    <h2 className="tit2">空洞征危险程度</h2>
                     <div id="cavity"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">血管集束征危险程度</h2>
+                    <h2 className="tit2">血管集束征危险程度</h2>
                     <div id="vcs"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">空泡征危险程度</h2>
+                    <h2 className="tit2">空泡征危险程度</h2>
                     <div id="vacuole"></div>
                   </Grid.Column>
                 </Grid.Row>

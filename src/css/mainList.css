@@ -1,0 +1,11 @@
+.main-list-menu-item-content{
+    display: flex;
+    flex-direction: row;
+}
+
+.main-list-menu-item-content-id{
+    width: 70%;
+}
+.main-list-menu-item-content-gender{
+    width: 10%;
+}

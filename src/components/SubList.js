@@ -178,7 +178,7 @@ class SubList extends Component {
     const hint = this.state.hint;
     const mainItem = this.props.mainItem;
     const cart = this.state.cart;
-    console.log("cart", this.state.cart);
+    // console.log("cart", this.state.cart);
 
     let panels = [];
     let idx = 0;
@@ -188,7 +188,7 @@ class SubList extends Component {
     if (this.props.type === "date") {
       icon = "user";
     }
-    console.log("subList", subList);
+    // console.log("subList", subList);
     for (const subKey in subList) {
       const studyAry = subList[subKey];
       console.log("studyAry", studyAry);

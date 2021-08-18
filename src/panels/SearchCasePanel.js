@@ -376,7 +376,7 @@ export class SearchPanel extends Component {
                 </Grid.Column>
                 {this.state.activeQueue.map((content, index) => {
                   return (
-                    <Grid.Column>
+                    <Grid.Column key={index}>
                       {content === "" ? (
                         <Button
                           fluid

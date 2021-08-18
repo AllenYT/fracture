@@ -4,6 +4,7 @@ import { notification } from 'antd'
 import axios from 'axios'
 import qs from 'qs'
 import '../css/spinner.css'
+import '../css/mainList.css'
 import SubList from './SubList'
 import { string } from 'postcss-selector-parser'
 import ReactHtmlParser from 'react-html-parser'
@@ -137,7 +138,7 @@ class MainList extends Component {
       icon = 'calendar'
       otherKeyword = this.props.pidKeyword
     }
-    console.log("mainlist", elements);
+    // console.log("mainlist", elements);
     // console.log('props.type', this.props.type)
     if (this.state.show)
       return (
@@ -168,17 +169,16 @@ class MainList extends Component {
                           data-id={value["patientId"]}
                           // name={newValue}
                           content={
-                            <tr>
-                              <td>{value["patientId"]}</td>
-                              <td>{""}</td>
-                              <td>
+                            <div className="main-list-menu-item-content">
+                              <div className="main-list-menu-item-content-id">{value["patientId"]}</div>
+                              <div className="main-list-menu-item-content-gender">
                                 {value["gender"] === ""
                                   ? ""
                                   : value["gender"] === "M"
                                   ? "男"
                                   : "女"}
-                              </td>
-                            </tr>
+                              </div>
+                            </div>
                           }
                         ></Menu.Item>
                       );
@@ -195,9 +195,9 @@ class MainList extends Component {
                           data-id={value}
                           // name={newValue}
                           content={
-                            <tr>
-                              <td>{value}</td>
-                            </tr>
+                            <div className="main-list-menu-item-content">
+                              <div className="main-list-menu-item-content-id">{value}</div>
+                            </div>
                           }
                         ></Menu.Item>
                       );
@@ -206,7 +206,8 @@ class MainList extends Component {
                 </Menu>
               </Grid.Column>
 
-              <Grid.Column width={11}>
+              <Grid.Column width={11} as={'table'}>
+                <tbody>
                 <tr>
                   <td>
                     <SubList mainItem={selectMainItem} type={this.props.type} otherKeyword={otherKeyword} contextRef={this.contextRef} />
@@ -217,6 +218,7 @@ class MainList extends Component {
                     </label>
                   </td>
                 </tr>
+                </tbody>
               </Grid.Column>
             </Grid.Row>
           </Grid>
@@ -226,13 +228,13 @@ class MainList extends Component {
       return (
         <Grid centered>
           <div style={{ paddingTop: '60px' }}>
-            <div class="sk-chase">
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
+            <div className="sk-chase">
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
             </div>
           </div>
         </Grid>

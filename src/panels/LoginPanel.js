@@ -4,8 +4,10 @@ import {message} from 'antd'
 import "../css/loginPanel.css";
 import axios from "axios";
 import qs from "qs";
-import { withRouter } from "react-router-dom";
+// import { withRouter } from "react-router-dom";
 import md5 from "js-md5";
+import { connect } from 'react-redux'
+import { getConfigJson } from '../actions'
 
 class LoginPanel extends Component {
   constructor(props) {
@@ -17,20 +19,18 @@ class LoginPanel extends Component {
     this.handleClick = this.handleClick.bind(this);
     this.handleUsernameChange = this.handleUsernameChange.bind(this);
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
-    this.config = JSON.parse(localStorage.getItem("config"));
+    // this.config = JSON.parse(localStorage.getItem("config"));
   }
 
-  async componentWillMount() {
-    const configPromise = new Promise((resolve, reject) => {
-      axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-        const config = res.data;
-        console.log("config", config);
-        localStorage.setItem("config", JSON.stringify(config));
-        resolve(config);
-      }, reject);
-    });
-    const config = await configPromise;
-    this.config = config;
+  async componentDidMount() {
+    if(!localStorage.getItem('config')){
+      await this.props.getConfigJson(process.env.PUBLIC_URL + "/config.json")
+      this.config = this.props.config
+      localStorage.setItem('config', JSON.stringify(this.config))
+    }else{
+      this.config = JSON.parse(localStorage.getItem("config"))
+    }
+    console.log("login panel config", this.config)
   }
 
   handleUsernameChange(e) {
@@ -173,4 +173,16 @@ class LoginPanel extends Component {
   }
 }
 
-export default withRouter(LoginPanel);
+export default connect(
+  state=>{
+    return {
+      config: state.config.config
+    }
+  }, 
+  dispatch=>{
+    return {
+      getConfigJson: url=>dispatch(getConfigJson(url)),
+      dispatch
+    }
+  }
+)(LoginPanel)

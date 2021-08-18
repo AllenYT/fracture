@@ -74,13 +74,12 @@ class SeriesIdList extends Component {
     }
   }
 
-  storeCaseId(e, { checked, value, id }) {
-    console.log("checked", checked);
-    console.log(value);
+  storeCaseId(e, { checked, item, id }) {
+    // console.log("checked", ...arguments);
     let params = {};
-    if (checked) params = { status: "add", value: value };
+    if (checked) params = { status: "add", value: item };
     else {
-      params = { status: "del", value: value };
+      params = { status: "del", value: item };
     }
     this.props.parent.getCheckedSeries(this, params);
   }
@@ -210,21 +209,20 @@ class SeriesIdList extends Component {
     }
     return (
       <div>
-        {content.map((value, index) => {
-          const idName = value + index;
-          // console.log('idname',idName)
+        {content.map((item, index) => {
+          const idName = item["caseId"] + index;
           return (
             <div key={index}>
               <div className="export">
                 <Checkbox
-                  id={idName}
+                  // id={idName}
                   onChange={this.storeCaseId}
-                  value={value}
-                  checked={this.validValue(value)}
+                  item={item}
+                  checked={this.validValue(item)}
                   style={CheckboxDis}
                 ></Checkbox>
               </div>
-              <p className="sid">{value["description"]}</p>
+              <p className="sid">{item["description"]}</p>
               <Popup
                 className={onPopupIndex === idName ? "" : "seriesId-popup"}
                 trigger={
@@ -232,7 +230,7 @@ class SeriesIdList extends Component {
                     size="mini"
                     inverted
                     color="green"
-                    data-id={value["caseId"]}
+                    data-id={item["caseId"]}
                     icon="chevron right"
                     onClick={this.displayStudy.bind(this, idName)}
                     floated="right"
@@ -242,7 +240,7 @@ class SeriesIdList extends Component {
               >
                 <Popup.Content>
                   <CurrentDraftsDisplay
-                    caseId={value["caseId"]}
+                    caseId={item["caseId"]}
                     onPopupHide={this.onPopupHide.bind(this)}
                     onPopupIndex={idName}
                   />
