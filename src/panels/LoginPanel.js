@@ -1,48 +1,48 @@
-import React, { Component } from 'react'
-import { Grid, Button, Checkbox, Message, Form } from 'semantic-ui-react'
-import { message } from 'antd'
-import '../css/loginPanel.css'
-import axios from 'axios'
-import qs from 'qs'
-import { withRouter } from 'react-router-dom'
-import md5 from 'js-md5'
+import React, { Component } from "react";
+import { Grid, Button, Checkbox, Message, Form } from "semantic-ui-react";
+import { message } from "antd";
+import "../css/loginPanel.css";
+import axios from "axios";
+import qs from "qs";
+import { withRouter } from "react-router-dom";
+import md5 from "js-md5";
 
 class LoginPanel extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
-      username: '',
-      password: '',
-    }
-    this.handleClick = this.handleClick.bind(this)
-    this.handleUsernameChange = this.handleUsernameChange.bind(this)
-    this.handlePasswordChange = this.handlePasswordChange.bind(this)
-    this.config = JSON.parse(localStorage.getItem('config'))
+      username: "",
+      password: "",
+    };
+    this.handleClick = this.handleClick.bind(this);
+    this.handleUsernameChange = this.handleUsernameChange.bind(this);
+    this.handlePasswordChange = this.handlePasswordChange.bind(this);
+    this.config = JSON.parse(localStorage.getItem("config"));
   }
 
   async componentWillMount() {
     const configPromise = new Promise((resolve, reject) => {
-      axios.get(process.env.PUBLIC_URL + '/config.json').then((res) => {
-        const config = res.data
-        console.log('config', config)
-        localStorage.setItem('config', JSON.stringify(config))
-        resolve(config)
-      }, reject)
-    })
-    const config = await configPromise
-    this.config = config
+      axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
+        const config = res.data;
+        console.log("config", config);
+        localStorage.setItem("config", JSON.stringify(config));
+        resolve(config);
+      }, reject);
+    });
+    const config = await configPromise;
+    this.config = config;
   }
 
   handleUsernameChange(e) {
-    this.setState({ username: e.target.value })
+    this.setState({ username: e.target.value });
   }
 
   handlePasswordChange(e) {
-    this.setState({ password: e.target.value })
+    this.setState({ password: e.target.value });
   }
 
   handleClick() {
-    console.log('loggin')
+    console.log("loggin");
 
     // const headers = {
     //     'Authorization': localStorage.getItem('token')
@@ -50,46 +50,58 @@ class LoginPanel extends Component {
     const user = {
       username: this.state.username,
       password: md5(this.state.password),
-    }
+    };
     const auth = {
       username: this.state.username,
-    }
-    Promise.all([axios.post(this.config.user.validUser, qs.stringify(user)), axios.post(this.config.user.getAuthsForUser, qs.stringify(auth))])
+    };
+    Promise.all([
+      axios.post(this.config.user.validUser, qs.stringify(user)),
+      axios.post(this.config.user.getAuthsForUser, qs.stringify(auth)),
+    ])
 
       .then(([loginResponse, authResponse]) => {
-        console.log(authResponse.data)
-        if (loginResponse.data.status === 'failed') {
-          message.error('登录失败：用户名或密码错误！请重新登录')
+        console.log(authResponse.data);
+        if (loginResponse.data.status === "failed") {
+          message.error("登录失败：用户名或密码错误！请重新登录");
         } else {
-          console.log('loginResponse', loginResponse)
-          localStorage.setItem('token', loginResponse.data.token)
-          localStorage.setItem('realname', loginResponse.data.realname)
-          localStorage.setItem('username', loginResponse.data.username)
-          localStorage.setItem('privilege', loginResponse.data.privilege)
-          localStorage.setItem('allPatientsPages', loginResponse.data.allPatientsPages)
-          localStorage.setItem('totalPatients', loginResponse.data.totalPatients)
-          localStorage.setItem('totalRecords', loginResponse.data.totalRecords)
-          localStorage.setItem('modelProgress', loginResponse.data.modelProgress)
-          localStorage.setItem('BCRecords', loginResponse.data.BCRecords)
-          localStorage.setItem('HCRecords', loginResponse.data.HCRecords)
-          localStorage.setItem('auths', JSON.stringify(authResponse.data))
-          if (sessionStorage.getItem('location') != undefined) {
-            window.location.href = sessionStorage.getItem('location')
+          console.log("loginResponse", loginResponse);
+          localStorage.setItem("token", loginResponse.data.token);
+          localStorage.setItem("realname", loginResponse.data.realname);
+          localStorage.setItem("username", loginResponse.data.username);
+          localStorage.setItem("privilege", loginResponse.data.privilege);
+          localStorage.setItem(
+            "allPatientsPages",
+            loginResponse.data.allPatientsPages
+          );
+          localStorage.setItem(
+            "totalPatients",
+            loginResponse.data.totalPatients
+          );
+          localStorage.setItem("totalRecords", loginResponse.data.totalRecords);
+          localStorage.setItem(
+            "modelProgress",
+            loginResponse.data.modelProgress
+          );
+          localStorage.setItem("BCRecords", loginResponse.data.BCRecords);
+          localStorage.setItem("HCRecords", loginResponse.data.HCRecords);
+          localStorage.setItem("auths", JSON.stringify(authResponse.data));
+          if (sessionStorage.getItem("location") != undefined) {
+            window.location.href = sessionStorage.getItem("location");
             // this.props.history.push(sessionStorage.getItem('location')+'deepln')
           } else {
-            if (authResponse.data.indexOf('auth_manage') > -1) {
-              window.location.href = '/dataCockpit'
+            if (authResponse.data.indexOf("auth_manage") > -1) {
+              window.location.href = "/dataCockpit";
             } else {
-              window.location.href = '/searchCase'
+              window.location.href = "/searchCase";
             }
             // this.props.history.push('/dataCockpit')
           }
         }
       })
       .catch((error) => {
-        message.warning('登陆超时！')
-        console.log(error)
-      })
+        message.warning("登录超时！");
+        console.log(error);
+      });
   }
 
   render() {
@@ -117,17 +129,31 @@ class LoginPanel extends Component {
                       id="input-textBox"
                       icon="user"
                       iconPosition="left"
-                      maxLength={16}></Form.Input>
+                      maxLength={16}
+                    ></Form.Input>
                   </Form.Field>
                   <Form.Field className="input-field">
                     {/* <label>密码</label> */}
-                    <Form.Input type="password" value={this.state.password} onChange={this.handlePasswordChange} icon="lock" iconPosition="left" placeholder="密码" id="input-textBox" maxLength={32} />
+                    <Form.Input
+                      type="password"
+                      value={this.state.password}
+                      onChange={this.handlePasswordChange}
+                      icon="lock"
+                      iconPosition="left"
+                      placeholder="密码"
+                      id="input-textBox"
+                      maxLength={32}
+                    />
                   </Form.Field>
                   <div>
                     <Grid divided="vertically">
                       <Grid.Row columns={2}>
-                        <Grid.Column textAlign="left">{/* <Checkbox label='记住账号信息' color='blue'/> */}</Grid.Column>
-                        <Grid.Column textAlign="right">{/* <a href='#'>忘记密码？</a> */}</Grid.Column>
+                        <Grid.Column textAlign="left">
+                          {/* <Checkbox label='记住账号信息' color='blue'/> */}
+                        </Grid.Column>
+                        <Grid.Column textAlign="right">
+                          {/* <a href='#'>忘记密码？</a> */}
+                        </Grid.Column>
                       </Grid.Row>
                     </Grid>
                   </div>
@@ -143,8 +169,8 @@ class LoginPanel extends Component {
           </Grid>
         </div>
       </div>
-    )
+    );
   }
 }
 
-export default withRouter(LoginPanel)
+export default withRouter(LoginPanel);
