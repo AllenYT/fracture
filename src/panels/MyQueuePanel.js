@@ -226,7 +226,7 @@ class MyQueuePanel extends Component {
 
   submitQueue() {
     let regex = new RegExp(
-      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,20}$"
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}$"
     );
     if (this.state.queueName !== "" && regex.test(this.state.queueName)) {
       //axios.createnewqueue,queuename
@@ -309,7 +309,7 @@ class MyQueuePanel extends Component {
         top: 48,
         duration: 6,
         message: "提醒",
-        description: "队列名称仅支持中文、字母、数字和下划线",
+        description: "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
       });
     }
   }
@@ -931,8 +931,8 @@ class MyQueuePanel extends Component {
                                 </Grid.Row>
                                 <Grid.Row>
                                   <Grid.Column
-                                    width={8}
-                                    style={{ display: "flex" }}
+                                    width={16}
+                                    style={{ display: "flex", flexDirection: 'row', alignItems: 'center'}}
                                   >
                                     <a
                                       style={{ color: "#66cfec" }}
@@ -959,7 +959,7 @@ class MyQueuePanel extends Component {
                                       style={{
                                         marginLeft: 15,
                                         color: "#66cfec",
-                                        fontSize: 20,
+                                        // fontSize: 20,
                                       }}
                                     >
                                       cm
@@ -1408,19 +1408,15 @@ class MyQueuePanel extends Component {
 
           <div className="queue-popup" id="queue-popup">
             <div class="queue-name">
-              <Grid>
-                <Grid.Row>
-                  <Grid.Column width={13}>
-                    <Header as="h2"> 请输入队列名称</Header>
-                  </Grid.Column>
-                  <Grid.Column width={3}>
+
+                  <div className="queue-name-top-block">
+                    <div className="queue-name-header">请输入队列名称</div>
                     <Button id="header-right" onClick={this.hidder} icon>
                       <Icon name="x"></Icon>
                     </Button>
-                  </Grid.Column>
-                </Grid.Row>
+                  </div>
                 <br />
-                <Grid.Row centered textAlign="center" style={{ height: 50 }}>
+                <div className="queue-name-bottom-block">
                   <Input
                     placeholder="队列名"
                     id="nameinput"
@@ -1429,8 +1425,7 @@ class MyQueuePanel extends Component {
                   ></Input>
 
                   <Button onClick={this.submitQueue}>提交</Button>
-                </Grid.Row>
-              </Grid>
+                </div>
               {/* <div id="header"> */}
 
               {/* </div> */}

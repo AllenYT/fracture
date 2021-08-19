@@ -23,7 +23,7 @@ const style = {
   textAlign: "center",
   marginTop: "300px",
 };
-
+let queueSearchErrorTimer = null
 export class SearchPanel extends Component {
   constructor(props) {
     super(props);
@@ -41,6 +41,7 @@ export class SearchPanel extends Component {
       totalPageQueue: 1,
       searchQueue: [],
       search: false,
+      queueSearchHasError: false,
     };
     this.config = JSON.parse(localStorage.getItem("config"));
     this.handlePaginationChange = this.handlePaginationChange.bind(this);
@@ -116,29 +117,55 @@ export class SearchPanel extends Component {
   onKeyDown(event) {
     // console.log('enter',event.which)
     if (event.which === 13) {
-      const patientValue = document.getElementById("patient-search").value;
-      const dataValue = document.getElementById("date-search").value;
-      let regex = new RegExp(
-        "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_#]){1,40}$"
-      );
-      if (regex.test(patientValue) && regex.test(dataValue)) {
-        this.setState({
-          activePage: 1,
-          pidKeyword: patientValue,
-          dateKeyword: dataValue,
-          search: true,
-          activePage: 1,
-        });
-        this.getTotalPages();
-        this.setState({ search: false });
-      } else {
-        notification.warning({
-          top: 48,
-          duration: 6,
-          message: "提醒",
-          description: "队列名称仅支持字母、数字、下划线和#号",
-        });
+      console.log("checked", this.state.checked)
+      if(this.state.checked){
+        // search by date
+        const dateValue = document.getElementById("date-search").value;
+        let dateRegex = new RegExp(
+          "^([0-9]){1,8}$"
+        )
+        if(dateRegex.test(dateValue)){
+          this.setState({
+            activePage: 1,
+            dateKeyword: dateValue,
+            search:true,
+          })
+          this.getTotalPages()
+          this.setState({search: false})
+        }else{
+          notification.warning({
+            top: 48,
+            duration: 6,
+            message: "提醒",
+            description: "输入日期应不超过8个字符，且仅支持数字",
+          });
+        }
+      }else{
+        // search by patient
+        const patientValue = document.getElementById("patient-search").value;
+        let patientRegex = new RegExp(
+          "^([a-zA-Z0-9_#]){1,35}$"
+        );
+        if(patientRegex.test(patientValue)){
+          this.setState({
+            activePage: 1,
+            pidKeyword: patientValue,
+            search: true,
+          })
+          this.getTotalPages()
+          this.setState({search: false})
+        }else{
+          notification.warning({
+            top: 48,
+            duration: 6,
+            message: "提醒",
+            description: "病人ID不超过32个字符，且仅支持字母、数字、\"#\"和\"_\"",
+          });
+        }
       }
+      // let regex = new RegExp(
+      //   "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_#]){1,36}$"
+      // );
     }
   }
 
@@ -240,6 +267,7 @@ export class SearchPanel extends Component {
   }
 
   handleCheckbox(e) {
+    // console.log("handle check box", this.state)
     this.setState({
       checked: !this.state.checked,
       pidKeyword: "",
@@ -293,6 +321,34 @@ export class SearchPanel extends Component {
       this.setState({ chooseQueue: "不限队列" });
     } else {
       this.setState({ chooseQueue: text });
+    }
+  }
+  getQueueSearchChange(e,data){
+    // console.log('getQueueSearchChange', e, data)
+    const text = data.searchQuery
+    let textReg = new RegExp(
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}"
+    )
+    // console.log("getQueueSearchChange", text, textReg.test(text))
+    if(text.length > 0 && !textReg.test(text) && !this.state.queueSearchHasError){
+      notification.warning({
+        top: 48,
+        duration: 4,
+        message: "提醒",
+        description: "队列名称不超过12个字符，且仅支持字母、数字、中文和下划线",
+      });
+      this.setState({
+        queueSearchHasError: true
+      })
+      if(queueSearchErrorTimer){
+        clearTimeout(queueSearchErrorTimer)
+      }
+      queueSearchErrorTimer = setTimeout(()=>{this.setState({queueSearchHasError: false})}, 4000)
+    }
+    if(textReg.test(text) || text.length === 0){
+      this.setState({
+        queueSearchHasError: false
+      })
     }
   }
   left(e) {
@@ -374,6 +430,7 @@ export class SearchPanel extends Component {
                   selection
                   options={this.state.searchQueue}
                   onChange={this.getQueueIds.bind(this)}
+                  onSearchChange={this.getQueueSearchChange.bind(this)}
                 ></Dropdown>
               </Grid.Row>
               <Grid.Row columns={7}>
@@ -446,7 +503,7 @@ export class SearchPanel extends Component {
                   icon="user"
                   iconPosition="left"
                   placeholder="病人ID"
-                  maxLength={35}
+                  // maxLength={35}
                   disabled={this.state.checked}
                 />
 
@@ -466,7 +523,7 @@ export class SearchPanel extends Component {
                   icon="calendar"
                   iconPosition="left"
                   placeholder="检查时间"
-                  maxLength={8}
+                  // maxLength={8}
                   disabled={!this.state.checked}
                 />
               </div>

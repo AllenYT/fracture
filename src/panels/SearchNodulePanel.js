@@ -823,6 +823,8 @@ export class SearchNodulePanel extends Component {
   handleInputChange(e) {
     const value = e.currentTarget.value;
     const name = e.currentTarget.name;
+    console.log('handleInputChange', value)
+
     if (name === "left") {
       this.left = value;
     } else if (name === "right") {
@@ -831,21 +833,29 @@ export class SearchNodulePanel extends Component {
   }
 
   handleAddDiameters(e) {
-    console.log("add", this.left);
-    console.log("add", this.right);
+    let leftFloat = this.left
+    let rightFloat = this.right
+    if(!leftFloat){
+      leftFloat = 0
+    }
+    if(!rightFloat && rightFloat !== 0){
+      rightFloat = 50
+    }
+    console.log("add", this.left, leftFloat);
+    console.log("add", this.right, rightFloat);
     if (
-      parseFloat(this.left) < parseFloat(this.right) &&
-      parseFloat(this.left) > 0.0 &&
-      parseFloat(this.right) > 0.0 &&
-      parseFloat(this.right) < 50.0
+      parseFloat(leftFloat) < parseFloat(rightFloat) &&
+      parseFloat(leftFloat) >= 0 &&
+      parseFloat(rightFloat) >= 0 &&
+      parseFloat(rightFloat) <= 50
     ) {
-      nums[this.left + "cm-" + this.right + "cm"] =
-        this.left + "cm-" + this.right + "cm";
+      nums[leftFloat + "cm-" + rightFloat + "cm"] =
+      leftFloat + "cm-" + rightFloat + "cm";
       this.setState((state, props) => ({
         diameterContainer:
           state.diameterContainer === "0_5"
-            ? this.left + "_" + this.right
-            : state.diameterContainer + "@" + this.left + "_" + this.right,
+            ? leftFloat + "_" + rightFloat
+            : state.diameterContainer + "@" + leftFloat + "_" + rightFloat,
         activePage: "1",
       }));
     } else {
@@ -861,7 +871,7 @@ export class SearchNodulePanel extends Component {
     let text = document.getElementById("inputQueue").value;
     console.log("text", text);
     let regex = new RegExp(
-      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,20}$"
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}$"
     );
     // if (text !== "" && regex.test(text) && this.state.totalResults > 0)
     if (text !== "" && regex.test(text)) {
@@ -926,7 +936,7 @@ export class SearchNodulePanel extends Component {
         top: 48,
         duration: 6,
         message: "提醒",
-        description: "队列名称仅支持中文、字母、数字和下划线",
+        description: "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
       });
     }
   }
@@ -1304,7 +1314,7 @@ export class SearchNodulePanel extends Component {
               <Input
                 id="inputQueue"
                 placeholder="请输入队列名称"
-                maxLength={12}
+                // maxLength={12}
               ></Input>
               <em>&nbsp;&nbsp;&nbsp;&nbsp;</em>
               {this.state.load === true ? (

@@ -202,7 +202,8 @@ class SubList extends Component {
               <td>{newValue[1]}</td>
               <td>{newValue[2]}</td>
               <td style={{ textAlign: 'right' }}>
-                <span className="display-right">共{len}次检查</span>
+                {/* <span className="display-right">共{len}次检查</span> */}
+                共{len}次检查
               </td>
             </tr>
             {/* } */}

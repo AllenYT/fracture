@@ -4,6 +4,7 @@ import { notification } from 'antd'
 import axios from 'axios'
 import qs from 'qs'
 import '../css/spinner.css'
+import '../css/mainList.css'
 import SubList from './SubList'
 import { string } from 'postcss-selector-parser'
 import ReactHtmlParser from 'react-html-parser'
@@ -169,11 +170,12 @@ class MainList extends Component {
                         data-id={patientId}
                         // name={newValue}
                         content={
-                          <tr>
-                            <td>{newValue[0]}</td>
-                            <td>{newValue[1]}</td>
-                            <td>{newValue[2]}</td>
-                          </tr>
+                          <div className="main-list-menu-item">
+                            <div className="main-list-menu-item-one" >{newValue[0]}</div>
+                            <div className="main-list-menu-item-two" >{newValue[1]}</div>
+                            <div className="main-list-menu-item-three" >{newValue[2]}</div>
+                          </div>
+                          
                         }></Menu.Item>
                     )
                   })}
@@ -200,13 +202,13 @@ class MainList extends Component {
       return (
         <Grid centered>
           <div style={{ paddingTop: '60px' }}>
-            <div class="sk-chase">
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
+            <div className="sk-chase">
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
             </div>
           </div>
         </Grid>

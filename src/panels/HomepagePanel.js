@@ -76,6 +76,7 @@ class HomepagePanel extends Component {
     // document.getElementById("myAnnos").style.display = "none";
     document.getElementById("upload").style.display = "none";
     document.getElementById("myqueue").style.display = "none";
+    document.getElementById("myAbout").style.display = "none";
   }
 
   upload() {
@@ -320,7 +321,7 @@ class HomepagePanel extends Component {
         <Grid divided="vertically">
           <Grid.Row stretched id="homepageMenu">
             <Grid.Column width="3">
-              <Menu pointing secondary vertical size="huge" widths={3}>
+              <Menu pointing secondary vertical size="huge">
                 {/* <Menu.Item name="upload" active={activeItem === 'upload'} onClick={this.handleItemClick}>
                   上传病例
                 </Menu.Item> */}

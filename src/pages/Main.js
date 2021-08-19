@@ -242,7 +242,7 @@ class Main extends Component {
     const welcome = "欢迎您，" + this.state.name;
 
     let logButtonPlace = "";
-    console.log(window.location.pathname);
+    // console.log(window.location.pathname);
 
     const mainSearchNodule =
       localStorage.getItem("auths") !== null &&

@@ -114,12 +114,12 @@ class AdminManagePanel extends Component {
     const message = {}
     let userRegex = new RegExp('^[a-zA-Z]{1}[a-zA-Z0-9]*$')
     let paswdRegex = new RegExp('^[a-zA-Z0-9]+$')
-    if (!username || username.length <= 12 || username.length <= 4 || !userRegex.test(username)) {
+    if (!username || username.length > 12 || username.length < 4 || !userRegex.test(username)) {
       console.log('username length error')
       message.messageVisible = true
       message.messageType = 'failed'
       message.messageHeader = '用户名格式不符'
-      message.messageContent = '用户名需要是长度大于等于4位小于等于16位，只包含字母和数字，且以字母开头的字符串'
+      message.messageContent = '用户名为长度不少于4、不超过12位的字符，并仅支持字母、数字，且需以字母开头'
       return message
     } else if (password !== valPassword) {
       console.log('two time password not match erro')
@@ -128,12 +128,12 @@ class AdminManagePanel extends Component {
       message.messageHeader = '两次密码不匹配'
       message.messageContent = '两次密码不匹配'
       return message
-    } else if (!password || password.length >= 16 || password.length <= 6 || !paswdRegex.test(password)) {
+    } else if (!password || password.length > 16 || password.length < 6 || !paswdRegex.test(password)) {
       console.log('password length error')
       message.messageVisible = true
       message.messageType = 'failed'
       message.messageHeader = '密码格式不符'
-      message.messageContent = '密码需要是大于等于6位小于等于16位，只包含字母和数字的字符串'
+      message.messageContent = '密码为长度不少于6、不超过16位的字符，并仅支持字母、数字'
       return message
     } else if (!role) {
       console.log('not choose role error')
@@ -428,6 +428,8 @@ class AdminManagePanel extends Component {
     let resultOrderBy = ''
     const orderBy = this.state.orderBy
     const orderByList = orderBy.split(',')
+    let firstOrderBy = ''
+    let remainOrderByList = [] 
     for (let i = 0; i < orderByList.length; i++) {
       const orderByItem = orderByList[i]
       const orderByItemList = orderByItem.split(' ')
@@ -437,12 +439,15 @@ class AdminManagePanel extends Component {
         } else {
           orderByItemList[1] = 'asc'
         }
+        firstOrderBy = orderByItemList.join(' ')
+      }else{
+        remainOrderByList.push(orderByItem)
       }
-      if (i === orderByList.length - 1) {
-        resultOrderBy += orderByItemList[0] + ' ' + orderByItemList[1]
-      } else {
-        resultOrderBy += orderByItemList[0] + ' ' + orderByItemList[1] + ','
-      }
+    }
+    if(remainOrderByList.length > 0){
+      resultOrderBy = firstOrderBy + ',' + remainOrderByList.join(',')
+    }else{
+      resultOrderBy = firstOrderBy
     }
     this.setState({
       orderBy: resultOrderBy,

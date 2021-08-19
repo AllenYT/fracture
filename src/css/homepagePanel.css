@@ -51,7 +51,10 @@
   background-color: rgba(0, 0, 0, 0);
   cursor: pointer;
 }
-
+#myAbout{
+  margin: auto;
+  width: 1000px;
+}
 @keyframes neno {
   from {
     text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #228dff,
