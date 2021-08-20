@@ -131,7 +131,7 @@ export class SearchPanel extends Component {
         }
         const dateValue = document.getElementById("date-search").value;
         let dateRegex = new RegExp(
-          "^([0-9]){1,8}$"
+          "^([0-9]){0,8}$"
         )
         if(dateRegex.test(dateValue)){
           this.setState({
@@ -156,7 +156,7 @@ export class SearchPanel extends Component {
         }
         const patientValue = document.getElementById("patient-search").value;
         let patientRegex = new RegExp(
-          "^([a-zA-Z0-9_#]){1,35}$"
+          "^([a-zA-Z0-9_#]){0,35}$"
         );
         if(patientRegex.test(patientValue)){
           this.setState({
