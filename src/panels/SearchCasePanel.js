@@ -115,9 +115,12 @@ export class SearchPanel extends Component {
   }
 
   onKeyDown(event) {
-    // console.log('enter',event.which)
+    // console.log('enter')
     if (event.which === 13) {
-      console.log("checked", this.state.checked)
+      if(event.path.length > 2 && event.path[1].id === 'queueDropdown'){
+        return
+      }
+      // console.log("checked", this.state.checked)
       if(this.state.checked){
         // search by date
         const dateValue = document.getElementById("date-search").value;
@@ -331,12 +334,6 @@ export class SearchPanel extends Component {
     )
     // console.log("getQueueSearchChange", text, textReg.test(text))
     if(text.length > 0 && !textReg.test(text) && !this.state.queueSearchHasError){
-      notification.warning({
-        top: 48,
-        duration: 4,
-        message: "提醒",
-        description: "队列名称不超过12个字符，且仅支持字母、数字、中文和下划线",
-      });
       this.setState({
         queueSearchHasError: true
       })
@@ -344,6 +341,12 @@ export class SearchPanel extends Component {
         clearTimeout(queueSearchErrorTimer)
       }
       queueSearchErrorTimer = setTimeout(()=>{this.setState({queueSearchHasError: false})}, 4000)
+      notification.warning({
+        top: 48,
+        duration: 4,
+        message: "提醒",
+        description: "队列名称仅支持字母、数字、中文和下划线",
+      });
     }
     if(textReg.test(text) || text.length === 0){
       this.setState({
