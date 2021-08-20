@@ -170,7 +170,7 @@ class SubList extends Component {
     if (this.props.type === 'date') {
       icon = 'user'
     }
-    console.log('subList', subList)
+    // console.log('subList', subList)
     for (const subKey in subList) {
       const studyAry = subList[subKey]
       console.log('studyAry', studyAry)

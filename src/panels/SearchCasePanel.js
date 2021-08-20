@@ -117,9 +117,9 @@ export class SearchPanel extends Component {
   }
 
   onKeyDown(event) {
-    // console.log('enter')
+    console.log('enter', event)
     if (event.which === 13) {
-      if(event.path.length > 2 && event.path[1].id === 'queueDropdown'){
+      if(event.path.length > 1 && event.path[0].id === 'queueDropdown'){
         return
       }
       // console.log("checked", this.state.checked)
@@ -236,13 +236,14 @@ export class SearchPanel extends Component {
           headers,
         })
         .then((response) => {
+          // console.log("getTotalPages buxian response", response)
           const data = response.data;
           if (data.status !== "okay") {
             alert("错误，请联系管理员");
             window.location.href = "/";
           } else {
             const totalPage = data.count;
-            console.log(totalPage);
+            console.log("totalPage", totalPage);
             this.setState({ totalPage: totalPage });
           }
         })
@@ -262,6 +263,7 @@ export class SearchPanel extends Component {
       axios
         .post(this.config.record.getTotalPagesForSubset, qs.stringify(params))
         .then((response) => {
+          // console.log("getTotalPages qita response", response)
           const data = response.data;
           const totalPage = data.count;
           console.log("totalPage", totalPage);
@@ -459,7 +461,6 @@ export class SearchPanel extends Component {
     const options = this.state.searchQueue.map((item, index)=>{
       return <Option value={item.value}>{item.text}</Option>
     })
-    console.log("searchQueue", options)
 
     return (
       <Grid className="banner">

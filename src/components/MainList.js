@@ -51,6 +51,7 @@ class MainList extends Component {
       axios
         .post(this.config.record.getMainList, qs.stringify(params), { headers })
         .then((response) => {
+          console.log("getMainListForSubset", response.data)
           const data = response.data
           if (data.status === 'okay') {
             const mainList = data.mainList
@@ -81,6 +82,7 @@ class MainList extends Component {
         .post(this.config.record.getMainListForSubset, qs.stringify(params))
         .then((response) => {
           const data = response.data
+          console.log("getMainListForSubset subset", response.data)
           if (data.status === 'okay') {
             const mainList = data.mainList
             if (mainList.length === 0) {
