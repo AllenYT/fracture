@@ -318,6 +318,7 @@ export class SearchPanel extends Component {
   }
 
   getQueueIds(e) {
+    console.log('getQueueIds', e)
     let text = e.currentTarget.innerHTML.split(">")[1].split("<")[0];
     console.log("text", text);
     if (text === "不限队列" || text === "") {
@@ -330,7 +331,7 @@ export class SearchPanel extends Component {
     // console.log('getQueueSearchChange', e, data)
     const text = data.searchQuery
     let textReg = new RegExp(
-      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}"
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}$"
     )
     // console.log("getQueueSearchChange", text, textReg.test(text))
     if(text.length > 0 && !textReg.test(text) && !this.state.queueSearchHasError){
@@ -345,7 +346,7 @@ export class SearchPanel extends Component {
         top: 48,
         duration: 4,
         message: "提醒",
-        description: "队列名称仅支持字母、数字、中文和下划线",
+        description: "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
       });
     }
     if(textReg.test(text) || text.length === 0){
