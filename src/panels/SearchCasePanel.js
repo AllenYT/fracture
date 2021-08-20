@@ -52,6 +52,7 @@ export class SearchPanel extends Component {
     this.handleCheckbox = this.handleCheckbox.bind(this);
     this.startDownload = this.startDownload.bind(this);
     this.getQueue = this.getQueue.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
     this.left = this.left.bind(this);
     this.right = this.right.bind(this);
   }
@@ -59,11 +60,11 @@ export class SearchPanel extends Component {
   componentDidMount() {
     this.getTotalPages();
     this.getQueue();
-    document.addEventListener("keydown", this.onKeyDown.bind(this));
+    window.addEventListener("keydown", this.onKeyDown)
   }
 
   componentWillUnmount() {
-    document.removeEventListener("keydown", this.onKeyDown.bind(this));
+    window.removeEventListener("keydown", this.onKeyDown)
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -117,7 +118,7 @@ export class SearchPanel extends Component {
   }
 
   onKeyDown(event) {
-    console.log('enter', event)
+    // console.log('enter', event)
     if (event.which === 13) {
       if(event.path.length > 1 && event.path[0].id === 'queueDropdown'){
         return
@@ -125,6 +126,9 @@ export class SearchPanel extends Component {
       // console.log("checked", this.state.checked)
       if(this.state.checked){
         // search by date
+        if(!document.getElementById("date-search")){
+          return
+        }
         const dateValue = document.getElementById("date-search").value;
         let dateRegex = new RegExp(
           "^([0-9]){1,8}$"
@@ -147,6 +151,9 @@ export class SearchPanel extends Component {
         }
       }else{
         // search by patient
+        if(!document.getElementById("patient-search")){
+          return
+        }
         const patientValue = document.getElementById("patient-search").value;
         let patientRegex = new RegExp(
           "^([a-zA-Z0-9_#]){1,35}$"
@@ -328,8 +335,9 @@ export class SearchPanel extends Component {
     }
   }
   onSearchQueue(val){
+    console.log("onSearchQueue", val)
     let textReg = new RegExp(
-      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}$"
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_']){1,12}$"
     )
     // console.log("getQueueSearchChange", text, textReg.test(text))
     if(val.length > 0 && !textReg.test(val) && !this.state.queueSearchHasError){
@@ -637,4 +645,4 @@ export class SearchPanel extends Component {
   }
 }
 
-export default withRouter(SearchPanel);
+export default SearchPanel;
