@@ -9,7 +9,7 @@ import {
   Header,
   Dropdown,
 } from "semantic-ui-react";
-import { notification } from "antd";
+import { notification, Select } from "antd";
 import MainList from "../components/MainList";
 import "../css/searchCasePanel.css";
 import axios from "axios";
@@ -19,6 +19,8 @@ import { withRouter } from "react-router-dom";
 // import Info from '../components/Info'
 import LowerAuth from "../components/LowerAuth";
 
+
+const {Option} = Select
 const style = {
   textAlign: "center",
   marginTop: "300px",
@@ -316,16 +318,53 @@ export class SearchPanel extends Component {
         console.log(err);
       });
   }
-
-  getQueueIds(e) {
-    console.log('getQueueIds', e)
-    let text = e.currentTarget.innerHTML.split(">")[1].split("<")[0];
-    console.log("text", text);
-    if (text === "不限队列" || text === "") {
+  onChangeQueue(value){
+    if (value === "不限队列" || value === "") {
       this.setState({ chooseQueue: "不限队列" });
     } else {
-      this.setState({ chooseQueue: text });
+      this.setState({ chooseQueue: value });
     }
+  }
+  onSearchQueue(val){
+    let textReg = new RegExp(
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}$"
+    )
+    // console.log("getQueueSearchChange", text, textReg.test(text))
+    if(val.length > 0 && !textReg.test(val) && !this.state.queueSearchHasError){
+      this.setState({
+        queueSearchHasError: true
+      })
+      if(queueSearchErrorTimer){
+        clearTimeout(queueSearchErrorTimer)
+      }
+      queueSearchErrorTimer = setTimeout(()=>{this.setState({queueSearchHasError: false})}, 4000)
+      notification.warning({
+        top: 48,
+        duration: 4,
+        message: "提醒",
+        description: "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
+      });
+    }
+    if(textReg.test(val) || val.length === 0){
+      this.setState({
+        queueSearchHasError: false
+      })
+    }
+  }
+  getQueueIds(e) {
+    console.log('getQueueIds', e)
+    let text 
+    try {
+      text = e.currentTarget.innerHTML.split(">")[1].split("<")[0];
+      console.log("text", text);
+      if (text === "不限队列" || text === "") {
+        this.setState({ chooseQueue: "不限队列" });
+      } else {
+        this.setState({ chooseQueue: text });
+      }
+    } catch (error) {
+      console.log("getQueueIds", error)
+    }    
   }
   getQueueSearchChange(e,data){
     // console.log('getQueueSearchChange', e, data)
@@ -417,6 +456,11 @@ export class SearchPanel extends Component {
     //         <Info type='1' />
     //     )
     // }
+    const options = this.state.searchQueue.map((item, index)=>{
+      return <Option value={item.value}>{item.text}</Option>
+    })
+    console.log("searchQueue", options)
+
     return (
       <Grid className="banner">
         <Grid.Row>
@@ -425,7 +469,7 @@ export class SearchPanel extends Component {
             <Grid>
               <Grid.Row></Grid.Row>
               <Grid.Row>
-                <Dropdown
+                {/* <Dropdown
                   id="queueDropdown"
                   placeholder="搜索队列"
                   search
@@ -435,7 +479,20 @@ export class SearchPanel extends Component {
                   options={this.state.searchQueue}
                   onChange={this.getQueueIds.bind(this)}
                   onSearchChange={this.getQueueSearchChange.bind(this)}
-                ></Dropdown>
+                ></Dropdown> */}
+                <Select
+                  id="queueDropdown"
+                  dropdownClassName="queue-option-item"
+                  showSearch
+                  style={{ width: 200 }}
+                  placeholder="搜索队列"
+                  // optionFilterProp="children"
+                  onChange={this.onChangeQueue.bind(this)}
+                  onSearch={this.onSearchQueue.bind(this)}
+                  notFoundContent={(<div>无队列</div>)}
+                >
+                  {options}
+                </Select>
               </Grid.Row>
               <Grid.Row columns={7}>
                 <Grid.Column floated="left">
