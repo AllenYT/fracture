@@ -373,8 +373,8 @@ class SeriesIdList extends Component {
                 <div id="model-results">{ReactHtmlParser(modelStr)}</div>
                 <h4>标注结果</h4>
                 <div id="anno-results">{ReactHtmlParser(annoStr)}</div>
-                <h4>审核结果</h4>
-                <div id="review-results">{ReactHtmlParser(reviewStr)}</div>
+                {/* <h4>审核结果</h4>
+                <div id="review-results">{ReactHtmlParser(reviewStr)}</div> */}
               </div>
             );
             break;
