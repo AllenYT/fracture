@@ -1669,247 +1669,126 @@ class CornerstoneElement extends Component {
           //   // console.log("dropDownOpen",this.state.dropDownOpen,idx)
           //   locationDropdown = <p>{dropdownText}</p>
           // } else {
-          if (idx < 6) {
-            locationDropdown = (
-              <Dropdown
-                id={placeId}
-                style={selectStyle}
-                text={dropdownText}
-                icon={null}
-                disabled={this.state.listsActiveIndex !== idx}
-                //onClick={this.handleDropdownClick.bind(this, inside.slice_idx + 1, idx)}
-                //open={this.state.dropDownOpen === idx}
-              >
-                <Dropdown.Menu>
-                  <Dropdown.Header>肺叶</Dropdown.Header>
-                  <Dropdown.Item>
-                    <Dropdown text="右肺中叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          外侧段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          内侧段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Dropdown text="右肺上叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺上叶'}>
-                          尖段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺上叶'}>
-                          后段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺上叶'}>
-                          前段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Dropdown text="右肺下叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          背段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          内基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          前基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          外基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          后基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Dropdown text="左肺上叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
-                          尖后段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
-                          前段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
-                          上舌段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
-                          下舌段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Dropdown text="左肺下叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
-                          背段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
-                          内前基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
-                          外基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
-                          后基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            )
-          } else {
-            locationDropdown = (
-              <Dropdown
-                id={placeId}
-                style={selectStyle}
-                text={dropdownText}
-                upward
-                icon={null}
-                //onClick={this.handleDropdownClick.bind(this, inside.slice_idx + 1, idx)}
-                //open={this.state.dropDownOpen === idx}
-              >
-                <Dropdown.Menu>
-                  <Dropdown.Header>肺叶</Dropdown.Header>
-                  <Dropdown.Item>
-                    <Dropdown text="右肺中叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          外侧段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          内侧段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Dropdown text="右肺上叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺上叶'}>
-                          尖段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺上叶'}>
-                          后段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺上叶'}>
-                          前段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Dropdown text="右肺下叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          背段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          内基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          前基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          外基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
-                          后基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Dropdown text="左肺上叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
-                          尖后段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
-                          前段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
-                          上舌段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
-                          下舌段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                  <Dropdown.Item>
-                    <Dropdown text="左肺下叶">
-                      <Dropdown.Menu>
-                        <Dropdown.Header>肺段</Dropdown.Header>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
-                          背段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
-                          内前基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
-                          外基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
-                          后基底段
-                        </Dropdown.Item>
-                        <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
-                          无法定位
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            )
-          }
+          locationDropdown = (
+            <Dropdown
+              id={placeId}
+              style={selectStyle}
+              text={dropdownText}
+              icon={null}
+              disabled={this.state.listsActiveIndex !== idx}
+              //onClick={this.handleDropdownClick.bind(this, inside.slice_idx + 1, idx)}
+              //open={this.state.dropDownOpen === idx}
+            >
+              <Dropdown.Menu>
+                <Dropdown.Header>肺叶</Dropdown.Header>
+                <Dropdown.Item>
+                  <Dropdown text="右肺中叶">
+                    <Dropdown.Menu>
+                      <Dropdown.Header>肺段</Dropdown.Header>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
+                        外侧段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
+                        内侧段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
+                        无法定位
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </Dropdown.Item>
+                <Dropdown.Item>
+                  <Dropdown text="右肺上叶">
+                    <Dropdown.Menu>
+                      <Dropdown.Header>肺段</Dropdown.Header>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺上叶'}>
+                        尖段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺上叶'}>
+                        后段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺上叶'}>
+                        前段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
+                        无法定位
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </Dropdown.Item>
+                <Dropdown.Item>
+                  <Dropdown text="右肺下叶">
+                    <Dropdown.Menu>
+                      <Dropdown.Header>肺段</Dropdown.Header>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
+                        背段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
+                        内基底段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
+                        前基底段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
+                        外基底段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺下叶'}>
+                        后基底段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
+                        无法定位
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </Dropdown.Item>
+                <Dropdown.Item>
+                  <Dropdown text="左肺上叶">
+                    <Dropdown.Menu>
+                      <Dropdown.Header>肺段</Dropdown.Header>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
+                        尖后段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
+                        前段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
+                        上舌段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺上叶'}>
+                        下舌段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
+                        无法定位
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </Dropdown.Item>
+                <Dropdown.Item>
+                  <Dropdown text="左肺下叶">
+                    <Dropdown.Menu>
+                      <Dropdown.Header>肺段</Dropdown.Header>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
+                        背段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
+                        内前基底段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
+                        外基底段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-左肺下叶'}>
+                        后基底段
+                      </Dropdown.Item>
+                      <Dropdown.Item onClick={this.onSelectPlace} id={placeId + '-右肺中叶'}>
+                        无法定位
+                      </Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+          )
+
           // }
 
           if (inside.malignancy === -1) {
