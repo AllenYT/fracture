@@ -7,7 +7,8 @@
         "uploadMutiply":"http://192.168.7.193:8095/data/uploadMutiply",
         "preprocess":"http://192.168.7.193:8095/preprocess/exec",
         "getMhaListForCaseId": "http://192.168.7.193:8095/data/getMhaListForCaseId",
-        "getDiskInfo":"http://192.168.7.193:8095/data/getDiskInfo"
+        "getDiskInfo":"http://192.168.7.193:8095/data/getDiskInfo",
+        "download":"http://192.168.7.193:8095/data/zip"
     },
 
     "user": {
@@ -42,7 +43,6 @@
         "getCov19List":"http://192.168.7.193:8095/covid/getCovidlist",
         "getMainListForSubset":"http://192.168.7.193:8095/record/getMainListForSubset",
         "getTotalPagesForSubset":"http://192.168.7.193:8095/record/getTotalPagesForSubset"
-
     },
 
     "draft": {
