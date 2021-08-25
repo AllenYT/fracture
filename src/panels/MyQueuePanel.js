@@ -608,21 +608,55 @@ class MyQueuePanel extends Component {
   }
 
   handleAddDiameters(e) {
-    console.log('add', this.left)
-    console.log('add', this.right)
-    if (parseFloat(this.left) < parseFloat(this.right) && parseFloat(this.left) > 0.0 && parseFloat(this.right) > 0.0 && parseFloat(this.right) < 50.0) {
-      nums[this.left + 'cm-' + this.right + 'cm'] = this.left + 'cm-' + this.right + 'cm'
+    // console.log('add', this.left)
+    // console.log('add', this.right)
+    // if (parseFloat(this.left) < parseFloat(this.right) && parseFloat(this.left) > 0.0 && parseFloat(this.right) > 0.0 && parseFloat(this.right) < 50.0) {
+    //   nums[this.left + 'cm-' + this.right + 'cm'] = this.left + 'cm-' + this.right + 'cm'
+    //   this.setState((state, props) => ({
+    //     diameterContainer: state.diameterContainer === '0_5' ? this.left + '_' + this.right : state.diameterContainer + '@' + this.left + '_' + this.right,
+    //     activePage: '1',
+    //   }))
+    // } else {
+    //   notification.warning({
+    //     top: 48,
+    //     duration: 6,
+    //     message: '提醒',
+    //     description: '直径输入范围为0-50cm且注意大小关系',
+    //   })
+    // }
+
+    let leftFloat = this.left
+    let rightFloat = this.right
+    if(!leftFloat){
+      leftFloat = 0
+    }
+    if(!rightFloat && rightFloat !== 0){
+      rightFloat = 50
+    }
+    console.log("add", this.left, leftFloat);
+    console.log("add", this.right, rightFloat);
+    if (
+      parseFloat(leftFloat) < parseFloat(rightFloat) &&
+      parseFloat(leftFloat) >= 0 &&
+      parseFloat(rightFloat) >= 0 &&
+      parseFloat(rightFloat) <= 50
+    ) {
+      nums[leftFloat + "cm-" + rightFloat + "cm"] =
+      leftFloat + "cm-" + rightFloat + "cm";
       this.setState((state, props) => ({
-        diameterContainer: state.diameterContainer === '0_5' ? this.left + '_' + this.right : state.diameterContainer + '@' + this.left + '_' + this.right,
-        activePage: '1',
-      }))
+        diameterContainer:
+          state.diameterContainer === "0_5"
+            ? leftFloat + "_" + rightFloat
+            : state.diameterContainer + "@" + leftFloat + "_" + rightFloat,
+        activePage: "1",
+      }));
     } else {
       notification.warning({
         top: 48,
         duration: 6,
-        message: '提醒',
-        description: '直径输入范围为0-50cm且注意大小关系',
-      })
+        message: "提醒",
+        description: "直径输入范围为0-50cm且注意大小关系",
+      });
     }
   }
 
@@ -1065,7 +1099,7 @@ class MyQueuePanel extends Component {
                               onClose={this.setDeleteQueueModalOpen.bind(this, index, false)}
                               onOpen={this.setDeleteQueueModalOpen.bind(this, index, true)}
                               open={deleteQueueModalOpens[index]}
-                              trigger={<Icon name="trash alternate" id={value} delName={value}></Icon>}>
+                              trigger={<Icon name="trash alternate" id={value} delName={value} style={{cursor:'pointer'}}></Icon>}>
                               {/* <Modal.Header>Select a Photo</Modal.Header> */}
                               <div className={'admin-manage-log-block ' + (deleteQueueModalToggleds[index] ? 'admin-manage-log-block-toggled' : '')}>
                                 <div className={'admin-manage-log-heading'}>
@@ -1091,7 +1125,7 @@ class MyQueuePanel extends Component {
                             </Modal>
                           </Table.Cell>
                           <Table.Cell width={4}>
-                            <Icon name="caret right" data-id={value} onClick={this.toPatientList}></Icon>
+                            <Icon name="caret right" data-id={value} onClick={this.toPatientList} style={{cursor:'pointer'}}></Icon>
                           </Table.Cell>
                         </Table.Row>
                       )
