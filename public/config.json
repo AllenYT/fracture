@@ -43,7 +43,6 @@
         "getCov19List":"http://192.168.7.193:8095/covid/getCovidlist",
         "getMainListForSubset":"http://192.168.7.193:8095/record/getMainListForSubset",
         "getTotalPagesForSubset":"http://192.168.7.193:8095/record/getTotalPagesForSubset"
-
     },
 
     "draft": {

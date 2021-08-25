@@ -478,7 +478,13 @@ export class SearchNodulePanel extends Component {
     // .catch(err => {
     //     console.log(err)
     // })
-    this.nextPath("/case/" + caseId + "/" + username + "#" + noduleNo);
+    const oa = document.createElement("a");
+    oa.href = "/case/" + caseId + "/" + username + "#" + noduleNo
+    oa.setAttribute("target", "_blank");
+    oa.setAttribute("rel", "nofollow noreferrer");
+    document.body.appendChild(oa);
+    oa.click();
+    // this.nextPath();
   }
   handlePaginationChange(e, { activePage }) {
     this.setState({ activePage });
