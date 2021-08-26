@@ -811,6 +811,7 @@ class CornerstoneElement extends Component {
     console.log("dropdown", this.state.listsActiveIndex, index);
     if (index === this.state.listsActiveIndex) {
       this.setState({
+        currentIdx: currentIdx - 1,
         autoRefresh: true,
         doubleClick: false,
         dropDownOpen: index,
