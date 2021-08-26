@@ -813,7 +813,6 @@ class CornerstoneElement extends Component {
       this.setState({
         currentIdx: currentIdx - 1,
         autoRefresh: true,
-        currentIdx: currentIdx - 1,
         doubleClick: false,
         dropDownOpen: index,
       });
