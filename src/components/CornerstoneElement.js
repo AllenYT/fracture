@@ -1262,6 +1262,8 @@ class CornerstoneElement extends Component {
     // this.disableAllTools(element)
     // cornerstoneTools.addToolForElement(element,ellipticalRoi)
     // cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
+    const element = document.querySelector("#origin-canvas");
+    this.disableAllTools(element);
     this.setState({ leftButtonTools: 0, menuTools: "anno" });
   }
 
@@ -1308,6 +1310,8 @@ class CornerstoneElement extends Component {
 
   bidirectionalMeasure() {
     this.setState({ leftButtonTools: 3, menuTools: "bidirect" });
+    const element = document.querySelector("#origin-canvas");
+    this.disableAllTools(element);
     // console.log('测量')
     // const element = document.querySelector('#origin-canvas')
     // this.disableAllTools(element)
@@ -1318,6 +1322,8 @@ class CornerstoneElement extends Component {
 
   lengthMeasure() {
     this.setState({ leftButtonTools: 4, menuTools: "length" });
+    const element = document.querySelector("#origin-canvas");
+    this.disableAllTools(element);
   }
 
   featureAnalysis(idx, e) {
