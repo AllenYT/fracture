@@ -2378,6 +2378,22 @@ class DataCockpit extends Component {
       localStorage.getItem("auths") !== null &&
       JSON.parse(localStorage.getItem("auths")).indexOf("stat") > -1
     ) {
+      document.getElementById("ageTotal").style.display = "block";
+      document.getElementById("diaTotal").style.display = "block";
+      document.getElementById("diabt1").style.display = "block";
+      document.getElementById("agebt1").style.display = "block";
+      document.getElementById("glitchbt2").style.display = "block";
+      document.getElementById("diaGlitchPie").style.display = "block";
+      document.getElementById("diaSublobePie").style.display = "block";
+      document.getElementById("sublobebt2").style.display = "block";
+      document.getElementById("diaCalcifyPie").style.display = "block";
+      document.getElementById("calcifybt2").style.display = "block";
+      document.getElementById("diaGGOPie").style.display = "block";
+      document.getElementById("ggobt2").style.display = "block";
+      document.getElementById("diaNonGGOPie").style.display = "block";
+      document.getElementById("diaMixGGOPie").style.display = "block";
+      document.getElementById("nonggobt2").style.display = "block";
+      document.getElementById("mixggobt2").style.display = "block";
       this.visualize();
       document.getElementById("ageTotal").style.display = "none";
       document.getElementById("diaTotal").style.display = "none";
@@ -2397,6 +2413,7 @@ class DataCockpit extends Component {
       document.getElementById("mixggobt2").style.display = "none";
     }
   }
+
   componentDidMount() {
     // if (localStorage.getItem('token') != null) {
     if (

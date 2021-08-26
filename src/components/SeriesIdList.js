@@ -1,8 +1,13 @@
 import React, { Component } from "react";
 import { Popup, Button, Checkbox } from "semantic-ui-react";
 import ReactHtmlParser from "react-html-parser";
-import { Tooltip } from "antd";
-import { RightOutlined } from "@ant-design/icons";
+import { Tooltip, notification } from "antd";
+import {
+  RightOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  SyncOutlined,
+} from "@ant-design/icons";
 import { withRouter } from "react-router-dom";
 import axios from "axios";
 import qs from "qs";
@@ -10,7 +15,7 @@ import CurrentDraftsDisplay from "./CurrentDraftsDisplay";
 
 import "../css/seriesIdList.css";
 import { Link } from "react-router-dom/cjs/react-router-dom.min";
-import { param } from "jquery";
+// import { connect } from '_echarts@5.1.2@echarts'
 
 // const storecid = []
 class SeriesIdList extends Component {
@@ -27,6 +32,7 @@ class SeriesIdList extends Component {
     this.config = JSON.parse(localStorage.getItem("config"));
     this.storeCaseId = this.storeCaseId.bind(this);
     this.validValue = this.validValue.bind(this);
+    this.resultsUpdate = this.resultsUpdate.bind(this);
     // this.saveCart = this.saveCart.bind(this)
   }
 
@@ -34,39 +40,26 @@ class SeriesIdList extends Component {
     this.props.history.push(path);
   }
 
-  displayStudy(idName, e) {
-    if (idName === this.state.onPopupIndex) {
-      console.log("displayStudy", e.currentTarget.dataset.id);
-      // request, api, modifier
+  displayStudy(item, status, e) {
+    if (status === "ok") {
       const token = localStorage.getItem("token");
       const headers = {
         Authorization: "Bearer ".concat(token),
       };
       const params = {
-        caseId: e.currentTarget.dataset.id,
+        caseId: item["caseId"],
       };
       axios
         .post(this.config.draft.getDataPath, qs.stringify(params), { headers })
         .then((res) => {
           console.log("result from server", res.data);
           console.log("params", params);
-          // window.open('/case/' + params.caseId + '/' + res.data,'target','')
-          // this.props.history.push('/case/' + params.caseId + '/' + res.data)
           const oa = document.createElement("a");
-          let newCaseId = params.caseId.replace("#", "%23");
-          oa.href = "/case/" + newCaseId + "/" + res.data;
+          oa.href = "/case/" + params.caseId + "/" + res.data;
           oa.setAttribute("target", "_blank");
           oa.setAttribute("rel", "nofollow noreferrer");
           document.body.appendChild(oa);
-          console.log("oa", oa);
           oa.click();
-
-          // console.log('data',res.data)
-          // this.nextPath('/case/' + params.caseId + '/' + res.data)
-          // window.open('/case/' + params.caseId + '/' + res.data, '_blank')
-          // const w=window.open('about:blank');
-          // w.location.href = '/case/' + params.caseId + '/' + res.data
-          // this.nextPath('/case/' + params.caseId + '/deepln')
         })
         .catch((err) => {
           console.log(err);
@@ -74,12 +67,13 @@ class SeriesIdList extends Component {
     }
   }
 
-  storeCaseId(e, { checked, item, id }) {
-    // console.log("checked", ...arguments);
+  storeCaseId(e, { checked, value, id }) {
+    console.log("checked", checked);
+    console.log(value);
     let params = {};
-    if (checked) params = { status: "add", value: item };
+    if (checked) params = { status: "add", value: value };
     else {
-      params = { status: "del", value: item };
+      params = { status: "del", value: value };
     }
     this.props.parent.getCheckedSeries(this, params);
   }
@@ -114,16 +108,16 @@ class SeriesIdList extends Component {
     });
   }
 
-  componentDidMount() {
+  resultsUpdate() {
     const content = this.props.content;
     const token = localStorage.getItem("token");
     const headers = {
       Authorization: "Bearer ".concat(token),
     };
-    var dataValidContnt = this.state.dataValidContnt;
-    var allResults = this.state.allResults;
+    var dataValidContnt = [];
+    var allResults = [];
     for (var i = 0; i < content.length; i++) {
-      console.log("content", content[i]);
+      console.log("content", content[i]["caseId"]);
       const params = {
         caseId: content[i]["caseId"],
       };
@@ -135,6 +129,7 @@ class SeriesIdList extends Component {
             caseId: params.caseId,
             validInfo: validInfo,
           };
+          console.log("validContent", validContent);
           dataValidContnt.push(validContent);
           this.setState({ dataValidContnt: dataValidContnt });
           if (validInfo.status === "ok") {
@@ -174,22 +169,117 @@ class SeriesIdList extends Component {
                 };
                 allResults.push(resultsList);
                 this.setState({ allResults: allResults });
-                //   if (modelList.length > 0) {
-                //     // console.log(modelList)
-                //     for (var i = 0; i < modelList.length; i++) {
-                //       modelStr += '<div class="ui blue label">';
-                //       modelStr += modelList[i];
-                //       modelStr += "</div>";
-                //     }
-                //     this.setState({ modelResults: modelStr });
-                //     // console.log('模型结果',modelStr)
-                //   }
               })
               .catch((error) => {
                 console.log(error);
               });
           }
+        })
+        .catch((error) => {
+          console.log(error);
         });
+    }
+  }
+
+  componentDidMount() {
+    this.resultsUpdate();
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.content !== this.props.content) {
+      const content = nextProps.content;
+      const token = localStorage.getItem("token");
+      const headers = {
+        Authorization: "Bearer ".concat(token),
+      };
+      var dataValidContnt = [];
+      var allResults = [];
+      for (var i = 0; i < content.length; i++) {
+        console.log("content", content[i]);
+        const params = {
+          caseId: content[i]["caseId"],
+        };
+        axios
+          .post(this.config.draft.dataValid, qs.stringify(params))
+          .then((validResponse) => {
+            const validInfo = validResponse.data;
+            let validContent = {
+              caseId: params.caseId,
+              validInfo: validInfo,
+            };
+            dataValidContnt.push(validContent);
+            this.setState({ dataValidContnt: dataValidContnt });
+            if (validInfo.status === "ok") {
+              Promise.all([
+                axios.post(
+                  this.config.draft.getModelResults,
+                  qs.stringify(params),
+                  {
+                    headers,
+                  }
+                ),
+                axios.post(
+                  this.config.draft.getAnnoResults,
+                  qs.stringify(params),
+                  {
+                    headers,
+                  }
+                ),
+                axios.post(
+                  this.config.review.getReviewResults,
+                  qs.stringify(params),
+                  {
+                    headers,
+                  }
+                ),
+              ])
+                .then(([res1, res2, res3]) => {
+                  const modelList = res1.data.dataList;
+                  const annoList = res2.data.dataList;
+                  const reviewList = res3.data.dataList;
+
+                  let resultsList = {
+                    caseId: params.caseId,
+                    modelList: modelList,
+                    annoList: annoList,
+                    reviewList: reviewList,
+                  };
+                  allResults.push(resultsList);
+                  this.setState({ allResults: allResults });
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+            }
+          });
+      }
+    }
+  }
+
+  notice(valid, e) {
+    if (valid.status === "failed") {
+      if (valid.message === "Files been manipulated") {
+        notification.warning({
+          top: 48,
+          duration: 5,
+          message: "提醒",
+          description: "影像发生篡改，无法启动算法，请联系厂家技术支持工程师",
+        });
+      } else if (valid.message === "Errors occur during preprocess") {
+        notification.warning({
+          top: 48,
+          duration: 5,
+          message: "提醒",
+          description: "软件预处理出错，请联系厂家技术支持工程师",
+        });
+      } else if (valid.message === "caseId not found") {
+        notification.warning({
+          top: 48,
+          duration: 5,
+          message: "提醒",
+          description: "数据未入库，请联系厂家技术支持工程师",
+        });
+      }
     }
   }
 
@@ -207,50 +297,136 @@ class SeriesIdList extends Component {
         display: "block",
       };
     }
-    return (
-      <div>
-        {content.map((item, index) => {
-          const idName = item["caseId"] + index;
-          return (
-            <div key={index}>
-              <div className="export">
-                <Checkbox
-                  // id={idName}
-                  onChange={this.storeCaseId}
-                  item={item}
-                  checked={this.validValue(item)}
-                  style={CheckboxDis}
-                ></Checkbox>
+
+    // if (dataValidContnt.length !== 0) {
+    resultsPopup = content.map((item, index) => {
+      console.log("item", item);
+      const idName = item["caseId"] + index;
+      var popupContent = "";
+      var dataValidbyCaseId = "";
+      var modelStr = "";
+      var annoStr = "";
+      var reviewStr = "";
+      var statusIcon = "";
+      // var
+      console.log("datavalid", dataValidContnt, dataValidContnt.length);
+      for (let i = 0; i < dataValidContnt.length; i++) {
+        if (dataValidContnt[i].caseId === item["caseId"]) {
+          console.log("i", i, dataValidContnt[i].caseId, item["caseId"]);
+          dataValidbyCaseId = dataValidContnt[i].validInfo;
+          break;
+        }
+      }
+      console.log("valid", dataValidbyCaseId);
+      if (dataValidbyCaseId.status === "failed") {
+        statusIcon = (
+          <CloseCircleOutlined style={{ color: "rgba(219, 40, 40)" }} />
+        );
+        // if (dataValidbyCaseId.message === "Files been manipulated") {
+        //   notification.warning("Files been manipulated");
+        // } else if (
+        //   dataValidbyCaseId.message === "Errors occur during preprocess"
+        // ) {
+        //   notification.warning("Errors occur during preprocess");
+        // } else if (dataValidbyCaseId.message === "caseId not found") {
+        //   notification.warning("caseId not found");
+        // }
+      } else if (dataValidbyCaseId.status === "ok") {
+        statusIcon = <CheckCircleOutlined style={{ color: "#52c41a" }} />;
+        for (let i = 0; i < allResults.length; i++) {
+          console.log("allresults", allResults[i], item["caseId"]);
+          if (allResults[i].caseId === item["caseId"]) {
+            console.log("allresults", allResults[i]);
+            if (allResults[i].modelList.length > 0) {
+              for (let j = 0; j < allResults[i].modelList.length; j++) {
+                modelStr += '<div class="ui blue label">';
+                modelStr += allResults[i].modelList[j];
+                modelStr += "</div>";
+              }
+            } else {
+              modelStr += '<div class="ui blue label">';
+              modelStr += "暂无结果";
+              modelStr += "</div>";
+            }
+
+            if (allResults[i].annoList.length > 0) {
+              for (let j = 0; j < allResults[i].annoList.length; j++) {
+                annoStr += '<div class="ui blue label">';
+                annoStr += allResults[i].annoList[j];
+                annoStr += "</div>";
+              }
+            } else {
+              annoStr += '<div class="ui blue label">';
+              annoStr += "暂无结果";
+              annoStr += "</div>";
+            }
+
+            if (allResults[i].reviewList.length > 0) {
+              for (let j = 0; j < allResults[i].reviewList.length; j++) {
+                reviewStr += '<div class="ui blue label">';
+                reviewStr += allResults[i].reviewList[j];
+                reviewStr += "</div>";
+              }
+            } else {
+              reviewStr += '<div class="ui blue label">';
+              reviewStr += "暂无结果";
+              reviewStr += "</div>";
+            }
+            popupContent = (
+              <div>
+                <h4>模型结果</h4>
+                <div id="model-results">{ReactHtmlParser(modelStr)}</div>
+                <h4>标注结果</h4>
+                <div id="anno-results">{ReactHtmlParser(annoStr)}</div>
+                {/* <h4>审核结果</h4>
+                <div id="review-results">{ReactHtmlParser(reviewStr)}</div> */}
               </div>
-              <p className="sid">{item["description"]}</p>
-              <Popup
-                className={onPopupIndex === idName ? "" : "seriesId-popup"}
-                trigger={
-                  <Button
-                    size="mini"
-                    inverted
-                    color="green"
-                    data-id={item["caseId"]}
-                    icon="chevron right"
-                    onClick={this.displayStudy.bind(this, idName)}
-                    floated="right"
-                  />
-                }
-                context={this.state.contextRef}
-              >
-                <Popup.Content>
-                  <CurrentDraftsDisplay
-                    caseId={item["caseId"]}
-                    onPopupHide={this.onPopupHide.bind(this)}
-                    onPopupIndex={idName}
-                  />
-                </Popup.Content>
-              </Popup>
-            </div>
-          );
-        })}
-      </div>
-    );
+            );
+            break;
+          }
+        }
+      } else {
+        statusIcon = <SyncOutlined spin />;
+      }
+
+      return (
+        <div key={index}>
+          <div className="export">
+            <Checkbox
+              // id={idName}
+              onChange={this.storeCaseId}
+              item={item}
+              checked={this.validValue(item)}
+              style={CheckboxDis}
+            ></Checkbox>
+          </div>
+          <p className="sid">{item["description"]}</p>
+          {statusIcon}
+          <div style={{ float: "right" }}>
+            <Tooltip
+              title={popupContent}
+              placement="rightBottom"
+              color={"white"}
+              onMouseEnter={this.notice.bind(this, dataValidbyCaseId)}
+            >
+              <Button
+                onClick={this.displayStudy.bind(
+                  this,
+                  item,
+                  dataValidbyCaseId.status
+                )}
+                shape="circle"
+                icon={<RightOutlined style={{ color: "#52c41a" }} />}
+                style={{ background: "transparent" }}
+              ></Button>
+            </Tooltip>
+          </div>
+        </div>
+      );
+    });
+    // }
+
+    return <div>{resultsPopup}</div>;
   }
 }
 
