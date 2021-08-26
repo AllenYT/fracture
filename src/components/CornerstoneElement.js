@@ -812,6 +812,7 @@ class CornerstoneElement extends Component {
     if (index === this.state.listsActiveIndex) {
       this.setState({
         autoRefresh: true,
+        currentIdx: currentIdx - 1,
         doubleClick: false,
         dropDownOpen: index,
       });
