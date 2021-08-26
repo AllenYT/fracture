@@ -237,7 +237,8 @@ class SubList extends Component {
                   textAlign: "right",
                 }}
               >
-                <span className="display-right">共{len}次检查</span>
+                {/* <span className="display-right">共{len}次检查</span> */}
+                共{len}次检查
               </div>
               {/* <tr style={{ width: "100%" }}>
                 <td>

@@ -17,7 +17,7 @@
         "signoutUser": "http://192.168.7.198:8085/user/signoutUser",
         "get_sexData":" http://192.168.7.198:8085/patient/getPatientSexRatio",
         "getAuthsForUser":"http://192.168.7.198:8085/user/getAuthsForUser",
-        "getRolesForUser":"http://192.168.7.198:8085/user/getRolesForUser",
+        "getRolesForUser":"http://192.168.7.198:8095/user/getRolesForUser",
         "insertUserInfo":"http://192.168.7.198:8085/user/insertUserInfo",
         "getRemoteAddr":"http://192.168.7.198:8085/user/getRemoteAddr",
         "getUserAtPage": "http://192.168.7.198:8085/user/getUserAtpage",

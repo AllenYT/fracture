@@ -83,27 +83,31 @@
     margin-top: 10px;
     margin-bottom: 50px;
 }
-#queueDropdown{
-    background: transparent;
-    color:whitesmoke;
-    border-color: aliceblue;
+#queuestyle .ant-select{
+    color:whitesmoke !important;
+    background-color: rgba(1, 23, 46, 0.997) !important;
+    /* border: 0.5px solid whitesmoke !important; */
 }
-#queueDropdown>.ui.label{
-    background-color: transparent ;
-    color: whitesmoke;
-    border: 0.5px solid whitesmoke;
-  }
-  
-#queueDropdown> div > .item{
-    /* color: #2af270; */
-    color:whitesmoke;
-    background: rgba(1, 23, 46, 0.997);
-    border: 0.5px solid whitesmoke;
-  }
-
-#queueDropdown> .search.icon{
-    color:#2af270;
-    top:0.5em;
+#queuestyle .ant-select-selector{
+    background-color: rgba(1, 23, 46, 0.997) !important;
+}
+#queuestyle .ant-select-arrow{
+    color:whitesmoke !important;
+}
+.queue-option-item{
+    background-color: rgba(1, 23, 46, 0.997) !important;
+}
+.queue-option-item .ant-select-item-option{
+    color:whitesmoke !important;
+}
+.queue-option-item .ant-select-item-option-active{
+    background-color: rgba(30, 43, 76, 0.997) !important;
+}
+.queue-option-item .ant-select-item-option-selected{
+    background-color: rgba(50, 63, 96, 0.997) !important;
+}
+.queue-option-item .ant-select-item-empty{
+    color:whitesmoke !important;
 }
 
 #patient-search {

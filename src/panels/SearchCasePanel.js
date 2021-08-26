@@ -1,27 +1,20 @@
-import React, { Component } from "react";
-import {
-  Pagination,
-  Input,
-  Grid,
-  Checkbox,
-  Button,
-  Icon,
-  Header,
-  Dropdown,
-} from "semantic-ui-react";
-import MainList from "../components/MainList";
-import "../css/searchCasePanel.css";
-import axios from "axios";
-import Statistics from "../components/Statistics";
-import qs from "qs";
-import { withRouter } from "react-router-dom";
+import React, { Component } from 'react'
+import { Pagination, Input, Grid, Checkbox, Button, Icon, Header, Dropdown } from 'semantic-ui-react'
+import { notification, Select } from 'antd'
+import MainList from '../components/MainList'
+import '../css/searchCasePanel.css'
+import axios from 'axios'
+import Statistics from '../components/Statistics'
+import qs from 'qs'
 // import Info from '../components/Info'
-import LowerAuth from "../components/LowerAuth";
+import LowerAuth from '../components/LowerAuth'
 
+const { Option } = Select
 const style = {
   textAlign: "center",
   marginTop: "300px",
 };
+let queueSearchErrorTimer = null
 
 export class SearchPanel extends Component {
   constructor(props) {
@@ -50,16 +43,17 @@ export class SearchPanel extends Component {
     this.getQueue = this.getQueue.bind(this);
     this.left = this.left.bind(this);
     this.right = this.right.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this)
   }
 
   componentDidMount() {
     this.getTotalPages();
     this.getQueue();
-    document.addEventListener("keydown", this.onKeyDown.bind(this));
+    document.addEventListener("keydown", this.onKeyDown);
   }
 
   componentWillUnmount() {
-    document.removeEventListener("keydown", this.onKeyDown.bind(this));
+    document.removeEventListener("keydown", this.onKeyDown);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -115,17 +109,57 @@ export class SearchPanel extends Component {
   onKeyDown(event) {
     // console.log('enter',event.which)
     if (event.which === 13) {
-      const patientValue = document.getElementById("patient-search").value;
-      const dataValue = document.getElementById("date-search").value;
-      this.setState({
-        activePage: 1,
-        pidKeyword: patientValue,
-        dateKeyword: dataValue,
-        search: true,
-        activePage: 1,
-      });
-      this.getTotalPages();
-      this.setState({ search: false });
+      if (event.path.length > 1 && event.path[0].id === 'queueDropdown') {
+        return
+      }
+      // console.log("checked", this.state.checked)
+      if (this.state.checked) {
+        // search by date
+        if (!document.getElementById('date-search')) {
+          return
+        }
+        const dateValue = document.getElementById('date-search').value
+        let dateRegex = new RegExp('^([0-9]){0,8}$')
+        if (dateRegex.test(dateValue)) {
+          this.setState({
+            activePage: 1,
+            dateKeyword: dateValue,
+            search: true,
+          })
+          this.getTotalPages()
+          this.setState({ search: false })
+        } else {
+          notification.warning({
+            top: 48,
+            duration: 6,
+            message: '提醒',
+            description: '输入日期应不超过8个字符，且仅支持数字',
+          })
+        }
+      } else {
+        // search by patient
+        if (!document.getElementById('patient-search')) {
+          return
+        }
+        const patientValue = document.getElementById('patient-search').value
+        let patientRegex = new RegExp('^([a-zA-Z0-9_#]){0,35}$')
+        if (patientRegex.test(patientValue)) {
+          this.setState({
+            activePage: 1,
+            pidKeyword: patientValue,
+            search: true,
+          })
+          this.getTotalPages()
+          this.setState({ search: false })
+        } else {
+          notification.warning({
+            top: 48,
+            duration: 6,
+            message: '提醒',
+            description: '病人ID不超过32个字符，且仅支持字母、数字、"#"和"_"',
+          })
+        }
+      }
     }
   }
 
@@ -272,16 +306,50 @@ export class SearchPanel extends Component {
         console.log(err);
       });
   }
-
-  getQueueIds(e) {
-    let text = e.currentTarget.innerHTML.split(">")[1].split("<")[0];
-    console.log("text", text);
-    if (text === "不限队列" || text === "") {
-      this.setState({ chooseQueue: "不限队列" });
+  onChangeQueue(value) {
+    console.log('queue', value)
+    if (value === '不限队列' || value === '') {
+      this.setState({ chooseQueue: '不限队列' })
     } else {
-      this.setState({ chooseQueue: text });
+      this.setState({ chooseQueue: value })
     }
   }
+  onSearchQueue(val) {
+    console.log('onSearchQueue', val)
+    let textReg = new RegExp("^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_']){1,12}$")
+    // console.log("getQueueSearchChange", text, textReg.test(text))
+    if (val.length > 0 && !textReg.test(val) && !this.state.queueSearchHasError) {
+      this.setState({
+        queueSearchHasError: true,
+      })
+      if (queueSearchErrorTimer) {
+        clearTimeout(queueSearchErrorTimer)
+      }
+      queueSearchErrorTimer = setTimeout(() => {
+        this.setState({ queueSearchHasError: false })
+      }, 4000)
+      notification.warning({
+        top: 48,
+        duration: 4,
+        message: '提醒',
+        description: '队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线',
+      })
+    }
+    if (textReg.test(val) || val.length === 0) {
+      this.setState({
+        queueSearchHasError: false,
+      })
+    }
+  }
+  // getQueueIds(e) {
+  //   let text = e.currentTarget.innerHTML.split(">")[1].split("<")[0];
+  //   console.log("text", text);
+  //   if (text === "不限队列" || text === "") {
+  //     this.setState({ chooseQueue: "不限队列" });
+  //   } else {
+  //     this.setState({ chooseQueue: text });
+  //   }
+  // }
   left(e) {
     if (this.state.activePageQueue > 1) {
       this.setState((state, props) => ({
@@ -344,6 +412,10 @@ export class SearchPanel extends Component {
     //         <Info type='1' />
     //     )
     // }
+    const options = this.state.searchQueue.map((item, index) => {
+      return <Option value={item.value}>{item.text}</Option>
+    })
+
     return (
       <Grid className="banner">
         <Grid.Row>
@@ -352,16 +424,19 @@ export class SearchPanel extends Component {
             <Grid>
               <Grid.Row></Grid.Row>
               <Grid.Row>
-                <Dropdown
+                <Select
                   id="queueDropdown"
+                  dropdownClassName="queue-option-item"
+                  showSearch
+                  style={{ width: 200 }}
                   placeholder="搜索队列"
-                  search
-                  icon="search"
-                  text={this.state.chooseQueue}
-                  selection
-                  options={this.state.searchQueue}
-                  onChange={this.getQueueIds.bind(this)}
-                ></Dropdown>
+                  // optionFilterProp="children"
+                  value={this.state.chooseQueue}
+                  onChange={this.onChangeQueue.bind(this)}
+                  onSearch={this.onSearchQueue.bind(this)}
+                  notFoundContent={<div>无队列</div>}>
+                  {options}
+                </Select>
               </Grid.Row>
               <Grid.Row columns={7}>
                 <Grid.Column floated="left">
@@ -505,4 +580,4 @@ export class SearchPanel extends Component {
   }
 }
 
-export default withRouter(SearchPanel);
+export default SearchPanel;

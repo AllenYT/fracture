@@ -15,6 +15,7 @@ import Hammer from 'hammerjs'
 import * as cornerstoneWadoImageLoader from 'cornerstone-wado-image-loader'
 import { withRouter } from 'react-router-dom'
 import { Grid, Icon, Button, Accordion, Modal, Dropdown, Tab, Image, Menu, Label, Header, List, Popup, Table, Sidebar, Loader, Divider, Form, Card } from 'semantic-ui-react'
+import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
 import '../css/cornerstone.css'
 import qs from 'qs'
 import axios from 'axios'
@@ -362,6 +363,7 @@ class CornerstoneElement extends Component {
       canvasHeight: 840,
       //studybrowserList
       dateSeries: [],
+      dataValidContnt: [],
 
       //MiniReport
       patientName: '',
@@ -3429,13 +3431,48 @@ class CornerstoneElement extends Component {
               <div className="corner-left-block">
                 <div className="preview">
                   {dateSeries.map((serie, index) => {
+                    var validStatus = serie.validInfo.status
+                    var validInfo = serie.validInfo.message
+                    var statusIcon = ''
+                    if (validStatus === 'failed') {
+                      if (validInfo === 'Files been manipulated') {
+                        statusIcon = (
+                          <div>
+                            <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
+                            &nbsp;
+                            <p>影像发生篡改</p>
+                          </div>
+                        )
+                      } else if (validInfo === 'Errors occur during preprocess') {
+                        statusIcon = (
+                          <div>
+                            <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
+                            &nbsp;
+                            <p>软件预处理出错</p>
+                          </div>
+                        )
+                      } else if (validInfo === 'caseId not found') {
+                        statusIcon = (
+                          <div>
+                            <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
+                            &nbsp;
+                            <p>数据未入库</p>
+                          </div>
+                        )
+                      }
+                    } else if (validStatus === 'ok') {
+                      statusIcon = <CheckCircleOutlined style={{ color: '#52c41a' }} />
+                    } else {
+                      statusIcon = <SyncOutlined spin />
+                    }
                     let previewId = 'preview-' + index
                     let keyId = 'key-' + index
                     // console.log('render',previewId)
                     return (
-                      <Card onClick={(e) => this.props.handleClickScreen(e, serie.href)} key={keyId}>
+                      <Card onClick={(e) => this.handleClickScreen(e, serie.href, validStatus)} key={keyId}>
                         <div className="preview-canvas" id={previewId}></div>
                         <Card.Content>
+                          {statusIcon}
                           <Card.Description>{serie.date + '\n ' + serie.Description}</Card.Description>
                         </Card.Content>
                       </Card>
@@ -6282,92 +6319,124 @@ class CornerstoneElement extends Component {
   }
 
   updateStudyBrowser(prevProps, prevState) {
-    if (prevState !== this.state) {
-      let flag = 0
-      let dateSeries = this.state.dateSeries
-      for (let j = 0; j < dateSeries.length; j++) {
-        for (let i = 0; i < dateSeries.length - j - 1; i++) {
-          if (parseInt(dateSeries[i].date) < parseInt(dateSeries[i + 1].date)) {
-            let temp = dateSeries[i]
-            dateSeries[i] = dateSeries[i + 1]
-            dateSeries[i + 1] = temp
-            flag = 1
-          }
-        }
-      }
-      if (flag === 1) {
-        this.setState({ dateSeries: dateSeries })
-      } else {
-        dateSeries.map((serie, index) => {
-          const previewId = 'preview-' + index
+    // if (prevState.dateSeries !== this.state.dateSeries) {
+    //   let flag = 0
+    //   let dateSeries = this.state.dateSeries
+    //   for (let j = 0; j < dateSeries.length; j++) {
+    //     for (let i = 0; i < dateSeries.length - j - 1; i++) {
+    //       if (parseInt(dateSeries[i].date) < parseInt(dateSeries[i + 1].date)) {
+    //         let temp = dateSeries[i]
+    //         dateSeries[i] = dateSeries[i + 1]
+    //         dateSeries[i + 1] = temp
+    //         flag = 1
+    //       }
+    //     }
+    //   }
+    //   if (flag === 1) {
+    //     this.setState({ dateSeries: dateSeries })
+    //   } else {
+    //     dateSeries.map((serie, index) => {
+    //       const previewId = 'preview-' + index
 
-          const element = document.getElementById(previewId)
-          let imageId = serie.image
-          // console.log('preview',element)
-          cornerstone.enable(element)
-          cornerstone.loadAndCacheImage(imageId).then(function (image) {
-            // console.log('cache')
-            var viewport = cornerstone.getDefaultViewportForImage(element, image)
-            viewport.voi.windowWidth = 1600
-            viewport.voi.windowCenter = -600
-            viewport.scale = 0.3
-            cornerstone.setViewport(element, viewport)
-            cornerstone.displayImage(element, image)
-          })
-        })
-      }
-    }
+    //       const element = document.getElementById(previewId)
+    //       let imageId = serie.image
+    //       // console.log('preview',element)
+    //       cornerstone.enable(element)
+    //       cornerstone.loadAndCacheImage(imageId).then(function (image) {
+    //         // console.log('cache')
+    //         var viewport = cornerstone.getDefaultViewportForImage(element, image)
+    //         viewport.voi.windowWidth = 1600
+    //         viewport.voi.windowCenter = -600
+    //         viewport.scale = 0.3
+    //         cornerstone.setViewport(element, viewport)
+    //         cornerstone.displayImage(element, image)
+    //       })
+    //     })
+    //   }
+    // }
   }
 
-  loadStudyBrowser() {
+  async loadStudyBrowser() {
     const token = localStorage.getItem('token')
+    const params = {
+      mainItem: this.state.caseId.split('_')[0],
+      type: 'pid',
+      otherKeyword: '',
+    }
     const headers = {
       Authorization: 'Bearer '.concat(token),
     }
-
-    axios
-      .post(
-        this.config.record.getSubListForMainItem_front,
-        qs.stringify({
-          mainItem: this.state.caseId.split('_')[0],
-          type: 'pid',
-          otherKeyword: '',
-        })
-      )
-      .then((response) => {
-        const data = response.data
-        console.log('data', data)
-        if (data.status !== 'okay') {
-          console.log('Not okay')
-          // window.location.href = '/'
-        } else {
-          const subList = data.subList
-          let theList = []
-          // const params={caseId:this.state.caseId}
-          Object.keys(subList).map((key, value) => {
-            // console.log('leftkey',key)
-            const seriesLst = subList[key]
-            seriesLst.map((serie, index) => {
-              Promise.all([
-                axios.post(this.config.draft.getDataPath, qs.stringify({ caseId: serie['caseId'] }), { headers }),
-                axios.post(this.config.data.getDataListForCaseId, qs.stringify({ caseId: serie['caseId'] })),
-              ]).then(([annotype, dicom]) => {
-                theList.push({
-                  date: serie['date'],
-                  caseId: serie['caseId'],
-                  Description: serie['description'],
-                  href: '/case/' + serie['caseId'].replace('#', '%23') + '/' + annotype.data,
-                  image: dicom.data[parseInt(dicom.data.length / 3)],
+    axios.post(this.config.record.getSubListForMainItem_front, qs.stringify(params)).then((response) => {
+      const data = response.data
+      // console.log("getSubListForMainItem_front request",data)
+      if (data.status !== 'okay') {
+        console.log('Not okay')
+        // window.location.href = '/'
+      } else {
+        const subList = data.subList
+        let theList = []
+        // const params={caseId:this.state.caseId}
+        Object.keys(subList).map((key, value) => {
+          // console.log('leftkey',key)
+          const seriesLst = subList[key]
+          seriesLst.map((serie, index) => {
+            Promise.all([
+              axios.post(this.config.draft.getDataPath, qs.stringify({ caseId: serie.caseId }), { headers }),
+              axios.post(this.config.data.getDataListForCaseId, qs.stringify({ caseId: serie.caseId })),
+              axios.post(
+                this.config.draft.dataValid,
+                qs.stringify({
+                  caseId: serie.caseId,
                 })
-                this.setState({ dateSeries: theList })
+              ),
+            ]).then(([annotype, dicom, dataValidRes]) => {
+              theList.push({
+                date: key,
+                caseId: serie.caseId,
+                Description: serie.description,
+                href: '/case/' + serie.caseId + '/' + annotype.data,
+                image: dicom.data[parseInt(dicom.data.length / 3)],
+                validInfo: dataValidRes.data,
               })
+              let dateSeries = theList
+              for (let j = 0; j < dateSeries.length; j++) {
+                for (let i = 0; i < dateSeries.length - j - 1; i++) {
+                  if (parseInt(dateSeries[i].date) < parseInt(dateSeries[i + 1].date)) {
+                    let temp = dateSeries[i]
+                    dateSeries[i] = dateSeries[i + 1]
+                    dateSeries[i + 1] = temp
+                  }
+                }
+              }
+              this.setState({ dateSeries: dateSeries }, () => {
+                dateSeries.map((serie, index) => {
+                  const previewId = 'preview-' + index
+                  // console.log('previewId', previewId)
+                  const element = document.getElementById(previewId)
+                  let imageId = serie.image
+                  // console.log('preview',element)
+                  cornerstone.enable(element)
+                  cornerstone.loadAndCacheImage(imageId).then(function (image) {
+                    // console.log('cache')
+                    var viewport = cornerstone.getDefaultViewportForImage(element, image)
+                    viewport.voi.windowWidth = 1600
+                    viewport.voi.windowCenter = -600
+                    viewport.scale = 0.3
+                    cornerstone.setViewport(element, viewport)
+                    cornerstone.displayImage(element, image)
+                  })
+                })
+              })
+              // resolve(theList)
             })
           })
-        }
-      })
-      .catch((error) => {
-        console.log(error)
-      })
+        })
+      }
+    })
+
+    // const getStudyListPromise = new Promise((resolve, reject) => {
+
+    // });
   }
 
   updateDisplay(prevProps, prevState) {
@@ -6673,14 +6742,14 @@ class CornerstoneElement extends Component {
   }
 
   async componentDidMount() {
-    if(!localStorage.getItem('config')){
-      await this.props.getConfigJson(process.env.PUBLIC_URL + "/config.json")
+    if (!localStorage.getItem('config')) {
+      await this.props.getConfigJson(process.env.PUBLIC_URL + '/config.json')
       this.config = this.props.config
       // localStorage.setItem('config', JSON.stringify(this.config))
-    }else{
-      this.config = JSON.parse(localStorage.getItem("config"))
+    } else {
+      this.config = JSON.parse(localStorage.getItem('config'))
     }
-    console.log("cornerstone config", this.config)
+    console.log('cornerstone config', this.config)
     this.apis = []
     window.addEventListener('resize', this.resizeScreen.bind(this))
     // this.getNoduleIfos()
@@ -8971,12 +9040,12 @@ export default connect(
     return {
       caseData: state.dataCenter.caseData,
       imageIds: state.dataCenter.imageIds,
-      config: state.config.config
+      config: state.config.config,
     }
   },
   (dispatch) => {
     return {
-      getConfigJson: url=>dispatch(getConfigJson(url)),
+      getConfigJson: (url) => dispatch(getConfigJson(url)),
       getImageIdsByCaseId: (url, caseId) => dispatch(getImageIdsByCaseId(url, caseId)),
       dispatch,
     }

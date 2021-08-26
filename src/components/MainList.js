@@ -148,16 +148,16 @@ class MainList extends Component {
               <Grid.Column width={5}>
                 <Menu pointing secondary vertical id="mainList">
                   {elements.map((value, index) => {
+                      let patientId = value["patientId"];
+                      let patientName = "";
+                      let patientSex =
+                        value["gender"] === ""
+                          ? ""
+                          : value["gender"] === "M"
+                          ? "男"
+                          : "女";
+                      let newValue = [patientId, patientName, patientSex];
                     if (this.props.type === "pid") {
-                      // let patientId = value["patientId"];
-                      // patientName = "";
-                      // patientSex =
-                      //   value["gender"] === ""
-                      //     ? ""
-                      //     : value["gender"] === "M"
-                      //     ? "男"
-                      //     : "女";
-                      // newValue = [patientId, patientName, patientSex];
                       return (
                         <Menu.Item
                           icon={icon}
@@ -169,15 +169,10 @@ class MainList extends Component {
                           data-id={value["patientId"]}
                           // name={newValue}
                           content={
-                            <div className="main-list-menu-item-content">
-                              <div className="main-list-menu-item-content-id">{value["patientId"]}</div>
-                              <div className="main-list-menu-item-content-gender">
-                                {value["gender"] === ""
-                                  ? ""
-                                  : value["gender"] === "M"
-                                  ? "男"
-                                  : "女"}
-                              </div>
+                            <div className="main-list-menu-item">
+                              <div className="main-list-menu-item-one" >{newValue[0]}</div>
+                              <div className="main-list-menu-item-two" >{newValue[1]}</div>
+                              <div className="main-list-menu-item-three" >{newValue[2]}</div>                              
                             </div>
                           }
                         ></Menu.Item>
@@ -196,7 +191,7 @@ class MainList extends Component {
                           // name={newValue}
                           content={
                             <div className="main-list-menu-item-content">
-                              <div className="main-list-menu-item-content-id">{value}</div>
+                              <div className="main-list-menu-item-one" >{value}</div>
                             </div>
                           }
                         ></Menu.Item>

@@ -66,6 +66,9 @@ input[type='range']:focus {
   height: 870px;
 }
 
+#cornerstone {
+  height:100%;
+}
 #defWindow .ui.form .field .ui.input input,
 #defWindow .ui.form .fields .field .ui.input input .wwinput {
   position: absolute;
@@ -398,12 +401,16 @@ option {
   /* box-shadow: none; */
   /* box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192); */
   padding: 20px 20px 20px 10px !important;
-}
 
+}
+.corner-contnt > .column{
+}
 /* .corner-contnt>.row.corner-row>.column{
   border: 0.1px solid #313131 !important;
 } */
-
+#cor-container{
+  height: 100%;
+}
 .accord {
   position: absolute;
 }
@@ -683,7 +690,7 @@ input:focus {
 .corner-right-block-vertical{
   display: flex;
   flex-direction: row;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
 }
 @keyframes neno {
