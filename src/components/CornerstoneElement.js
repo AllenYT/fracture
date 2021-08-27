@@ -967,30 +967,45 @@ class CornerstoneElement extends Component {
     // cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
-    this.setState({ leftButtonTools: 0, menuTools: "anno" });
+    if(this.state.leftButtonTools === 0){
+      this.setState({ leftButtonTools: -1, menuTools: ""})
+    }
+    else{
+      this.setState({ leftButtonTools: 0, menuTools: "anno" });
+    }
   }
 
   slide() {
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
-    this.setState({ leftButtonTools: 1, menuTools: "slide" });
+    if(this.state.leftButtonTools === 1){
+      this.setState({ leftButtonTools: -1, menuTools: ""})
+    }
+    else{
+      this.setState({ leftButtonTools: 1, menuTools: "slide" });
+    }
     const newCurrentIdx = this.state.currentIdx;
     //切换切片
   }
 
   wwwcCustom() {
-    this.setState({ leftButtonTools: 2, menuTools: "wwwc" });
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
-    cornerstoneTools.addToolForElement(element, wwwc);
-    cornerstoneTools.setToolActiveForElement(
-      element,
-      "Wwwc",
-      {
-        mouseButtonMask: 1, //middle mouse button
-      },
-      ["Mouse"]
-    );
+    if(this.state.leftButtonTools === 2){
+      this.setState({ leftButtonTools: -1, menuTools: ""})
+    }
+    else{
+      this.setState({ leftButtonTools: 2, menuTools: "wwwc" });
+      cornerstoneTools.addToolForElement(element, wwwc);
+      cornerstoneTools.setToolActiveForElement(
+        element,
+        "Wwwc",
+        {
+          mouseButtonMask: 1, //middle mouse button
+        },
+        ["Mouse"]
+      );
+    }
   }
 
   saveTest() {
@@ -1012,9 +1027,14 @@ class CornerstoneElement extends Component {
   }
 
   bidirectionalMeasure() {
-    this.setState({ leftButtonTools: 3, menuTools: "bidirect" });
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
+    if(this.state.leftButtonTools === 3){
+      this.setState({ leftButtonTools: -1, menuTools: ""})
+    }
+    else{
+      this.setState({ leftButtonTools: 3, menuTools: "bidirect" });
+    }
     // console.log('测量')
     // const element = document.querySelector('#origin-canvas')
     // this.disableAllTools(element)
@@ -1024,9 +1044,14 @@ class CornerstoneElement extends Component {
   }
 
   lengthMeasure() {
-    this.setState({ leftButtonTools: 4, menuTools: "length" });
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
+    if(this.state.leftButtonTools === 4){
+      this.setState({ leftButtonTools: -1, menuTools: ""})
+    }
+    else{
+      this.setState({ leftButtonTools: 4, menuTools: "length" });
+    }
   }
 
   featureAnalysis(idx, e) {

@@ -136,7 +136,7 @@ export class SearchPanel extends Component {
           return
         }
         const patientValue = document.getElementById('patient-search').value
-        let patientRegex = new RegExp('^([a-zA-Z0-9_#]){0,35}$')
+        let patientRegex = new RegExp('^([a-zA-Z0-9_#]){0,32}$')
         if (patientRegex.test(patientValue)) {
           this.setState({
             activePage: 1,
