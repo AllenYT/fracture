@@ -16,7 +16,6 @@ import * as cornerstoneWadoImageLoader from 'cornerstone-wado-image-loader'
 import { withRouter } from 'react-router-dom'
 import { Grid, Icon, Button, Accordion, Modal, Dropdown, Tab, Image, Menu, Label, Header, List, Popup, Table, Sidebar, Loader, Divider, Form, Card } from 'semantic-ui-react'
 import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
-import '../css/cornerstone.css'
 import qs from 'qs'
 import axios from 'axios'
 import { Slider, Select, Space, Checkbox, Tabs } from 'antd'
@@ -33,7 +32,7 @@ import { vec3, vec4, mat4 } from 'gl-matrix'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { connect } from 'react-redux'
-import { getConfigJson, getImageIdsByCaseId } from '../actions'
+import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId } from '../actions'
 
 import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor'
 import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper'
@@ -66,6 +65,7 @@ import { executeTask } from '../lib/taskHelper'
 
 import '../css/cornerstone.css'
 import '../css/segview.css'
+import "../css/studyBrowser.css";
 //import  'echarts/lib/chart/bar';
 //import 'echarts/lib/component/tooltip';
 //import 'echarts/lib/component/title';
@@ -359,8 +359,8 @@ class CornerstoneElement extends Component {
       currentImage: null,
       lengthBox: [],
       imageCaching: false,
-      canvasWidth: 940,
-      canvasHeight: 840,
+      canvasWidth: 0,
+      canvasHeight: 0,
       //studybrowserList
       dateSeries: [],
       dataValidContnt: [],
@@ -383,6 +383,7 @@ class CornerstoneElement extends Component {
       /*显示变量*/
       windowWidth: window.screen.width,
       windowHeight: window.screen.height,
+      bottomRowHeight: 0,
       viewerWidth: 1200,
       viewerHeight: 800,
       opTop: 46,
@@ -727,17 +728,6 @@ class CornerstoneElement extends Component {
     cornerstone.setViewport(this.element, viewport)
     this.setState({ viewport })
   }
-  // handleListClick = (e, titleProps) => {
-  //     console.log('title',titleProps)
-  //     const {index} = titleProps
-  //     console.log('index',index)
-  //     const {listsActiveIndex} = this.state
-  //     const newIndex = listsActiveIndex === index
-  //         ? -1
-  //         : index
-
-  //     this.setState({listsActiveIndex: newIndex})
-  // }
   handleDropdownClick = (currentIdx, index, e) => {
     console.log('dropdown', e.target, currentIdx, index)
     if (index === this.state.listsActiveIndex) {
@@ -827,26 +817,6 @@ class CornerstoneElement extends Component {
       this.refreshImage(false, this.state.imageIds[0], 0)
     }
   }
-
-  // nextPath(path) {
-  //     this
-  //         .props
-  //         .history
-  //         .push(path, {activeItem: 'case'})
-  // }
-
-  // toPage(text,e) {
-  //     // let doms = document.getElementsByClassName('table-row') for (let i = 0; i <
-  //     // doms.length; i ++) {     doms[i].style.backgroundColor = "white" }
-  //     // const currentIdx = event.target.text
-  //     const currentIdx=text
-  //     // const idd = event.currentTarget.dataset.id console.log(idd)
-  //     // document.getElementById(idd).style.backgroundColor = "yellow"
-  //     this.setState({
-  //         currentIdx: currentIdx - 1,
-  //         autoRefresh: true
-  //     })
-  // }
 
   toHidebox() {
     this.setState(({ showNodules }) => ({
@@ -1512,6 +1482,7 @@ class CornerstoneElement extends Component {
       CPR,
       viewerWidth,
       viewerHeight,
+      bottomRowHeight,
       displayCrosshairs,
       labelThreshold,
       paintRadius,
@@ -3031,7 +3002,9 @@ class CornerstoneElement extends Component {
 
       return (
         <div id="cornerstone">
-          <Menu className="corner-header">
+          <Grid className="corner-container">
+            <Grid.Row className="corner-top-row">
+            <Menu className="corner-header">
             <Menu.Item>
               {/* <Image src={src1} avatar size="mini" /> */}
               <a id="sys-name" href="/searchCase">
@@ -3425,8 +3398,8 @@ class CornerstoneElement extends Component {
               </Dropdown>
             </Menu.Item>
           </Menu>
-          <Grid className="corner-contnt">
-            {/* <Grid.Row className="corner-row" columns={3}> */}
+            </Grid.Row>
+            <Grid.Row className="corner-bottom-row" columns={3} style={{height: bottomRowHeight}}>
             <Grid.Column width={2}>
               <div className="corner-left-block">
                 <div className="preview">
@@ -3497,7 +3470,7 @@ class CornerstoneElement extends Component {
                   <div style={{ width: viewerWidth, height: viewerHeight }}>{panel}</div>
                 </div>
               ) : (
-                <Grid celled style={{ margin: 0 }} className="cor-containter center-viewport-panel" id="cor-container" data-aos="flip-left" data-aos-duration="1500">
+                <Grid celled style={{ margin: 0 }} className="center-viewport-panel" id="cor-container" data-aos="flip-left" data-aos-duration="1500">
                   {/* <Grid.Row columns={2} id='canvas-column' style={{height:this.state.windowHeight*37/40}}> */}
                   <Grid.Row columns={2} id="canvas-column">
                     <Grid.Column width={15} className="canvas-style" id="canvas-border">
@@ -3557,7 +3530,7 @@ class CornerstoneElement extends Component {
                 <Tab className="list-tab" panes={panes3D} data-aos="fade-left" data-aos-duration="1500" />
               ) : (
                 <div className={verticalMode ? 'corner-right-block-vertical' : 'corner-right-block-horizontal'}>
-                  <div className="nodule-card-container" data-aos="fade-down" data-aos-duration="1500">
+                  <div className={'nodule-card-container' + (verticalMode?' nodule-card-container-vertical':' nodule-card-container-horizontal')} data-aos="fade-down" data-aos-duration="1500">
                     <Tabs type="card" animated defaultActiveKey={1} size="small">
                       <TabPane tab={noduleNumTab} key="1">
                         <div
@@ -3606,7 +3579,7 @@ class CornerstoneElement extends Component {
                     </Tabs>
                   </div>
 
-                  <div id="report" style={{ height: this.state.windowHeight / 3 }} data-aos="fade-up" data-aos-duration="1500">
+                  <div id="report"  className={'report-tab-container' + (verticalMode?' report-tab-container-vertical':' report-tab-container-horizontal')} data-aos="fade-up" data-aos-duration="1500">
                     <Tab
                       menu={{
                         borderless: false,
@@ -3621,7 +3594,7 @@ class CornerstoneElement extends Component {
                 </div>
               )}
             </Grid.Column>
-            {/* </Grid.Row> */}
+            </Grid.Row>
           </Grid>
           {/* </div> */}
         </div>
@@ -5413,10 +5386,80 @@ class CornerstoneElement extends Component {
   }
 
   resizeScreen(e) {
+    // console.log("resizeScreen enter", document.body.clientWidth, document.body.clientHeight)
     this.setState({
       windowWidth: document.body.clientWidth,
       windowHeight: document.body.clientHeight,
     })
+    if(document.getElementsByClassName('corner-top-row') !== null && document.getElementsByClassName('corner-top-row').length > 0){
+      const cornerTopRow = document.getElementsByClassName('corner-top-row')[0]
+
+      const cornerTopRowHeight = cornerTopRow.clientHeight
+      const cornerBottomRowHeight = document.body.clientHeight - cornerTopRowHeight
+      this.setState({
+        bottomRowHeight: cornerBottomRowHeight
+      }, ()=>{
+        if (this.state.show3DVisualization) {
+          if (document.getElementById('segment-container') !== null) {
+            const segmentContainer = document.getElementById('segment-container')
+            const segmentContainerWidth = segmentContainer.clientWidth
+            const segmentContainerHeight = segmentContainer.clientHeight
+            // console.log('resize3DView', clientWidth, clientHeight)
+            this.resizeViewer(segmentContainerWidth, segmentContainerHeight)
+          }
+    
+          if (document.getElementsByClassName('segment-list-block') !== null && document.getElementsByClassName('segment-list-block').length > 2) {
+            const outElement = document.getElementsByClassName('segment-list-block')[0]
+            if (outElement.getElementsByTagName('tr') !== null && outElement.getElementsByTagName('tr').length > 1) {
+              const firstElement = outElement.getElementsByTagName('tr')[0]
+              const secondElement = outElement.getElementsByTagName('tr')[2]
+    
+              this.setState({
+                opTop: firstElement.clientHeight,
+                opWidth: secondElement.clientWidth,
+                opHeight: secondElement.clientHeight,
+              })
+            }
+          }
+        } else {
+          if (document.getElementById('canvas-border') !== null && document.getElementById('cor-container') !=null) {
+            const corContainer = document.getElementById('cor-container')
+            const corContainerHeight = corContainer.clientHeight
+            const canvasBorder = document.getElementById('canvas-border')
+            const canvasBorderWidth = canvasBorder.clientWidth
+            const canvasBorderHeight = canvasBorder.clientHeight
+            const canvasWidth = canvasBorderWidth - 20
+            const canvasHeight = canvasBorderHeight - 20
+            // console.log("resizeScreen", canvasBorderWidth,canvasBorderHeight,corContainerHeight)
+
+            // let report = document.getElementById('report')
+            // let list = document.getElementsByClassName('nodule-card-container')[0]
+            // report.style.height = canvasColumn.clientHeight / 3 + 'px'
+            // list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
+            if (cornerstone.getEnabledElements() && cornerstone.getEnabledElements().length > 0) {
+              let viewport = cornerstone.getViewport(this.element)
+              viewport.translation = {
+                x: 0,
+                y: 0,
+              }
+              // if (document.getElementById('origin-canvas').width > document.getElementById('origin-canvas').height) {
+              //   viewport.scale = document.getElementById('origin-canvas').width / 512
+              // } else {
+              //   viewport.scale = document.getElementById('origin-canvas').height / 512
+              // }
+              cornerstone.setViewport(this.element, viewport)
+              this.setState({
+                viewport,
+              })
+            }
+            this.setState({
+              canvasWidth,
+              canvasHeight,
+            })
+          }
+        }
+      })
+    }
     if (!this.state.showStudyList) {
       const leftPanel = document.getElementsByClassName('corner-left-block')[0]
       const width = leftPanel.clientWidth
@@ -5425,60 +5468,6 @@ class CornerstoneElement extends Component {
       }
     }
 
-    if (this.state.show3DVisualization) {
-      if (document.getElementById('segment-container') !== null) {
-        const segmentContainer = document.getElementById('segment-container')
-        const segmentContainerWidth = segmentContainer.clientWidth
-        const segmentContainerHeight = segmentContainer.clientHeight
-        // console.log('resize3DView', clientWidth, clientHeight)
-        this.resizeViewer(segmentContainerWidth, segmentContainerHeight)
-      }
-
-      if (document.getElementsByClassName('segment-list-block') !== null && document.getElementsByClassName('segment-list-block').length > 2) {
-        const outElement = document.getElementsByClassName('segment-list-block')[0]
-        if (outElement.getElementsByTagName('tr') !== null && outElement.getElementsByTagName('tr').length > 1) {
-          const firstElement = outElement.getElementsByTagName('tr')[0]
-          const secondElement = outElement.getElementsByTagName('tr')[2]
-
-          this.setState({
-            opTop: firstElement.clientHeight,
-            opWidth: secondElement.clientWidth,
-            opHeight: secondElement.clientHeight,
-          })
-        }
-      }
-    } else {
-      if (document.getElementById('canvas-border') !== null) {
-        const canvasBorder = document.getElementById('canvas-border')
-        const canvasBorderWidth = canvasBorder.clientWidth
-        const canvasBorderHeight = canvasBorder.clientHeight
-
-        // let report = document.getElementById('report')
-        // let list = document.getElementsByClassName('nodule-card-container')[0]
-        // report.style.height = canvasColumn.clientHeight / 3 + 'px'
-        // list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
-        if (cornerstone.getEnabledElements() && cornerstone.getEnabledElements().length > 0) {
-          let viewport = cornerstone.getViewport(this.element)
-          viewport.translation = {
-            x: 0,
-            y: 0,
-          }
-          if (document.getElementById('canvas').width > document.getElementById('canvas').height) {
-            viewport.scale = document.getElementById('canvas').width / 512
-          } else {
-            viewport.scale = document.getElementById('canvas').height / 512
-          }
-          cornerstone.setViewport(this.element, viewport)
-          this.setState({
-            viewport,
-          })
-        }
-        this.setState({
-          canvasWidth: canvasBorderWidth - 20,
-          canvasHeight: canvasBorderHeight - 20,
-        })
-      }
-    }
   }
 
   refreshImage(initial, imageId, newIdx) {
@@ -6319,44 +6308,9 @@ class CornerstoneElement extends Component {
   }
 
   updateStudyBrowser(prevProps, prevState) {
-    // if (prevState.dateSeries !== this.state.dateSeries) {
-    //   let flag = 0
-    //   let dateSeries = this.state.dateSeries
-    //   for (let j = 0; j < dateSeries.length; j++) {
-    //     for (let i = 0; i < dateSeries.length - j - 1; i++) {
-    //       if (parseInt(dateSeries[i].date) < parseInt(dateSeries[i + 1].date)) {
-    //         let temp = dateSeries[i]
-    //         dateSeries[i] = dateSeries[i + 1]
-    //         dateSeries[i + 1] = temp
-    //         flag = 1
-    //       }
-    //     }
-    //   }
-    //   if (flag === 1) {
-    //     this.setState({ dateSeries: dateSeries })
-    //   } else {
-    //     dateSeries.map((serie, index) => {
-    //       const previewId = 'preview-' + index
-
-    //       const element = document.getElementById(previewId)
-    //       let imageId = serie.image
-    //       // console.log('preview',element)
-    //       cornerstone.enable(element)
-    //       cornerstone.loadAndCacheImage(imageId).then(function (image) {
-    //         // console.log('cache')
-    //         var viewport = cornerstone.getDefaultViewportForImage(element, image)
-    //         viewport.voi.windowWidth = 1600
-    //         viewport.voi.windowCenter = -600
-    //         viewport.scale = 0.3
-    //         cornerstone.setViewport(element, viewport)
-    //         cornerstone.displayImage(element, image)
-    //       })
-    //     })
-    //   }
-    // }
   }
 
-  async loadStudyBrowser() {
+  loadStudyBrowser() {
     const token = localStorage.getItem('token')
     const params = {
       mainItem: this.state.caseId.split('_')[0],
@@ -6368,7 +6322,7 @@ class CornerstoneElement extends Component {
     }
     axios.post(this.config.record.getSubListForMainItem_front, qs.stringify(params)).then((response) => {
       const data = response.data
-      // console.log("getSubListForMainItem_front request",data)
+      console.log("getSubListForMainItem_front request", response)
       if (data.status !== 'okay') {
         console.log('Not okay')
         // window.location.href = '/'
@@ -6440,100 +6394,6 @@ class CornerstoneElement extends Component {
   }
 
   updateDisplay(prevProps, prevState) {
-    if (prevState.caseId !== this.state.caseId) {
-      console.log(prevState.caseId, this.state.caseId)
-      let noduleNo = -1
-      if (this.props.location.hash !== '') noduleNo = parseInt(this.props.location.hash.split('#').slice(-1)[0])
-
-      const dataParams = {
-        caseId: this.state.caseId,
-      }
-      const draftParams = {
-        caseId: this.state.caseId,
-        username: this.state.modelName,
-        // username:'deepln'
-      }
-      const readonlyParams = {
-        caseId: this.state.caseId,
-        username: this.state.username,
-        // username: this.state.modelName,
-      }
-
-      const token = localStorage.getItem('token')
-      const headers = {
-        Authorization: 'Bearer '.concat(token), //add the fun of check
-      }
-
-      if (this.state.modelName === 'origin') {
-        axios
-          .post(this.config.data.getDataListForCaseId, qs.stringify(dataParams))
-          .then((dataResponse) => {
-            cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
-              // const readonly = readonlyResponse.data.readonly === 'true'
-              console.log('image info', image.data)
-              // console.log('parse',dicomParser.parseDicom(image))
-
-              const dicomTag = image.data
-              const imageIds = dataResponse.data
-              const boxes = []
-              const draftStatus = -1
-
-              this.setState({
-                dicomTag,
-                imageIds,
-                boxes,
-                draftStatus,
-              })
-            })
-          })
-          .catch((error) => {
-            console.log(error)
-          })
-      } else {
-        // const token = localStorage.getItem('token')
-        // const headers = {
-        //     'Authorization': 'Bearer '.concat(token)//add the fun of check
-        // }
-        Promise.all([
-          axios.post(this.config.data.getDataListForCaseId, qs.stringify(dataParams)),
-          axios.post(this.config.draft.getRectsForCaseIdAndUsername, qs.stringify(draftParams)),
-          axios.post(this.config.draft.readonly, qs.stringify(readonlyParams), {
-            headers,
-          }),
-        ]).then(([dataResponse, draftResponse, readonlyResponse]) => {
-          const readonly = readonlyResponse.data.readonly === 'true'
-          console.log('readonly', readonly)
-          // const readonly = false
-          cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
-            // const readonly = readonlyResponse.data.readonly === 'true'
-            console.log('image info', image.data)
-            // console.log('parse',dicomParser.parseDicom(image))
-            const dicomTag = image.data
-            const imageIds = dataResponse.data
-            let draftStatus = -1
-            // if (!readonly)
-            draftStatus = readonlyResponse.data.status
-            let boxes = draftResponse.data
-            boxes.sort(this.sliceIdxSort('slice_idx'))
-            for (var i = 0; i < boxes.length; i++) {
-              boxes[i].nodule_no = '' + i
-              boxes[i].rect_no = 'a00' + i
-            }
-            console.log('boxidx', boxes)
-            console.log('test', dicomTag)
-            console.log('draftdata', draftResponse, draftParams)
-            console.log('dataResponse', dataResponse)
-            this.setState({
-              imageIds,
-              boxes,
-              readonly,
-              draftStatus,
-              dicomTag,
-            })
-          })
-        })
-      }
-    }
   }
 
   loadDisplay() {
@@ -6566,15 +6426,6 @@ class CornerstoneElement extends Component {
       // const headers = {
       //     'Authorization': 'Bearer '.concat(token)//add the fun of check
       // }
-      Promise.all([
-        axios.post(
-          this.config.draft.getRectsForCaseIdAndUsername,
-          qs.stringify({
-            caseId: this.state.caseId,
-            username: this.state.modelName,
-            // username:'deepln'
-          })
-        ),
         axios.post(
           this.config.draft.readonly,
           qs.stringify({
@@ -6584,18 +6435,18 @@ class CornerstoneElement extends Component {
           {
             headers,
           }
-        ),
-      ]).then(([draftResponse, readonlyResponse]) => {
+        ).then((readonlyResponse) => {
         const readonly = readonlyResponse.data.readonly === 'true'
         console.log('readonly', readonly)
+        console.log('load display request', readonlyResponse)
         // const readonly = false
         cornerstone.loadAndCacheImage(imageIds[0]).then((image) => {
-          console.log('image info', image.data)
+          // console.log('image info', image.data)
           const dicomTag = image.data
 
           let draftStatus = -1
           draftStatus = readonlyResponse.data.status
-          let boxes = draftResponse.data
+          let boxes = this.state.nodules
           console.log('boxes', boxes)
           if (boxes !== '') boxes.sort(this.sliceIdxSort('slice_idx'))
           for (var i = 0; i < boxes.length; i++) {
@@ -6606,7 +6457,7 @@ class CornerstoneElement extends Component {
 
           for (let i = 0; i < boxes.length; i++) {
             let slice_idx = boxes[i].slice_idx
-            console.log('cornerstone', slice_idx, imageIds[slice_idx])
+            // console.log('cornerstone', slice_idx, imageIds[slice_idx])
             for (let j = slice_idx - 5; j < slice_idx + 5; j++) {
               // cornerstone.loadAndCacheImage(imageIds[j])
               // if(!annoHash[this[i]]){
@@ -6617,7 +6468,6 @@ class CornerstoneElement extends Component {
               // }
             }
           }
-          console.log('boxidx', boxes)
           const annoPromises = annoImageIds.map((annoImageId) => {
             return cornerstone.loadAndCacheImage(annoImageId)
           })
@@ -6633,6 +6483,7 @@ class CornerstoneElement extends Component {
             console.log('promise', value)
             // console.log("111",promise)
           })
+
           this.refreshImage(true, imageIds[this.state.currentIdx], undefined)
 
           const params = {
@@ -6707,7 +6558,7 @@ class CornerstoneElement extends Component {
           this.setState({
             age: data.age,
             date: data.date,
-            nodules: data.nodules === undefined ? [] : data.nodules,
+            // nodules: data.nodules === undefined ? [] : data.nodules,
             patientBirth: data.patientBirth,
             patientId: data.patientID,
             patientSex: data.patientSex === 'M' ? '男' : '女',
@@ -6727,12 +6578,12 @@ class CornerstoneElement extends Component {
         })
       )
       .then((response) => {
-        // console.log('report_nodule', response.data)
+        console.log('report_nodule request', response)
         const data = response.data
         this.setState({
           age: data.age,
           date: data.date,
-          nodules: data.nodules === undefined ? [] : data.nodules,
+          // nodules: data.nodules === undefined ? [] : data.nodules,
           patientBirth: data.patientBirth,
           patientId: data.patientID,
           patientSex: data.patientSex === 'M' ? '男' : '女',
@@ -6742,6 +6593,7 @@ class CornerstoneElement extends Component {
   }
 
   async componentDidMount() {
+    console.log('componentDidMount')
     if (!localStorage.getItem('config')) {
       await this.props.getConfigJson(process.env.PUBLIC_URL + '/config.json')
       this.config = this.props.config
@@ -6774,15 +6626,17 @@ class CornerstoneElement extends Component {
 
     const caseDataIndex = _.findIndex(this.props.caseData, { caseId: this.state.caseId })
     let imageIds
+    let nodules
     if (caseDataIndex === -1) {
-      await this.props.getImageIdsByCaseId(this.config.data.getDataListForCaseId, this.state.caseId)
-      imageIds = this.props.imageIds
+      imageIds = await this.props.getImageIdsByCaseId(this.config.data.getDataListForCaseId, this.state.caseId)
+      nodules = await this.props.getNodulesByCaseId(this.config.draft.getRectsForCaseIdAndUsername, this.state.caseId, this.state.modelName)
     } else {
       imageIds = this.props.caseData[caseDataIndex].imageIds
+      nodules = this.props.caseData[caseDataIndex].nodules
     }
-
     this.setState({
       imageIds,
+      nodules
     })
     this.loadDisplay()
     this.loadStudyBrowser()
@@ -6943,12 +6797,12 @@ class CornerstoneElement extends Component {
       })
     const tubularData = [
       {
-        name: '支气管',
+        name: '血管',
         number: '未知',
         index: 14,
       },
       {
-        name: '血管',
+        name: '支气管',
         number: '未知',
         index: 5,
       },
@@ -6961,20 +6815,10 @@ class CornerstoneElement extends Component {
     //   item.order = urls[index].order
     // })
     // this.saveLobesData(lobesData)
-    axios
-      .post(
-        this.config.draft.getRectsForCaseIdAndUsername,
-        qs.stringify({
-          caseId: this.state.caseId,
-          username: this.state.modelName,
-        })
-      )
-      .then((res) => {
-        console.log('nodule request', res)
-        const data = res.data
-        const nodulesData = []
-        if (data && data.length !== 0) {
-          data.forEach((item, index) => {
+
+    const nodulesData = []
+        if (this.state.nodules && this.state.nodules.length !== 0) {
+          this.state.nodules.forEach((item, index) => {
             let position = nodulePlaces[item.place]
             let malignancyName = noduleMalignancyName[item.malignancy]
             if (!position) {
@@ -6999,7 +6843,6 @@ class CornerstoneElement extends Component {
         }
 
         this.saveNodulesData(nodulesData)
-      })
     //local test
     // const fileList = []
     // for (let i = 0; i < 282; i++) {
@@ -9039,7 +8882,7 @@ export default connect(
   (state) => {
     return {
       caseData: state.dataCenter.caseData,
-      imageIds: state.dataCenter.imageIds,
+      caseId: state.dataCenter.caseId,
       config: state.config.config,
     }
   },
@@ -9047,6 +8890,7 @@ export default connect(
     return {
       getConfigJson: (url) => dispatch(getConfigJson(url)),
       getImageIdsByCaseId: (url, caseId) => dispatch(getImageIdsByCaseId(url, caseId)),
+      getNodulesByCaseId: (url, caseId, username) => dispatch(getNodulesByCaseId(url, caseId, username)),
       dispatch,
     }
   }

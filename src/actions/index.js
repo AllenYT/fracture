@@ -9,28 +9,55 @@ export const getConfigJson = (url) => (dispatch) => {
   const success = (res) => {
     dispatch({
       type: 'RECEIVE_CONFIG_JSON',
-      config: res.data
+      config: res.data,
     })
   }
   return axios.get(url).then(success)
 }
 
 export const getImageIdsByCaseId = (url, caseId) => (dispatch) => {
-  return axios
-    .post(
-      url,
-      qs.stringify({
-        caseId,
+  return new Promise((resolve, reject) =>
+    axios
+      .post(
+        url,
+        qs.stringify({
+          caseId,
+        })
+      )
+      .then((res) => {
+        dispatch({
+          type: 'RECEIVE_IMAGE_IDS',
+          imageIds: res.data,
+          caseId,
+        })
+        resolve(res.data)
       })
-    )
-    .then((res) => {
-      dispatch({
-        type: 'RECEIVE_IMAGE_IDS',
-        imageIds: res.data,
-        caseId,
+      .catch((res) => {
+        reject(res)
       })
-    })
-    .catch((res) => {
+  )
+}
 
-    })
+export const getNodulesByCaseId = (url, caseId, username) => (dispatch) => {
+  return new Promise((resolve, reject) =>
+    axios
+      .post(
+        url,
+        qs.stringify({
+          caseId,
+          username,
+        })
+      )
+      .then((res) => {
+        dispatch({
+          type: 'RECEIVE_NODULES',
+          nodules: res.data,
+          caseId,
+        })
+        resolve(res.data)
+      })
+      .catch((res) => {
+        reject(res)
+      })
+  )
 }

@@ -19,22 +19,42 @@ const configReducer = (state = {config:null}, action) => {
     }
 }
 
-const dataCenterReducer = (state = {caseData:[], imageIds:[]}, action) => {
+const dataCenterReducer = (state = {caseData:[], caseId: null}, action) => {
+    const caseData = state.caseData
+    let caseDataIndex
     switch(action.type){
         case 'RECEIVE_IMAGE_IDS':
-            const caseData = state.caseData
-            // const caseId = action.caseId
-            const caseId = action.caseId
             const imageIds = action.imageIds
-            caseData.push({
-                caseId,
-                imageIds
-            })
+            caseDataIndex = _.findIndex(caseData,  { caseId: action.caseId })
+            if(caseDataIndex === -1){
+                caseData.push({
+                    caseId: action.caseId,
+                    imageIds
+                })
+            }else{
+                caseData[caseDataIndex].imageIds = imageIds
+            }
             // console.log('caseDataItem', caseDataItem)
             return{
                 ...state,
                 caseData,
-                imageIds: imageIds
+                caseId: action.caseId
+            }
+        case 'RECEIVE_NODULES':
+            const nodules = action.nodules
+            caseDataIndex = _.findIndex(caseData,  { caseId: action.caseId })
+            if(caseDataIndex === -1){
+                caseData.push({
+                    caseId: action.caseId,
+                    nodules
+                })
+            }else{
+                caseData[caseDataIndex].nodules = nodules
+            }
+            return {
+                ...state,
+                caseData,
+                caseId: action.caseId
             }
         default:
             return state

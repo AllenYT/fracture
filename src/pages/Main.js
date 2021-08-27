@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Menu, Dropdown, Button, Image } from "semantic-ui-react";
 import {
-  withRouter,
   BrowserRouter as Router,
   Route,
   Link,
@@ -28,7 +27,6 @@ import src3 from "../images/scu-logo.png";
 
 import HomepagePanel from "../panels/HomepagePanel";
 import preprocess from "../panels/preprocess";
-import ViewerPanel from "../panels/ViewerPanel";
 import AdminManagePanel from "../panels/AdminManagePanel";
 
 import md5 from "js-md5";
@@ -484,11 +482,10 @@ class Main extends Component {
                         <Route path='/cov19Case/' component={Cov19DisplayPanel}/> */}
             <Route path="/homepage/" component={HomepagePanel} />
             <Route path="/preprocess/" component={preprocess} />
-            <Route path="/segView/" component={ViewerPanel} />
             <Route path="/adminManage" component={AdminManagePanel} />
           </div>
           <div className="ui inverted vertical footer segment">
-            <div className="inline" style={{ verticalAlign: "middle" }}>
+            <div className="inline">
               © 2019 Sichuan University. All rights reserved
             </div>
 

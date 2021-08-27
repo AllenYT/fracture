@@ -66,9 +66,7 @@ input[type='range']:focus {
   height: 870px;
 }
 
-#cornerstone {
-  height:100%;
-}
+
 #defWindow .ui.form .field .ui.input input,
 #defWindow .ui.form .fields .field .ui.input input .wwinput {
   position: absolute;
@@ -269,6 +267,7 @@ table#nodule-table {
   border: 2px solid #d1d1d1e0;
   border-radius: 0.5em;
   padding: 10px !important;
+  height:100%;
   /* position: absolute;
   width: 1080px;
   float: left;
@@ -279,6 +278,7 @@ table#nodule-table {
 #canvas-column {
   background-color: #01172e;
   position: relative;
+  height:100%;
   /* background-image: radial-gradient(circle, black, #313131); */
 }
 
@@ -289,8 +289,8 @@ table#nodule-table {
   border-bottom: 1px solid;
   /* border-left: 1px; */
   border-image: -webkit-linear-gradient(#021637, white) 1 10 1;
-  　border-image: -moz-linear-gradient(#021637, white) 1 10 1;
-  　border-image: linear-gradient(#021637, white) 1 10 1;
+  border-image: -moz-linear-gradient(#021637, white) 1 10 1;
+  border-image: linear-gradient(#021637, white) 1 10 1;
 }
 
 #elec-table {
@@ -394,16 +394,29 @@ option {
   line-height: 18px;
   font-size: 16px;
 }
-
-.corner-contnt {
+#cornerstone {
+  height:100%;
+}
+.corner-container {
   /* width: 96%; */
   /* margin: auto; */
   /* box-shadow: none; */
   /* box-shadow: 0 0 0 1px rgba(170, 170, 170, 0.192); */
-  padding: 20px 20px 20px 10px !important;
-
+  height: 100%;
+  padding: 0 10px !important;
 }
-.corner-contnt > .column{
+.corner-top-row{
+  width: 100%;
+}
+.corner-header{
+  width: 100%;
+}
+.corner-bottom-row{
+  width: 100%;
+  /* max-height: 890px; */
+}
+.corner-bottom-row > .column{
+  height:100%;
 }
 /* .corner-contnt>.row.corner-row>.column{
   border: 0.1px solid #313131 !important;
@@ -454,11 +467,6 @@ option {
   /* background-color:rgba(1, 23, 46, 0.997) !important; */
   color: gray !important;
   font-size: medium;
-}
-.nodule-card-container {
-  /* transition: transform 1.5s;
-  transform-style: perserve-3d;
-  transform: translateY(0); */
 }
 
 .nodule-card-container .ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab,
@@ -597,7 +605,7 @@ input:focus {
   border: 0.5px solid whitesmoke;
 }
 
-.corner-contnt .canvas-style #origin-canvas {
+.corner-container .canvas-style #origin-canvas {
   /* width: 870px;
   height: 870px; */
   /* width: 100%;
@@ -607,7 +615,7 @@ input:focus {
   color: white;
 }
 
-.corner-contnt .canvas-style #canvas {
+.corner-container .canvas-style #canvas {
   /* width: 100%;
   height: 100%; */
   /* width: 870px;
@@ -675,12 +683,21 @@ input:focus {
   font-size: 20px;
   cursor: pointer;
 }
-.study-browser-option-hover .study-browser-option-icon {
-  /* animation: neno 1.5s ease-in-out infinite alternate;
+/* .study-browser-option-hover .study-browser-option-icon {
+  animation: neno 1.5s ease-in-out infinite alternate;
   -webkit-animation: neno 1.5s ease-in-out infinite alternate;
   opacity: 1;
-  background-color: rgba(0, 0, 0, 0); */
+  background-color: rgba(0, 0, 0, 0);
 }
+@keyframes neno {
+  from {
+    text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #228dff, 0 0 70px #228dff, 0 0 80px #228dff, 0 0 100px #228dff, 0 0 150px #228dff;
+  }
+  to {
+    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #228dff, 0 0 35px #228dff, 0 0 40px #228dff, 0 0 50px #228dff, 0 0 75px #228dff;
+  }
+} */
+
 .corner-right-block-horizontal {
   display: flex;
   flex-direction: column;
@@ -693,11 +710,19 @@ input:focus {
   align-items: flex-start;
   justify-content: space-between;
 }
-@keyframes neno {
-  from {
-    text-shadow: 0 0 10px #fff, 0 0 20px #fff, 0 0 30px #fff, 0 0 40px #228dff, 0 0 70px #228dff, 0 0 80px #228dff, 0 0 100px #228dff, 0 0 150px #228dff;
-  }
-  to {
-    text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px #fff, 0 0 20px #228dff, 0 0 35px #228dff, 0 0 40px #228dff, 0 0 50px #228dff, 0 0 75px #228dff;
-  }
+
+.nodule-card-container-horizontal{
+  /* transition: transform 1.5s;
+  transform-style: perserve-3d;
+  transform: translateY(0); */
+  height: 60%;
+}
+.nodule-card-container-vertical{
+  margin-left:0px;
+}
+.report-tab-container-horizontal{
+  height: 30%;
+}
+.report-tab-container-vertical{
+  margin-left: 20px;
 }
