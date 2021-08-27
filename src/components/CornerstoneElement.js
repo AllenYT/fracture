@@ -6835,7 +6835,7 @@ class CornerstoneElement extends Component {
   }
 
   dealChoose(e) {
-    // console.log('list',e.currentTarget.innerHTML)
+    // console.log('list',e)
     this.setState({ dealchoose: e.currentTarget.innerHTML });
   }
 
@@ -7003,13 +7003,14 @@ class CornerstoneElement extends Component {
       S17: "左肺下叶外基底段",
       S18: "左肺下叶后基底段",
     };
-    if (this.props.type === "影像所见") {
+    const {type, activeItem, boxes, dealchoose} = this.state
+    if (type === "影像所见") {
       let texts = "";
-      if (this.props.activeItem === -1) {
+      if (activeItem === -1) {
         this.setState({ templateText: "" });
-      } else if (this.props.activeItem === "all") {
-        // console.log('length',this.props.boxes.length)
-        for (let i = 0; i < this.props.boxes.length; i++) {
+      } else if (activeItem === "all") {
+        // console.log('length',boxes.length)
+        for (let i = 0; i < boxes.length; i++) {
           let place = "";
           let diameter = "";
           let texture = "";
@@ -7017,55 +7018,55 @@ class CornerstoneElement extends Component {
           let represent = "";
           let malignancy = "";
           if (
-            this.props.boxes[i]["place"] === 0 ||
-            this.props.boxes[i]["place"] === undefined ||
-            this.props.boxes[i]["place"] === ""
+            boxes[i]["place"] === 0 ||
+            boxes[i]["place"] === undefined ||
+            boxes[i]["place"] === ""
           ) {
             if (
-              this.props.boxes[i]["segment"] === undefined ||
-              this.props.boxes[i]["segment"] === "" ||
-              this.props.boxes[i]["segment"] === "None"
+              boxes[i]["segment"] === undefined ||
+              boxes[i]["segment"] === "" ||
+              boxes[i]["segment"] === "None"
             ) {
               place = "未知位置";
             } else {
-              place = segments[this.props.boxes[i]["segment"]];
+              place = segments[boxes[i]["segment"]];
             }
           } else {
             if (
-              this.props.boxes[i]["segment"] === undefined ||
-              this.props.boxes[i]["segment"] === "" ||
-              this.props.boxes[i]["segment"] === "None"
+              boxes[i]["segment"] === undefined ||
+              boxes[i]["segment"] === "" ||
+              boxes[i]["segment"] === "None"
             ) {
-              place = places[this.props.boxes[i]["place"]];
+              place = places[boxes[i]["place"]];
             } else {
-              place = segments[this.props.boxes[i]["segment"]];
+              place = segments[boxes[i]["segment"]];
             }
           }
-          // if (this.props.boxes[i]["diameter"] !== undefined) {
+          // if (boxes[i]["diameter"] !== undefined) {
           //   diameter =
-          //     Math.floor(this.props.boxes[i]["diameter"] * 10) / 100 + "cm";
+          //     Math.floor(boxes[i]["diameter"] * 10) / 100 + "cm";
           let ll = 0;
           let sl = 0;
-          if (this.props.boxes[i]["measure"] !== undefined) {
+          if (boxes[i]["measure"] !== undefined) {
             ll = Math.sqrt(
               Math.pow(
-                this.props.boxes[i].measure.x1 - this.props.boxes[i].measure.x2,
+                boxes[i].measure.x1 - boxes[i].measure.x2,
                 2
               ) +
                 Math.pow(
-                  this.props.boxes[i].measure.y1 -
-                    this.props.boxes[i].measure.y2,
+                  boxes[i].measure.y1 -
+                    boxes[i].measure.y2,
                   2
                 )
             );
             sl = Math.sqrt(
               Math.pow(
-                this.props.boxes[i].measure.x3 - this.props.boxes[i].measure.x4,
+                boxes[i].measure.x3 - boxes[i].measure.x4,
                 2
               ) +
                 Math.pow(
-                  this.props.boxes[i].measure.y3 -
-                    this.props.boxes[i].measure.y4,
+                  boxes[i].measure.y3 -
+                    boxes[i].measure.y4,
                   2
                 )
             );
@@ -7086,36 +7087,36 @@ class CornerstoneElement extends Component {
           } else {
             diameter = "未知";
           }
-          if (this.props.boxes[i]["texture"] === 2) {
+          if (boxes[i]["texture"] === 2) {
             texture = "实性";
-          } else if (this.props.boxes[i]["texture"] === 3) {
+          } else if (boxes[i]["texture"] === 3) {
             texture = "混合磨玻璃";
           } else {
             texture = "磨玻璃";
           }
 
-          if (this.props.boxes[i]["lobulation"] === 2) {
+          if (boxes[i]["lobulation"] === 2) {
             representArray.push("分叶");
           }
-          if (this.props.boxes[i]["spiculation"] === 2) {
+          if (boxes[i]["spiculation"] === 2) {
             representArray.push("毛刺");
           }
-          if (this.props.boxes[i]["calcification"] === 2) {
+          if (boxes[i]["calcification"] === 2) {
             representArray.push("钙化");
           }
-          if (this.props.boxes[i]["pin"] === 2) {
+          if (boxes[i]["pin"] === 2) {
             representArray.push("胸膜凹陷");
           }
-          if (this.props.boxes[i]["cav"] === 2) {
+          if (boxes[i]["cav"] === 2) {
             representArray.push("空洞");
           }
-          if (this.props.boxes[i]["vss"] === 2) {
+          if (boxes[i]["vss"] === 2) {
             representArray.push("血管集束");
           }
-          if (this.props.boxes[i]["bea"] === 2) {
+          if (boxes[i]["bea"] === 2) {
             representArray.push("空泡");
           }
-          if (this.props.boxes[i]["bro"] === 2) {
+          if (boxes[i]["bro"] === 2) {
             representArray.push("支气管充气");
           }
           for (let index = 0; index < representArray.length; index++) {
@@ -7125,9 +7126,9 @@ class CornerstoneElement extends Component {
               represent = represent + "、" + representArray[index];
             }
           }
-          if (this.props.boxes[i]["malignancy"] === 3) {
+          if (boxes[i]["malignancy"] === 3) {
             malignancy = "风险较高。";
-          } else if (this.props.boxes[i]["malignancy"] === 2) {
+          } else if (boxes[i]["malignancy"] === 2) {
             malignancy = "风险中等。";
           } else {
             malignancy = "风险较低。";
@@ -7136,7 +7137,7 @@ class CornerstoneElement extends Component {
             texts +
             place +
             " ( Im " +
-            (parseInt(this.props.boxes[i]["slice_idx"]) + 1) +
+            (parseInt(boxes[i]["slice_idx"]) + 1) +
             "/" +
             this.props.imageIds.length +
             ") 见" +
@@ -7158,56 +7159,56 @@ class CornerstoneElement extends Component {
         let represent = "";
         let malignancy = "";
         if (
-          this.props.boxes[this.props.activeItem]["place"] === 0 ||
-          this.props.boxes[this.props.activeItem]["place"] === undefined ||
-          this.props.boxes[this.props.activeItem]["place"] === ""
+          boxes[activeItem]["place"] === 0 ||
+          boxes[activeItem]["place"] === undefined ||
+          boxes[activeItem]["place"] === ""
         ) {
           if (
-            this.props.boxes[this.props.activeItem]["segment"] === undefined ||
-            this.props.boxes[this.props.activeItem]["segment"] === "" ||
-            this.props.boxes[this.props.activeItem]["segment"] === "None"
+            boxes[activeItem]["segment"] === undefined ||
+            boxes[activeItem]["segment"] === "" ||
+            boxes[activeItem]["segment"] === "None"
           ) {
             place = "未知位置";
           } else {
             place =
-              segments[this.props.boxes[this.props.activeItem]["segment"]];
+              segments[boxes[activeItem]["segment"]];
           }
         } else {
           if (
-            this.props.boxes[this.props.activeItem]["segment"] === undefined ||
-            this.props.boxes[this.props.activeItem]["segment"] === "" ||
-            this.props.boxes[this.props.activeItem]["segment"] === "None"
+            boxes[activeItem]["segment"] === undefined ||
+            boxes[activeItem]["segment"] === "" ||
+            boxes[activeItem]["segment"] === "None"
           ) {
-            place = places[this.props.boxes[this.props.activeItem]["place"]];
+            place = places[boxes[activeItem]["place"]];
           } else {
             place =
-              segments[this.props.boxes[this.props.activeItem]["segment"]];
+              segments[boxes[activeItem]["segment"]];
           }
         }
         let ll = 0;
         let sl = 0;
-        if (this.props.boxes[this.props.activeItem]["measure"] !== undefined) {
+        if (boxes[activeItem]["measure"] !== undefined) {
           ll = Math.sqrt(
             Math.pow(
-              this.props.boxes[this.props.activeItem].measure.x1 -
-                this.props.boxes[this.props.activeItem].measure.x2,
+              boxes[activeItem].measure.x1 -
+                boxes[activeItem].measure.x2,
               2
             ) +
               Math.pow(
-                this.props.boxes[this.props.activeItem].measure.y1 -
-                  this.props.boxes[this.props.activeItem].measure.y2,
+                boxes[activeItem].measure.y1 -
+                  boxes[activeItem].measure.y2,
                 2
               )
           );
           sl = Math.sqrt(
             Math.pow(
-              this.props.boxes[this.props.activeItem].measure.x3 -
-                this.props.boxes[this.props.activeItem].measure.x4,
+              boxes[activeItem].measure.x3 -
+                boxes[activeItem].measure.x4,
               2
             ) +
               Math.pow(
-                this.props.boxes[this.props.activeItem].measure.y3 -
-                  this.props.boxes[this.props.activeItem].measure.y4,
+                boxes[activeItem].measure.y3 -
+                  boxes[activeItem].measure.y4,
                 2
               )
           );
@@ -7228,35 +7229,35 @@ class CornerstoneElement extends Component {
         } else {
           diameter = "未知";
         }
-        if (this.props.boxes[this.props.activeItem]["texture"] === 2) {
+        if (boxes[activeItem]["texture"] === 2) {
           texture = "实性";
-        } else if (this.props.boxes[this.props.activeItem]["texture"] === 3) {
+        } else if (boxes[activeItem]["texture"] === 3) {
           texture = "混合磨玻璃";
         } else {
           texture = "磨玻璃";
         }
-        if (this.props.boxes[this.props.activeItem]["lobulation"] === 2) {
+        if (boxes[activeItem]["lobulation"] === 2) {
           representArray.push("分叶");
         }
-        if (this.props.boxes[this.props.activeItem]["spiculation"] === 2) {
+        if (boxes[activeItem]["spiculation"] === 2) {
           representArray.push("毛刺");
         }
-        if (this.props.boxes[this.props.activeItem]["calcification"] === 2) {
+        if (boxes[activeItem]["calcification"] === 2) {
           representArray.push("钙化");
         }
-        if (this.props.boxes[this.props.activeItem]["pin"] === 2) {
+        if (boxes[activeItem]["pin"] === 2) {
           representArray.push("胸膜凹陷");
         }
-        if (this.props.boxes[this.props.activeItem]["cav"] === 2) {
+        if (boxes[activeItem]["cav"] === 2) {
           representArray.push("空洞");
         }
-        if (this.props.boxes[this.props.activeItem]["vss"] === 2) {
+        if (boxes[activeItem]["vss"] === 2) {
           representArray.push("血管集束");
         }
-        if (this.props.boxes[this.props.activeItem]["bea"] === 2) {
+        if (boxes[activeItem]["bea"] === 2) {
           representArray.push("空泡");
         }
-        if (this.props.boxes[this.props.activeItem]["bro"] === 2) {
+        if (boxes[activeItem]["bro"] === 2) {
           representArray.push("支气管充气");
         }
         for (let index = 0; index < representArray.length; index++) {
@@ -7266,10 +7267,10 @@ class CornerstoneElement extends Component {
             represent = represent + "、" + representArray[index];
           }
         }
-        if (this.props.boxes[this.props.activeItem]["malignancy"] === 3) {
+        if (boxes[activeItem]["malignancy"] === 3) {
           malignancy = "风险较高。";
         } else if (
-          this.props.boxes[this.props.activeItem]["malignancy"] === 2
+          boxes[activeItem]["malignancy"] === 2
         ) {
           malignancy = "风险中等。";
         } else {
@@ -7279,7 +7280,7 @@ class CornerstoneElement extends Component {
           texts +
           place +
           " ( Im " +
-          (parseInt(this.props.boxes[this.props.activeItem]["slice_idx"]) + 1) +
+          (parseInt(boxes[activeItem]["slice_idx"]) + 1) +
           "/" +
           this.props.imageIds.length +
           ") 见" +
@@ -7294,39 +7295,39 @@ class CornerstoneElement extends Component {
         this.setState({ templateText: texts });
       }
     } else {
-      if (this.state.dealchoose === "中华共识") {
+      if (dealchoose === "中华共识") {
         let weight = 0;
 
-        for (let i = 0; i < this.props.boxes.length; i++) {
-          if (this.props.boxes[i]["malignancy"] === 3) {
-            if (this.props.boxes[i]["diameter"] > 8) {
+        for (let i = 0; i < boxes.length; i++) {
+          if (boxes[i]["malignancy"] === 3) {
+            if (boxes[i]["diameter"] > 8) {
               weight = 20;
               break;
             } else if (
-              this.props.boxes[i]["diameter"] > 6 &&
-              this.props.boxes[i]["diameter"] <= 8
+              boxes[i]["diameter"] > 6 &&
+              boxes[i]["diameter"] <= 8
             ) {
               weight = weight >= 15 ? weight : 15;
             } else if (
-              this.props.boxes[i]["diameter"] >= 4 &&
-              this.props.boxes[i]["diameter"] <= 6
+              boxes[i]["diameter"] >= 4 &&
+              boxes[i]["diameter"] <= 6
             ) {
               weight = weight >= 10 ? weight : 10;
             } else {
               weight = weight >= 5 ? weight : 5;
             }
           } else {
-            if (this.props.boxes[i]["diameter"] > 8) {
+            if (boxes[i]["diameter"] > 8) {
               weight = 20;
               break;
             } else if (
-              this.props.boxes[i]["diameter"] > 6 &&
-              this.props.boxes[i]["diameter"] <= 8
+              boxes[i]["diameter"] > 6 &&
+              boxes[i]["diameter"] <= 8
             ) {
               weight = weight >= 10 ? weight : 10;
             } else if (
-              this.props.boxes[i]["diameter"] >= 4 &&
-              this.props.boxes[i]["diameter"] <= 6
+              boxes[i]["diameter"] >= 4 &&
+              boxes[i]["diameter"] <= 6
             ) {
               weight = weight >= 5 ? weight : 5;
             }
@@ -7358,36 +7359,36 @@ class CornerstoneElement extends Component {
             this.setState({ templateText: "选择性随访" });
             break;
         }
-      } else if (this.state.dealchoose === "Fleischner") {
+      } else if (dealchoose === "Fleischner") {
         let weight = 0;
 
-        for (let i = 0; i < this.props.boxes.length; i++) {
-          if (this.props.boxes[i]["texture"] === 2) {
-            if (this.props.boxes[i]["diameter"] > 8) {
+        for (let i = 0; i < this.state.boxes.length; i++) {
+          if (boxes[i]["texture"] === 2) {
+            if (boxes[i]["diameter"] > 8) {
               weight = 25;
               break;
             } else if (
-              this.props.boxes[i]["diameter"] >= 6 &&
-              this.props.boxes[i]["diameter"] <= 8
+              boxes[i]["diameter"] >= 6 &&
+              boxes[i]["diameter"] <= 8
             ) {
               weight = weight >= 15 ? weight : 15;
             } else {
-              if (this.props.boxes[i]["malignancy"] === 3) {
+              if (boxes[i]["malignancy"] === 3) {
                 weight = weight >= 5 ? weight : 5;
               }
               // else{
               //     weight=weight>=0?weight:0
               // }
             }
-          } else if (this.props.boxes[i]["texture"] === 3) {
-            if (this.props.boxes[i]["diameter"] >= 6) {
+          } else if (boxes[i]["texture"] === 3) {
+            if (boxes[i]["diameter"] >= 6) {
               weight = weight >= 20 ? weight : 20;
             }
             // else{
             //     weight=weight>=0?weight:0
             // }
           } else {
-            if (this.props.boxes[i]["diameter"] >= 6) {
+            if (boxes[i]["diameter"] >= 6) {
               weight = weight >= 10 ? weight : 10;
             }
             // else{
@@ -7422,40 +7423,40 @@ class CornerstoneElement extends Component {
             this.setState({ templateText: "无常规随访" });
             break;
         }
-      } else if (this.state.dealchoose === "NCCN") {
+      } else if (dealchoose === "NCCN") {
         let weight = 0;
 
-        for (let i = 0; i < this.props.boxes.length; i++) {
-          if (this.props.boxes[i]["texture"] === 2) {
-            if (this.props.boxes[i]["diameter"] >= 15) {
+        for (let i = 0; i < boxes.length; i++) {
+          if (boxes[i]["texture"] === 2) {
+            if (boxes[i]["diameter"] >= 15) {
               weight = 15;
               break;
             } else if (
-              this.props.boxes[i]["diameter"] >= 7 &&
-              this.props.boxes[i]["diameter"] < 15
+              boxes[i]["diameter"] >= 7 &&
+              boxes[i]["diameter"] < 15
             ) {
               weight = weight >= 10 ? weight : 10;
             } else if (
-              this.props.boxes[i]["diameter"] >= 6 &&
-              this.props.boxes[i]["diameter"] < 7
+              boxes[i]["diameter"] >= 6 &&
+              boxes[i]["diameter"] < 7
             ) {
               weight = weight >= 5 ? weight : 5;
             }
             // else{
             //     weight=0
             // }
-          } else if (this.props.boxes[i]["texture"] === 3) {
-            if (this.props.boxes[i]["diameter"] >= 8) {
+          } else if (boxes[i]["texture"] === 3) {
+            if (boxes[i]["diameter"] >= 8) {
               weight = 15;
               break;
             } else if (
-              this.props.boxes[i]["diameter"] >= 7 &&
-              this.props.boxes[i]["diameter"] < 8
+              boxes[i]["diameter"] >= 7 &&
+              boxes[i]["diameter"] < 8
             ) {
               weight = weight >= 10 ? weight : 10;
             } else if (
-              this.props.boxes[i]["diameter"] >= 6 &&
-              this.props.boxes[i]["diameter"] < 7
+              boxes[i]["diameter"] >= 6 &&
+              boxes[i]["diameter"] < 7
             ) {
               weight = weight >= 5 ? weight : 5;
             }
@@ -7463,7 +7464,7 @@ class CornerstoneElement extends Component {
             //     weight=0
             // }
           } else {
-            if (this.props.boxes[i]["diameter"] >= 20) {
+            if (boxes[i]["diameter"] >= 20) {
               weight = weight >= 5 ? weight : 5;
             }
             // else{
@@ -7487,48 +7488,48 @@ class CornerstoneElement extends Component {
             });
             break;
         }
-      } else if (this.state.dealchoose === "Lung-RADS") {
+      } else if (dealchoose === "Lung-RADS") {
         let weight = 0;
 
-        for (let i = 0; i < this.props.boxes.length; i++) {
+        for (let i = 0; i < boxes.length; i++) {
           if (
-            this.props.boxes[i]["malignancy"] === 1 ||
-            this.props.boxes[i]["malignancy"] === 2
+            boxes[i]["malignancy"] === 1 ||
+            boxes[i]["malignancy"] === 2
           ) {
-            if (this.props.boxes[i]["texture"] === 2) {
-              if (this.props.boxes[i]["diameter"] < 6) {
+            if (boxes[i]["texture"] === 2) {
+              if (boxes[i]["diameter"] < 6) {
                 weight = weight >= 0 ? weight : 0;
               } else {
                 weight = weight >= 5 ? weight : 5;
               }
-            } else if (this.props.boxes[i]["texture"] === 3) {
-              if (this.props.boxes[i]["diameter"] < 6) {
+            } else if (boxes[i]["texture"] === 3) {
+              if (boxes[i]["diameter"] < 6) {
                 weight = weight >= 0 ? weight : 0;
               } else {
                 weight = weight >= 5 ? weight : 5;
               }
             } else {
-              if (this.props.boxes[i]["diameter"] < 20) {
+              if (boxes[i]["diameter"] < 20) {
                 weight = weight >= 0 ? weight : 0;
               } else {
                 weight = weight >= 5 ? weight : 5;
               }
             }
           } else {
-            if (this.props.boxes[i]["texture"] === 2) {
+            if (boxes[i]["texture"] === 2) {
               if (
-                this.props.boxes[i]["diameter"] >= 8 &&
-                this.props.boxes[i]["diameter"] < 15
+                boxes[i]["diameter"] >= 8 &&
+                boxes[i]["diameter"] < 15
               ) {
                 weight = weight >= 10 ? weight : 10;
               } else {
                 weight = 15;
                 break;
               }
-            } else if (this.props.boxes[i]["texture"] === 3) {
+            } else if (boxes[i]["texture"] === 3) {
               if (
-                this.props.boxes[i]["diameter"] >= 6 &&
-                this.props.boxes[i]["diameter"] < 8
+                boxes[i]["diameter"] >= 6 &&
+                boxes[i]["diameter"] < 8
               ) {
                 weight = weight >= 10 ? weight : 10;
               } else {
@@ -7560,17 +7561,17 @@ class CornerstoneElement extends Component {
             this.setState({ templateText: "12个月内继续年度低剂量胸部CT筛查" });
             break;
         }
-      } else if (this.state.dealchoose === "亚洲共识") {
+      } else if (dealchoose === "亚洲共识") {
         let weight = 0;
 
-        for (let i = 0; i < this.props.boxes.length; i++) {
-          if (this.props.boxes[i]["texture"] === 2) {
-            if (this.props.boxes[i]["diameter"] > 8) {
+        for (let i = 0; i < boxes.length; i++) {
+          if (boxes[i]["texture"] === 2) {
+            if (boxes[i]["diameter"] > 8) {
               weight = 25;
               break;
             } else if (
-              this.props.boxes[i]["diameter"] >= 6 &&
-              this.props.boxes[i]["diameter"] <= 8
+              boxes[i]["diameter"] >= 6 &&
+              boxes[i]["diameter"] <= 8
             ) {
               weight = weight >= 15 ? weight : 15;
             }
@@ -7585,15 +7586,15 @@ class CornerstoneElement extends Component {
             //     //     weight=weight>=0?weight:0
             //     // }
             // }
-          } else if (this.props.boxes[i]["texture"] === 1) {
-            if (this.props.boxes[i]["diameter"] > 5) {
+          } else if (boxes[i]["texture"] === 1) {
+            if (boxes[i]["diameter"] > 5) {
               weight = weight >= 5 ? weight : 5;
             }
             // else{
             //     weight=weight>=0?weight:0
             // }
           } else {
-            if (this.props.boxes[i]["diameter"] <= 8) {
+            if (boxes[i]["diameter"] <= 8) {
               weight = weight >= 10 ? weight : 10;
             } else {
               weight = weight >= 15 ? weight : 15;
@@ -8045,15 +8046,12 @@ class CornerstoneElement extends Component {
 
   updateReport(prevProps, prevState) {
     if (
-      prevProps.activeItem !== this.props.activeItem ||
+      prevProps.activeItem !== this.state.activeItem ||
       prevState.dealchoose !== this.state.dealchoose
     ) {
-      // console.log('active changed',prevProps.activeItem,this.props.activeItem,this.props.boxes)
       this.template();
     }
-    // console.log('boxes changed',prevProps.boxes,this.props.boxes,prevState.boxes,this.state.boxes)
     if (prevProps.boxes !== this.props.boxes) {
-      // console.log('boxes changed',prevProps.boxes,this.props.boxes)
       const params = {
         caseId: this.state.caseId,
         username: this.state.modelName,
