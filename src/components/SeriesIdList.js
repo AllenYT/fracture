@@ -254,27 +254,41 @@ class SeriesIdList extends Component {
 
   notice(valid, e) {
     if (valid.status === "failed") {
-      if (valid.message === "Files been manipulated") {
-        notification.warning({
-          top: 48,
-          duration: 5,
-          message: "提醒",
-          description: "影像发生篡改，无法启动算法，请联系厂家技术支持工程师",
-        });
-      } else if (valid.message === "Errors occur during preprocess") {
-        notification.warning({
-          top: 48,
-          duration: 5,
-          message: "提醒",
-          description: "软件预处理出错，请联系厂家技术支持工程师",
-        });
-      } else if (valid.message === "caseId not found") {
-        notification.warning({
-          top: 48,
-          duration: 5,
-          message: "提醒",
-          description: "数据未入库，请联系厂家技术支持工程师",
-        });
+      if (valid["message"] === "Files been manipulated") {
+        if (document.getElementsByClassName("data-file-broken").length === 0) {
+          notification.open({
+            className: "data-file-broken",
+            message: "提示",
+            style: {
+              backgroundColor: "rgba(255,232,230)",
+            },
+            description: "数据文件被篡改，请联系厂家技术支持工程师",
+          });
+        }
+      } else if (valid["message"] === "Errors occur during preprocess") {
+        if (document.getElementsByClassName("process-error").length === 0) {
+          notification.open({
+            className: "process-error",
+
+            message: "提示",
+            style: {
+              backgroundColor: "rgba(255,232,230)",
+            },
+            description: "处理过程出错，请联系厂家技术支持工程师",
+          });
+        }
+      } else if (valid["message"] === "caseId not found") {
+        if (document.getElementsByClassName("out-of-database").length === 0) {
+          notification.open({
+            className: "out-of-database",
+
+            message: "提示",
+            style: {
+              backgroundColor: "rgba(255,232,230)",
+            },
+            description: "该数据未入库，请联系厂家技术支持工程师",
+          });
+        }
       }
     }
   }
@@ -385,19 +399,36 @@ class SeriesIdList extends Component {
       }
 
       return (
-        <div key={index}>
-          <div className="export">
-            <Checkbox
-              id={idName}
-              onChange={this.storeCaseId}
-              value={value}
-              checked={this.validValue(value)}
-              style={CheckboxDis}
-            ></Checkbox>
+        <div
+          key={index}
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            justifyContent: "space-between",
+            alignItems: "center",
+            width: "100%",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+            }}
+          >
+            <div className="export">
+              <Checkbox
+                id={idName}
+                onChange={this.storeCaseId}
+                value={value}
+                checked={this.validValue(value)}
+                style={CheckboxDis}
+              ></Checkbox>
+            </div>
+            <div className="sid">{value.split("#")[1]}</div>
+            {statusIcon}
           </div>
-          <p className="sid">{value.split("#")[1]}</p>
-          {statusIcon}
-          <div style={{ float: "right" }}>
+          <div style={{}}>
             <Tooltip
               title={popupContent}
               placement="rightBottom"
