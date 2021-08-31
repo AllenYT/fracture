@@ -390,19 +390,21 @@ class SeriesIdList extends Component {
       }
 
       return (
-        <div key={index}>
-          <div className="export">
-            <Checkbox
-              // id={idName}
-              onChange={this.storeCaseId}
-              item={item}
-              checked={this.validValue(item)}
-              style={CheckboxDis}
-            ></Checkbox>
+        <div key={index} className={'seriesidlist-popup-item'}>
+          <div className={'seriesidlist-popup-item-left'}>
+            <div className="export">
+              <Checkbox
+                // id={idName}
+                onChange={this.storeCaseId}
+                item={item}
+                checked={this.validValue(item)}
+                style={CheckboxDis}
+              ></Checkbox>
+            </div>
+            <div className="sid">{item["description"]}</div>
+            {statusIcon}
           </div>
-          <p className="sid">{item["description"]}</p>
-          {statusIcon}
-          <div style={{ float: "right" }}>
+          <div className={'seriesidlist-popup-item-right'}>
             <Tooltip
               title={popupContent}
               placement="rightBottom"
@@ -417,7 +419,7 @@ class SeriesIdList extends Component {
                 )}
                 shape="circle"
                 icon={<RightOutlined style={{ color: "#52c41a" }} />}
-                style={{ background: "transparent" }}
+                style={{ background: "transparent", float:'right' }}
               ></Button>
             </Tooltip>
           </div>

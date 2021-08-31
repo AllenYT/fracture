@@ -3000,52 +3000,171 @@ class CornerstoneElement extends Component {
                   </Button.Group>
                 </Menu.Item>
                 <span id="line-left"></span>
-                <Menu.Item className="funcolumn">
-                  <Button.Group>
-                    <Button
-                      // inverted
-                      // color='blue'
-                      icon
-                      title="灰度反转"
-                      // style={{width:55,height:60,fontSize:14,fontSize:14}}
-                      onClick={this.imagesFilp}
-                      className="funcbtn">
-                      <Icon name="adjust" size="large"></Icon>
-                    </Button>
-                    <Button
-                      // inverted
-                      // color='blue'
-                      icon
-                      title="放大"
-                      // style={{width:55,height:60,fontSize:14,fontSize:14}}
-                      onClick={this.ZoomIn}
-                      className="funcbtn">
-                      <Icon name="search plus" size="large"></Icon>
-                    </Button>
-                    <Button
-                      // inverted
-                      // color='blue'
-                      icon
-                      title="缩小"
-                      // style={{width:55,height:60,fontSize:14}}
-                      onClick={this.ZoomOut}
-                      className="funcbtn">
-                      <Icon name="search minus" size="large"></Icon>
-                    </Button>
-                    <Button icon onClick={this.reset} className="funcbtn" title="刷新">
-                      <Icon name="repeat" size="large"></Icon>
-                    </Button>
-                    {!this.state.isPlaying ? (
-                      <Button icon onClick={this.playAnimation} className="funcbtn" title="播放动画">
-                        <Icon name="play" size="large"></Icon>
-                      </Button>
-                    ) : (
-                      <Button icon onClick={this.pauseAnimation} className="funcbtn" title="暂停动画">
-                        <Icon name="pause" size="large"></Icon>
-                      </Button>
-                    )}
-                    {/* <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button> */}
-                    {/* <Modal
+                {show3DVisualization ? (
+                  <>
+                    <Menu.Item className="funcolumn" hidden={!show3DVisualization}>
+                      <Button.Group>
+                        <Button icon className="funcBtn" hidden={MPR} onClick={this.handleFuncButton.bind(this, 'MPR')} title="MPR">
+                          <Icon className="icon-custom icon-custom-mpr-show" size="large" />
+                        </Button>
+                        <Button icon className="funcBtn" hidden={!MPR} onClick={this.handleFuncButton.bind(this, 'STMPR')} title="取消MPR">
+                          <Icon className="icon-custom icon-custom-mpr-hide" size="large" />
+                        </Button>
+                        {MPR ? (
+                          <>
+                            <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'RC')} title="重置相机" description="reset camera">
+                              <Icon name="redo" size="large" />
+                            </Button>
+                            {/* <Button icon className='funcBtn' active={crosshairsTool} onClick={this.handleFuncButton.bind(this, "TC")} title="十字线" description="toggle crosshairs"><Icon name='plus' size='large'/></Button> */}
+                            <Button icon className="funcBtn" hidden={!displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'HC')} title="隐藏十字线" description="hidden crosshairs">
+                              <Icon className="icon-custom icon-custom-HC" size="large" />
+                            </Button>
+                            <Button icon className="funcBtn" hidden={displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'SC')} title="显示十字线" description="show crosshairs">
+                              <Icon className="icon-custom icon-custom-SC" size="large" />
+                            </Button>
+
+                            <Button icon className="funcBtn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} title="停止勾画" description="end painting">
+                              <Icon name="window close outline" size="large" />
+                            </Button>
+                            <Button icon className="funcBtn" hidden={painting} onClick={this.handleFuncButton.bind(this, 'BP')} title="开始勾画" description="begin painting">
+                              <Icon name="paint brush" size="large" />
+                            </Button>
+                            <Button icon className="funcBtn" hidden={!painting} active={!erasing} onClick={this.handleFuncButton.bind(this, 'DP')} title="勾画" description="do painting">
+                              <Icon name="paint brush" size="large" />
+                            </Button>
+                            <Button icon className="funcBtn" hidden={!painting} active={erasing} onClick={this.handleFuncButton.bind(this, 'DE')} title="擦除" description="do erasing">
+                              <Icon name="eraser" size="large" />
+                            </Button>
+                            <Popup
+                              on="click"
+                              trigger={
+                                <Button icon className="funcBtn" hidden={!painting}>
+                                  <Icon name="dot circle" size="large" />
+                                </Button>
+                              }
+                              position="bottom center"
+                              style={{
+                                backgroundColor: '#021c38',
+                                borderColor: '#021c38',
+                                width: '200px',
+                                padding: '2px 4px 2px 4px',
+                              }}>
+                              <div>
+                                <div className="segment-widget-radius-container">
+                                  画笔半径:
+                                  <Slider
+                                    className="segment-widget-radius-slider"
+                                    value={paintRadius}
+                                    min={1}
+                                    step={1}
+                                    max={10}
+                                    tooltipVisible={false}
+                                    onChange={this.changeRadius.bind(this)}
+                                    onAfterChange={this.afterChangeRadius.bind(this)}
+                                  />
+                                </div>
+                                <div className="segment-label-threshold-container">
+                                  标记阈值:
+                                  <Slider
+                                    className="segment-label-threshold-slider"
+                                    value={labelThreshold}
+                                    min={100}
+                                    step={100}
+                                    max={1000}
+                                    tooltipVisible={false}
+                                    onChange={this.changeThreshold.bind(this)}
+                                    onAfterChange={this.afterChangeThreshold.bind(this)}
+                                  />
+                                </div>
+                              </div>
+                            </Popup>
+                            <Popup
+                              on="click"
+                              trigger={
+                                <Button icon className="funcBtn" hidden={!painting}>
+                                  <Icon name="eye dropper" size="large" />
+                                </Button>
+                              }
+                              position="bottom center"
+                              style={{
+                                backgroundColor: '#021c38',
+                                borderColor: '#021c38',
+                                width: '150px',
+                                padding: '2px 4px 2px 4px',
+                              }}>
+                              <div className="segment-label-color-selector">
+                                颜色选择器：
+                                <InputColor initialValue="#FF0000" onChange={this.setPaintColor.bind(this)} placement="right" />
+                              </div>
+                            </Popup>
+
+                            <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'CPR')} title="CPR" hidden={CPR}>
+                              <Icon className="icon-custom icon-custom-CPR" size="large" />
+                            </Button>
+                            <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'STCPR')} title="取消CPR" hidden={!CPR}>
+                              <Icon name="window close outline" size="large" />
+                            </Button>
+                            <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'RA')} title="重建气道" description="reconstruct airway">
+                              <Icon className="icon-custom icon-custom-RA" size="large" />
+                            </Button>
+                          </>
+                        ) : (
+                          <></>
+                        )}
+                        <Button icon title="隐藏3D" className="funcbtn" onClick={this.hide3D.bind(this)}>
+                          <Icon className="icon-custom icon-custom-hide-3d" size="large"></Icon>
+                        </Button>
+                      </Button.Group>
+                    </Menu.Item>
+                  </>
+                ) : (
+                  <>
+                    <Menu.Item className="funcolumn">
+                      <Button.Group>
+                        <Button
+                          // inverted
+                          // color='blue'
+                          icon
+                          title="灰度反转"
+                          // style={{width:55,height:60,fontSize:14,fontSize:14}}
+                          onClick={this.imagesFilp}
+                          className="funcbtn">
+                          <Icon name="adjust" size="large"></Icon>
+                        </Button>
+                        <Button
+                          // inverted
+                          // color='blue'
+                          icon
+                          title="放大"
+                          // style={{width:55,height:60,fontSize:14,fontSize:14}}
+                          onClick={this.ZoomIn}
+                          className="funcbtn">
+                          <Icon name="search plus" size="large"></Icon>
+                        </Button>
+                        <Button
+                          // inverted
+                          // color='blue'
+                          icon
+                          title="缩小"
+                          // style={{width:55,height:60,fontSize:14}}
+                          onClick={this.ZoomOut}
+                          className="funcbtn">
+                          <Icon name="search minus" size="large"></Icon>
+                        </Button>
+                        <Button icon onClick={this.reset} className="funcbtn" title="刷新">
+                          <Icon name="repeat" size="large"></Icon>
+                        </Button>
+                        {!this.state.isPlaying ? (
+                          <Button icon onClick={this.playAnimation} className="funcbtn" title="播放动画">
+                            <Icon name="play" size="large"></Icon>
+                          </Button>
+                        ) : (
+                          <Button icon onClick={this.pauseAnimation} className="funcbtn" title="暂停动画">
+                            <Icon name="pause" size="large"></Icon>
+                          </Button>
+                        )}
+                        {/* <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button> */}
+                        {/* <Modal
                                         basic
                                         open={cacheModal}
                                         size='small'
@@ -3059,7 +3178,7 @@ class CornerstoneElement extends Component {
                                             <Progress value={this.state.currentIdx+1} total={this.state.imageIds.length} progress='ratio'/>
                                         </Modal.Content>
                                         </Modal> */}
-                    {/* {({ state, setState }) => (
+                        {/* {({ state, setState }) => (
                                         <Grid>
                                         <div>
                                             <pre>{JSON.stringify(state, null, 2)}</pre>
@@ -3082,19 +3201,19 @@ class CornerstoneElement extends Component {
                                         </div>
                                         </Grid>
                                     )} */}
-                    <Button icon onClick={this.toHidebox} className="funcbtn" id="showNodule" title="显示结节">
-                      <Icon id="cache-button" name="eye" size="large"></Icon>
-                    </Button>
-                    <Button icon onClick={this.toHidebox} className="funcbtn" id="hideNodule" title="隐藏结节">
-                      <Icon id="cache-button" name="eye slash" size="large"></Icon>
-                    </Button>
-                    <Button icon onClick={this.toHideInfo} className="funcbtn" id="showInfo" title="显示信息">
-                      <Icon id="cache-button" name="content" size="large"></Icon>
-                    </Button>
-                    <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
-                      <Icon id="cache-button" name="delete calendar" size="large"></Icon>
-                    </Button>
-                    {/* <Button
+                        <Button icon onClick={this.toHidebox} className="funcbtn" id="showNodule" title="显示结节">
+                          <Icon id="cache-button" name="eye" size="large"></Icon>
+                        </Button>
+                        <Button icon onClick={this.toHidebox} className="funcbtn" id="hideNodule" title="隐藏结节">
+                          <Icon id="cache-button" name="eye slash" size="large"></Icon>
+                        </Button>
+                        <Button icon onClick={this.toHideInfo} className="funcbtn" id="showInfo" title="显示信息">
+                          <Icon id="cache-button" name="content" size="large"></Icon>
+                        </Button>
+                        <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
+                          <Icon id="cache-button" name="delete calendar" size="large"></Icon>
+                        </Button>
+                        {/* <Button
                   onClick={() => {
                     this.setState({ immersive: true });
                   }}
@@ -3104,198 +3223,79 @@ class CornerstoneElement extends Component {
                 >
                   <Icon name="expand arrows alternate" size="large"></Icon>
                 </Button> */}
-                  </Button.Group>
-                </Menu.Item>
-                <span id="line-right"></span>
-                <Menu.Item className="funcolumn">
-                  <Button.Group>
-                    {menuTools === 'anno' ? (
-                      <Button icon onClick={this.startAnnos} title="标注" className="funcbtn" active>
-                        <Icon name="edit" size="large"></Icon>
-                      </Button>
-                    ) : (
-                      <Button icon onClick={this.startAnnos} title="标注" className="funcbtn">
-                        <Icon name="edit" size="large"></Icon>
-                      </Button>
-                    )}
-                    {menuTools === 'bidirect' ? (
-                      <Button icon onClick={this.bidirectionalMeasure} title="测量" className="funcbtn" active>
-                        <Icon name="crosshairs" size="large"></Icon>
-                      </Button>
-                    ) : (
-                      <Button icon onClick={this.bidirectionalMeasure} title="测量" className="funcbtn">
-                        <Icon name="crosshairs" size="large"></Icon>
-                      </Button>
-                    )}
-                    {menuTools === 'length' ? (
-                      <Button icon onClick={this.lengthMeasure} title="长度" className="funcbtn" active>
-                        <Icon name="arrows alternate vertical" size="large"></Icon>
-                      </Button>
-                    ) : (
-                      <Button icon onClick={this.lengthMeasure} title="长度" className="funcbtn">
-                        <Icon name="arrows alternate vertical" size="large"></Icon>
-                      </Button>
-                    )}
-                    {menuTools === 'slide' ? (
-                      <Button icon title="切换切片" onClick={this.slide} className="funcbtn" active>
-                        <Icon name="sort" size="large"></Icon>
-                      </Button>
-                    ) : (
-                      <Button icon title="切换切片" onClick={this.slide} className="funcbtn">
-                        <Icon name="sort" size="large"></Icon>
-                      </Button>
-                    )}
+                      </Button.Group>
+                    </Menu.Item>
+                    <span id="line-right"></span>
+                    <Menu.Item className="funcolumn">
+                      <Button.Group>
+                        {menuTools === 'anno' ? (
+                          <Button icon onClick={this.startAnnos} title="标注" className="funcbtn" active>
+                            <Icon name="edit" size="large"></Icon>
+                          </Button>
+                        ) : (
+                          <Button icon onClick={this.startAnnos} title="标注" className="funcbtn">
+                            <Icon name="edit" size="large"></Icon>
+                          </Button>
+                        )}
+                        {menuTools === 'bidirect' ? (
+                          <Button icon onClick={this.bidirectionalMeasure} title="测量" className="funcbtn" active>
+                            <Icon name="crosshairs" size="large"></Icon>
+                          </Button>
+                        ) : (
+                          <Button icon onClick={this.bidirectionalMeasure} title="测量" className="funcbtn">
+                            <Icon name="crosshairs" size="large"></Icon>
+                          </Button>
+                        )}
+                        {menuTools === 'length' ? (
+                          <Button icon onClick={this.lengthMeasure} title="长度" className="funcbtn" active>
+                            <Icon name="arrows alternate vertical" size="large"></Icon>
+                          </Button>
+                        ) : (
+                          <Button icon onClick={this.lengthMeasure} title="长度" className="funcbtn">
+                            <Icon name="arrows alternate vertical" size="large"></Icon>
+                          </Button>
+                        )}
+                        {menuTools === 'slide' ? (
+                          <Button icon title="切换切片" onClick={this.slide} className="funcbtn" active>
+                            <Icon name="sort" size="large"></Icon>
+                          </Button>
+                        ) : (
+                          <Button icon title="切换切片" onClick={this.slide} className="funcbtn">
+                            <Icon name="sort" size="large"></Icon>
+                          </Button>
+                        )}
 
-                    {menuTools === 'wwwc' ? (
-                      <Button icon title="窗宽窗位" onClick={this.wwwcCustom} className="funcbtn" active>
-                        <Icon name="sliders" size="large"></Icon>
-                      </Button>
-                    ) : (
-                      <Button icon title="窗宽窗位" onClick={this.wwwcCustom} className="funcbtn">
-                        <Icon name="sliders" size="large"></Icon>
-                      </Button>
-                    )}
-                    {this.state.readonly ? (
-                      <Button icon title="提交" onClick={this.submit} className="funcbtn">
-                        <Icon name="upload" size="large"></Icon>
-                      </Button>
-                    ) : (
-                      // <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
-                      <Button icon title="暂存" onClick={this.temporaryStorage} className="funcbtn">
-                        <Icon name="upload" size="large"></Icon>
-                      </Button>
-                    )}
-                    {this.state.readonly ? null : (
-                      <Button icon title="清空标注" onClick={this.clearUserNodule.bind(this)} className="funcbtn">
-                        <Icon name="user delete" size="large"></Icon>
-                      </Button>
-                    )}
-                    {show3DVisualization ? (
-                      <Button icon title="隐藏3D" className="funcbtn" onClick={this.hide3D.bind(this)}>
-                        <Icon className="icon-custom icon-custom-hide-3d" size="large"></Icon>
-                      </Button>
-                    ) : (
-                      <Button icon title="显示3D" className="funcbtn" onClick={this.show3D.bind(this)}>
-                        <Icon className="icon-custom icon-custom-show-3d" size="large"></Icon>
-                      </Button>
-                    )}
-                  </Button.Group>
-                </Menu.Item>
-                <span id="line-left" hidden={!show3DVisualization}></span>
-                <Menu.Item className="funcolumn" hidden={!show3DVisualization}>
-                  <Button.Group>
-                    {/* <Button icon className='funcBtn' onClick={this.handleFuncButton.bind(this, "TEST")} title="放大"><Icon name='search plus' size='large'/></Button> */}
-                    <Button icon className="funcBtn" hidden={MPR} onClick={this.handleFuncButton.bind(this, 'MPR')} title="MPR">
-                      <Icon className="icon-custom icon-custom-mpr-show" size="large" />
-                    </Button>
-                    <Button icon className="funcBtn" hidden={!MPR} onClick={this.handleFuncButton.bind(this, 'STMPR')} title="取消MPR">
-                      <Icon className="icon-custom icon-custom-mpr-hide" size="large" />
-                    </Button>
-
-                    {show3DVisualization && MPR ? (
-                      <>
-                        <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'RC')} title="重置相机" description="reset camera">
-                          <Icon name="redo" size="large" />
-                        </Button>
-                        {/* <Button icon className='funcBtn' active={crosshairsTool} onClick={this.handleFuncButton.bind(this, "TC")} title="十字线" description="toggle crosshairs"><Icon name='plus' size='large'/></Button> */}
-                        <Button icon className="funcBtn" hidden={!displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'HC')} title="隐藏十字线" description="hidden crosshairs">
-                          <Icon className="icon-custom icon-custom-HC" size="large" />
-                        </Button>
-                        <Button icon className="funcBtn" hidden={displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'SC')} title="显示十字线" description="show crosshairs">
-                          <Icon className="icon-custom icon-custom-SC" size="large" />
-                        </Button>
-
-                        <Button icon className="funcBtn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} title="停止勾画" description="end painting">
-                          <Icon name="window close outline" size="large" />
-                        </Button>
-                        <Button icon className="funcBtn" hidden={painting} onClick={this.handleFuncButton.bind(this, 'BP')} title="开始勾画" description="begin painting">
-                          <Icon name="paint brush" size="large" />
-                        </Button>
-                        <Button icon className="funcBtn" hidden={!painting} active={!erasing} onClick={this.handleFuncButton.bind(this, 'DP')} title="勾画" description="do painting">
-                          <Icon name="paint brush" size="large" />
-                        </Button>
-                        <Button icon className="funcBtn" hidden={!painting} active={erasing} onClick={this.handleFuncButton.bind(this, 'DE')} title="擦除" description="do erasing">
-                          <Icon name="eraser" size="large" />
-                        </Button>
-                        <Popup
-                          on="click"
-                          trigger={
-                            <Button icon className="funcBtn" hidden={!painting}>
-                              <Icon name="dot circle" size="large" />
-                            </Button>
-                          }
-                          position="bottom center"
-                          style={{
-                            backgroundColor: '#021c38',
-                            borderColor: '#021c38',
-                            width: '200px',
-                            padding: '2px 4px 2px 4px',
-                          }}>
-                          <div>
-                            <div className="segment-widget-radius-container">
-                              画笔半径:
-                              <Slider
-                                className="segment-widget-radius-slider"
-                                value={paintRadius}
-                                min={1}
-                                step={1}
-                                max={10}
-                                tooltipVisible={false}
-                                onChange={this.changeRadius.bind(this)}
-                                onAfterChange={this.afterChangeRadius.bind(this)}
-                              />
-                            </div>
-                            <div className="segment-label-threshold-container">
-                              标记阈值:
-                              <Slider
-                                className="segment-label-threshold-slider"
-                                value={labelThreshold}
-                                min={100}
-                                step={100}
-                                max={1000}
-                                tooltipVisible={false}
-                                onChange={this.changeThreshold.bind(this)}
-                                onAfterChange={this.afterChangeThreshold.bind(this)}
-                              />
-                            </div>
-                          </div>
-                        </Popup>
-                        <Popup
-                          on="click"
-                          trigger={
-                            <Button icon className="funcBtn" hidden={!painting}>
-                              <Icon name="eye dropper" size="large" />
-                            </Button>
-                          }
-                          position="bottom center"
-                          style={{
-                            backgroundColor: '#021c38',
-                            borderColor: '#021c38',
-                            width: '150px',
-                            padding: '2px 4px 2px 4px',
-                          }}>
-                          <div className="segment-label-color-selector">
-                            颜色选择器：
-                            <InputColor initialValue="#FF0000" onChange={this.setPaintColor.bind(this)} placement="right" />
-                          </div>
-                        </Popup>
-
-                        <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'CPR')} title="CPR" hidden={CPR}>
-                          <Icon className="icon-custom icon-custom-CPR" size="large" />
-                        </Button>
-                        <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'STCPR')} title="取消CPR" hidden={!CPR}>
-                          <Icon name="window close outline" size="large" />
-                        </Button>
-                        <Button icon className="funcBtn" onClick={this.handleFuncButton.bind(this, 'RA')} title="重建气道" description="reconstruct airway">
-                          <Icon className="icon-custom icon-custom-RA" size="large" />
-                        </Button>
-                      </>
-                    ) : (
-                      <></>
-                    )}
-                  </Button.Group>
-                </Menu.Item>
-                <span id="line-left" hidden={!show3DVisualization || !MPR}></span>
+                        {menuTools === 'wwwc' ? (
+                          <Button icon title="窗宽窗位" onClick={this.wwwcCustom} className="funcbtn" active>
+                            <Icon name="sliders" size="large"></Icon>
+                          </Button>
+                        ) : (
+                          <Button icon title="窗宽窗位" onClick={this.wwwcCustom} className="funcbtn">
+                            <Icon name="sliders" size="large"></Icon>
+                          </Button>
+                        )}
+                        {this.state.readonly ? (
+                          <Button icon title="提交" onClick={this.submit} className="funcbtn">
+                            <Icon name="upload" size="large"></Icon>
+                          </Button>
+                        ) : (
+                          // <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
+                          <Button icon title="暂存" onClick={this.temporaryStorage} className="funcbtn">
+                            <Icon name="upload" size="large"></Icon>
+                          </Button>
+                        )}
+                        {this.state.readonly ? null : (
+                          <Button icon title="清空标注" onClick={this.clearUserNodule.bind(this)} className="funcbtn">
+                            <Icon name="user delete" size="large"></Icon>
+                          </Button>
+                        )}
+                          <Button icon title="显示3D" className="funcbtn" onClick={this.show3D.bind(this)}>
+                            <Icon className="icon-custom icon-custom-show-3d" size="large"></Icon>
+                          </Button>
+                      </Button.Group>
+                    </Menu.Item>
+                  </>
+                )}
                 <Menu.Item position="right">
                   <Dropdown text={welcome}>
                     <Dropdown.Menu id="logout-menu">
@@ -4944,42 +4944,68 @@ class CornerstoneElement extends Component {
 
   toPulmonary() {
     //肺窗
-    let viewport = cornerstone.getViewport(this.element)
-    viewport.voi.windowWidth = 1600
-    viewport.voi.windowCenter = -600
-    cornerstone.setViewport(this.element, viewport)
-    this.setState({ viewport, menuTools: '' })
-    console.log('to pulmonary', viewport)
+    if(this.state.show3DVisualization){
+      if(this.state.MPR){
+        this.setWL(1)
+      }
+    }else{
+      let viewport = cornerstone.getViewport(this.element)
+      viewport.voi.windowWidth = 1600
+      viewport.voi.windowCenter = -600
+      cornerstone.setViewport(this.element, viewport)
+      this.setState({ viewport, menuTools: '' })
+      console.log('to pulmonary', viewport)
+    }
   }
 
   toMedia() {
     //纵隔窗
-    let viewport = cornerstone.getViewport(this.element)
-    viewport.voi.windowWidth = 500
-    viewport.voi.windowCenter = 50
-    cornerstone.setViewport(this.element, viewport)
-    this.setState({ viewport, menuTools: '' })
-    console.log('to media', viewport)
+    if(this.state.show3DVisualization){
+      if(this.state.MPR){
+        this.setWL(4)
+      }
+    }else{
+      let viewport = cornerstone.getViewport(this.element)
+      viewport.voi.windowWidth = 500
+      viewport.voi.windowCenter = 50
+      cornerstone.setViewport(this.element, viewport)
+      this.setState({ viewport, menuTools: '' })
+      console.log('to media', viewport)
+    }
+
   }
 
   toBoneWindow() {
     //骨窗
-    let viewport = cornerstone.getViewport(this.element)
-    viewport.voi.windowWidth = 1000
-    viewport.voi.windowCenter = 300
-    cornerstone.setViewport(this.element, viewport)
-    this.setState({ viewport, menuTools: '' })
-    console.log('to media', viewport)
+    if(this.state.show3DVisualization){
+      if(this.state.MPR){
+        this.setWL(2)
+      }
+    }else{
+      let viewport = cornerstone.getViewport(this.element)
+      viewport.voi.windowWidth = 1000
+      viewport.voi.windowCenter = 300
+      cornerstone.setViewport(this.element, viewport)
+      this.setState({ viewport, menuTools: '' })
+      console.log('to media', viewport)
+    }
+
   }
 
   toVentralWindow() {
     //腹窗
-    let viewport = cornerstone.getViewport(this.element)
-    viewport.voi.windowWidth = 400
-    viewport.voi.windowCenter = 40
-    cornerstone.setViewport(this.element, viewport)
-    this.setState({ viewport, menuTools: '' })
-    console.log('to media', viewport)
+    if(this.state.show3DVisualization){
+      if(this.state.MPR){
+        this.setWL(3)
+      }
+    }else{
+      let viewport = cornerstone.getViewport(this.element)
+      viewport.voi.windowWidth = 400
+      viewport.voi.windowCenter = 40
+      cornerstone.setViewport(this.element, viewport)
+      this.setState({ viewport, menuTools: '' })
+      console.log('to media', viewport)
+    }
   }
 
   //标注新模型
@@ -7929,18 +7955,6 @@ class CornerstoneElement extends Component {
   handleFuncButton(idx, e) {
     switch (idx) {
       case 'FRG':
-        break
-      case 'LUNG':
-        this.setWL(1)
-        break
-      case 'BONE':
-        this.setWL(2)
-        break
-      case 'VENTRAL':
-        this.setWL(3)
-        break
-      case 'MEDIA':
-        this.setWL(4)
         break
       case 'MPR':
         this.setState({
