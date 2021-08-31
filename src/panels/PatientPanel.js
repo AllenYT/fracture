@@ -1,29 +1,37 @@
-import React, { Component } from 'react'
-import '../css/PatientPanel.css'
-import qs from 'qs'
-import axios from 'axios'
-import { Menu, Icon, Grid, Table, Pagination, Checkbox, Tab } from 'semantic-ui-react'
-import G2 from '@antv/g2'
-import { DatePicker, Button } from 'antd'
-import 'antd/dist/antd.css'
-import moment from 'moment'
-import { runInThisContext } from 'vm'
+import React, { Component } from "react";
+import "../css/PatientPanel.css";
+import qs from "qs";
+import axios from "axios";
+import {
+  Menu,
+  Icon,
+  Grid,
+  Table,
+  Pagination,
+  Checkbox,
+  Tab,
+} from "semantic-ui-react";
+import G2 from "@antv/g2";
+import { DatePicker, Button, notification } from "antd";
+import "antd/dist/antd.css";
+import moment from "moment";
+import { runInThisContext } from "vm";
 
-const storecid = []
+const storecid = [];
 const _G = G2,
-  Shape = _G.Shape
+  Shape = _G.Shape;
 
 const headerStyle = {
-  fontSize: '14px',
-  fontWeight: 'bold',
-}
+  fontSize: "14px",
+  fontWeight: "bold",
+};
 
 const noPatientSelectHintStyle = {
-  fontSize: '36px',
-  color: '#66cfec',
-  textAlign: 'center',
-  marginTop: '150px',
-}
+  fontSize: "36px",
+  color: "#66cfec",
+  textAlign: "center",
+  marginTop: "150px",
+};
 
 // const PatientInfo={"pid": "0013395276", "name":"LiuGe F",'sex':'男','age':40,'birth':'1979/2/16','times':5,'diameter':10};
 // const data=[
@@ -42,20 +50,20 @@ const noPatientSelectHintStyle = {
 //             ];
 
 const disabledDate = (current) => {
-  return current > moment().endOf('day')
-}
+  return current > moment().endOf("day");
+};
 
 class PatientPanel extends Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       activePage: 1,
       totalPage: 1,
-      pidKeyword: '',
-      activeItem: '病人详情',
-      patientName: '',
-      patientSex: '',
-      patientBirth: '',
+      pidKeyword: "",
+      activeItem: "病人详情",
+      patientName: "",
+      patientSex: "",
+      patientBirth: "",
       maxDiameter: 0,
       analyzeList: [],
       stats: {},
@@ -63,138 +71,138 @@ class PatientPanel extends Component {
       params: [],
       width: 600,
       height: 240,
-    }
-    this.config = JSON.parse(localStorage.getItem('config'))
-    this.handlePaginationChange = this.handlePaginationChange.bind(this)
-    this.toCase = this.toCase.bind(this)
-    this.storeCaseId = this.storeCaseId.bind(this)
-    this.drawGraphics = this.drawGraphics.bind(this)
-    this.compare = this.compare.bind(this)
-    this.getPatientList = this.getPatientList.bind(this)
+    };
+    this.config = JSON.parse(localStorage.getItem("config"));
+    this.handlePaginationChange = this.handlePaginationChange.bind(this);
+    this.toCase = this.toCase.bind(this);
+    this.storeCaseId = this.storeCaseId.bind(this);
+    this.drawGraphics = this.drawGraphics.bind(this);
+    this.compare = this.compare.bind(this);
+    this.getPatientList = this.getPatientList.bind(this);
   }
 
-  handleItemClick = (e, { name }) => this.setState({ activeItem: name })
+  handleItemClick = (e, { name }) => this.setState({ activeItem: name });
 
   handleClick = (e, titleProps) => {
-    const { index } = titleProps
-    const { activeIndex } = this.state
-    const newIndex = activeIndex === index ? -1 : index
+    const { index } = titleProps;
+    const { activeIndex } = this.state;
+    const newIndex = activeIndex === index ? -1 : index;
 
-    this.setState({ activeIndex: newIndex })
-  }
+    this.setState({ activeIndex: newIndex });
+  };
 
   compare(a, b) {
     // Use toUpperCase() to ignore character casing
-    const dateA = a.date
-    const dateB = b.date
+    const dateA = a.date;
+    const dateB = b.date;
 
-    let comparison = 0
+    let comparison = 0;
     if (dateA > dateB) {
-      comparison = 1
+      comparison = 1;
     } else if (dateA < dateB) {
-      comparison = -1
+      comparison = -1;
     }
-    return comparison
+    return comparison;
   }
 
   drawGraphics() {
     var chart = new G2.Chart({
-      container: 'graph',
+      container: "graph",
       forceFit: false,
       height: this.state.height,
       width: this.state.width,
-      padding: 'auto',
-    })
-    let stats = this.state.stats
+      padding: "auto",
+    });
+    let stats = this.state.stats;
 
-    const input = stats.sort(this.compare)
+    const input = stats.sort(this.compare);
 
     chart.source(this.state.stats, {
       diameter: {
-        alias: '结节直径(mm)',
+        alias: "结节直径(mm)",
       },
       volume: {
-        alias: '结节体积(mm²)',
+        alias: "结节体积(mm²)",
         // range:[0,1]
       },
-    })
+    });
     chart.tooltip({
       crosshairs: {
-        type: 'line',
+        type: "line",
       },
-    })
+    });
 
-    chart.axis('date', {
-      position: 'bottom',
+    chart.axis("date", {
+      position: "bottom",
       line: {
-        stroke: '#404040',
+        stroke: "#404040",
       },
       label: {
         textStyle: {
-          fill: '#000',
+          fill: "#000",
           // fontWeight:'bold'
         },
       },
       title: {
-        text: '日期',
+        text: "日期",
         textStyle: {
           fontSize: 12,
-          fill: '#404040',
+          fill: "#404040",
         },
       },
-    })
-    chart.axis('diameter', {
-      position: 'left',
+    });
+    chart.axis("diameter", {
+      position: "left",
       line: {
         // stroke:'#404040'
       },
       label: {
         textStyle: {
-          fill: '#000',
+          fill: "#000",
           // fontWeight:'bold'
         },
       },
       title: {
-        text: '结节直径(mm)',
+        text: "结节直径(mm)",
         textStyle: {
           fontSize: 12,
-          fill: '#404040',
+          fill: "#404040",
         },
       },
-    })
+    });
 
-    chart.axis('volume', {
-      position: 'right',
+    chart.axis("volume", {
+      position: "right",
       line: {
         // stroke:'#404040'
       },
       label: {
         textStyle: {
-          fill: '#000',
+          fill: "#000",
           // fontWeight:'bold'
         },
       },
       title: {
-        text: '结节体积(mm²)',
+        text: "结节体积(mm²)",
         textStyle: {
           fontSize: 12,
-          fill: '#404040',
+          fill: "#404040",
         },
       },
-    })
+    });
     chart.legend({
       useHtml: false,
-      position: 'bottom',
+      position: "bottom",
       reactive: true,
       textStyle: {
-        fill: '#000',
+        fill: "#000",
       },
       onHover: (ev) => {
-        ev.textStyle.fill = '#555'
+        ev.textStyle.fill = "#555";
       },
-    })
+    });
     // var view1 = chart.view();
-    chart.line().position('date*diameter').color('#3CB371')
+    chart.line().position("date*diameter").color("#3CB371");
     // chart.point().position('date*value').size(4).shape('circle').style({
     // stroke: '#fff',
     // lineWidth: 1
@@ -202,154 +210,246 @@ class PatientPanel extends Component {
     // var view2 = chart.view();
     chart
       .line()
-      .position('date*volume')
+      .position("date*volume")
       .size(2)
       .style({
         lineDash: [4, 4],
       })
-      .active(true)
-    chart.render()
+      .active(true);
+    chart.render();
   }
 
   getPatientList() {
     const params = {
-      mainItem: window.location.pathname.split('/')[2],
-      type: 'pid',
-      otherKeyword: '',
-    }
+      mainItem: window.location.pathname.split("/")[2],
+      type: "pid",
+      otherKeyword: "",
+    };
 
     axios
-      .post(this.config.record.getSubListForMainItem_front, qs.stringify(params))
+      .post(
+        this.config.record.getSubListForMainItem_front,
+        qs.stringify(params)
+      )
       .then((response) => {
-        const data = response.data
-        if (data.status !== 'okay') {
-          console.log('Not okay')
+        const data = response.data;
+        if (data.status !== "okay") {
+          console.log("Not okay");
           // window.location.href = '/'
         } else {
-          const subList = data.subList
-          let theList = []
+          const subList = data.subList;
+          let theList = [];
           for (let key in subList) {
-            const seriesLst = subList[key]
-            console.log(key)
+            const seriesLst = subList[key];
+            console.log(key);
             for (let j = 0; j < seriesLst.length; j++) {
               theList.push({
                 date: key,
-                caseId: seriesLst[j].split('#')[0],
-                href: '/case/' + seriesLst[j].split('#')[0] + '/origin',
-              })
+                caseId: seriesLst[j].split("#")[0],
+              });
             }
           }
-          this.setState({ analyzeList: theList })
+          this.setState({ analyzeList: theList });
         }
       })
       .catch((error) => {
-        console.log(error)
-      })
+        console.log(error);
+      });
   }
 
   componentDidMount() {
     //初始化
     const params = {
-      patientId: window.location.pathname.split('/')[2],
-    }
+      patientId: window.location.pathname.split("/")[2],
+    };
     axios
       .post(this.config.record.getPatientInfo, qs.stringify(params))
       .then((res) => {
-        const data = res.data
+        const data = res.data;
         this.setState({
           patientName: data.patientName,
           patientBirth: data.patientBirth,
           patientSex: data.patientSex,
           stats: data.stats,
           maxDiameter: data.maxDiameter,
-        })
-        this.drawGraphics()
-        this.getPatientList()
+        });
+        this.drawGraphics();
+        this.getPatientList();
       })
       .catch((err) => {
-        console.log(err)
-      })
+        console.log(err);
+      });
     // this.getTotalPages()
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (prevState.pidKeyword !== this.state.pidKeyword || prevState.dateKeyword !== this.state.dateKeyword || prevState.checked !== this.state.checked) {
-      this.getTotalPages()
+    if (
+      prevState.pidKeyword !== this.state.pidKeyword ||
+      prevState.dateKeyword !== this.state.dateKeyword ||
+      prevState.checked !== this.state.checked
+    ) {
+      this.getTotalPages();
     }
   }
   //
   getTotalPages() {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem("token");
     const headers = {
-      Authorization: 'Bearer '.concat(token),
-    }
-    let type = 'pid'
+      Authorization: "Bearer ".concat(token),
+    };
+    let type = "pid";
     const params = {
       type: type,
       pidKeyword: this.state.pidKeyword,
-    }
+    };
 
     axios
       .post(this.config.record.getTotalPages, qs.stringify(params), { headers })
       .then((response) => {
-        const data = response.data
-        if (data.status !== 'okay') {
-          alert('错误，请联系管理员')
-          window.location.href = '/'
+        const data = response.data;
+        if (data.status !== "okay") {
+          alert("错误，请联系管理员");
+          window.location.href = "/";
         } else {
-          const totalPage = data.count
-          console.log(totalPage)
-          this.setState({ totalPage: totalPage })
+          const totalPage = data.count;
+          console.log(totalPage);
+          this.setState({ totalPage: totalPage });
         }
       })
-      .catch((error) => console.log(error))
+      .catch((error) => console.log(error));
   }
 
   handlePaginationChange(e, { activePage }) {
-    this.setState({ activePage })
+    this.setState({ activePage });
   }
 
   onChange(date, dateString) {
-    console.log(date, dateString)
+    console.log(date, dateString);
   }
 
   toCase(e) {
-    const nextPath = e.currentTarget.dataset.id
-    window.location.href = nextPath
+    const caseId = e.currentTarget.dataset.id;
+    const token = localStorage.getItem("token");
+    const headers = {
+      Authorization: "Bearer ".concat(token),
+    };
+    const params = {
+      caseId: caseId,
+    };
+
+    axios
+      .post(this.config.draft.dataValid, qs.stringify(params))
+      .then((res) => {
+        const validInfo = res.data;
+        if (validInfo.status === "failed") {
+          if (validInfo["message"] === "Files been manipulated") {
+            if (
+              document.getElementsByClassName("data-file-broken").length === 0
+            ) {
+              notification.open({
+                className: "data-file-broken",
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "数据文件被篡改，请联系厂家技术支持工程师",
+              });
+            }
+          } else if (
+            validInfo["message"] === "Errors occur during preprocess"
+          ) {
+            if (document.getElementsByClassName("process-error").length === 0) {
+              notification.open({
+                className: "process-error",
+
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "处理过程出错，请联系厂家技术支持工程师",
+              });
+            }
+          } else if (validInfo["message"] === "caseId not found") {
+            if (
+              document.getElementsByClassName("out-of-database").length === 0
+            ) {
+              notification.open({
+                className: "out-of-database",
+
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "该数据未入库，请联系厂家技术支持工程师",
+              });
+            }
+          }
+        } else {
+          axios
+            .post(this.config.draft.getDataPath, qs.stringify(params), {
+              headers,
+            })
+            .then((res) => {
+              console.log("result from server", res.data);
+              console.log("params", params);
+              const oa = document.createElement("a");
+              oa.href = "/case/" + params.caseId + "/" + res.data;
+              oa.setAttribute("target", "_blank");
+              oa.setAttribute("rel", "nofollow noreferrer");
+              document.body.appendChild(oa);
+              oa.click();
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
+
+    // const oa = document.createElement("a");
+    // oa.href = "/case/" + params.caseId + "/" + res.data;
+    // oa.setAttribute("target", "_blank");
+    // oa.setAttribute("rel", "nofollow noreferrer");
+    // document.body.appendChild(oa);
+    // oa.click();
   }
 
   storeCaseId(e, { checked, index }) {
     // let value = content[index].split('#')[1]
-    console.log(index)
-    console.log('ischeck', checked)
+    console.log(index);
+    console.log("ischeck", checked);
     if (checked) {
-      storecid.push(index)
+      storecid.push(index);
     } else {
-      storecid.pop(index)
+      storecid.pop(index);
     }
-    console.log('store', storecid)
+    console.log("store", storecid);
   }
 
   render() {
-    const { activeItem } = this.state
-    console.log(this.state.stats)
-    let diagnoisisTable = []
-    const record = this.state.analyzeList
+    const { activeItem } = this.state;
+    console.log(this.state.stats);
+    let diagnoisisTable = [];
+    const record = this.state.analyzeList;
     for (var i = 0; i < record.length; i++) {
       diagnoisisTable.push(
         <Table.Row key={i}>
           <Table.Cell>{record[i].caseId}</Table.Cell>
           <Table.Cell>{record[i].date}</Table.Cell>
           <Table.Cell>
-            <Icon size="large" name="search" data-id={record[i].href} onClick={this.toCase}></Icon>
+            <Icon
+              size="large"
+              name="search"
+              data-id={record[i].caseId}
+              onClick={this.toCase}
+            ></Icon>
           </Table.Cell>
           {/* <Table.Cell><Checkbox onClick={this.storeCaseId} index={record[i].caseId}></Checkbox></Table.Cell> */}
           <Table.Cell></Table.Cell>
         </Table.Row>
-      )
+      );
     }
     // console.log(diagnoisisTable)
-    if (window.location.pathname.split('/')[2] !== undefined) {
+    if (window.location.pathname.split("/")[2] !== undefined) {
       return (
         <div id="patientpanel">
           <Grid divided="vertically">
@@ -358,7 +458,9 @@ class PatientPanel extends Component {
                 <Menu pointing secondary vertical>
                   <div id="menu-header">
                     <Menu.Item header>
-                      <p style={{ color: 'white', fontSize: 22 + 'px' }}>病人详情</p>
+                      <p style={{ color: "white", fontSize: 22 + "px" }}>
+                        病人详情
+                      </p>
                     </Menu.Item>
                   </div>
                   {/* <Menu.Item
@@ -377,16 +479,22 @@ class PatientPanel extends Component {
                 <div id="informationPanel">
                   <div className="information-header">
                     <Grid.Row stretched>
-                      基本信息&nbsp;<p style={{ fontSize: 12 + 'px', textAlign: 'end' }}>/Personal Information</p>
+                      基本信息&nbsp;
+                      <p style={{ fontSize: 12 + "px", textAlign: "end" }}>
+                        /Personal Information
+                      </p>
                     </Grid.Row>
                   </div>
                   <div id="information-body">
                     <Grid.Row>
                       <Grid verticalAlign="middle">
-                        <Grid.Row columns={1} style={{ height: 25, marginTop: 15 }}>
+                        <Grid.Row
+                          columns={1}
+                          style={{ height: 25, marginTop: 15 }}
+                        >
                           <Grid.Column>
                             <p style={headerStyle}>病例号:&nbsp;</p>
-                            {window.location.pathname.split('/')[2]}
+                            {window.location.pathname.split("/")[2]}
                           </Grid.Column>
                         </Grid.Row>
                         <Grid.Row columns={4} style={{ height: 25 }}>
@@ -422,7 +530,10 @@ class PatientPanel extends Component {
                 <div id="nodule-situation">
                   <div className="information-header">
                     <Grid.Row stretched>
-                      结节情况&nbsp;<p style={{ fontSize: 12 + 'px', textAlign: 'end' }}>/Nodules Situation</p>
+                      结节情况&nbsp;
+                      <p style={{ fontSize: 12 + "px", textAlign: "end" }}>
+                        /Nodules Situation
+                      </p>
                     </Grid.Row>
                   </div>
                   <Grid.Row verticalAlign="middle" textAlign="center" centered>
@@ -433,17 +544,24 @@ class PatientPanel extends Component {
                   <Grid.Row>
                     <div className="information-header">
                       <Grid.Row stretched>
-                        历史诊断&nbsp;<p style={{ fontSize: 12 + 'px', textAlign: 'end' }}>/Previous Diagnosis</p>
+                        历史诊断&nbsp;
+                        <p style={{ fontSize: 12 + "px", textAlign: "end" }}>
+                          /Previous Diagnosis
+                        </p>
                       </Grid.Row>
                     </div>
                   </Grid.Row>
                   <Grid.Row>
-                    <div id="datePanel">{/* <DatePicker onChange={PatientPanel.onChange} disabledDate={disabledDate} placeholder='请选择就诊日期...' style={{marginBottom:10}}/> */}</div>
+                    <div id="datePanel">
+                      {/* <DatePicker onChange={PatientPanel.onChange} disabledDate={disabledDate} placeholder='请选择就诊日期...' style={{marginBottom:10}}/> */}
+                    </div>
                     {/* <div id='dianogsis-table'> */}
                     <Table inverted singleLine id="dianogsis-table">
                       <Table.Header>
                         <Table.Row>
-                          <Table.HeaderCell singleLine>检查编号</Table.HeaderCell>
+                          <Table.HeaderCell singleLine>
+                            检查编号
+                          </Table.HeaderCell>
                           <Table.HeaderCell>就诊日期</Table.HeaderCell>
                           <Table.HeaderCell>查看报告</Table.HeaderCell>
                           <Table.HeaderCell></Table.HeaderCell>
@@ -469,15 +587,17 @@ class PatientPanel extends Component {
             </Grid.Row>
           </Grid>
         </div>
-      )
+      );
     } else {
       return (
         <div>
-          <h2 style={noPatientSelectHintStyle}>当前并未选中任何病人，请前往主页面选择一位病人以查看信息</h2>
+          <h2 style={noPatientSelectHintStyle}>
+            当前并未选中任何病人，请前往主页面选择一位病人以查看信息
+          </h2>
         </div>
-      )
+      );
     }
   }
 }
 
-export default PatientPanel
+export default PatientPanel;

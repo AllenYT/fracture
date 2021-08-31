@@ -88,7 +88,7 @@ class DownloadPanel extends Component {
         style: {
           backgroundColor: "rgba(255,232,230)",
         },
-        description: "未选择任何文件",
+        description: "未勾选需要下载的病例",
       });
     } else {
       console.log("Start downloading");

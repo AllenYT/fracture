@@ -478,12 +478,81 @@ export class SearchNodulePanel extends Component {
     // .catch(err => {
     //     console.log(err)
     // })
-    const oa = document.createElement("a");
-    oa.href = "/case/" + caseId + "/" + username + "#" + noduleNo
-    oa.setAttribute("target", "_blank");
-    oa.setAttribute("rel", "nofollow noreferrer");
-    document.body.appendChild(oa);
-    oa.click();
+    const token = localStorage.getItem("token");
+    const headers = {
+      Authorization: "Bearer ".concat(token),
+    };
+    const params = {
+      caseId: caseId,
+    };
+    axios
+      .post(this.config.draft.dataValid, qs.stringify(params))
+      .then((res) => {
+        const validInfo = res.data;
+        if (validInfo.status === "failed") {
+          if (validInfo["message"] === "Files been manipulated") {
+            if (
+              document.getElementsByClassName("data-file-broken").length === 0
+            ) {
+              notification.open({
+                className: "data-file-broken",
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "数据文件被篡改，请联系厂家技术支持工程师",
+              });
+            }
+          } else if (
+            validInfo["message"] === "Errors occur during preprocess"
+          ) {
+            if (document.getElementsByClassName("process-error").length === 0) {
+              notification.open({
+                className: "process-error",
+
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "处理过程出错，请联系厂家技术支持工程师",
+              });
+            }
+          } else if (validInfo["message"] === "caseId not found") {
+            if (
+              document.getElementsByClassName("out-of-database").length === 0
+            ) {
+              notification.open({
+                className: "out-of-database",
+
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "该数据未入库，请联系厂家技术支持工程师",
+              });
+            }
+          }
+        } else {
+          axios
+            .post(this.config.draft.getDataPath, qs.stringify(params), {
+              headers,
+            })
+            .then((res) => {
+              console.log("result from server", res.data);
+              console.log("params", params);
+              const oa = document.createElement("a");
+              oa.href = "/case/" + caseId + "/" + username + "#" + noduleNo;
+              oa.setAttribute("target", "_blank");
+              oa.setAttribute("rel", "nofollow noreferrer");
+              document.body.appendChild(oa);
+              oa.click();
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
+
     // this.nextPath();
   }
   handlePaginationChange(e, { activePage }) {
@@ -829,7 +898,7 @@ export class SearchNodulePanel extends Component {
   handleInputChange(e) {
     const value = e.currentTarget.value;
     const name = e.currentTarget.name;
-    console.log('handleInputChange', value)
+    console.log("handleInputChange", value);
 
     if (name === "left") {
       this.left = value;
@@ -839,13 +908,13 @@ export class SearchNodulePanel extends Component {
   }
 
   handleAddDiameters(e) {
-    let leftFloat = this.left
-    let rightFloat = this.right
-    if(!leftFloat){
-      leftFloat = 0
+    let leftFloat = this.left;
+    let rightFloat = this.right;
+    if (!leftFloat) {
+      leftFloat = 0;
     }
-    if(!rightFloat && rightFloat !== 0){
-      rightFloat = 50
+    if (!rightFloat && rightFloat !== 0) {
+      rightFloat = 50;
     }
     console.log("add", this.left, leftFloat);
     console.log("add", this.right, rightFloat);
@@ -856,7 +925,7 @@ export class SearchNodulePanel extends Component {
       parseFloat(rightFloat) <= 50
     ) {
       nums[leftFloat + "cm-" + rightFloat + "cm"] =
-      leftFloat + "cm-" + rightFloat + "cm";
+        leftFloat + "cm-" + rightFloat + "cm";
       this.setState((state, props) => ({
         diameterContainer:
           state.diameterContainer === "0_5"
@@ -942,7 +1011,8 @@ export class SearchNodulePanel extends Component {
         top: 48,
         duration: 6,
         message: "提醒",
-        description: "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
+        description:
+          "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
       });
     }
   }

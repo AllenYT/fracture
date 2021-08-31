@@ -967,10 +967,9 @@ class CornerstoneElement extends Component {
     // cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
-    if(this.state.leftButtonTools === 0){
-      this.setState({ leftButtonTools: -1, menuTools: ""})
-    }
-    else{
+    if (this.state.leftButtonTools === 0) {
+      this.setState({ leftButtonTools: -1, menuTools: "" });
+    } else {
       this.setState({ leftButtonTools: 0, menuTools: "anno" });
     }
   }
@@ -978,10 +977,9 @@ class CornerstoneElement extends Component {
   slide() {
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
-    if(this.state.leftButtonTools === 1){
-      this.setState({ leftButtonTools: -1, menuTools: ""})
-    }
-    else{
+    if (this.state.leftButtonTools === 1) {
+      this.setState({ leftButtonTools: -1, menuTools: "" });
+    } else {
       this.setState({ leftButtonTools: 1, menuTools: "slide" });
     }
     const newCurrentIdx = this.state.currentIdx;
@@ -991,10 +989,9 @@ class CornerstoneElement extends Component {
   wwwcCustom() {
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
-    if(this.state.leftButtonTools === 2){
-      this.setState({ leftButtonTools: -1, menuTools: ""})
-    }
-    else{
+    if (this.state.leftButtonTools === 2) {
+      this.setState({ leftButtonTools: -1, menuTools: "" });
+    } else {
       this.setState({ leftButtonTools: 2, menuTools: "wwwc" });
       cornerstoneTools.addToolForElement(element, wwwc);
       cornerstoneTools.setToolActiveForElement(
@@ -1029,10 +1026,9 @@ class CornerstoneElement extends Component {
   bidirectionalMeasure() {
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
-    if(this.state.leftButtonTools === 3){
-      this.setState({ leftButtonTools: -1, menuTools: ""})
-    }
-    else{
+    if (this.state.leftButtonTools === 3) {
+      this.setState({ leftButtonTools: -1, menuTools: "" });
+    } else {
       this.setState({ leftButtonTools: 3, menuTools: "bidirect" });
     }
     // console.log('测量')
@@ -1046,10 +1042,9 @@ class CornerstoneElement extends Component {
   lengthMeasure() {
     const element = document.querySelector("#origin-canvas");
     this.disableAllTools(element);
-    if(this.state.leftButtonTools === 4){
-      this.setState({ leftButtonTools: -1, menuTools: ""})
-    }
-    else{
+    if (this.state.leftButtonTools === 4) {
+      this.setState({ leftButtonTools: -1, menuTools: "" });
+    } else {
       this.setState({ leftButtonTools: 4, menuTools: "length" });
     }
   }
@@ -5297,13 +5292,14 @@ class CornerstoneElement extends Component {
       this.setState({
         boxes: boxes,
         currentIdx: toIdx,
+        listsActiveIndex: noduleNo,
         // autoRefresh: true
       });
     }
   }
 
   componentWillMount() {
-    // this.checkHash()
+    this.checkHash();
   }
 
   componentDidMount() {
