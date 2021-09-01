@@ -262,7 +262,7 @@ class SeriesIdList extends Component {
             style: {
               backgroundColor: "rgba(255,232,230)",
             },
-            description: "数据文件被篡改，请联系厂家技术支持工程师",
+            description: "影像发生篡改，无法启动算法，请联系厂家技术支持工程师",
           });
         }
       } else if (valid["message"] === "Errors occur during preprocess") {
@@ -274,7 +274,7 @@ class SeriesIdList extends Component {
             style: {
               backgroundColor: "rgba(255,232,230)",
             },
-            description: "处理过程出错，请联系厂家技术支持工程师",
+            description: "软件预处理出错，请联系厂家技术支持工程师",
           });
         }
       } else if (valid["message"] === "caseId not found") {
@@ -286,7 +286,7 @@ class SeriesIdList extends Component {
             style: {
               backgroundColor: "rgba(255,232,230)",
             },
-            description: "该数据未入库，请联系厂家技术支持工程师",
+            description: "数据未入库，请联系厂家技术支持工程师",
           });
         }
       }
