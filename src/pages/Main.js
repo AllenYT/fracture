@@ -374,11 +374,11 @@ class Main extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item
+                  {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
-                  />
+                  /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"
@@ -402,11 +402,11 @@ class Main extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item
+                  {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
-                  />
+                  /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"

@@ -3323,7 +3323,7 @@ class ViewerPanel extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item icon="write" text="留言" />
+                  {/* <Dropdown.Item icon="write" text="留言" /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"
