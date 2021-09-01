@@ -256,9 +256,9 @@ class SeriesIdList extends Component {
     if (valid.status === "failed") {
       if (valid["message"] === "Files been manipulated") {
         if (document.getElementsByClassName("data-file-broken").length === 0) {
-          notification.open({
+          notification.warning({
             className: "data-file-broken",
-            message: "提示",
+            message: "提醒",
             style: {
               backgroundColor: "rgba(255,232,230)",
             },
@@ -267,10 +267,10 @@ class SeriesIdList extends Component {
         }
       } else if (valid["message"] === "Errors occur during preprocess") {
         if (document.getElementsByClassName("process-error").length === 0) {
-          notification.open({
+          notification.warning({
             className: "process-error",
 
-            message: "提示",
+            message: "提醒",
             style: {
               backgroundColor: "rgba(255,232,230)",
             },
@@ -279,10 +279,10 @@ class SeriesIdList extends Component {
         }
       } else if (valid["message"] === "caseId not found") {
         if (document.getElementsByClassName("out-of-database").length === 0) {
-          notification.open({
+          notification.warning({
             className: "out-of-database",
 
-            message: "提示",
+            message: "提醒",
             style: {
               backgroundColor: "rgba(255,232,230)",
             },
