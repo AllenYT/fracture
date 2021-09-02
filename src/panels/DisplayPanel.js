@@ -245,6 +245,9 @@ class DisplayPanel extends Component {
           draftStatus = readonlyResponse.data.status;
           let boxes = draftResponse.data;
           console.log("boxes", boxes);
+          for (var i = 0; i < boxes.length; i++) {
+            boxes[i].backend_no = i;
+          }
           if (boxes !== "") boxes.sort(this.sliceIdxSort("slice_idx"));
           for (var i = 0; i < boxes.length; i++) {
             boxes[i].nodule_no = "" + i;

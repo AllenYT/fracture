@@ -5283,19 +5283,30 @@ class CornerstoneElement extends Component {
 
   checkHash() {
     const noduleNo = this.props.stack.noduleNo;
-    if (this.state.boxes[noduleNo] !== undefined) {
-      const boxes = this.state.boxes;
-      const toIdx = this.state.boxes[noduleNo].slice_idx;
-      boxes[noduleNo].highlight = true;
-      // console.log("1464:", boxes)
+    console.log("check hash noduleNo", noduleNo);
+    for (let i = 0; i < this.state.boxes.length; i++) {
+      const boxesItem = this.state.boxes[i];
+      console.log("check hash backend_no", boxesItem.backend_no);
 
-      this.setState({
-        boxes: boxes,
-        currentIdx: toIdx,
-        listsActiveIndex: noduleNo,
-        // autoRefresh: true
-      });
+      if (boxesItem.backend_no === noduleNo) {
+        const boxes = this.state.boxes;
+        const toIdx = boxesItem.slice_idx;
+        const curNoduleNo = parseInt(boxesItem.nodule_no);
+        console.log("check hash enter", curNoduleNo);
+        boxes[curNoduleNo].highlight = true;
+
+        this.setState({
+          boxes: boxes,
+          currentIdx: toIdx,
+          listsActiveIndex: curNoduleNo,
+          // autoRefresh: true
+        });
+      }
     }
+    // if (this.state.boxes[noduleNo] !== undefined) {
+    //   const boxes = this.state.boxes;
+
+    // }
   }
 
   componentWillMount() {
