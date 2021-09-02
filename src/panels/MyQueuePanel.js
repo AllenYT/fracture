@@ -931,7 +931,7 @@ class MyQueuePanel extends Component {
                                 低危
                               </a>
                             </Grid.Column>
-                            <Grid.Column width={2}>
+                            {/* <Grid.Column width={2}>
                               <a
                                 style={{ color: "#66cfec" }}
                                 id="feaDropdown"
@@ -939,7 +939,7 @@ class MyQueuePanel extends Component {
                               >
                                 中危
                               </a>
-                            </Grid.Column>
+                            </Grid.Column> */}
                             <Grid.Column width={2}>
                               <a
                                 style={{ color: "#66cfec" }}

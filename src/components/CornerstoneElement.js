@@ -5283,16 +5283,13 @@ class CornerstoneElement extends Component {
 
   checkHash() {
     const noduleNo = this.props.stack.noduleNo;
-    console.log("check hash noduleNo", noduleNo);
     for (let i = 0; i < this.state.boxes.length; i++) {
       const boxesItem = this.state.boxes[i];
-      console.log("check hash backend_no", boxesItem.backend_no);
 
       if (boxesItem.backend_no === noduleNo) {
         const boxes = this.state.boxes;
         const toIdx = boxesItem.slice_idx;
         const curNoduleNo = parseInt(boxesItem.nodule_no);
-        console.log("check hash enter", curNoduleNo);
         boxes[curNoduleNo].highlight = true;
 
         this.setState({
