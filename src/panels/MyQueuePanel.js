@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 import axios from "axios";
 import qs from "qs";
+import { notification } from "antd";
 import {
   Button,
   Grid,
@@ -16,7 +17,17 @@ import {
 } from "semantic-ui-react";
 import "../css/MyQueuePanel.css";
 import LowerAuth from "../components/LowerAuth";
-
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faTimesCircle,
+  faChevronCircleUp,
+  faChevronCircleDown,
+  faUser,
+  faLock,
+  faCaretUp,
+  faCaretDown,
+} from "@fortawesome/free-solid-svg-icons";
+import { Form, Button as AntdButton } from "antd";
 let nums = {
   危险: null,
   毛刺征: null,
@@ -61,6 +72,8 @@ class MyQueuePanel extends Component {
       open: false,
       queueName: "",
       patientList: [],
+      deleteQueueModalOpens: [],
+      deleteQueueModalToggleds: [],
     };
     this.config = JSON.parse(localStorage.getItem("config"));
     this.handlePaginationChange = this.handlePaginationChange.bind(this);
@@ -84,7 +97,7 @@ class MyQueuePanel extends Component {
     this.handleNameChange = this.handleNameChange.bind(this);
     this.loadQueueList = this.loadQueueList.bind(this);
     this.queueStateChange = this.queueStateChange.bind(this);
-    this.delQueue = this.delQueue.bind(this);
+    // this.delQueue = this.delQueue.bind(this)
   }
 
   componentDidMount() {
@@ -159,7 +172,7 @@ class MyQueuePanel extends Component {
         console.log("mainList", data.mainList[0]);
         const mainList = data.mainList;
         for (var i = 0; i < mainList.length; i++) {
-          leftpidList.push(mainList[i]["patientId"]);
+          leftpidList.push(mainList[i].split("_")[0]);
         }
         document.getElementById("loading").style.display = "none";
         this.setState({ leftpidList: leftpidList });
@@ -224,81 +237,94 @@ class MyQueuePanel extends Component {
   }
 
   submitQueue() {
-    //axios.createnewqueue,queuename
-    let patientIds = "";
-    const rightpidList = this.state.rightpidList;
-    console.log("right", rightpidList);
-    let queueList = this.state.queueList;
-    for (var i = 0; i < rightpidList.length; i++) {
-      if (i === 0 && patientIds.indexOf(rightpidList[i]) === -1) {
-        patientIds = "" + rightpidList[i];
-      } else if (i > 0 && patientIds.indexOf(rightpidList[i]) === -1) {
-        patientIds = patientIds + "_" + rightpidList[i];
-      } else {
-        continue;
-      }
-    }
-    console.log("patrients", patientIds);
-    const username = localStorage.getItem("username");
-    const params = {
-      username: username,
-      patientIds: patientIds,
-      subsetName: this.state.queueName,
-    };
-    axios
-      .post(this.config.subset.createQueue, qs.stringify(params))
-      .then((res) => {
-        if (res.data.status === "ok") {
-          document.getElementById("queue-popup").style.display = "none";
-          console.log("submit");
-          //调用queue query,update queue list
-          queueList.push(this.state.queueName);
-
-          alert("创建队列'" + this.state.queueName + "'成功!");
-          // this.loadQueueList()
-          document.getElementById("nameinput").value = "";
-          nums = {
-            危险: null,
-            毛刺征: null,
-            分叶征: null,
-            钙化: null,
-            密度: null,
-            胸膜凹陷征: null,
-            空洞征: null,
-            血管集束征: null,
-            空泡征: null,
-            支气管充气征: null,
-            "<=0.3cm": null,
-            "0.3cm-0.5cm": null,
-            "0.5cm-1cm": null,
-            "1cm-1.3cm": null,
-            "1.3cm-3cm": null,
-            ">=3cm": null,
-          };
-          this.setState({
-            leftpidList: [],
-            rightpidList: [],
-            queueName: "",
-            queueList: queueList,
-          });
-          this.setState({
-            malignancy: -1,
-            calcification: -1,
-            spiculation: -1,
-            lobulation: -1,
-            texture: -1,
-            pin: -1,
-            cav: -1,
-            vss: -1,
-            bea: -1,
-            bro: -1,
-            diameterContainer: "0_5",
-          });
+    let regex = new RegExp(
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}$"
+    );
+    if (this.state.queueName !== "" && regex.test(this.state.queueName)) {
+      //axios.createnewqueue,queuename
+      let patientIds = "";
+      const rightpidList = this.state.rightpidList;
+      console.log("right", rightpidList);
+      let queueList = this.state.queueList;
+      for (var i = 0; i < rightpidList.length; i++) {
+        if (i === 0 && patientIds.indexOf(rightpidList[i]) === -1) {
+          patientIds = "" + rightpidList[i];
+        } else if (i > 0 && patientIds.indexOf(rightpidList[i]) === -1) {
+          patientIds = patientIds + "_" + rightpidList[i];
+        } else {
+          continue;
         }
-      })
-      .catch((err) => {
-        console.log(err);
+      }
+      console.log("patrients", patientIds);
+      const username = localStorage.getItem("username");
+      const params = {
+        username: username,
+        patientIds: patientIds,
+        subsetName: this.state.queueName,
+      };
+      axios
+        .post(this.config.subset.createQueue, qs.stringify(params))
+        .then((res) => {
+          if (res.data.status === "ok") {
+            document.getElementById("queue-popup").style.display = "none";
+            console.log("submit");
+            //调用queue query,update queue list
+            queueList.push(this.state.queueName);
+
+            alert("创建队列'" + this.state.queueName + "'成功!");
+            // this.loadQueueList()
+            document.getElementById("nameinput").value = "";
+            nums = {
+              危险: null,
+              毛刺征: null,
+              分叶征: null,
+              钙化: null,
+              密度: null,
+              胸膜凹陷征: null,
+              空洞征: null,
+              血管集束征: null,
+              空泡征: null,
+              支气管充气征: null,
+              "<=0.3cm": null,
+              "0.3cm-0.5cm": null,
+              "0.5cm-1cm": null,
+              "1cm-1.3cm": null,
+              "1.3cm-3cm": null,
+              ">=3cm": null,
+            };
+            this.setState({
+              leftpidList: [],
+              rightpidList: [],
+              queueName: "",
+              queueList: queueList,
+            });
+            this.setState({
+              malignancy: -1,
+              calcification: -1,
+              spiculation: -1,
+              lobulation: -1,
+              texture: -1,
+              pin: -1,
+              cav: -1,
+              vss: -1,
+              bea: -1,
+              bro: -1,
+              diameterContainer: "0_5",
+            });
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    } else {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description:
+          "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
       });
+    }
   }
 
   removeRight() {
@@ -322,6 +348,11 @@ class MyQueuePanel extends Component {
   handleLabelsIcon(value, e) {
     switch (value) {
       case "低危":
+        // console.log('value',value)
+        nums["危险"] = null;
+        this.setState({ malignancy: -1, activePage: "1" });
+        break;
+      case "中危":
         // console.log('value',value)
         nums["危险"] = null;
         this.setState({ malignancy: -1, activePage: "1" });
@@ -521,13 +552,35 @@ class MyQueuePanel extends Component {
         case "低危":
           this.setState({ malignancy: 1, activePage: "1" });
           break;
-        case "高危":
+        case "中危":
           this.setState({ malignancy: 2, activePage: "1" });
+          break;
+        case "高危":
+          this.setState({ malignancy: 3, activePage: "1" });
           break;
       }
     }
   }
-
+  setDeleteQueueModalOpen(index, deleteQueueModalOpen) {
+    if (this.state.open) {
+      return;
+    }
+    const deleteQueueModalOpens = this.state.deleteQueueModalOpens;
+    deleteQueueModalOpens[index] = deleteQueueModalOpen;
+    this.setState({
+      deleteQueueModalOpens,
+    });
+  }
+  setDeleteQueueModalToggled(index) {
+    if (this.state.open) {
+      return;
+    }
+    const deleteQueueModalToggleds = this.state.deleteQueueModalToggleds;
+    deleteQueueModalToggleds[index] = !deleteQueueModalToggleds[index];
+    this.setState({
+      deleteQueueModalToggleds,
+    });
+  }
   handleImageLabels(e) {
     const text = e.target.innerHTML;
     if (text === "毛刺" || text === "非毛刺") {
@@ -612,17 +665,56 @@ class MyQueuePanel extends Component {
   }
 
   handleAddDiameters(e) {
-    console.log("add", this.left);
-    console.log("add", this.right);
-    nums[this.left + "cm-" + this.right + "cm"] =
-      this.left + "cm-" + this.right + "cm";
-    this.setState((state, props) => ({
-      diameterContainer:
-        state.diameterContainer === "0_5"
-          ? this.left + "_" + this.right
-          : state.diameterContainer + "@" + this.left + "_" + this.right,
-      activePage: "1",
-    }));
+    // console.log('add', this.left)
+    // console.log('add', this.right)
+    // if (parseFloat(this.left) < parseFloat(this.right) && parseFloat(this.left) > 0.0 && parseFloat(this.right) > 0.0 && parseFloat(this.right) < 50.0) {
+    //   nums[this.left + 'cm-' + this.right + 'cm'] = this.left + 'cm-' + this.right + 'cm'
+    //   this.setState((state, props) => ({
+    //     diameterContainer: state.diameterContainer === '0_5' ? this.left + '_' + this.right : state.diameterContainer + '@' + this.left + '_' + this.right,
+    //     activePage: '1',
+    //   }))
+    // } else {
+    //   notification.warning({
+    //     top: 48,
+    //     duration: 6,
+    //     message: '提醒',
+    //     description: '直径输入范围为0-50cm且注意大小关系',
+    //   })
+    // }
+
+    let leftFloat = this.left;
+    let rightFloat = this.right;
+    if (!leftFloat) {
+      leftFloat = 0;
+    }
+    if (!rightFloat && rightFloat !== 0) {
+      rightFloat = 50;
+    }
+    console.log("add", this.left, leftFloat);
+    console.log("add", this.right, rightFloat);
+    if (
+      parseFloat(leftFloat) < parseFloat(rightFloat) &&
+      parseFloat(leftFloat) >= 0 &&
+      parseFloat(rightFloat) >= 0 &&
+      parseFloat(rightFloat) <= 50
+    ) {
+      nums[leftFloat + "cm-" + rightFloat + "cm"] =
+        leftFloat + "cm-" + rightFloat + "cm";
+      this.setState((state, props) => ({
+        diameterContainer:
+          state.diameterContainer === "0_5"
+            ? leftFloat + "_" + rightFloat
+            : state.diameterContainer + "@" + leftFloat + "_" + rightFloat,
+        activePage: "1",
+      }));
+    } else {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "直径输入范围为0-50cm且注意大小关系",
+      });
+    }
   }
 
   handleDiaChange(e) {
@@ -666,9 +758,9 @@ class MyQueuePanel extends Component {
     }));
   }
 
-  delQueue(e) {
+  delQueue(index, delName, e) {
     // const delId = e.target.id
-    const delName = e.target.id;
+    // const delName = e.target.id
     let queueList = this.state.queueList;
     const params = {
       username: localStorage.getItem("username"),
@@ -685,6 +777,8 @@ class MyQueuePanel extends Component {
             }
           }
           this.setState({ queueList: queueList });
+          this.setDeleteQueueModalOpen(index, false);
+          alert("删除队列'" + delName + "'成功!");
         } else {
           alert("队列删除失败...");
         }
@@ -756,8 +850,15 @@ class MyQueuePanel extends Component {
       localStorage.getItem("auths") !== null &&
       JSON.parse(localStorage.getItem("auths")).indexOf("my_subsets") > -1
     ) {
-      const { leftpidList, rightpidList, queueList, open, patientList } =
-        this.state;
+      const {
+        leftpidList,
+        rightpidList,
+        queueList,
+        open,
+        patientList,
+        deleteQueueModalToggleds,
+        deleteQueueModalOpens,
+      } = this.state;
       return (
         <div>
           <Grid>
@@ -830,6 +931,15 @@ class MyQueuePanel extends Component {
                                 低危
                               </a>
                             </Grid.Column>
+                            {/* <Grid.Column width={2}>
+                              <a
+                                style={{ color: "#66cfec" }}
+                                id="feaDropdown"
+                                onClick={this.handleLabels}
+                              >
+                                中危
+                              </a>
+                            </Grid.Column> */}
                             <Grid.Column width={2}>
                               <a
                                 style={{ color: "#66cfec" }}
@@ -904,8 +1014,12 @@ class MyQueuePanel extends Component {
                                 </Grid.Row>
                                 <Grid.Row>
                                   <Grid.Column
-                                    width={8}
-                                    style={{ display: "flex" }}
+                                    width={16}
+                                    style={{
+                                      display: "flex",
+                                      flexDirection: "row",
+                                      alignItems: "center",
+                                    }}
                                   >
                                     <a
                                       style={{ color: "#66cfec" }}
@@ -918,6 +1032,7 @@ class MyQueuePanel extends Component {
                                       placeholder="cm"
                                       onChange={this.handleDiaChange}
                                       name="left"
+                                      maxLength={5}
                                     />
                                     <em>&nbsp;&nbsp;-&nbsp;&nbsp;</em>
                                     <Input
@@ -925,12 +1040,13 @@ class MyQueuePanel extends Component {
                                       placeholder="cm"
                                       onChange={this.handleDiaChange}
                                       name="right"
+                                      maxLength={5}
                                     />
                                     <a
                                       style={{
                                         marginLeft: 15,
                                         color: "#66cfec",
-                                        fontSize: 20,
+                                        // fontSize: 20,
                                       }}
                                     >
                                       cm
@@ -1301,18 +1417,99 @@ class MyQueuePanel extends Component {
                             {value}
                           </Table.Cell>
                           <Table.Cell width={4}>
-                            <Icon
-                              name="trash alternate"
-                              onClick={this.delQueue}
-                              id={value}
-                              delName={value}
-                            ></Icon>
+                            <Modal
+                              className={"admin-manage-modal"}
+                              onClose={this.setDeleteQueueModalOpen.bind(
+                                this,
+                                index,
+                                false
+                              )}
+                              onOpen={this.setDeleteQueueModalOpen.bind(
+                                this,
+                                index,
+                                true
+                              )}
+                              open={deleteQueueModalOpens[index]}
+                              trigger={
+                                <Icon
+                                  name="trash alternate"
+                                  id={value}
+                                  delName={value}
+                                  style={{ cursor: "pointer" }}
+                                ></Icon>
+                              }
+                            >
+                              {/* <Modal.Header>Select a Photo</Modal.Header> */}
+                              <div
+                                className={
+                                  "admin-manage-log-block " +
+                                  (deleteQueueModalToggleds[index]
+                                    ? "admin-manage-log-block-toggled"
+                                    : "")
+                                }
+                              >
+                                <div className={"admin-manage-log-heading"}>
+                                  删除该队列
+                                  <FontAwesomeIcon
+                                    className={"admin-manage-log-heading-icon"}
+                                    icon={faTimesCircle}
+                                    onClick={this.setDeleteQueueModalOpen.bind(
+                                      this,
+                                      index,
+                                      false
+                                    )}
+                                  />
+                                  <FontAwesomeIcon
+                                    className={"admin-manage-log-heading-icon"}
+                                    icon={
+                                      deleteQueueModalToggleds[index]
+                                        ? faChevronCircleDown
+                                        : faChevronCircleUp
+                                    }
+                                    onClick={this.setDeleteQueueModalToggled.bind(
+                                      this,
+                                      index
+                                    )}
+                                  />
+                                </div>
+                                <Form
+                                  className={"admin-manage-log-form"}
+                                  labelCol={{ offset: 0, span: 0 }}
+                                  wrapperCol={{ offset: 0, span: 24 }}
+                                >
+                                  <Form.Item>
+                                    <AntdButton
+                                      className={"admin-manage-log-form-button"}
+                                      style={{ marginRight: "6%" }}
+                                      onClick={this.setDeleteQueueModalOpen.bind(
+                                        this,
+                                        index,
+                                        false
+                                      )}
+                                    >
+                                      取消
+                                    </AntdButton>
+                                    <AntdButton
+                                      className={"admin-manage-log-form-button"}
+                                      onClick={this.delQueue.bind(
+                                        this,
+                                        index,
+                                        value
+                                      )}
+                                    >
+                                      删除
+                                    </AntdButton>
+                                  </Form.Item>
+                                </Form>
+                              </div>
+                            </Modal>
                           </Table.Cell>
                           <Table.Cell width={4}>
                             <Icon
                               name="caret right"
                               data-id={value}
                               onClick={this.toPatientList}
+                              style={{ cursor: "pointer" }}
                             ></Icon>
                           </Table.Cell>
                         </Table.Row>
@@ -1379,28 +1576,23 @@ class MyQueuePanel extends Component {
 
           <div className="queue-popup" id="queue-popup">
             <div class="queue-name">
-              <Grid>
-                <Grid.Row>
-                  <Grid.Column width={13}>
-                    <Header as="h2"> 请输入队列名称</Header>
-                  </Grid.Column>
-                  <Grid.Column width={3}>
-                    <Button id="header-right" onClick={this.hidder} icon>
-                      <Icon name="x"></Icon>
-                    </Button>
-                  </Grid.Column>
-                </Grid.Row>
-                <br />
-                <Grid.Row centered textAlign="center" style={{ height: 50 }}>
-                  <Input
-                    placeholder="队列名"
-                    id="nameinput"
-                    onChange={this.handleNameChange}
-                  ></Input>
+              <div className="queue-name-top-block">
+                <div className="queue-name-header">请输入队列名称</div>
+                <Button id="header-right" onClick={this.hidder} icon>
+                  <Icon name="x"></Icon>
+                </Button>
+              </div>
+              <br />
+              <div className="queue-name-bottom-block">
+                <Input
+                  placeholder="队列名"
+                  id="nameinput"
+                  onChange={this.handleNameChange}
+                  maxLength={12}
+                ></Input>
 
-                  <Button onClick={this.submitQueue}>提交</Button>
-                </Grid.Row>
-              </Grid>
+                <Button onClick={this.submitQueue}>提交</Button>
+              </div>
               {/* <div id="header"> */}
 
               {/* </div> */}

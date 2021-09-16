@@ -12,7 +12,7 @@ import {
   Tab,
 } from "semantic-ui-react";
 import G2 from "@antv/g2";
-import { DatePicker, Button } from "antd";
+import { DatePicker, Button, notification } from "antd";
 import "antd/dist/antd.css";
 import moment from "moment";
 import { runInThisContext } from "vm";
@@ -238,7 +238,6 @@ class PatientPanel extends Component {
           // window.location.href = '/'
         } else {
           const subList = data.subList;
-          console.log("subList", subList);
           let theList = [];
           for (let key in subList) {
             const seriesLst = subList[key];
@@ -330,8 +329,89 @@ class PatientPanel extends Component {
   }
 
   toCase(e) {
-    const nextPath = e.currentTarget.dataset.id;
-    window.location.href = nextPath;
+    const caseId = e.currentTarget.dataset.id;
+    const token = localStorage.getItem("token");
+    const headers = {
+      Authorization: "Bearer ".concat(token),
+    };
+    const params = {
+      caseId: caseId,
+    };
+
+    axios
+      .post(this.config.draft.dataValid, qs.stringify(params))
+      .then((res) => {
+        const validInfo = res.data;
+        if (validInfo.status === "failed") {
+          if (validInfo["message"] === "Files been manipulated") {
+            if (
+              document.getElementsByClassName("data-file-broken").length === 0
+            ) {
+              notification.open({
+                className: "data-file-broken",
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "数据文件被篡改，请联系厂家技术支持工程师",
+              });
+            }
+          } else if (
+            validInfo["message"] === "Errors occur during preprocess"
+          ) {
+            if (document.getElementsByClassName("process-error").length === 0) {
+              notification.open({
+                className: "process-error",
+
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "处理过程出错，请联系厂家技术支持工程师",
+              });
+            }
+          } else if (validInfo["message"] === "caseId not found") {
+            if (
+              document.getElementsByClassName("out-of-database").length === 0
+            ) {
+              notification.open({
+                className: "out-of-database",
+
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "该数据未入库，请联系厂家技术支持工程师",
+              });
+            }
+          }
+        } else {
+          axios
+            .post(this.config.draft.getDataPath, qs.stringify(params), {
+              headers,
+            })
+            .then((res) => {
+              console.log("result from server", res.data);
+              console.log("params", params);
+              const oa = document.createElement("a");
+              oa.href = "/case/" + params.caseId + "/" + res.data;
+              oa.setAttribute("target", "_blank");
+              oa.setAttribute("rel", "nofollow noreferrer");
+              document.body.appendChild(oa);
+              oa.click();
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
+
+    // const oa = document.createElement("a");
+    // oa.href = "/case/" + params.caseId + "/" + res.data;
+    // oa.setAttribute("target", "_blank");
+    // oa.setAttribute("rel", "nofollow noreferrer");
+    // document.body.appendChild(oa);
+    // oa.click();
   }
 
   storeCaseId(e, { checked, index }) {
@@ -360,7 +440,7 @@ class PatientPanel extends Component {
             <Icon
               size="large"
               name="search"
-              data-id={record[i].href}
+              data-id={record[i].caseId}
               onClick={this.toCase}
             ></Icon>
           </Table.Cell>
@@ -410,14 +490,16 @@ class PatientPanel extends Component {
                     <Grid.Row>
                       <Grid verticalAlign="middle">
                         <Grid.Row
-                          columns={4}
+                          columns={1}
                           style={{ height: 25, marginTop: 15 }}
                         >
-                          <Grid.Column width="4">
+                          <Grid.Column>
                             <p style={headerStyle}>病例号:&nbsp;</p>
                             {window.location.pathname.split("/")[2]}
                           </Grid.Column>
-                          <Grid.Column width="5">
+                        </Grid.Row>
+                        <Grid.Row columns={4} style={{ height: 25 }}>
+                          <Grid.Column width="6">
                             <p style={headerStyle}>姓&nbsp;&nbsp;名:&nbsp;</p>
                             {this.state.patientName}
                           </Grid.Column>
@@ -425,14 +507,14 @@ class PatientPanel extends Component {
                             <p style={headerStyle}>性&nbsp;&nbsp;别:&nbsp;</p>
                             {this.state.patientSex}
                           </Grid.Column>
-                          <Grid.Column width="5">
+                          <Grid.Column width="6">
                             <p style={headerStyle}>出生年月:&nbsp;</p>
                             {this.state.patientBirth}
                           </Grid.Column>
                         </Grid.Row>
 
                         <Grid.Row columns={2} textAlign="left">
-                          <Grid.Column width="4">
+                          <Grid.Column width="6">
                             <p style={headerStyle}>就诊次数:&nbsp;</p>
                             {this.state.stats.length}
                           </Grid.Column>

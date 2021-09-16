@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { notification } from "antd";
 import XLSX from "xlsx";
 import {
   Pagination,
@@ -477,7 +478,82 @@ export class SearchNodulePanel extends Component {
     // .catch(err => {
     //     console.log(err)
     // })
-    this.nextPath("/case/" + caseId + "/" + username + "#" + noduleNo);
+    const token = localStorage.getItem("token");
+    const headers = {
+      Authorization: "Bearer ".concat(token),
+    };
+    const params = {
+      caseId: caseId,
+    };
+    axios
+      .post(this.config.draft.dataValid, qs.stringify(params))
+      .then((res) => {
+        const validInfo = res.data;
+        if (validInfo.status === "failed") {
+          if (validInfo["message"] === "Files been manipulated") {
+            if (
+              document.getElementsByClassName("data-file-broken").length === 0
+            ) {
+              notification.open({
+                className: "data-file-broken",
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "数据文件被篡改，请联系厂家技术支持工程师",
+              });
+            }
+          } else if (
+            validInfo["message"] === "Errors occur during preprocess"
+          ) {
+            if (document.getElementsByClassName("process-error").length === 0) {
+              notification.open({
+                className: "process-error",
+
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "处理过程出错，请联系厂家技术支持工程师",
+              });
+            }
+          } else if (validInfo["message"] === "caseId not found") {
+            if (
+              document.getElementsByClassName("out-of-database").length === 0
+            ) {
+              notification.open({
+                className: "out-of-database",
+
+                message: "提示",
+                style: {
+                  backgroundColor: "rgba(255,232,230)",
+                },
+                description: "该数据未入库，请联系厂家技术支持工程师",
+              });
+            }
+          }
+        } else {
+          axios
+            .post(this.config.draft.getDataPath, qs.stringify(params), {
+              headers,
+            })
+            .then((res) => {
+              console.log("result from server", res.data);
+              console.log("params", params);
+              const oa = document.createElement("a");
+              oa.href = "/case/" + caseId + "/" + username + "#" + noduleNo;
+              oa.setAttribute("target", "_blank");
+              oa.setAttribute("rel", "nofollow noreferrer");
+              document.body.appendChild(oa);
+              oa.click();
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      });
+
+    // this.nextPath();
   }
   handlePaginationChange(e, { activePage }) {
     this.setState({ activePage });
@@ -728,6 +804,8 @@ export class SearchNodulePanel extends Component {
         case "高危":
           this.setState({ malignancy: 3, activePage: "1" });
           break;
+        default:
+          break;
       }
     }
   }
@@ -812,12 +890,16 @@ export class SearchNodulePanel extends Component {
       case "非支气管充气":
         this.setState({ bro: 1, activePage: "1" });
         break;
+      default:
+        break;
     }
   }
 
   handleInputChange(e) {
     const value = e.currentTarget.value;
     const name = e.currentTarget.name;
+    console.log("handleInputChange", value);
+
     if (name === "left") {
       this.left = value;
     } else if (name === "right") {
@@ -826,25 +908,49 @@ export class SearchNodulePanel extends Component {
   }
 
   handleAddDiameters(e) {
-    console.log("add", this.left);
-    console.log("add", this.right);
-    if (parseFloat(this.left) < parseFloat(this.right)) {
-      nums[this.left + "cm-" + this.right + "cm"] =
-        this.left + "cm-" + this.right + "cm";
+    let leftFloat = this.left;
+    let rightFloat = this.right;
+    if (!leftFloat) {
+      leftFloat = 0;
+    }
+    if (!rightFloat && rightFloat !== 0) {
+      rightFloat = 50;
+    }
+    console.log("add", this.left, leftFloat);
+    console.log("add", this.right, rightFloat);
+    if (
+      parseFloat(leftFloat) < parseFloat(rightFloat) &&
+      parseFloat(leftFloat) >= 0 &&
+      parseFloat(rightFloat) >= 0 &&
+      parseFloat(rightFloat) <= 50
+    ) {
+      nums[leftFloat + "cm-" + rightFloat + "cm"] =
+        leftFloat + "cm-" + rightFloat + "cm";
       this.setState((state, props) => ({
         diameterContainer:
           state.diameterContainer === "0_5"
-            ? this.left + "_" + this.right
-            : state.diameterContainer + "@" + this.left + "_" + this.right,
+            ? leftFloat + "_" + rightFloat
+            : state.diameterContainer + "@" + leftFloat + "_" + rightFloat,
         activePage: "1",
       }));
+    } else {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description: "直径输入范围为0-50cm且注意大小关系",
+      });
     }
   }
   handleAddQueues(e) {
-    this.setState({ load: true });
     let text = document.getElementById("inputQueue").value;
     console.log("text", text);
-    if (text !== "" && this.state.totalResults > 0) {
+    let regex = new RegExp(
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}$"
+    );
+    // if (text !== "" && regex.test(text) && this.state.totalResults > 0)
+    if (text !== "" && regex.test(text)) {
+      this.setState({ load: true });
       const params = {
         malignancy: this.state.malignancy,
         calcification: this.state.calcification,
@@ -900,6 +1006,14 @@ export class SearchNodulePanel extends Component {
         .catch((err) => {
           console.log(err);
         });
+    } else {
+      notification.warning({
+        top: 48,
+        duration: 6,
+        message: "提醒",
+        description:
+          "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
+      });
     }
   }
 
@@ -1042,7 +1156,7 @@ export class SearchNodulePanel extends Component {
                             placeholder="cm"
                             onChange={this.handleInputChange}
                             name="left"
-                            maxLength={4}
+                            maxLength={5}
                             type="number"
                           />
                           <em>&nbsp;&nbsp;-&nbsp;&nbsp;</em>
@@ -1051,7 +1165,7 @@ export class SearchNodulePanel extends Component {
                             placeholder="cm"
                             onChange={this.handleInputChange}
                             name="right"
-                            maxLength={4}
+                            maxLength={5}
                             type="number"
                           />
                           <a
@@ -1273,7 +1387,11 @@ export class SearchNodulePanel extends Component {
               </Header>
             </Grid.Column>
             <Grid.Column verticalAlign="middle" width={4} textAlign="left">
-              <Input id="inputQueue" placeholder="请输入队列名称"></Input>
+              <Input
+                id="inputQueue"
+                placeholder="请输入队列名称"
+                // maxLength={12}
+              ></Input>
               <em>&nbsp;&nbsp;&nbsp;&nbsp;</em>
               {this.state.load === true ? (
                 <Button

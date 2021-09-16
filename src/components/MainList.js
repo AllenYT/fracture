@@ -4,6 +4,7 @@ import { notification } from "antd";
 import axios from "axios";
 import qs from "qs";
 import "../css/spinner.css";
+import "../css/mainList.css";
 import SubList from "./SubList";
 import { string } from "postcss-selector-parser";
 import ReactHtmlParser from "react-html-parser";
@@ -28,6 +29,7 @@ class MainList extends Component {
   }
 
   componentDidMount() {
+    this.props.onRef(this);
     this.loadMainList();
   }
 
@@ -50,6 +52,7 @@ class MainList extends Component {
       axios
         .post(this.config.record.getMainList, qs.stringify(params), { headers })
         .then((response) => {
+          console.log("getMainListForSubset", response.data);
           const data = response.data;
           if (data.status === "okay") {
             const mainList = data.mainList;
@@ -80,6 +83,7 @@ class MainList extends Component {
         .post(this.config.record.getMainListForSubset, qs.stringify(params))
         .then((response) => {
           const data = response.data;
+          console.log("getMainListForSubset subset", response.data);
           if (data.status === "okay") {
             const mainList = data.mainList;
             if (mainList.length === 0) {
@@ -216,6 +220,9 @@ class MainList extends Component {
                       type={this.props.type}
                       otherKeyword={otherKeyword}
                       contextRef={this.contextRef}
+                      onRef={(input) => {
+                        this.subList = input;
+                      }}
                     />
                   </td>
                   <td>
@@ -236,13 +243,13 @@ class MainList extends Component {
       return (
         <Grid centered>
           <div style={{ paddingTop: "60px" }}>
-            <div class="sk-chase">
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
-              <div class="sk-chase-dot"></div>
+            <div className="sk-chase">
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
+              <div className="sk-chase-dot"></div>
             </div>
           </div>
         </Grid>

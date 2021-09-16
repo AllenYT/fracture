@@ -14,11 +14,6 @@ class DataPanel extends Component {
     constructor(props) {
         super(props)
         this.state = {
-            checked: false,
-            activePage: 1,
-            totalPage: 1,
-            pidKeyword: '',
-            dateKeyword: '',
         }
         this.config = JSON.parse(localStorage.getItem('config'))
         this.handlePaginationChange = this
@@ -101,11 +96,6 @@ class DataPanel extends Component {
         this.setState({activePage})
     }
 
-    //导出caseid传入下载界面
-    // exportCaseId(){
-    //     console.log('cid',this.props.storecid)
-    //     this.nextPath('/download')
-    // }
 
     render() {
         const {activePage} = this.state
@@ -128,11 +118,9 @@ class DataPanel extends Component {
                         <Grid.Column width={2}></Grid.Column>
                     </Grid.Row>
                     <Grid.Row >
-                        {/* <Grid.Column width={2}></Grid.Column> */}
                         <Grid.Column width={16}>
                             <DataCockpit/>
                         </Grid.Column>
-                        {/* <Grid.Column width={2}></Grid.Column> */}
                     </Grid.Row>
                 </Grid>
 

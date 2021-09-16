@@ -1105,10 +1105,10 @@ class MiniReport extends Component {
                 <Modal.Header>
                   <Grid>
                     <Grid.Row>
-                      <Grid.Column width={3} textAlign="left">
+                      <Grid.Column width={5} textAlign="left">
                         影像诊断报告
                       </Grid.Column>
-                      <Grid.Column width={6}></Grid.Column>
+                      <Grid.Column width={5}></Grid.Column>
                       <Grid.Column width={3} textAlign="right">
                         {this.state.temp === 1 ? (
                           <Button color="blue" onClick={this.exportPDF}>
@@ -1125,6 +1125,9 @@ class MiniReport extends Component {
                 </Modal.Header>
                 <Modal.Content image scrolling id="pdf">
                   <Modal.Description>
+                    <Header style={{ marginBottom: "20px" }}>
+                      肺结节CT影像辅助检测软件
+                    </Header>
                     <table>
                       <tbody>
                         <tr>

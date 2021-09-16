@@ -28,6 +28,10 @@
     color:rgba(1, 23, 46, 0.997) !important;
 } */
 
+#subList-accordion .title td {
+  white-space: nowrap;
+}
+
 #subList-accordion::-webkit-scrollbar-corner {
   color: rgba(10, 96, 187, 0.997) !important;
 }

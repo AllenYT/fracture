@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import { Menu, Dropdown, Button, Image } from "semantic-ui-react";
+import { notification } from "antd";
 import {
   withRouter,
   BrowserRouter as Router,
@@ -16,6 +17,7 @@ import MyReviewsPanel from "../panels/MyReviewsPanel";
 import PatientPanel from "../panels/PatientPanel";
 import SearchCasePanel from "../panels/SearchCasePanel";
 import SearchNodulePanel from "../panels/SearchNodulePanel";
+// import FollowUpDisplayPanel from '../panels/FollowUpDisplayPanel'
 import "../css/main.css";
 import axios from "axios";
 import src1 from "../images/MILab.png";
@@ -28,6 +30,7 @@ import preprocess from "../panels/preprocess";
 import ViewerPanel from "../panels/ViewerPanel";
 import AdminManagePanel from "../panels/AdminManagePanel";
 import md5 from "js-md5";
+import { MenuList } from "@material-ui/core";
 
 class Main extends Component {
   constructor(props) {
@@ -42,6 +45,7 @@ class Main extends Component {
       reRender: 0,
       isLoggedIn: false,
       expiration: false,
+      diskInfo: "0%",
     };
 
     this.handleItemClick = this.handleItemClick.bind(this);
@@ -90,7 +94,7 @@ class Main extends Component {
       });
   }
 
-  async componentWillMount() {
+  async componentDidMount() {
     const configPromise = new Promise((resolve, reject) => {
       axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
         const config = res.data;
@@ -101,6 +105,25 @@ class Main extends Component {
     });
     const config = await configPromise;
     this.config = config;
+
+    axios
+      .post(this.config.data.getDiskInfo)
+      .then((diskResponse) => {
+        const diskInfo = diskResponse.data.usedPercents;
+        console.log("diskinfo", parseInt(diskInfo));
+        this.setState({ diskInfo: diskInfo });
+        if (parseInt(diskInfo) > 90) {
+          notification.warning({
+            top: 48,
+            duration: 6,
+            message: "提醒",
+            description: "磁盘用量已超过90%",
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
 
     if (
       localStorage.getItem("username") === null &&
@@ -219,7 +242,7 @@ class Main extends Component {
     const welcome = "欢迎您，" + this.state.name;
 
     let logButtonPlace = "";
-    console.log(window.location.pathname);
+    // console.log(window.location.pathname);
 
     const mainSearchNodule =
       localStorage.getItem("auths") !== null &&
@@ -274,9 +297,11 @@ class Main extends Component {
         >
           数据检索
         </Menu.Item>
-
         {mainSearchNodule}
         {mainAdminManage}
+        <Menu.Item position="right">
+          当前磁盘使用百分比:{this.state.diskInfo}
+        </Menu.Item>
 
         {/* <Menu.Item
                     active={activeItem === 'myAnnos'}
@@ -349,11 +374,11 @@ class Main extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item
+                  {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
-                  />
+                  /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"
@@ -377,11 +402,11 @@ class Main extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item
+                  {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
-                  />
+                  /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"
@@ -470,6 +495,7 @@ class Main extends Component {
             <Route path="/homepage/" component={HomepagePanel} />
             <Route path="/preprocess/" component={preprocess} />
             <Route path="/segView/" component={ViewerPanel} />
+            {/* <Route path="/followup/" component={FollowUpDisplayPanel} /> */}
             <Route path="/adminManage" component={AdminManagePanel} />
           </div>
           <div className="ui inverted vertical footer segment">

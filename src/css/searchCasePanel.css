@@ -83,7 +83,33 @@
     margin-top: 10px;
     margin-bottom: 50px;
 }
-#queueDropdown{
+#queuestyle .ant-select{
+    color:whitesmoke !important;
+    background-color: rgba(1, 23, 46, 0.997) !important;
+    /* border: 0.5px solid whitesmoke !important; */
+}
+#queuestyle .ant-select-selector{
+    background-color: rgba(1, 23, 46, 0.997) !important;
+}
+#queuestyle .ant-select-arrow{
+    color:whitesmoke !important;
+}
+.queue-option-item{
+    background-color: rgba(1, 23, 46, 0.997) !important;
+}
+.queue-option-item .ant-select-item-option{
+    color:whitesmoke !important;
+}
+.queue-option-item .ant-select-item-option-active{
+    background-color: rgba(30, 43, 76, 0.997) !important;
+}
+.queue-option-item .ant-select-item-option-selected{
+    background-color: rgba(50, 63, 96, 0.997) !important;
+}
+.queue-option-item .ant-select-item-empty{
+    color:whitesmoke !important;
+}
+/* #queueDropdown{
     background: transparent;
     color:whitesmoke;
     border-color: aliceblue;
@@ -92,19 +118,20 @@
     background-color: transparent ;
     color: whitesmoke;
     border: 0.5px solid whitesmoke;
-  }
+}
   
 #queueDropdown> div > .item{
-    /* color: #2af270; */
+    color: #2af270;
     color:whitesmoke;
     background: rgba(1, 23, 46, 0.997);
     border: 0.5px solid whitesmoke;
-  }
+}
 
 #queueDropdown> .search.icon{
     color:#2af270;
     top:0.5em;
-}
+} 
+*/
 
 #patient-search {
     width: 250px;
@@ -157,9 +184,7 @@
 }
 
 #container {
-    height: 616px;
-
-   
+    height: 616px; 
     margin-top: 40px; 
     margin-bottom: 60px;
     padding: 30px 20px;

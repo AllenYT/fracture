@@ -9,6 +9,7 @@ import {
   Header,
   Dropdown,
 } from "semantic-ui-react";
+import { notification, Select } from "antd";
 import MainList from "../components/MainList";
 import "../css/searchCasePanel.css";
 import axios from "axios";
@@ -18,11 +19,12 @@ import { withRouter } from "react-router-dom";
 // import Info from '../components/Info'
 import LowerAuth from "../components/LowerAuth";
 
+const { Option } = Select;
 const style = {
   textAlign: "center",
   marginTop: "300px",
 };
-
+let queueSearchErrorTimer = null;
 export class SearchPanel extends Component {
   constructor(props) {
     super(props);
@@ -40,6 +42,8 @@ export class SearchPanel extends Component {
       totalPageQueue: 1,
       searchQueue: [],
       search: false,
+      queueSearchHasError: false,
+      downloading: false,
     };
     this.config = JSON.parse(localStorage.getItem("config"));
     this.handlePaginationChange = this.handlePaginationChange.bind(this);
@@ -48,6 +52,7 @@ export class SearchPanel extends Component {
     this.handleCheckbox = this.handleCheckbox.bind(this);
     this.startDownload = this.startDownload.bind(this);
     this.getQueue = this.getQueue.bind(this);
+    this.onKeyDown = this.onKeyDown.bind(this);
     this.left = this.left.bind(this);
     this.right = this.right.bind(this);
   }
@@ -55,11 +60,11 @@ export class SearchPanel extends Component {
   componentDidMount() {
     this.getTotalPages();
     this.getQueue();
-    document.addEventListener("keydown", this.onKeyDown.bind(this));
+    window.addEventListener("keydown", this.onKeyDown);
   }
 
   componentWillUnmount() {
-    document.removeEventListener("keydown", this.onKeyDown.bind(this));
+    window.removeEventListener("keydown", this.onKeyDown);
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -113,19 +118,62 @@ export class SearchPanel extends Component {
   }
 
   onKeyDown(event) {
-    // console.log('enter',event.which)
+    // console.log('enter', event)
     if (event.which === 13) {
-      const patientValue = document.getElementById("patient-search").value;
-      const dataValue = document.getElementById("date-search").value;
-      this.setState({
-        activePage: 1,
-        pidKeyword: patientValue,
-        dateKeyword: dataValue,
-        search: true,
-        activePage: 1,
-      });
-      this.getTotalPages();
-      this.setState({ search: false });
+      if (event.path.length > 1 && event.path[0].id === "queueDropdown") {
+        return;
+      }
+      // console.log("checked", this.state.checked)
+      if (this.state.checked) {
+        // search by date
+        if (!document.getElementById("date-search")) {
+          return;
+        }
+        const dateValue = document.getElementById("date-search").value;
+        let dateRegex = new RegExp("^([0-9]){0,8}$");
+        if (dateRegex.test(dateValue)) {
+          this.setState({
+            activePage: 1,
+            dateKeyword: dateValue,
+            search: true,
+          });
+          this.getTotalPages();
+          this.setState({ search: false });
+        } else {
+          notification.warning({
+            top: 48,
+            duration: 6,
+            message: "提醒",
+            description: "输入日期应不超过8个字符，且仅支持数字",
+          });
+        }
+      } else {
+        // search by patient
+        if (!document.getElementById("patient-search")) {
+          return;
+        }
+        const patientValue = document.getElementById("patient-search").value;
+        let patientRegex = new RegExp("^([a-zA-Z0-9_#]){0,32}$");
+        if (patientRegex.test(patientValue)) {
+          this.setState({
+            activePage: 1,
+            pidKeyword: patientValue,
+            search: true,
+          });
+          this.getTotalPages();
+          this.setState({ search: false });
+        } else {
+          notification.warning({
+            top: 48,
+            duration: 6,
+            message: "提醒",
+            description: '病人ID不超过32个字符，且仅支持字母、数字、"#"和"_"',
+          });
+        }
+      }
+      // let regex = new RegExp(
+      //   "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_#]){1,36}$"
+      // );
     }
   }
 
@@ -191,13 +239,14 @@ export class SearchPanel extends Component {
           headers,
         })
         .then((response) => {
+          // console.log("getTotalPages buxian response", response)
           const data = response.data;
           if (data.status !== "okay") {
             alert("错误，请联系管理员");
             window.location.href = "/";
           } else {
             const totalPage = data.count;
-            console.log(totalPage);
+            console.log("totalPage", totalPage);
             this.setState({ totalPage: totalPage });
           }
         })
@@ -217,6 +266,7 @@ export class SearchPanel extends Component {
       axios
         .post(this.config.record.getTotalPagesForSubset, qs.stringify(params))
         .then((response) => {
+          // console.log("getTotalPages qita response", response)
           const data = response.data;
           const totalPage = data.count;
           console.log("totalPage", totalPage);
@@ -227,6 +277,7 @@ export class SearchPanel extends Component {
   }
 
   handleCheckbox(e) {
+    // console.log("handle check box", this.state)
     this.setState({
       checked: !this.state.checked,
       pidKeyword: "",
@@ -253,8 +304,26 @@ export class SearchPanel extends Component {
   }
 
   startDownload() {
-    console.log("Start downloading");
-    this.setState({ loading: true });
+    let cart;
+    if (this.mainList && this.mainList.subList) {
+      cart = this.mainList.subList.state.cart;
+    }
+    console.log("Start downloading", cart);
+
+    if (cart.size === 0) {
+      if (document.getElementsByClassName("cart-empty").length === 0) {
+        notification.open({
+          className: "cart-empty",
+          message: "提示",
+          style: {
+            backgroundColor: "rgba(255,232,230)",
+          },
+          description: "未勾选需要下载的病例",
+        });
+      }
+      return;
+    }
+    this.setState({ loading: true, downloading: true });
     const token = localStorage.getItem("token");
     const headers = {
       Authorization: "Bearer ".concat(token),
@@ -265,21 +334,108 @@ export class SearchPanel extends Component {
         const filename = res.data;
         console.log("Filename", filename);
         window.location.href = this.config.data.download + "/" + filename;
-        this.setState({ loading: false });
+        this.setState({ loading: false, downloading: false });
+        if (this.mainList && this.mainList.subList) {
+          this.mainList.subList.setState({
+            cart: new Set(),
+          });
+        }
         // window.location.reload()
       })
       .catch((err) => {
         console.log(err);
       });
   }
-
-  getQueueIds(e) {
-    let text = e.currentTarget.innerHTML.split(">")[1].split("<")[0];
-    console.log("text", text);
-    if (text === "不限队列" || text === "") {
+  onChangeQueue(value) {
+    console.log("queue", value);
+    if (value === "不限队列" || value === "") {
       this.setState({ chooseQueue: "不限队列" });
     } else {
-      this.setState({ chooseQueue: text });
+      this.setState({ chooseQueue: value });
+    }
+  }
+  onSearchQueue(val) {
+    console.log("onSearchQueue", val);
+    let textReg = new RegExp(
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_']){1,12}$"
+    );
+    // console.log("getQueueSearchChange", text, textReg.test(text))
+    if (
+      val.length > 0 &&
+      !textReg.test(val) &&
+      !this.state.queueSearchHasError
+    ) {
+      this.setState({
+        queueSearchHasError: true,
+      });
+      if (queueSearchErrorTimer) {
+        clearTimeout(queueSearchErrorTimer);
+      }
+      queueSearchErrorTimer = setTimeout(() => {
+        this.setState({ queueSearchHasError: false });
+      }, 4000);
+      notification.warning({
+        top: 48,
+        duration: 4,
+        message: "提醒",
+        description:
+          "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
+      });
+    }
+    if (textReg.test(val) || val.length === 0) {
+      this.setState({
+        queueSearchHasError: false,
+      });
+    }
+  }
+  getQueueIds(e) {
+    console.log("getQueueIds", e);
+    let text;
+    try {
+      text = e.currentTarget.innerHTML.split(">")[1].split("<")[0];
+      console.log("text", text);
+      if (text === "不限队列" || text === "") {
+        this.setState({ chooseQueue: "不限队列" });
+      } else {
+        this.setState({ chooseQueue: text });
+      }
+    } catch (error) {
+      console.log("getQueueIds", error);
+    }
+  }
+  getQueueSearchChange(e, data) {
+    // console.log('getQueueSearchChange', e, data)
+    const text = data.searchQuery;
+    let textReg = new RegExp(
+      "^([\u4E00-\uFA29]|[\uE7C7-\uE7F3]|[a-zA-Z0-9_]){1,12}$"
+    );
+    // console.log("getQueueSearchChange", text, textReg.test(text))
+    if (
+      text.length > 0 &&
+      !textReg.test(text) &&
+      !this.state.queueSearchHasError
+    ) {
+      this.setState({
+        queueSearchHasError: true,
+      });
+      if (queueSearchErrorTimer) {
+        clearTimeout(queueSearchErrorTimer);
+      }
+      queueSearchErrorTimer = setTimeout(() => {
+        this.setState({ queueSearchHasError: false });
+      }, 4000);
+      notification.warning({
+        top: 48,
+        duration: 4,
+        message: "提醒",
+        description:
+          "队列名称的长度不超过12个字符，且仅支持中文、字母、数字和下划线",
+      });
+    }
+    if (textReg.test(text) || text.length === 0) {
+      this.setState({
+        queueSearchHasError: false,
+      });
     }
   }
   left(e) {
@@ -344,6 +500,10 @@ export class SearchPanel extends Component {
     //         <Info type='1' />
     //     )
     // }
+    const options = this.state.searchQueue.map((item, index) => {
+      return <Option value={item.value}>{item.text}</Option>;
+    });
+
     return (
       <Grid className="banner">
         <Grid.Row>
@@ -352,7 +512,7 @@ export class SearchPanel extends Component {
             <Grid>
               <Grid.Row></Grid.Row>
               <Grid.Row>
-                <Dropdown
+                {/* <Dropdown
                   id="queueDropdown"
                   placeholder="搜索队列"
                   search
@@ -361,7 +521,22 @@ export class SearchPanel extends Component {
                   selection
                   options={this.state.searchQueue}
                   onChange={this.getQueueIds.bind(this)}
-                ></Dropdown>
+                  onSearchChange={this.getQueueSearchChange.bind(this)}
+                ></Dropdown> */}
+                <Select
+                  id="queueDropdown"
+                  dropdownClassName="queue-option-item"
+                  showSearch
+                  style={{ width: 200 }}
+                  placeholder="搜索队列"
+                  // optionFilterProp="children"
+                  value={this.state.chooseQueue}
+                  onChange={this.onChangeQueue.bind(this)}
+                  onSearch={this.onSearchQueue.bind(this)}
+                  notFoundContent={<div>无队列</div>}
+                >
+                  {options}
+                </Select>
               </Grid.Row>
               <Grid.Row columns={7}>
                 <Grid.Column floated="left">
@@ -433,7 +608,7 @@ export class SearchPanel extends Component {
                   icon="user"
                   iconPosition="left"
                   placeholder="病人ID"
-                  maxLength={16}
+                  // maxLength={35}
                   disabled={this.state.checked}
                 />
 
@@ -453,7 +628,7 @@ export class SearchPanel extends Component {
                   icon="calendar"
                   iconPosition="left"
                   placeholder="检查时间"
-                  maxLength={8}
+                  // maxLength={8}
                   disabled={!this.state.checked}
                 />
               </div>
@@ -468,19 +643,28 @@ export class SearchPanel extends Component {
                       dateKeyword={this.state.dateKeyword}
                       subsetName={this.state.chooseQueue}
                       search={this.state.search}
+                      onRef={(input) => {
+                        this.mainList = input;
+                      }}
                     />
                     {localStorage.getItem("auths") !== null &&
                     JSON.parse(localStorage.getItem("auths")).indexOf(
                       "data_search"
                     ) > -1 ? (
                       <div className="exportButton">
-                        <Button
-                          inverted
-                          color="blue"
-                          onClick={this.startDownload}
-                        >
-                          导出
-                        </Button>
+                        {this.state.loading ? (
+                          <Button inverted color="blue" loading>
+                            导出
+                          </Button>
+                        ) : (
+                          <Button
+                            inverted
+                            color="blue"
+                            onClick={this.startDownload}
+                          >
+                            导出
+                          </Button>
+                        )}
                       </div>
                     ) : null}
 
@@ -505,4 +689,4 @@ export class SearchPanel extends Component {
   }
 }
 
-export default withRouter(SearchPanel);
+export default SearchPanel;

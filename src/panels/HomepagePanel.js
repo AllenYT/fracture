@@ -76,6 +76,7 @@ class HomepagePanel extends Component {
     // document.getElementById("myAnnos").style.display = "none";
     document.getElementById("upload").style.display = "none";
     document.getElementById("myqueue").style.display = "none";
+    document.getElementById("myAbout").style.display = "none";
   }
 
   upload() {
@@ -320,7 +321,7 @@ class HomepagePanel extends Component {
         <Grid divided="vertically">
           <Grid.Row stretched id="homepageMenu">
             <Grid.Column width="3">
-              <Menu pointing secondary vertical size="huge" widths={3}>
+              <Menu pointing secondary vertical size="huge">
                 {/* <Menu.Item name="upload" active={activeItem === 'upload'} onClick={this.handleItemClick}>
                   上传病例
                 </Menu.Item> */}
@@ -351,6 +352,13 @@ class HomepagePanel extends Component {
                   onClick={this.handleItemClick}
                 >
                   我的队列
+                </Menu.Item>
+                <Menu.Item
+                  name="about"
+                  active={activeItem === "about"}
+                  onClick={this.handleItemClick}
+                >
+                  关于信息
                 </Menu.Item>
               </Menu>
             </Grid.Column>
@@ -436,6 +444,19 @@ class HomepagePanel extends Component {
               <div id="myqueue">
                 <MyQueuePanel />
               </div>
+              <div id="myAbout">
+                <span>
+                  产品名称：肺结节检测定性系统（DeepLN）
+                  <br />
+                  版本：V1.0.1.0
+                  <br />
+                  公司：成都华西精准医学产业技术研究院有限公司
+                  <br />
+                  地址：中国（四川）自由贸易试验区成都市天府新区正兴街道湖畔路北段715号数智谷7号楼
+                  <br />
+                  联系方式：028-68783886
+                </span>
+              </div>
               {/* <div id="manageUser">
                 <AdminManagePanel />
               </div> */}
@@ -452,6 +473,7 @@ class HomepagePanel extends Component {
       document.getElementById("myAnnos").style.display = "none";
       document.getElementById("upload").style.display = "none";
       document.getElementById("myqueue").style.display = "none";
+      document.getElementById("myAbout").style.display = "none";
       if (this.state.activeItem === "upload") {
         document.getElementById("upload").style.display = "";
       } else if (this.state.activeItem === "myAnnos") {
@@ -462,6 +484,8 @@ class HomepagePanel extends Component {
         document.getElementById("downloadList").style.display = "";
       } else if (this.state.activeItem === "myQueue") {
         document.getElementById("myqueue").style.display = "";
+      } else if (this.state.activeItem === "about") {
+        document.getElementById("myAbout").style.display = "";
       }
     }
   }

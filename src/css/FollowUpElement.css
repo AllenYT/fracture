@@ -1,42 +1,79 @@
-.canvas-style #current-origin-canvas{
-    width: 768px;
-    height: 768px;
-    position: relative;
-    margin:auto;
-    color: white;
+h3.ant-typography,
+.ant-typography h3 .reportTitle {
+  color: white;
 }
 
-.canvas-style #previews-origin-canvas{
-    width: 768px;
-    height: 768px;
-    position: relative;
-    margin:auto;
-    color: white;
+.current-nodule-accordion-title {
+  color: white;
+  font: white;
+  background-color: rgba(7, 116, 211, 0.466);
 }
 
-.canvas-style #current-canvas{
-    width: 768px;
-    height: 768px;
-    position: absolute;
-    bottom: 0px;
-    left: 0px;
+.current-nodule-accordion-content {
+  background-color: rgba(17, 87, 148, 0.466);
 }
 
-.canvas-style #previews-canvas{
-    width: 768px;
-    height: 768px;
-    position: absolute;
-    bottom: 0px;
-    left: 0px;
+.representDropdown {
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  color: whitesmoke !important;
+}
+.representDropdown > .ui.label {
+  background-color: transparent;
+  color: whitesmoke;
+  border: 0.5px solid whitesmoke;
 }
 
-#canvas-border{
-    /* margin-top: -10px; */
-    border: 2px solid #d1d1d1e0;
-    border-radius: 0.5em;
-    position: absolute;
-    width: 930px;
-    float: left;
-    height:826px;
-    /* line-height: 900px; */
-  }
+.representDropdown > div > .item {
+  /* color: #2af270; */
+  color: whitesmoke;
+  background: rgba(119, 164, 212, 0.997);
+  /* border: 0.5px solid whitesmoke; */
+}
+
+.structured-report {
+  background-color: rgba(14, 48, 78, 0.493);
+  /* background-color: aliceblue; */
+  border-radius: 2px;
+}
+
+.nodule-report {
+  margin-top: 10px;
+  width: 96%;
+}
+
+.vertical-divider-nodule {
+  margin: auto;
+  height: 3em;
+}
+
+.horizontal-divider-nodule {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.register-nodule-card {
+  background-color: rgba(8, 34, 58, 0.678);
+}
+
+/* .tabs-diagnose {
+  background-color: rgba(32, 136, 228, 0.678);
+  border: none;
+} */
+
+.ant-tabs-card.ant-tabs-top > .ant-tabs-nav .ant-tabs-tab-active,
+.ant-tabs-card.ant-tabs-top > div > .ant-tabs-nav .ant-tabs-tab-active {
+  background-color: rgba(32, 136, 228, 0.678);
+  color: white;
+  border: none;
+}
+
+.doublingTimeText {
+  color: white;
+  font-size: 12px;
+}
+
+.all-nodule-table {
+  overflow: auto;
+  height: 200px;
+}

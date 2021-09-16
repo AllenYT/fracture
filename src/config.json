@@ -1,0 +1,249 @@
+{
+    "data": {
+        "getDataListForCaseId": "http://192.168.7.198:8085/data/getDataListForCaseId",
+        "getDataListForCov19CaseId":"http://192.168.7.198:8085/data/getCovidMaskListForCaseId",
+        "getSingleJpg":"http://192.168.7.198:8085/data/covidMask",
+        "getHist":"http://192.168.7.198:8085/covid/getHist",
+        "uploadMutiply":"http://192.168.7.198:8085/data/uploadMutiply",
+        "preprocess":"http://192.168.7.198:8085/preprocess/exec",
+        "getMhaListForCaseId": "http://192.168.7.198:8085/data/getMhaListForCaseId"
+    },
+
+    "user": {
+        "get_statistics": "http://192.168.7.198:8085/user/getStatistics/",
+        "get_session": "http://192.168.7.198:8085/user/getSessionUser/",
+        "validUser": "http://192.168.7.198:8085/user/loginAction/",
+        "signoutUser": "http://192.168.7.198:8085/user/signoutUser",
+        "get_sexData":" http://192.168.7.198:8085/patient/getPatientSexRatio",
+        "getAuthsForUser":"http://192.168.7.198:8085/user/getAuthsForUser",
+        "getRolesForUser":"http://192.168.7.198:8085/user/getRolesForUser"
+    },
+
+    "record": {
+        "getMainList": "http://192.168.7.198:8085/record/getMainListForPage",
+        "getSubList": "http://192.168.7.198:8085/record/getSubListForMainItem",
+        "getSubListForMainItem_front": "http://192.168.7.198:8085/record/getSubListForMainItem_front",
+        "getPatientListForCond": "http://192.168.7.198:8085/record/getPatientListForCond",
+        "getTotalPages": "http://192.168.7.198:8085/record/getTotalPages",
+        "getPatientInfo": "http://192.168.7.198:8085/record/getPatientInfo",
+        "filterNodules":"http://192.168.7.198:8085/nodule/filterNodules",
+        "getNodulesAtPage":"http://192.168.7.198:8085/nodule/getNodulesAtPage",
+        "filterNodulesMulti":"http://192.168.7.198:8085/nodule/filterNodulesMulti",
+        "getNodulesAtPageMulti":"http://192.168.7.198:8085/nodule/getNodulesAtPageMulti",
+        "getCov19List":"http://192.168.7.198:8085/covid/getCovidlist",
+        "getMainListForSubset":"http://192.168.7.198:8085/record/getMainListForSubset",
+        "getTotalPagesForSubset":"http://192.168.7.198:8085/record/getTotalPagesForSubset"
+
+    },
+
+    "draft": {
+        "submitDraft": "http://192.168.7.198:8085/draft/submitDraft",
+        "deSubmitDraft": "http://192.168.7.198:8085/draft/deSubmitDraft",
+        "updateRects":"http://192.168.7.198:8085/draft/updateRects",
+        "getMyAnnos": "http://192.168.7.198:8085/draft/getMyAnnos",
+        "getRectsForCaseIdAndUsername": "http://192.168.7.198:8085/draft/getRectsForCaseIdAndUsername",
+        "getRectsForFollowAndUsername": "http://192.168.7.198:8085/draft/getRectsForFollowAndUsername",
+        "getModelResults": "http://192.168.7.198:8085/draft/getModelResults",
+        "getAnnoResults": "http://192.168.7.198:8085/draft/getAnnoResults",
+        "getDataPath": "http://192.168.7.198:8085/draft/getDataPath",
+        "readonly":"http://192.168.7.198:8085/draft/isReadonly",
+        "createNewDraft":"http://192.168.7.198:8085/draft/createNewDraft",
+        "removeDraft": "http://192.168.7.198:8085/draft/removeDraft",
+        "structedReport":"http://192.168.7.198:8085/draft/getReportInfoForCaseIdAndUsername",
+        "createUser":"http://192.168.7.198:8085/draft/createUserDraftFromModel"
+    },
+
+    "review": {
+        "isOkayForReview": "http://192.168.7.198:8085/review/isOkayForReview",
+        "getReviewResults": "http://192.168.7.198:8085/review/getReviewResults"
+    },
+
+    "cart": {
+        "saveCart": "http://192.168.7.198:8085/cart/saveCart",
+        "getCart": "http://192.168.7.198:8085/cart/getCart",
+        "downloadCart": "http://192.168.7.198:8085/cart/downloadCart"
+    },
+
+    "nodule":{
+        "totalMalDist":"http://192.168.7.198:8085/nodule/totalMalDist",
+        "totalAgeDist":"http://192.168.7.198:8085/patient/totalAgeDist",
+        "totalDiameterDist":"http://192.168.7.198:8085/nodule/totalDiameterDist",
+        "characterDiameterDist":"http://192.168.7.198:8085/nodule/characterDiameterDist",
+        "nonSpiculationDiameterDist":"http://192.168.7.198:8085/nodule/nonSpiculationDiameterDist",
+        "nonCalcificationDiameterDist":"http://192.168.7.198:8085/nodule/nonCalcificationDiameterDist",
+        "nonLobulationDiameterDist":" http://192.168.7.198:8085/nodule/nonLobulationDiameterDist",
+        "nonTextureDiameterDist":"http://192.168.7.198:8085/nodule/nonTextureDiameterDist",
+        "spiculationMalDist":"http://192.168.7.198:8085/nodule/spiculationMalDist",
+        "calcificationMalDist":"http://192.168.7.198:8085/nodule/calcificationMalDist",
+        "lobulationMalDist":"http://192.168.7.198:8085/nodule/lobulationMalDist",
+        "textureMalDist":"http://192.168.7.198:8085/nodule/textureMalDist",
+        "pinMalDist":"http://192.168.7.198:8085/nodule/pinMalDist",
+        "cavMalDist":"http://192.168.7.198:8085/nodule/cavMalDist",
+        "vssMalDist":"http://192.168.7.198:8085/nodule/vssMalDist",
+        "beaMalDist":"http://192.168.7.198:8085/nodule/beaMalDist",
+        "broMalDist":"http://192.168.7.198:8085/nodule/broMalDist"
+    },
+
+    "subset":{
+        "createQueue":"http://192.168.7.198:8085/subset/create",
+        "getQueue":"http://192.168.7.198:8085/subset/get",
+        "getQueuePatientIds":"http://192.168.7.198:8085/subset/getPatienIds",
+        "deleteQueue":"http://192.168.7.198:8085/subset/delete",
+        "updateQueue":"http://192.168.7.198:8085/subset/update"
+    },
+
+    "segment":[
+        {
+            "value":"右肺中叶",
+            "label":"右肺中叶",
+            "children":[
+                {
+                   "value":"外侧段", 
+                   "label":"外侧段"
+                },
+                {
+                    "value":"内侧段", 
+                    "label":"内侧段"
+                },
+                {
+                    "value":"无法定位", 
+                    "label":"无法定位"
+                }
+            ]
+            
+        },
+        {
+            "value":"右肺上叶",
+            "label":"右肺上叶",
+            "children":[
+                {
+                   "value":"尖段", 
+                   "label":"尖段"
+                },
+                {
+                    "value":"后段", 
+                    "label":"后段"
+                }
+                ,
+                {
+                    "value":"前段", 
+                    "label":"前段"
+                },
+                {
+                    "value":"无法定位", 
+                    "label":"无法定位"
+                }
+            ]
+        },
+        {
+            "value":"右肺下叶",
+            "label":"右肺下叶",
+            "children":[
+                {
+                    "value":"背段",
+                    "label":"背段"
+                },
+                {
+                    "value":"内基底段",
+                    "label":"内基底段"
+                },
+                {
+                    "value":"前基底段",
+                    "label":"前基底段"
+                },
+                {
+                    "value":"外基底段",
+                    "label":"外基底段"
+                },
+                {
+                    "value":"后基底段",
+                    "label":"后基底段"
+                },
+                {
+                    "value":"无法定位", 
+                    "label":"无法定位"
+                }
+            ]
+        },
+        {
+            "value":"左肺上叶",
+            "label":"左肺上叶",
+            "children":[
+                {
+                    "value":"尖后段",
+                    "label":"尖后段"
+                },
+                {
+                    "value":"前段",
+                    "label":"前段"
+                },
+                {
+                    "value":"上舌段",
+                    "label":"上舌段"
+                },
+                {
+                    "value":"下舌段",
+                    "label":"下舌段"
+                },
+                {
+                    "value":"无法定位", 
+                    "label":"无法定位"
+                }
+            ]
+        },
+        {
+            "value":"左肺下叶",
+            "label":"左肺下叶",
+            "children":[
+                {
+                    "value":"背段",
+                    "label":"背段"
+                },
+                {
+                    "value":"内前基底段",
+                    "label":"内前基底段"
+                },
+                {
+                    "value":"外基底段",
+                    "label":"外基底段"
+                },
+                {
+                    "value":"后基底段",
+                    "label":"后基底段"
+                },
+                {
+                    "value":"无法定位", 
+                    "label":"无法定位"
+                }
+            ]
+        }
+    ],
+    "dangerLevel":[
+        {
+            "value":1,
+            "label":"低危"
+        },
+        {
+            "value":2,
+            "label":"中危"
+        },
+        {
+            "value":3,
+            "label":"高危"
+        }
+    ],
+    "density":[
+        {
+            "value":1,
+            "label":"磨玻璃"
+        },
+        {
+            "value":2,
+            "label":"半实性"
+        },
+        {
+            "value":3,
+            "label":"实性"
+        }
+    ]
+}

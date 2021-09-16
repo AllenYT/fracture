@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { Grid, Button, Checkbox, Message, Form } from "semantic-ui-react";
-import {message} from 'antd'
+import { message } from "antd";
 import "../css/loginPanel.css";
 import axios from "axios";
 import qs from "qs";
@@ -62,8 +62,9 @@ class LoginPanel extends Component {
       .then(([loginResponse, authResponse]) => {
         console.log(authResponse.data);
         if (loginResponse.data.status === "failed") {
-          message.error('登录失败：用户名或密码错误！请重新登录')
+          message.error("登录失败：用户名或密码错误！请重新登录");
         } else {
+          console.log("loginResponse", loginResponse);
           localStorage.setItem("token", loginResponse.data.token);
           localStorage.setItem("realname", loginResponse.data.realname);
           localStorage.setItem("username", loginResponse.data.username);
@@ -98,7 +99,7 @@ class LoginPanel extends Component {
         }
       })
       .catch((error) => {
-        message.warning('登陆超时！');
+        message.warning("登录超时！");
         console.log(error);
       });
   }
