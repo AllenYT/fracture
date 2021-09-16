@@ -484,7 +484,7 @@ class Main extends Component {
             <Route path="/preprocess/" component={preprocess} />
             <Route path="/adminManage" component={AdminManagePanel} />
           </div>
-          <div className="ui inverted vertical footer segment">
+          <div id="footer">
             <div className="inline">
               © 2019 Sichuan University. All rights reserved
             </div>

@@ -18,7 +18,7 @@ import { Grid, Icon, Button, Accordion, Modal, Dropdown, Tab, Image, Menu, Label
 import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
 import qs from 'qs'
 import axios from 'axios'
-import { Slider, Select, Space, Checkbox, Tabs } from 'antd'
+import { Slider, Select, Space, Checkbox, Tabs, InputNumber } from 'antd'
 import * as echarts from 'echarts'
 import html2pdf from 'html2pdf.js'
 import copy from 'copy-to-clipboard'
@@ -769,7 +769,7 @@ class CornerstoneElement extends Component {
 
   handleListClick = (currentIdx, index, e) => {
     const id = e.target.id
-    console.log('dropdown', this.state.listsActiveIndex, index)
+    console.log('dropdown', this.state.listsActiveIndex, index, currentIdx)
     if (index === this.state.listsActiveIndex) {
       this.setState({
         currentIdx: currentIdx - 1,
@@ -777,17 +777,24 @@ class CornerstoneElement extends Component {
         doubleClick: false,
         dropDownOpen: index,
       })
-    } else if (id !== 'del-' + id.split('-')[1]) {
-      const { listsActiveIndex } = this.state
-      const newIndex = listsActiveIndex === index ? -1 : index
+    } else {
+      if (this.state.show3DVisualization) {
+        if (this.state.MPR && this.state.painting) {
+          this.createNoduleMask(index)
+        }
+      }
+      if (id !== 'del-' + id.split('-')[1]) {
+        const { listsActiveIndex } = this.state
+        const newIndex = listsActiveIndex === index ? -1 : index
 
-      this.setState({
-        listsActiveIndex: newIndex,
-        currentIdx: currentIdx - 1,
-        autoRefresh: true,
-        doubleClick: false,
-        dropDownOpen: -1,
-      })
+        this.setState({
+          listsActiveIndex: newIndex,
+          currentIdx: currentIdx - 1,
+          autoRefresh: true,
+          doubleClick: false,
+          dropDownOpen: -1,
+        })
+      }
     }
   }
 
@@ -916,7 +923,7 @@ class CornerstoneElement extends Component {
   }
 
   highlightNodule(event) {
-    console.log('in', event.target.textContent)
+    // console.log('in', event.target.textContent)
     // let boxes = this.state.selectBoxes
     let boxes = this.state.boxes
     for (var i = 0; i < boxes.length; i++) {
@@ -926,11 +933,13 @@ class CornerstoneElement extends Component {
     }
     // this.setState({selectBoxes: boxes})
     this.setState({ boxes: boxes })
-    this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+    if (!this.state.show3DVisualization) {
+      this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+    }
   }
 
   dehighlightNodule(event) {
-    console.log('out', event.target.textContent)
+    // console.log('out', event.target.textContent)
     // let boxes = this.state.selectBoxes
     let boxes = this.state.boxes
     for (var i = 0; i < boxes.length; i++) {
@@ -941,7 +950,9 @@ class CornerstoneElement extends Component {
     // console.log(this.state.boxes, boxes)
     // this.setState({selectBoxes: boxes})
     this.setState({ boxes: boxes })
-    this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+    if (!this.state.show3DVisualization) {
+      this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+    }
   }
 
   closeModalNew() {
@@ -1533,6 +1544,8 @@ class CornerstoneElement extends Component {
     } = this.state
 
     let tableContent = ''
+    let lobeContent = ''
+    let tubularContent = ''
     let visualContent = ''
     let createDraftModal
     let submitButton
@@ -2785,7 +2798,7 @@ class CornerstoneElement extends Component {
           }
           malignancyContnt = (
             <Grid.Column width={2} textAlign="center">
-              <select id={malId} style={malignancyContntStyle} value={inside.malignancy} onChange={this.onSelectMal}>
+              <select id={malId} style={malignancyContntStyle} value={inside.malignancy} onChange={this.onSelectMal} disabled={this.state.listsActiveIndex !== idx ? 'disabled' : ''}>
                 <option value="-1" disabled="disabled">
                   选择性质
                 </option>
@@ -2808,11 +2821,11 @@ class CornerstoneElement extends Component {
                   <Grid.Row>
                     <Grid.Column width={1}>
                       {inside.modified === undefined ? (
-                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{ fontSize: 'large' }}>
+                        <div onMouseEnter={this.highlightNodule} onMouseLeave={this.dehighlightNodule} style={{ fontSize: 'large' }}>
                           {idx + 1}
                         </div>
                       ) : (
-                        <div onMouseOver={this.highlightNodule} onMouseOut={this.dehighlightNodule} style={{ fontSize: 'large', color: '#dbce12' }}>
+                        <div onMouseEnter={this.highlightNodule} onMouseLeave={this.dehighlightNodule} style={{ fontSize: 'large', color: '#dbce12' }}>
                           {idx + 1}
                         </div>
                       )}
@@ -2826,7 +2839,7 @@ class CornerstoneElement extends Component {
                     {probContnt}
 
                     <Grid.Column width={1} textAlign="center">
-                      <Icon name="trash alternate" onClick={this.delNodule} id={delId}></Icon>
+                      <Icon name="trash alternate" onClick={this.delNodule} id={delId} style={show3DVisualization?{display:'none'}:{}}></Icon>
                     </Grid.Column>
                   </Grid.Row>
                 </Grid>
@@ -2877,7 +2890,7 @@ class CornerstoneElement extends Component {
                       <Button size="mini" circular inverted icon="chart bar" title="特征分析" value={idx} onClick={this.featureAnalysis.bind(this, idx)}></Button>
                     </Grid.Column>
                     <Grid.Column width={4}>
-                      <Button.Group size="mini" className="measureBtnGroup">
+                      <Button.Group size="mini" className="measureBtnGroup" style={show3DVisualization?{display:'none'}:{}}>
                         <Button basic icon title="擦除测量" active color="green" onClick={this.eraseMeasures.bind(this, idx)}>
                           <Icon inverted color="green" name="eraser"></Icon>
                         </Button>
@@ -2901,7 +2914,129 @@ class CornerstoneElement extends Component {
           )
           // }
         })
-
+      if (lobesData && lobesData.length > 0) {
+        lobeContent = lobesData.map((item, index) => {
+          const inputRangeStyle = {
+            backgroundSize: lobesController.lobesOpacities[index] * 100 + '%',
+          }
+          return (
+            <div key={index} className="highlightTbl">
+              <Accordion.Title onClick={this.setActive.bind(this, 0, index, item.index)} active={lobesController.lobesActive[index]}>
+                <div className="accordion-title-index">{index + 1}</div>
+                <div className="accordion-title-name">{item.lobeName}</div>
+              </Accordion.Title>
+              <Accordion.Content active={lobesController.lobesActive[index]}>
+                <Grid>
+                  <Grid.Row>
+                    <Grid.Column width={6} textAlign="center">
+                      {item.volume}cm<sup>2</sup>
+                    </Grid.Column>
+                    <Grid.Column width={3} textAlign="center">
+                      {item.percent}%
+                    </Grid.Column>
+                  </Grid.Row>
+                  <Grid.Row>
+                    <Grid.Column width={16} className="accordion-content-opacity">
+                      透明度
+                      <Slider
+                        style={{ width: '30%', marginLeft: '10px' }}
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={lobesController.lobesOpacities[index]}
+                        onChange={this.changeOpacity.bind(this, 0, index, item.index)}
+                      />
+                      <InputNumber
+                        min={0}
+                        max={100}
+                        value={lobesController.lobesOpacities[index]}
+                        onChange={this.changeOpacity.bind(this, 0, index, item.index)}
+                        formatter={(value) => `${value}%`}
+                        style={{ marginLeft: '10px' }}
+                      />
+                    </Grid.Column>
+                  </Grid.Row>
+                  <Grid.Row>
+                    <Grid.Column width={12}>
+                      <Button size="mini" circular inverted icon="chart bar" title="特征分析"></Button>
+                    </Grid.Column>
+                    <Grid.Column width={4}>
+                      {lobesController.lobesVisible[index] ? (
+                        <Button size="mini" basic icon title="隐藏测量" active color="blue" onClick={this.setVisible.bind(this, 0, index, item.index)}>
+                          <Icon inverted color="blue" name="eye"></Icon>
+                        </Button>
+                      ) : (
+                        <Button size="mini" basic icon title="显示测量" active color="blue" onClick={this.setVisible.bind(this, 0, index, item.index)}>
+                          <Icon inverted color="blue" name="eye slash"></Icon>
+                        </Button>
+                      )}
+                    </Grid.Column>
+                  </Grid.Row>
+                </Grid>
+              </Accordion.Content>
+            </div>
+          )
+        })
+      }
+      if (tubularData && tubularData.length > 0) {
+        tubularContent = tubularData.map((item, index) => {
+          return (
+            <div key={index} className="highlightTbl">
+              <Accordion.Title onClick={this.setActive.bind(this, 1, index, item.index)} active={tubularController.tubularActive[index]}>
+                <div className="accordion-title-index">{index + 1}</div>
+                <div className="accordion-title-name">{item.name}</div>
+              </Accordion.Title>
+              <Accordion.Content active={tubularController.tubularActive[index]}>
+                <Grid>
+                  <Grid.Row>
+                    <Grid.Column width={6} textAlign="center">
+                      体积
+                    </Grid.Column>
+                    <Grid.Column width={3} textAlign="center"></Grid.Column>
+                  </Grid.Row>
+                  <Grid.Row>
+                    <Grid.Column width={16} className="accordion-content-opacity">
+                      透明度
+                      <Slider
+                        style={{ width: '30%', marginLeft: '10px' }}
+                        min={0}
+                        max={100}
+                        step={1}
+                        value={tubularController.tubularOpacities[index]}
+                        onChange={this.changeOpacity.bind(this, 1, index, item.index)}
+                      />
+                      <InputNumber
+                        min={0}
+                        max={100}
+                        value={tubularController.tubularOpacities[index]}
+                        onChange={this.changeOpacity.bind(this, 1, index, item.index)}
+                        formatter={(value) => `${value}%`}
+                        style={{ marginLeft: '10px' }}
+                      />
+                    </Grid.Column>
+                  </Grid.Row>
+                  <Grid.Row>
+                    <Grid.Column width={12}>
+                      <Button size="mini" circular inverted icon="chart bar" title="特征分析"></Button>
+                    </Grid.Column>
+                    <Grid.Column width={4}>
+                      {tubularController.tubularVisible[index] ? (
+                        <Button size="mini" basic icon title="隐藏测量" active color="blue" onClick={this.setVisible.bind(this, 1, index, item.index)}>
+                          <Icon inverted color="blue" name="eye"></Icon>
+                        </Button>
+                      ) : (
+                        <Button size="mini" basic icon title="显示测量" active color="blue" onClick={this.setVisible.bind(this, 1, index, item.index)}>
+                          <Icon inverted color="blue" name="eye slash"></Icon>
+                        </Button>
+                      )}
+                    </Grid.Column>
+                  </Grid.Row>
+                </Grid>
+              </Accordion.Content>
+            </div>
+          )
+        })
+      }
       visualContent = this.state.boxes.map((inside, idx) => {
         const visualId = 'visual-' + inside.nodule_no
         const btnId = 'closeButton-' + inside.nodule_no
@@ -3289,9 +3424,9 @@ class CornerstoneElement extends Component {
                             <Icon name="user delete" size="large"></Icon>
                           </Button>
                         )}
-                          <Button icon title="显示3D" className="funcbtn" onClick={this.show3D.bind(this)}>
-                            <Icon className="icon-custom icon-custom-show-3d" size="large"></Icon>
-                          </Button>
+                        <Button icon title="显示3D" className="funcbtn" onClick={this.show3D.bind(this)}>
+                          <Icon className="icon-custom icon-custom-show-3d" size="large"></Icon>
+                        </Button>
                       </Button.Group>
                     </Menu.Item>
                   </>
@@ -3439,7 +3574,89 @@ class CornerstoneElement extends Component {
               </Grid.Column>
               <Grid.Column width={verticalMode ? 16 : 4}>
                 {show3DVisualization ? (
-                  <Tab className="list-tab" panes={panes3D} data-aos="fade-left" data-aos-duration="1500" />
+                  // <Tab className="list-tab" panes={panes3D} data-aos="fade-left" data-aos-duration="1500" />
+                  <div className={'threed-card-container'} data-aos="fade-left" data-aos-duration="1500">
+                    <Tabs type="card" animated defaultActiveKey={1} size="small">
+                      <TabPane tab={noduleNumTab} key="1">
+                        <div
+                          id="elec-table"
+                          style={{
+                            height: (this.state.windowHeight * 1) / 2,
+                          }}>
+                          {this.state.boxes.length === 0 ? (
+                            <div
+                              style={{
+                                height: '100%',
+                                background: '#021c38',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                              }}>
+                              <Header as="h2" inverted>
+                                <Icon name="low vision" />
+                                <Header.Content>未检测出任何结节</Header.Content>
+                              </Header>
+                            </div>
+                          ) : (
+                            <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
+                              {tableContent}
+                            </Accordion>
+                          )}
+                        </div>
+                      </TabPane>
+                      <TabPane tab={'肺叶'} key="2">
+                        <div
+                          id="elec-table"
+                          style={{
+                            height: (this.state.windowHeight * 1) / 2,
+                          }}>
+                          <Accordion styled id="lobe-accordion" fluid>
+                            {lobeContent}
+                          </Accordion>
+                        </div>
+                        {/* <div className="segment-list-block">
+                        <Table celled inverted>
+                          <Table.Header>
+                            <Table.Row>
+                              <Table.HeaderCell>肺叶</Table.HeaderCell>
+                              <Table.HeaderCell>体积</Table.HeaderCell>
+                              <Table.HeaderCell>占比</Table.HeaderCell>
+                            </Table.Row>
+                          </Table.Header>
+                          <Table.Body>{lobesInfo}</Table.Body>
+                        </Table>
+                        <div className="segment-list-operation" style={segmentListOperationStyles}>
+                          {lobesOp}
+                        </div>
+                      </div> */}
+                      </TabPane>
+                      <TabPane tab={'气管和血管'} key="3">
+                        <div
+                          id="elec-table"
+                          style={{
+                            height: (this.state.windowHeight * 1) / 2,
+                          }}>
+                          <Accordion styled id="tubular-accordion" fluid>
+                            {tubularContent}
+                          </Accordion>
+                        </div>
+                        {/* <div className="segment-list-block">
+                        <Table celled selectable inverted>
+                          <Table.Header>
+                            <Table.Row>
+                              <Table.HeaderCell>名称</Table.HeaderCell>
+                              <Table.HeaderCell>长度</Table.HeaderCell>
+                            </Table.Row>
+                          </Table.Header>
+                          <Table.Body>{tubularInfo}</Table.Body>
+                        </Table>
+                        <div className="segment-list-operation" style={segmentListOperationStyles}>
+                          {tubularOp}
+                        </div>
+                      </div> */}
+                      </TabPane>
+                    </Tabs>
+                  </div>
                 ) : (
                   <div className={verticalMode ? 'corner-right-block-vertical' : 'corner-right-block-horizontal'}>
                     <div className={'nodule-card-container' + (verticalMode ? ' nodule-card-container-vertical' : ' nodule-card-container-horizontal')} data-aos="fade-down" data-aos-duration="1500">
@@ -3453,27 +3670,16 @@ class CornerstoneElement extends Component {
                             {this.state.boxes.length === 0 ? (
                               <div
                                 style={{
-                                  height: (this.state.windowHeight * 1) / 2,
+                                  height: '100%',
+                                  background: '#021c38',
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  alignItems: 'center',
                                 }}>
-                                {this.state.boxes.length === 0 ? (
-                                  <div
-                                    style={{
-                                      height: '100%',
-                                      background: '#021c38',
-                                      display: 'flex',
-                                      justifyContent: 'center',
-                                      alignItems: 'center',
-                                    }}>
-                                    <Header as="h2" inverted>
-                                      <Icon name="low vision" />
-                                      <Header.Content>未检测出任何结节</Header.Content>
-                                    </Header>
-                                  </div>
-                                ) : (
-                                  <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
-                                    {tableContent}
-                                  </Accordion>
-                                )}
+                                <Header as="h2" inverted>
+                                  <Icon name="low vision" />
+                                  <Header.Content>未检测出任何结节</Header.Content>
+                                </Header>
                               </div>
                             ) : (
                               <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
@@ -4944,11 +5150,11 @@ class CornerstoneElement extends Component {
 
   toPulmonary() {
     //肺窗
-    if(this.state.show3DVisualization){
-      if(this.state.MPR){
+    if (this.state.show3DVisualization) {
+      if (this.state.MPR) {
         this.setWL(1)
       }
-    }else{
+    } else {
       let viewport = cornerstone.getViewport(this.element)
       viewport.voi.windowWidth = 1600
       viewport.voi.windowCenter = -600
@@ -4960,11 +5166,11 @@ class CornerstoneElement extends Component {
 
   toMedia() {
     //纵隔窗
-    if(this.state.show3DVisualization){
-      if(this.state.MPR){
+    if (this.state.show3DVisualization) {
+      if (this.state.MPR) {
         this.setWL(4)
       }
-    }else{
+    } else {
       let viewport = cornerstone.getViewport(this.element)
       viewport.voi.windowWidth = 500
       viewport.voi.windowCenter = 50
@@ -4972,16 +5178,15 @@ class CornerstoneElement extends Component {
       this.setState({ viewport, menuTools: '' })
       console.log('to media', viewport)
     }
-
   }
 
   toBoneWindow() {
     //骨窗
-    if(this.state.show3DVisualization){
-      if(this.state.MPR){
+    if (this.state.show3DVisualization) {
+      if (this.state.MPR) {
         this.setWL(2)
       }
-    }else{
+    } else {
       let viewport = cornerstone.getViewport(this.element)
       viewport.voi.windowWidth = 1000
       viewport.voi.windowCenter = 300
@@ -4989,16 +5194,15 @@ class CornerstoneElement extends Component {
       this.setState({ viewport, menuTools: '' })
       console.log('to media', viewport)
     }
-
   }
 
   toVentralWindow() {
     //腹窗
-    if(this.state.show3DVisualization){
-      if(this.state.MPR){
+    if (this.state.show3DVisualization) {
+      if (this.state.MPR) {
         this.setWL(3)
       }
-    }else{
+    } else {
       let viewport = cornerstone.getViewport(this.element)
       viewport.voi.windowWidth = 400
       viewport.voi.windowCenter = 40
@@ -6561,6 +6765,8 @@ class CornerstoneElement extends Component {
       // window.location.href = '/'
     }
     document.getElementById('header').style.display = 'none'
+    document.getElementById('hideNodule').style.display = 'none'
+    document.getElementById('hideInfo').style.display = 'none'
     // const width = document.body.clientWidth
     // const height = document.body.clientHeight
     // // const width = window.outerHeight
@@ -6749,7 +6955,7 @@ class CornerstoneElement extends Component {
         index: 14,
       },
       {
-        name: '支气管',
+        name: '气管',
         number: '未知',
         index: 5,
       },
@@ -6948,7 +7154,9 @@ class CornerstoneElement extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (prevState.currentIdx !== this.state.currentIdx && this.state.autoRefresh === true) {
-      this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+      if (!this.state.show3DVisualization) {
+        this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+      }
     }
 
     if (prevState.immersive !== this.state.immersive) {
@@ -7331,7 +7539,7 @@ class CornerstoneElement extends Component {
 
   saveNodulesData(nodulesData) {
     console.log('nodulesData', nodulesData)
-    const nodulesOpacities = new Array(nodulesData.length).fill(1.0)
+    const nodulesOpacities = new Array(nodulesData.length).fill(100)
     const nodulesActive = new Array(nodulesData.length).fill(false)
     const nodulesVisible = new Array(nodulesData.length).fill(true)
     const nodulesOpacityChangeable = new Array(nodulesData.length).fill(false)
@@ -7348,7 +7556,7 @@ class CornerstoneElement extends Component {
   }
   saveLobesData(lobesData) {
     console.log('lobesData', lobesData)
-    const lobesOpacities = new Array(lobesData.length).fill(0.6)
+    const lobesOpacities = new Array(lobesData.length).fill(60)
     const lobesActive = new Array(lobesData.length).fill(false)
     const lobesVisible = new Array(lobesData.length).fill(true)
     const lobesOpacityChangeable = new Array(lobesData.length).fill(false)
@@ -7371,7 +7579,7 @@ class CornerstoneElement extends Component {
   }
   saveTubularData(tubularData) {
     console.log('tubularData', tubularData)
-    const tubularOpacities = new Array(tubularData.length).fill(1.0)
+    const tubularOpacities = new Array(tubularData.length).fill(100)
     const tubularActive = new Array(tubularData.length).fill(false)
     const tubularVisible = new Array(tubularData.length).fill(true)
     const tubularOpacityChangeable = new Array(tubularData.length).fill(false)
@@ -7631,6 +7839,7 @@ class CornerstoneElement extends Component {
     return loadingStyle
   }
   resizeViewer(viewerWidth, viewerHeight) {
+    console.log('resizeViewer', viewerWidth, viewerHeight)
     if (typeof viewerWidth == 'undefined') {
       viewerWidth = this.state.viewerWidth
     }
@@ -7920,28 +8129,28 @@ class CornerstoneElement extends Component {
       })
     }
   }
-  changeOpacity(classfication, index, urlIndex, e) {
-    e.stopPropagation()
+  changeOpacity(classfication, index, urlIndex, value) {
+    const opacity = value
     if (classfication === 0) {
       const lobesController = this.state.lobesController
-      lobesController.lobesOpacities[index] = e.target.value
-      this.setSegmentOpacity(urlIndex, e.target.value)
+      lobesController.lobesOpacities[index] = opacity
+      this.setSegmentOpacity(urlIndex, opacity / 100)
 
       this.setState({
         lobesController,
       })
     } else if (classfication === 1) {
       const tubularController = this.state.tubularController
-      tubularController.tubularOpacities[index] = e.target.value
-      this.setSegmentOpacity(urlIndex, e.target.value)
+      tubularController.tubularOpacities[index] = opacity
+      this.setSegmentOpacity(urlIndex, opacity / 100)
 
       this.setState({
         tubularController,
       })
     } else if (classfication === 2) {
       const nodulesController = this.state.nodulesController
-      nodulesController.nodulesOpacities[index] = e.target.value
-      this.setSegmentOpacity(urlIndex, e.target.value)
+      nodulesController.nodulesOpacities[index] = opacity
+      this.setSegmentOpacity(urlIndex, opacity / 100)
 
       this.setState({
         nodulesController,
