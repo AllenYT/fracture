@@ -73,7 +73,11 @@ class StudyBrowserList extends Component {
                   this.config.data.getDataListForCaseId,
                   qs.stringify({ caseId: serie["caseId"] })
                 ),
-              ]).then(([annotype, dicom]) => {
+                axios.post(
+                  this.config.draft.dataValid,
+                  qs.stringify({ caseId: serie["caseId"] })
+                ),
+              ]).then(([annotype, dicom, dataValidRes]) => {
                 theList.push({
                   date: serie["date"],
                   caseId: serie["caseId"],
@@ -84,8 +88,8 @@ class StudyBrowserList extends Component {
                     "/" +
                     annotype.data,
                   image: dicom.data[parseInt(dicom.data.length / 3)],
+                  validInfo: dataValidRes.data,
                 });
-                console.log("leftkey", theList);
                 this.setState({ dateSeries: theList });
               });
             });
@@ -98,52 +102,52 @@ class StudyBrowserList extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    // if (prevState !== this.state) {
-    //   let flag = 0;
-    //   let dateSeries = this.state.dateSeries;
-    //   for (let j = 0; j < dateSeries.length; j++) {
-    //     for (let i = 0; i < dateSeries.length - j - 1; i++) {
-    //       if (parseInt(dateSeries[i].date) < parseInt(dateSeries[i + 1].date)) {
-    //         let temp = dateSeries[i];
-    //         dateSeries[i] = dateSeries[i + 1];
-    //         dateSeries[i + 1] = temp;
-    //         flag = 1;
-    //       }
-    //     }
-    //   }
-    //   if (flag === 1) {
-    //     this.setState({ dateSeries: dateSeries });
-    //   } else {
-    //     dateSeries.map((serie, index) => {
-    //       const previewId = "preview-" + index;
-    //       const element = document.getElementById(previewId);
-    //       let imageId = serie.image;
-    //       // console.log('preview',element)
-    //       cornerstone.enable(element);
-    //       cornerstone
-    //         .loadAndCacheImage(imageId.replace("#", "%23"))
-    //         .then(function (image) {
-    //           // console.log('cache')
-    //           var viewport = cornerstone.getDefaultViewportForImage(
-    //             element,
-    //             image
-    //           );
-    //           viewport.voi.windowWidth = 1600;
-    //           viewport.voi.windowCenter = -600;
-    //           viewport.scale = 0.3;
-    //           cornerstone.setViewport(element, viewport);
-    //           cornerstone.displayImage(element, image);
-    //         });
-    //     });
-    //   }
-    // }
+    if (prevState !== this.state) {
+      let flag = 0;
+      let dateSeries = this.state.dateSeries;
+      for (let j = 0; j < dateSeries.length; j++) {
+        for (let i = 0; i < dateSeries.length - j - 1; i++) {
+          if (parseInt(dateSeries[i].date) < parseInt(dateSeries[i + 1].date)) {
+            let temp = dateSeries[i];
+            dateSeries[i] = dateSeries[i + 1];
+            dateSeries[i + 1] = temp;
+            flag = 1;
+          }
+        }
+      }
+      if (flag === 1) {
+        this.setState({ dateSeries: dateSeries });
+      } else {
+        dateSeries.map((serie, index) => {
+          const previewId = "preview-" + index;
+          const element = document.getElementById(previewId);
+          let imageId = serie.image;
+          // console.log('preview',element)
+          cornerstone.enable(element);
+          cornerstone
+            .loadAndCacheImage(imageId.replace("#", "%23"))
+            .then(function (image) {
+              // console.log('cache')
+              var viewport = cornerstone.getDefaultViewportForImage(
+                element,
+                image
+              );
+              viewport.voi.windowWidth = 1600;
+              viewport.voi.windowCenter = -600;
+              viewport.scale = 0.3;
+              cornerstone.setViewport(element, viewport);
+              cornerstone.displayImage(element, image);
+            });
+        });
+      }
+    }
   }
 
   render() {
     const { dataValidContnt, dateSeries } = this.state;
     return (
       <div className="preview">
-        {/* {dateSeries.map((serie, index) => {
+        {dateSeries.map((serie, index) => {
           var validStatus = serie.validInfo.status;
           var validInfo = serie.validInfo.message;
           var statusIcon = "";
@@ -197,7 +201,7 @@ class StudyBrowserList extends Component {
               </Card.Content>
             </Card>
           );
-        })} */}
+        })}
       </div>
     );
   }
