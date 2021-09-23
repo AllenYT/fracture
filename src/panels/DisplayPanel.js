@@ -13,15 +13,9 @@ class DisplayPanel extends Component {
       caseId: temp.replace("%23", "#"),
       username: localStorage.getItem("username"),
       modelName: window.location.pathname.split("/")[3],
-      studyList: [],
       stack: {},
       show: false,
     };
-
-    this.nextPath = this.nextPath.bind(this);
-  }
-  nextPath(path) {
-    this.props.history.push(path);
   }
   handleClickScreen(e, href, status) {
     console.log("card", href);
@@ -54,7 +48,7 @@ class DisplayPanel extends Component {
       console.log(prevState.caseId, this.state.caseId);
       let noduleNo = -1;
       if (this.props.location.hash !== "")
-        noduleNo = parseInt(this.props.location.hash.split("#")[1]);
+        noduleNo = parseInt(this.props.location.hash.split("#").slice(-1)[0]);
 
       const dataParams = {
         caseId: this.state.caseId,
@@ -176,7 +170,7 @@ class DisplayPanel extends Component {
     // send our token to the server, combined with the current pathname
     let noduleNo = -1;
     if (this.props.location.hash !== "")
-      noduleNo = parseInt(this.props.location.hash.split("#")[1]);
+      noduleNo = parseInt(this.props.location.hash.split("#").slice(-1)[0]);
 
     const dataParams = {
       caseId: this.state.caseId,

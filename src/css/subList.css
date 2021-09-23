@@ -10,6 +10,10 @@
   /* visibility: hidden; */
 }
 
+#subList-accordion .title td{
+  white-space: nowrap;
+}
+
 #subList-accordion {
   background-color: rgba(1, 23, 46, 0.997) !important;
   border-radius: 0.1rem !important;

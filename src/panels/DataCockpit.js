@@ -2258,21 +2258,21 @@ class DataCockpit extends Component {
                     </Grid>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">模型进度</h2>
+                    <div className="tit">
+                      <h2 className="tit2">模型进度</h2>
                     </div>
                     <div id="modelProgress"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
                     {/* 薄厚层 */}
-                    <div class="tit">
-                      <h2 class="tit2">薄厚层分布</h2>
+                    <div className="tit">
+                      <h2 className="tit2">薄厚层分布</h2>
                     </div>
                     <div id="thicknessDist"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">结节危险程度</h2>
+                    <div className="tit">
+                      <h2 className="tit2">结节危险程度</h2>
                     </div>
                     <div id="benmali"></div>
                   </Grid.Column>
@@ -2280,8 +2280,8 @@ class DataCockpit extends Component {
                 <Grid.Row columns={4}>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">性别分布</h2>
+                    <div className="tit">
+                      <h2 className="tit2">性别分布</h2>
                     </div>
                     <div id="sexDist"></div>
                   </Grid.Column>
@@ -2324,8 +2324,8 @@ class DataCockpit extends Component {
             </div>
           </div>
 
-          <div class="iconography">
-            <div class="iconContnt">
+          <div className="iconography">
+            <div className="iconContnt">
               <h2 className="sta-header">结节直径分布统计</h2>
               <Grid centered divided>
                 <Grid.Row columns={4}>
@@ -2440,45 +2440,45 @@ class DataCockpit extends Component {
             </div>
           </div>
 
-          <div class="iconography">
-            <div class="iconContnt">
+          <div className="iconography">
+            <div className="iconContnt">
               <h2 className="sta-header">特征危险程度统计</h2>
               <Grid centered divided>
                 <Grid.Row>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">毛刺征危险程度</h2>
+                    <h2 className="tit2">毛刺征危险程度</h2>
                     <div id="maliGlitch"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">分叶征危险程度</h2>
+                    <h2 className="tit2">分叶征危险程度</h2>
                     <div id="maliSublobe"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">钙化征危险程度</h2>
+                    <h2 className="tit2">钙化征危险程度</h2>
                     <div id="maliCalcify"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">磨玻璃征危险程度</h2>
+                    <h2 className="tit2">磨玻璃征危险程度</h2>
                     <div id="maliGGO"></div>
                   </Grid.Column>
                 </Grid.Row>
                 <Grid.Row>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">胸膜凹陷征危险程度</h2>
+                    <h2 className="tit2">胸膜凹陷征危险程度</h2>
                     <div id="pleural"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">空洞征危险程度</h2>
+                    <h2 className="tit2">空洞征危险程度</h2>
                     <div id="cavity"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">血管集束征危险程度</h2>
+                    <h2 className="tit2">血管集束征危险程度</h2>
                     <div id="vcs"></div>
                   </Grid.Column>
                   <Grid.Column width={3}>
-                    <h2 class="tit2">空泡征危险程度</h2>
+                    <h2 className="tit2">空泡征危险程度</h2>
                     <div id="vacuole"></div>
                   </Grid.Column>
                 </Grid.Row>
