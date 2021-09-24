@@ -43,6 +43,7 @@ class Main extends Component {
       isLoggedIn: false,
       expiration: false,
       diskInfo: '0%',
+      haveConfig: false,
     }
     this.newConfig = this.props.newConfig
 
@@ -88,7 +89,6 @@ class Main extends Component {
         console.log('error')
       })
   }
-
   async componentDidMount() {
     // console.log('localstorage', !localStorage.getItem('config'))
 
@@ -105,11 +105,13 @@ class Main extends Component {
     if (!localStorage.getItem('config')) {
       await this.props.getConfigJson(process.env.PUBLIC_URL + '/config.json')
       this.config = this.props.config
-      console.log(this.props)
       localStorage.setItem('config', JSON.stringify(this.config))
     } else {
       this.config = JSON.parse(localStorage.getItem('config'))
     }
+    this.setState({
+      haveConfig: true
+    })
     console.log('main config', this.config)
 
     axios
@@ -360,7 +362,7 @@ class Main extends Component {
         )
       }
     } else {
-      console.log(window.location.pathname)
+      // console.log(window.location.pathname)
       // if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
       if (window.location.pathname !== '/') {
         logButtonPlace = (
@@ -393,53 +395,59 @@ class Main extends Component {
         )
       }
     }
-
-    return (
-      <Router>
-        <div id="content">
-          {logButtonPlace}
-          {/* </Menu> */}
-          <div id="main">
-            {this.state.isLoggedIn ? (
-              <>
-                <Switch>
-                  <Route exact path="/" component={DataCockpit} />
-                  <Route exact path="/dataCockpit" component={DataCockpit} />
-                  <Route path="/searchCase" component={SearchCasePanel} />
-                  <Route path="/searchNodule" component={SearchNodulePanel} />
-                  <Route path="/myAnnos/" component={MyAnnosPanel} /> {/* <Route path="/startAnnos" component={StartAnnosPanel} /> */}
-                  {/* <Route exact path="/login" component={LoginPanel}/>  */}
-                  <Route path="/myReviews/" component={MyReviewsPanel} />
-                  <Route exact path="/download/" component={DownloadPanel} />
-                  <Route path="/case/" component={CornerstoneElement} />
-                  <Route path="/patientInfo/" component={PatientPanel} />
-                  {/* <Route path="/cov19List/" component={Cov19ListPanel} />
-                        <Route path='/cov19Case/' component={Cov19DisplayPanel}/> */}
-                  <Route path="/homepage/" component={HomepagePanel} />
-                  <Route path="/preprocess/" component={preprocess} />
-                  <Route path="/adminManage" component={AdminManagePanel} />
-                </Switch>
-              </>
-            ) : (
-              <>
-                <Switch>
-                  <Route path="/searchCase" component={SearchCasePanel} />
-                  <Route path="/case/" component={CornerstoneElement} />
-                  <Route path="/" component={LoginPanel}></Route>
-                </Switch>
-              </>
-            )}
-          </div>
-          <div id="footer">
-            <div className="inline">© 2019 Sichuan University. All rights reserved</div>
-
-            <div className="inline">
-              <Image src={src3} id="img-size"></Image>
+    if(this.state.haveConfig){
+      return (
+        <Router>
+          <div id="content">
+            {logButtonPlace}
+            {/* </Menu> */}
+            <div id="main">
+              {this.state.isLoggedIn ? (
+                <>
+                  <Switch>
+                    <Route exact path="/" component={DataCockpit} />
+                    <Route exact path="/dataCockpit" component={DataCockpit} />
+                    <Route path="/searchCase" component={SearchCasePanel} />
+                    <Route path="/searchNodule" component={SearchNodulePanel} />
+                    <Route path="/myAnnos/" component={MyAnnosPanel} /> {/* <Route path="/startAnnos" component={StartAnnosPanel} /> */}
+                    {/* <Route exact path="/login" component={LoginPanel}/>  */}
+                    <Route path="/myReviews/" component={MyReviewsPanel} />
+                    <Route exact path="/download/" component={DownloadPanel} />
+                    <Route path="/case/" component={CornerstoneElement} />
+                    <Route path="/patientInfo/" component={PatientPanel} />
+                    {/* <Route path="/cov19List/" component={Cov19ListPanel} />
+                          <Route path='/cov19Case/' component={Cov19DisplayPanel}/> */}
+                    <Route path="/homepage/" component={HomepagePanel} />
+                    <Route path="/preprocess/" component={preprocess} />
+                    <Route path="/adminManage" component={AdminManagePanel} />
+                  </Switch>
+                </>
+              ) : (
+                <>
+                  <Switch>
+                    <Route path="/searchCase" component={SearchCasePanel} />
+                    <Route path="/case/" component={CornerstoneElement} />
+                    <Route path="/" component={LoginPanel}></Route>
+                  </Switch>
+                </>
+              )}
+            </div>
+            <div id="footer">
+              <div className="inline">© 2019 Sichuan University. All rights reserved</div>
+  
+              <div className="inline">
+                <Image src={src3} id="img-size"></Image>
+              </div>
             </div>
           </div>
-        </div>
-      </Router>
-    )
+        </Router>
+      )
+    }else{
+      return (
+        <></>
+      )
+    }
+    
   }
 }
 

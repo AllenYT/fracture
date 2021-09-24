@@ -298,7 +298,6 @@ let buttonflag = 0
 class CornerstoneElement extends Component {
   constructor(props) {
     super(props)
-    this.config = JSON.parse(localStorage.getItem('config'))
     this.state = {
       // displayPanel
       caseId: window.location.pathname.split('/case/')[1].split('/')[0],
@@ -462,7 +461,7 @@ class CornerstoneElement extends Component {
       percent: [],
       listLoading: [],
     }
-    // this.config = JSON.parse(localStorage.getItem('config'))
+    this.config = JSON.parse(localStorage.getItem('config'))
     this.nextPath = this.nextPath.bind(this)
     this.onImageRendered = this.onImageRendered.bind(this)
     this.onNewImage = this.onNewImage.bind(this)
@@ -6785,14 +6784,6 @@ class CornerstoneElement extends Component {
 
   async componentDidMount() {
     console.log('componentDidMount')
-    if (!localStorage.getItem('config')) {
-      await this.props.getConfigJson(process.env.PUBLIC_URL + '/config.json')
-      this.config = this.props.config
-      // localStorage.setItem('config', JSON.stringify(this.config))
-    } else {
-      this.config = JSON.parse(localStorage.getItem('config'))
-    }
-    console.log('cornerstone config', this.config)
     if (localStorage.getItem('username') === null && window.location.pathname !== '/') {
       const ipPromise = new Promise((resolve, reject) => {
         axios.post(this.config.user.getRemoteAddr).then((addrResponse) => {

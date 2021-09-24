@@ -19,22 +19,18 @@ class LoginPanel extends Component {
     this.handleClick = this.handleClick.bind(this)
     this.handleUsernameChange = this.handleUsernameChange.bind(this)
     this.handlePasswordChange = this.handlePasswordChange.bind(this)
-    // this.config = JSON.parse(localStorage.getItem("config"));
+    this.config = JSON.parse(localStorage.getItem("config"))
   }
 
   async componentDidMount() {
-    if (!localStorage.getItem('config')) {
-      await this.props.getConfigJson(process.env.PUBLIC_URL + '/config.json')
-      this.config = this.props.config
-      localStorage.setItem('config', JSON.stringify(this.config))
-    } else {
-      this.config = JSON.parse(localStorage.getItem('config'))
-    }
-    console.log('login panel config', this.config)
     // document.getElementById('header').style.display = 'none'
+    const mainElement = document.getElementById('main')
+    mainElement.setAttribute('style', 'height:100%;padding-bottom:0px')
   }
   componentWillUnmount() {
     // document.getElementById('header').style.display = ''
+    const mainElement = document.getElementById('main')
+    mainElement.setAttribute('style', '')
   }
   handleUsernameChange(e) {
     this.setState({ username: e.target.value })
@@ -98,7 +94,7 @@ class LoginPanel extends Component {
   render() {
     return (
       <div id="login-container">
-        <div id="total">
+        <div id="total" style={{paddingBottom:'10px'}}>
           <Grid>
             <Grid.Row>
               <Grid.Column width={4} className="left-bg">

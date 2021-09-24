@@ -55,15 +55,6 @@ export class SearchPanel extends Component {
     this.getTotalPages()
     this.getQueue()
     document.addEventListener('keydown', this.onKeyDown)
-    if (!localStorage.getItem('config')) {
-      await this.props.getConfigJson(process.env.PUBLIC_URL + '/config.json')
-      this.config = this.props.config
-      console.log(this.props)
-      localStorage.setItem('config', JSON.stringify(this.config))
-    } else {
-      this.config = JSON.parse(localStorage.getItem('config'))
-    }
-    console.log('search case config', this.config)
   }
 
   componentWillUnmount() {

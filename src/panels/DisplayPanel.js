@@ -155,16 +155,6 @@ class DisplayPanel extends Component {
   }
 
   async componentWillMount() {
-    const promise = new Promise((resolve, reject) => {
-      axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-        const config = res.data;
-        console.log("config", config);
-        localStorage.setItem("config", JSON.stringify(config));
-        resolve(config);
-      }, reject);
-    });
-    const config = await promise;
-    this.config = config;
     // first let's check the status to display the proper contents.
     // const pathname = window.location.pathname
     // send our token to the server, combined with the current pathname

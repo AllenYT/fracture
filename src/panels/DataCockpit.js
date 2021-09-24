@@ -398,20 +398,9 @@ class DataCockpit extends Component {
     }
     this.visualize = this.visualize.bind(this)
     this.typeChange = this.typeChange.bind(this)
-    // this.config = JSON.parse(localStorage.getItem('config'))
+    this.config = JSON.parse(localStorage.getItem('config'))
   }
   async componentWillMount() {
-    const configPromise = new Promise((resolve, reject) => {
-      axios.get(process.env.PUBLIC_URL + '/config.json').then((res) => {
-        const config = res.data
-        console.log('config', config)
-        localStorage.setItem('config', JSON.stringify(config))
-        resolve(config)
-      }, reject)
-    })
-    const config = await configPromise
-    this.config = config
-
     Promise.all([
       axios.get(this.config.user.get_statistics),
       axios.get(this.config.user.get_sexData),
@@ -2231,9 +2220,9 @@ class DataCockpit extends Component {
       )
     } else {
       return localStorage.getItem('auths') !== null && JSON.parse(localStorage.getItem('auths')).indexOf('stat') > -1 ? (
-        <div class="VisualCanvas">
-          <div class="total">
-            <div class="totalcontnt">
+        <div className="VisualCanvas">
+          <div className="total">
+            <div className="totalcontnt">
               <h2 className="sta-header">当前数据</h2>
               <Button inverted color="green" icon>
                 <Icon name="sync" />
@@ -2286,14 +2275,14 @@ class DataCockpit extends Component {
                     <div id="sexDist"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">总体年龄占比</h2>
-                      <div class="tit1" id="agebt1">
+                    <div className="tit">
+                      <h2 className="tit2">总体年龄占比</h2>
+                      <div className="tit1" id="agebt1">
                         <Button icon onClick={this.typeChange} value="agebar" circular basic color="blue" size="tiny">
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit1" id="agebt2">
+                      <div className="tit1" id="agebt2">
                         <Button icon onClick={this.typeChange} value="agepie" circular basic color="blue" size="tiny">
                           <Icon name="chart bar outline"></Icon>
                         </Button>
@@ -2303,14 +2292,14 @@ class DataCockpit extends Component {
                     <div id="ageTotal2"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">总体结节直径分布</h2>
-                      <div class="tit1" id="diabt1">
+                    <div className="tit">
+                      <h2 className="tit2">总体结节直径分布</h2>
+                      <div className="tit1" id="diabt1">
                         <Button icon onClick={this.typeChange} value="diabar" circular basic color="blue" size="tiny">
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit1" id="diabt2">
+                      <div className="tit1" id="diabt2">
                         <Button icon onClick={this.typeChange} value="diapie" circular basic color="blue" size="tiny">
                           <Icon name="chart bar outline"></Icon>
                         </Button>
@@ -2331,14 +2320,14 @@ class DataCockpit extends Component {
                 <Grid.Row columns={4}>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">磨玻璃直径分布</h2>
-                      <div class="tit3" id="ggobt1">
+                    <div className="tit">
+                      <h2 className="tit2">磨玻璃直径分布</h2>
+                      <div className="tit3" id="ggobt1">
                         <Button icon onClick={this.typeChange} value="ggobar" circular basic color="blue" size="tiny">
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="ggobt2">
+                      <div className="tit3" id="ggobt2">
                         <Button icon onClick={this.typeChange} value="ggopie" circular basic color="blue" size="tiny">
                           <Icon name="chart bar outline"></Icon>
                         </Button>
@@ -2348,14 +2337,14 @@ class DataCockpit extends Component {
                     <div id="diaGGOPie"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">实性直径分布</h2>
-                      <div class="tit3" id="nonggobt1">
+                    <div className="tit">
+                      <h2 className="tit2">实性直径分布</h2>
+                      <div className="tit3" id="nonggobt1">
                         <Button icon onClick={this.typeChange} value="nonggobar" circular basic color="blue" size="tiny">
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="nonggobt2">
+                      <div className="tit3" id="nonggobt2">
                         <Button icon onClick={this.typeChange} value="nonggopie" circular basic color="blue" size="tiny">
                           <Icon name="chart bar outline"></Icon>
                         </Button>
@@ -2365,14 +2354,14 @@ class DataCockpit extends Component {
                     <div id="diaNonGGOPie"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">半实性(混合磨玻璃)直径分布</h2>
-                      <div class="tit3" id="mixggobt1">
+                    <div className="tit">
+                      <h2 className="tit2">半实性(混合磨玻璃)直径分布</h2>
+                      <div className="tit3" id="mixggobt1">
                         <Button icon onClick={this.typeChange} value="mixggobar" circular basic color="blue" size="tiny">
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="mixggobt2">
+                      <div className="tit3" id="mixggobt2">
                         <Button icon onClick={this.typeChange} value="mixggopie" circular basic color="blue" size="tiny">
                           <Icon name="chart bar outline"></Icon>
                         </Button>
@@ -2385,14 +2374,14 @@ class DataCockpit extends Component {
                 <Grid.Row columns={4}>
                   <Grid.Column width={3}></Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">钙化征直径分布</h2>
-                      <div class="tit3" id="calcifybt1">
+                    <div className="tit">
+                      <h2 className="tit2">钙化征直径分布</h2>
+                      <div className="tit3" id="calcifybt1">
                         <Button icon onClick={this.typeChange} value="calcifybar" circular basic color="blue" size="tiny">
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="calcifybt2">
+                      <div className="tit3" id="calcifybt2">
                         <Button icon onClick={this.typeChange} value="calcifypie" circular basic color="blue" size="tiny">
                           <Icon name="chart bar outline"></Icon>
                         </Button>
@@ -2402,14 +2391,14 @@ class DataCockpit extends Component {
                     <div id="diaCalcifyPie"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">毛刺征直径分布</h2>
-                      <div class="tit3" id="glitchbt1">
+                    <div className="tit">
+                      <h2 className="tit2">毛刺征直径分布</h2>
+                      <div className="tit3" id="glitchbt1">
                         <Button icon onClick={this.typeChange} value="glitchbar" circular basic color="blue" size="tiny">
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="glitchbt2">
+                      <div className="tit3" id="glitchbt2">
                         <Button icon onClick={this.typeChange} value="glitchpie" circular basic color="blue" size="tiny">
                           <Icon name="chart bar outline"></Icon>
                         </Button>
@@ -2419,14 +2408,14 @@ class DataCockpit extends Component {
                     <div id="diaGlitchPie"></div>
                   </Grid.Column>
                   <Grid.Column width={4}>
-                    <div class="tit">
-                      <h2 class="tit2">分叶征直径分布</h2>
-                      <div class="tit3" id="sublobebt1">
+                    <div className="tit">
+                      <h2 className="tit2">分叶征直径分布</h2>
+                      <div className="tit3" id="sublobebt1">
                         <Button icon onClick={this.typeChange} value="sublobebar" circular basic color="blue" size="tiny">
                           <Icon name="chart pie"></Icon>
                         </Button>
                       </div>
-                      <div class="tit3" id="sublobebt2">
+                      <div className="tit3" id="sublobebt2">
                         <Button icon onClick={this.typeChange} value="sublobepie" circular basic color="blue" size="tiny">
                           <Icon name="chart bar outline"></Icon>
                         </Button>
