@@ -8,8 +8,6 @@ import Statistics from '../components/Statistics'
 import qs from 'qs'
 // import Info from '../components/Info'
 import LowerAuth from '../components/LowerAuth'
-import { connect } from 'react-redux'
-import { getConfigJson } from '../actions'
 
 const { Option } = Select
 const style = {
@@ -437,7 +435,7 @@ export class SearchPanel extends Component {
     //     )
     // }
     const options = this.state.searchQueue.map((item, index) => {
-      return <Option value={item.value}>{item.text}</Option>
+      return <Option key={index} value={item.value}>{item.text}</Option>
     })
 
     return (
@@ -570,16 +568,4 @@ export class SearchPanel extends Component {
   }
 }
 
-export default connect(
-  (state) => {
-    return {
-      config: state.config.config,
-    }
-  },
-  (dispatch) => {
-    return {
-      getConfigJson: (url) => dispatch(getConfigJson(url)),
-      dispatch,
-    }
-  }
-)(SearchPanel)
+export default SearchPanel

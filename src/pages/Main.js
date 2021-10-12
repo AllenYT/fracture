@@ -208,7 +208,7 @@ class Main extends Component {
       axios
         .get(this.config.user.get_session, { headers })
         .then((response) => {
-          console.log(response.data.status)
+          console.log("get_session request", response.data.status)
           if (response.data.status === 'okay') {
             this.setState({ isLoggedIn: true })
             window.sessionStorage.setItem('userId', response.data.username)

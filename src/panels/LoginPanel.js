@@ -23,12 +23,16 @@ class LoginPanel extends Component {
   }
 
   async componentDidMount() {
-    // document.getElementById('header').style.display = 'none'
+    if(document.getElementById('header')){
+      document.getElementById('header').style.display = 'none'
+    }
     const mainElement = document.getElementById('main')
     mainElement.setAttribute('style', 'height:100%;padding-bottom:0px')
   }
   componentWillUnmount() {
-    // document.getElementById('header').style.display = ''
+    if(document.getElementById('header')){
+      document.getElementById('header').style.display = ''
+    }
     const mainElement = document.getElementById('main')
     mainElement.setAttribute('style', '')
   }
@@ -146,17 +150,4 @@ class LoginPanel extends Component {
   }
 }
 
-export default connect(
-  (state) => {
-    console.log('state', state)
-    return {
-      config: state.config.config,
-    }
-  },
-  (dispatch) => {
-    return {
-      getConfigJson: (url) => dispatch(getConfigJson(url)),
-      dispatch,
-    }
-  }
-)(LoginPanel)
+export default LoginPanel

@@ -20,7 +20,7 @@
 .preview {
   height: 100%;
   overflow: auto;
-  width: 105%;
+  /* width: 105%; */
   padding-left: 10px;
 }
 
