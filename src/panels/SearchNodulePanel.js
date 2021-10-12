@@ -541,7 +541,13 @@ export class SearchNodulePanel extends Component {
               console.log("result from server", res.data);
               console.log("params", params);
               const oa = document.createElement("a");
-              oa.href = "/case/" + caseId + "/" + username + "#" + noduleNo;
+              oa.href =
+                "/case/" +
+                caseId.replace("#", "%23") +
+                "/" +
+                username +
+                "#" +
+                noduleNo;
               oa.setAttribute("target", "_blank");
               oa.setAttribute("rel", "nofollow noreferrer");
               document.body.appendChild(oa);
@@ -1469,7 +1475,7 @@ export class SearchNodulePanel extends Component {
                                 className="ui green inverted button"
                                 onClick={this.handleLinkClick.bind(
                                   this,
-                                  content["caseId"].replace("#", "%23"),
+                                  content["caseId"],
                                   content["username"],
                                   content["noduleNo"]
                                 )}
