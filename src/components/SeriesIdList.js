@@ -355,9 +355,9 @@ class SeriesIdList extends Component {
       } else if (dataValidbyCaseId.status === "ok") {
         statusIcon = <CheckCircleOutlined style={{ color: "#52c41a" }} />;
         for (let i = 0; i < allResults.length; i++) {
-          console.log("allresults", allResults[i], value["caseId"]);
+          // console.log("allresults", allResults[i], value["caseId"]);
           if (allResults[i].caseId === value["caseId"]) {
-            console.log("allresults", allResults[i]);
+            // console.log("allresults", allResults[i]);
             if (allResults[i].modelList.length > 0) {
               for (let j = 0; j < allResults[i].modelList.length; j++) {
                 modelStr += '<div class="ui blue label">';

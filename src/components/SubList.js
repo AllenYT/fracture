@@ -180,7 +180,7 @@ class SubList extends Component {
     const mainItem = this.props.mainItem;
     const cart = this.state.cart;
     console.log("cart", this.state.cart);
-
+    console.log("subList", subList);
     let panels = [];
     let idx = 0;
 
@@ -194,79 +194,67 @@ class SubList extends Component {
       const studyAry = subList[subKey];
       console.log("studyAry", studyAry);
       const len = studyAry.length;
+      panels.push(
+        <div key={idx}>
+          <Accordion.Title
+            className="space"
+            active={this.state.activeIndex === idx}
+            index={idx}
+            onClick={this.handleClick}
+          >
+            <div style={{ display: "inline-block", width: "10%" }}>
+              <Icon name={icon} />
+            </div>
+            <div
+              style={{
+                display: "inline-block",
+                width: "40%",
+                textAlign: "center",
+              }}
+            >
+              {subKey}
+            </div>
+            <div
+              style={{
+                display: "inline-block",
+                width: "50%",
+                textAlign: "right",
+              }}
+            >
+              <span className="display-right">共{len}次检查</span>
+            </div>
+          </Accordion.Title>
+          <Accordion.Content active={this.state.activeIndex === idx}>
+            <SeriesIdList
+              cart={cart}
+              parent={this}
+              content={studyAry}
+              contextRef={this.state.contextRef}
+              pid={mainItem}
+            />
+          </Accordion.Content>
+        </div>
+      );
+      idx += 1;
       //  console.log('subkey',subKey)
       // console.log('study',studyAry)
-      for (let studyitem in studyAry) {
-        let study = studyAry[studyitem];
-        let patientId = study["date"];
-        let patientName = "";
-        let patientSex =
-          study["gender"] === "" ? "" : study["gender"] === "M" ? "男" : "女";
-        let newValue = [];
-        if (this.props.type === "date") {
-          patientId = study["patientId"];
+      // for (let studyitem in studyAry) {
+      //   let study = studyAry[studyitem];
+      //   let patientId = study["date"];
+      //   let patientName = "";
+      //   let patientSex =
+      //     study["gender"] === "" ? "" : study["gender"] === "M" ? "男" : "女";
+      //   let newValue = [];
+      //   if (this.props.type === "date") {
+      //     patientId = study["patientId"];
 
-          // newValue = [patientId, patientName, patientSex];
-        }
-        // } else {
-        //   // newValue = [patientId];
-        // }
-        panels.push(
-          <div key={idx}>
-            <Accordion.Title
-              className="space"
-              active={this.state.activeIndex === idx}
-              index={idx}
-              onClick={this.handleClick}
-            >
-              <div style={{ display: "inline-block", width: "10%" }}>
-                <Icon name={icon} />
-              </div>
-              <div
-                style={{
-                  display: "inline-block",
-                  width: "40%",
-                  textAlign: "center",
-                }}
-              >
-                {patientId}
-              </div>
-              <div
-                style={{
-                  display: "inline-block",
-                  width: "50%",
-                  textAlign: "right",
-                }}
-              >
-                <span className="display-right">共{len}次检查</span>
-              </div>
-              {/* <tr style={{ width: "100%" }}>
-                <td>
-                  <Icon name={icon} />
-                </td>
-                <td>{newValue[0]}</td>
-                <td>{patientId}</td>
-                <td></td>
-                <td>{newValue[1]}</td>
-                <td>{newValue[2]}</td>
-                <td style={{ textAlign: "right" }}>
-                  <span className="display-right">共{len}次检查</span>
-                </td>
-              </tr> */}
-            </Accordion.Title>
-            <Accordion.Content active={this.state.activeIndex === idx}>
-              <SeriesIdList
-                cart={cart}
-                parent={this}
-                content={studyAry}
-                contextRef={this.state.contextRef}
-                pid={mainItem}
-              />
-            </Accordion.Content>
-          </div>
-        );
-        idx += 1;
-      }
+      //     // newValue = [patientId, patientName, patientSex];
+      //   }
+      //   // } else {
+      //   //   // newValue = [patientId];
+      //   // }
+
+      // }
     }
     // console.log('show',this.state.show)
     // console.log('panel',panels)

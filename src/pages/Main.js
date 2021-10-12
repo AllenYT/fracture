@@ -46,6 +46,7 @@ class Main extends Component {
       isLoggedIn: false,
       expiration: false,
       diskInfo: "0%",
+      haveConfig: false,
     };
 
     this.handleItemClick = this.handleItemClick.bind(this);
@@ -104,6 +105,9 @@ class Main extends Component {
       }, reject);
     });
     const config = await configPromise;
+    this.setState({
+      haveConfig: true,
+    });
     this.config = config;
 
     axios
@@ -468,48 +472,51 @@ class Main extends Component {
         );
       }
     }
-
-    return (
-      <Router>
-        <div id="content">
-          {logButtonPlace}
-          {/* </Menu> */}
-          <div id="main">
-            {this.state.isLoggedIn ? (
-              <Route exact path="/" component={DataCockpit} />
-            ) : (
-              <Route exact path="/" component={LoginPanel} />
-            )}
-            <Route exact path="/dataCockpit" component={DataCockpit} />
-            <Route path="/searchCase" component={SearchCasePanel} />
-            <Route path="/searchNodule" component={SearchNodulePanel} />
-            <Route path="/myAnnos/" component={MyAnnosPanel} />{" "}
-            {/* <Route path="/startAnnos" component={StartAnnosPanel} /> */}
-            {/* <Route exact path="/login" component={LoginPanel}/>  */}
-            <Route path="/myReviews/" component={MyReviewsPanel} />
-            <Route exact path="/download/" component={DownloadPanel} />
-            <Route path="/case/" component={DisplayPanel} />
-            <Route path="/patientInfo/" component={PatientPanel} />
-            {/* <Route path="/cov19List/" component={Cov19ListPanel} />
-                        <Route path='/cov19Case/' component={Cov19DisplayPanel}/> */}
-            <Route path="/homepage/" component={HomepagePanel} />
-            <Route path="/preprocess/" component={preprocess} />
-            <Route path="/segView/" component={ViewerPanel} />
-            {/* <Route path="/followup/" component={FollowUpDisplayPanel} /> */}
-            <Route path="/adminManage" component={AdminManagePanel} />
-          </div>
-          <div className="ui inverted vertical footer segment">
-            <div className="inline" style={{ verticalAlign: "middle" }}>
-              © 2019 Sichuan University. All rights reserved
+    if (this.state.haveConfig) {
+      return (
+        <Router>
+          <div id="content">
+            {logButtonPlace}
+            {/* </Menu> */}
+            <div id="main">
+              {this.state.isLoggedIn ? (
+                <Route exact path="/" component={DataCockpit} />
+              ) : (
+                <Route exact path="/" component={LoginPanel} />
+              )}
+              <Route exact path="/dataCockpit" component={DataCockpit} />
+              <Route path="/searchCase" component={SearchCasePanel} />
+              <Route path="/searchNodule" component={SearchNodulePanel} />
+              <Route path="/myAnnos/" component={MyAnnosPanel} />{" "}
+              {/* <Route path="/startAnnos" component={StartAnnosPanel} /> */}
+              {/* <Route exact path="/login" component={LoginPanel}/>  */}
+              <Route path="/myReviews/" component={MyReviewsPanel} />
+              <Route exact path="/download/" component={DownloadPanel} />
+              <Route path="/case/" component={DisplayPanel} />
+              <Route path="/patientInfo/" component={PatientPanel} />
+              {/* <Route path="/cov19List/" component={Cov19ListPanel} />
+                          <Route path='/cov19Case/' component={Cov19DisplayPanel}/> */}
+              <Route path="/homepage/" component={HomepagePanel} />
+              <Route path="/preprocess/" component={preprocess} />
+              <Route path="/segView/" component={ViewerPanel} />
+              {/* <Route path="/followup/" component={FollowUpDisplayPanel} /> */}
+              <Route path="/adminManage" component={AdminManagePanel} />
             </div>
+            <div className="ui inverted vertical footer segment">
+              <div className="inline" style={{ verticalAlign: "middle" }}>
+                © 2019 Sichuan University. All rights reserved
+              </div>
 
-            <div className="inline">
-              <Image src={src3} id="img-size"></Image>
+              <div className="inline">
+                <Image src={src3} id="img-size"></Image>
+              </div>
             </div>
           </div>
-        </div>
-      </Router>
-    );
+        </Router>
+      );
+    } else {
+      return <></>;
+    }
   }
 }
 
