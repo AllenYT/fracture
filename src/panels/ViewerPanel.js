@@ -48,13 +48,13 @@ import StudyBrowserList from "../components/StudyBrowserList";
 import VTK2DViewer from "../components/VTK2DViewer";
 import VTK3DViewer from "../components/VTK3DViewer";
 import { frenet } from "../lib/frenet";
-import { handleConfig } from "../lib/handleConfig";
 import { loadAndCacheImagePlus } from "../lib/cornerstoneImageRequest";
 import { executeTask } from "../lib/taskHelper";
 // import centerLine from '../center_line.json'
 // import oneAirway from '../one_airway.json'
 
-// import '../css/cornerstone.css'
+import "../css/cornerstone.css";
+import "../css/segview.css";
 import src1 from "../images/scu-logo.jpg";
 // import VTKViewer from '../components/VTKViewer'
 import cornerstone from "cornerstone-core";
@@ -2774,7 +2774,7 @@ class ViewerPanel extends Component {
     const segmentListOperationStyles = {
       top: opTop,
     };
-    const panes3D = [
+    const panes = [
       {
         menuItem: "肺叶",
         render: () => {
@@ -2827,6 +2827,7 @@ class ViewerPanel extends Component {
       },
     ];
 
+    const style = { width: viewerWidth, height: viewerHeight };
     let loadingList = [];
     const loadingStyle = this.getLoadingStyle();
     if (urls && urls.length) {
@@ -3327,7 +3328,7 @@ class ViewerPanel extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item icon="write" text="留言" />
+                  {/* <Dropdown.Item icon="write" text="留言" /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"
@@ -3356,14 +3357,12 @@ class ViewerPanel extends Component {
                   saveNodulesData={this.saveNodulesData.bind(this)}
                 /> */}
                 <div className="segment-container" id="segment-container">
-                  <div style={{ width: viewerWidth, height: viewerHeight }}>
-                    {panel}
-                  </div>
+                  <div style={style}>{panel}</div>
                 </div>
               </Grid.Column>
               {/* 右边部分 */}
               <Grid.Column width={3}>
-                <Tab className="list-tab" panes={panes3D} />
+                <Tab className="list-tab" panes={panes} />
               </Grid.Column>
             </Grid.Row>
           </Grid>
@@ -3418,18 +3417,34 @@ class ViewerPanel extends Component {
     // origin to pixel
     const pixel = [];
     const axialPixel = [];
+    // const ratioX = this.getRatio(0, 0)
+    // const ratioY = this.getRatio(0, 1)
+    // const {x, y} = this.getTopLeftOffset(0)
+    // const nowX = origin[0] / ratioX + x
+    // const nowY = origin[1] / ratioY + y
+    // const a = this.getTopLeftOffset(0)
     axialPixel[0] =
       origin[0] / this.getRatio(0, 0) + this.getTopLeftOffset(0).x;
     axialPixel[1] =
       origin[1] / this.getRatio(0, 1) + this.getTopLeftOffset(0).y;
 
     const coronalPixel = [];
+    // const ratioX = this.getRatio(1, 0)
+    // const ratioZ = this.getRatio(1, 2)
+    // const {x, y} = this.getTopLeftOffset(1)
+    // const nowX = origin[0] / ratioX + x
+    // const nowY = origin[2] / ratioZ + y
     coronalPixel[0] =
       origin[0] / this.getRatio(1, 0) + this.getTopLeftOffset(1).x;
     coronalPixel[1] =
       origin[2] / this.getRatio(1, 1) + this.getTopLeftOffset(1).y;
 
     const sagittalPixel = [];
+    // const ratioY = this.getRatio(2, 1)
+    // const ratioZ = this.getRatio(2, 2)
+    // const {x, y} = this.getTopLeftOffset(2)
+    // const nowX = origin[1] / ratioY + x
+    // const nowY = origin[2] / ratioZ + y
     sagittalPixel[0] =
       origin[1] / this.getRatio(2, 0) + this.getTopLeftOffset(2).x;
     sagittalPixel[1] =

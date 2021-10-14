@@ -1,11 +1,7 @@
 import React, { Component } from "react";
 import { Menu, Dropdown, Button, Image } from "semantic-ui-react";
-import {
-  withRouter,
-  BrowserRouter as Router,
-  Route,
-  Link,
-} from "react-router-dom";
+import { notification } from "antd";
+import { BrowserRouter as Router, Route, Switch, Link } from "react-router-dom";
 import qs from "qs";
 import { connect } from "react-redux";
 import { getConfigJson } from "../actions";
@@ -46,6 +42,8 @@ class Main extends Component {
       reRender: 0,
       isLoggedIn: false,
       expiration: false,
+      diskInfo: "0%",
+      haveConfig: false,
     };
     this.newConfig = this.props.newConfig;
 
@@ -94,10 +92,8 @@ class Main extends Component {
         console.log("error");
       });
   }
-
   async componentDidMount() {
-    // localStorage.clear()
-    // console.log("localstorage", localStorage)
+    // console.log('localstorage', !localStorage.getItem('config'))
 
     // const configPromise = new Promise((resolve, reject) => {
     //   axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
@@ -112,96 +108,98 @@ class Main extends Component {
     if (!localStorage.getItem("config")) {
       await this.props.getConfigJson(process.env.PUBLIC_URL + "/config.json");
       this.config = this.props.config;
-      // localStorage.setItem('config', JSON.stringify(this.config))
+      localStorage.setItem("config", JSON.stringify(this.config));
     } else {
       this.config = JSON.parse(localStorage.getItem("config"));
     }
+    this.setState({
+      haveConfig: true,
+    });
     console.log("main config", this.config);
 
-    if (
-      localStorage.getItem("username") === null &&
-      window.location.pathname !== "/"
-    ) {
-      const ipPromise = new Promise((resolve, reject) => {
-        axios.post(this.config.user.getRemoteAddr).then((addrResponse) => {
-          resolve(addrResponse);
-        }, reject);
-      });
-      const addr = await ipPromise;
-      let tempUid = "";
-      console.log("addr", addr);
-      if (addr.data.remoteAddr === "unknown") {
-        tempUid = this.config.loginId.uid;
-      } else {
-        tempUid = "user" + addr.data.remoteAddr.split(".")[3];
-      }
-
-      const usernameParams = {
-        username: tempUid,
-      };
-
-      const insertInfoPromise = new Promise((resolve, reject) => {
-        axios
-          .post(this.config.user.insertUserInfo, qs.stringify(usernameParams))
-          .then((insertResponse) => {
-            resolve(insertResponse);
-          }, reject);
+    axios
+      .post(this.config.data.getDiskInfo)
+      .then((diskResponse) => {
+        const diskInfo = diskResponse.data.usedPercents;
+        console.log("diskinfo", parseInt(diskInfo));
+        this.setState({ diskInfo: diskInfo });
+        if (parseInt(diskInfo) > 90) {
+          notification.warning({
+            top: 48,
+            duration: 6,
+            message: "提醒",
+            description: "磁盘用量已超过90%",
+          });
+        }
+      })
+      .catch((error) => {
+        console.log(error);
       });
 
-      const insertInfo = await insertInfoPromise;
-      if (insertInfo.data.status !== "failed") {
-        this.setState({ username: usernameParams.username });
-      } else {
-        this.setState({ username: this.config.loginId.uid });
-      }
+    // if (localStorage.getItem('username') === null && window.location.pathname !== '/') {
+    //   const ipPromise = new Promise((resolve, reject) => {
+    //     axios.post(this.config.user.getRemoteAddr).then((addrResponse) => {
+    //       resolve(addrResponse)
+    //     }, reject)
+    //   })
+    //   const addr = await ipPromise
+    //   let tempUid = ''
+    //   console.log('addr', addr)
+    //   if (addr.data.remoteAddr === 'unknown') {
+    //     tempUid = this.config.loginId.uid
+    //   } else {
+    //     tempUid = 'user' + addr.data.remoteAddr.split('.')[3]
+    //   }
 
-      const user = {
-        username: this.state.username,
-        password: md5(this.config.loginId.password),
-      };
-      const auth = {
-        username: this.state.username,
-      };
-      Promise.all([
-        axios.post(this.config.user.validUser, qs.stringify(user)),
-        axios.post(this.config.user.getAuthsForUser, qs.stringify(auth)),
-      ])
+    //   const usernameParams = {
+    //     username: tempUid,
+    //   }
 
-        .then(([loginResponse, authResponse]) => {
-          console.log(authResponse.data);
-          if (loginResponse.data.status !== "failed") {
-            localStorage.setItem("token", loginResponse.data.token);
-            localStorage.setItem("realname", loginResponse.data.realname);
-            localStorage.setItem("username", loginResponse.data.username);
-            localStorage.setItem("privilege", loginResponse.data.privilege);
-            localStorage.setItem(
-              "allPatientsPages",
-              loginResponse.data.allPatientsPages
-            );
-            localStorage.setItem(
-              "totalPatients",
-              loginResponse.data.totalPatients
-            );
-            localStorage.setItem(
-              "totalRecords",
-              loginResponse.data.totalRecords
-            );
-            localStorage.setItem(
-              "modelProgress",
-              loginResponse.data.modelProgress
-            );
-            localStorage.setItem("BCRecords", loginResponse.data.BCRecords);
-            localStorage.setItem("HCRecords", loginResponse.data.HCRecords);
-            localStorage.setItem("auths", JSON.stringify(authResponse.data));
-            console.log("localtoken", localStorage.getItem("token"));
-          } else {
-            console.log("localtoken", localStorage.getItem("token"));
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
-    }
+    //   const insertInfoPromise = new Promise((resolve, reject) => {
+    //     axios.post(this.config.user.insertUserInfo, qs.stringify(usernameParams)).then((insertResponse) => {
+    //       resolve(insertResponse)
+    //     }, reject)
+    //   })
+
+    //   const insertInfo = await insertInfoPromise
+    //   if (insertInfo.data.status !== 'failed') {
+    //     this.setState({ username: usernameParams.username })
+    //   } else {
+    //     this.setState({ username: this.config.loginId.uid })
+    //   }
+
+    //   const user = {
+    //     username: this.state.username,
+    //     password: md5(this.config.loginId.password),
+    //   }
+    //   const auth = {
+    //     username: this.state.username,
+    //   }
+    //   Promise.all([axios.post(this.config.user.validUser, qs.stringify(user)), axios.post(this.config.user.getAuthsForUser, qs.stringify(auth))])
+
+    //     .then(([loginResponse, authResponse]) => {
+    //       console.log(authResponse.data)
+    //       if (loginResponse.data.status !== 'failed') {
+    //         localStorage.setItem('token', loginResponse.data.token)
+    //         localStorage.setItem('realname', loginResponse.data.realname)
+    //         localStorage.setItem('username', loginResponse.data.username)
+    //         localStorage.setItem('privilege', loginResponse.data.privilege)
+    //         localStorage.setItem('allPatientsPages', loginResponse.data.allPatientsPages)
+    //         localStorage.setItem('totalPatients', loginResponse.data.totalPatients)
+    //         localStorage.setItem('totalRecords', loginResponse.data.totalRecords)
+    //         localStorage.setItem('modelProgress', loginResponse.data.modelProgress)
+    //         localStorage.setItem('BCRecords', loginResponse.data.BCRecords)
+    //         localStorage.setItem('HCRecords', loginResponse.data.HCRecords)
+    //         localStorage.setItem('auths', JSON.stringify(authResponse.data))
+    //         console.log('localtoken', localStorage.getItem('token'))
+    //       } else {
+    //         console.log('localtoken', localStorage.getItem('token'))
+    //       }
+    //     })
+    //     .catch((error) => {
+    //       console.log(error)
+    //     })
+    // }
     const token = localStorage.getItem("token");
     // console.log("localtoken", localStorage.getItem("token"));
     console.log("token", token);
@@ -213,7 +211,7 @@ class Main extends Component {
       axios
         .get(this.config.user.get_session, { headers })
         .then((response) => {
-          console.log(response.data.status);
+          console.log("get_session request", response.data.status);
           if (response.data.status === "okay") {
             this.setState({ isLoggedIn: true });
             window.sessionStorage.setItem("userId", response.data.username);
@@ -290,9 +288,11 @@ class Main extends Component {
         >
           数据检索
         </Menu.Item>
-
         {mainSearchNodule}
         {mainAdminManage}
+        <Menu.Item position="right">
+          当前磁盘使用百分比:{this.state.diskInfo}
+        </Menu.Item>
 
         {/* <Menu.Item
                     active={activeItem === 'myAnnos'}
@@ -365,11 +365,11 @@ class Main extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item
+                  {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
-                  />
+                  /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"
@@ -393,11 +393,11 @@ class Main extends Component {
                     text="我的主页"
                     onClick={this.toHomepage}
                   />
-                  <Dropdown.Item
+                  {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
-                  />
+                  /> */}
                   <Dropdown.Item
                     icon="log out"
                     text="注销"
@@ -410,7 +410,7 @@ class Main extends Component {
         );
       }
     } else {
-      // console.log(window.location.pathname);
+      // console.log(window.location.pathname)
       // if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
       if (window.location.pathname !== "/") {
         logButtonPlace = (
@@ -433,74 +433,76 @@ class Main extends Component {
         // window.location.href = '/'
       } else {
         logButtonPlace = (
-          <Menu id="header" pointing secondary>
-            <Menu.Item
-              onClick={this.handleItemClick}
-              as={Link}
-              to="/"
-              name="home"
-            >
-              肺结节CT影像辅助检测软件
-            </Menu.Item>
+          <>
+            {/* <Menu id="header" pointing secondary>
+              <Menu.Item onClick={this.handleItemClick} as={Link} to="/" name="home">
+                肺结节CT影像辅助检测软件
+              </Menu.Item>
 
-            <Menu.Item position="right">
-              <Button
-                className="invisible-login-button"
-                inverted
-                color="green"
-                as={Link}
-                to="/"
-                onClick={this.handleLogin}
-              >
-                登录
-              </Button>
-            </Menu.Item>
-          </Menu>
+              <Menu.Item position="right">
+                <Button className="invisible-login-button" inverted color="green" as={Link} to="/" onClick={this.handleLogin}>
+                  登录
+                </Button>
+              </Menu.Item>
+            </Menu> */}
+          </>
         );
       }
     }
-
-    return (
-      <Router>
-        <div id="content">
-          {logButtonPlace}
-          {/* </Menu> */}
-          <div id="main">
-            {this.state.isLoggedIn ? (
-              <Route exact path="/" component={DataCockpit} />
-            ) : (
-              <Route exact path="/" component={LoginPanel} />
-            )}
-            <Route exact path="/dataCockpit" component={DataCockpit} />
-            <Route path="/searchCase" component={SearchCasePanel} />
-            <Route path="/searchNodule" component={SearchNodulePanel} />
-            <Route path="/myAnnos/" component={MyAnnosPanel} />{" "}
-            {/* <Route path="/startAnnos" component={StartAnnosPanel} /> */}
-            {/* <Route exact path="/login" component={LoginPanel}/>  */}
-            <Route path="/myReviews/" component={MyReviewsPanel} />
-            <Route exact path="/download/" component={DownloadPanel} />
-            <Route path="/case/" component={CornerstoneElement} />
-            <Route path="/patientInfo/" component={PatientPanel} />
-            {/* <Route path="/cov19List/" component={Cov19ListPanel} />
-                        <Route path='/cov19Case/' component={Cov19DisplayPanel}/> */}
-            <Route path="/homepage/" component={HomepagePanel} />
-            <Route path="/preprocess/" component={preprocess} />
-            <Route path="/segView/" component={ViewerPanel} />
-            <Route path="/followup/" component={FollowUpDisplayPanel} />
-            <Route path="/adminManage" component={AdminManagePanel} />
-          </div>
-          <div className="ui inverted vertical footer segment">
-            <div className="inline" style={{ verticalAlign: "middle" }}>
-              © 2019 Sichuan University. All rights reserved
+    if (this.state.haveConfig) {
+      return (
+        <Router>
+          <div id="content">
+            {logButtonPlace}
+            {/* </Menu> */}
+            <div id="main">
+              {this.state.isLoggedIn ? (
+                <>
+                  <Switch>
+                    <Route exact path="/" component={DataCockpit} />
+                    <Route exact path="/dataCockpit" component={DataCockpit} />
+                    <Route path="/searchCase" component={SearchCasePanel} />
+                    <Route path="/searchNodule" component={SearchNodulePanel} />
+                    <Route path="/myAnnos/" component={MyAnnosPanel} />{" "}
+                    {/* <Route path="/startAnnos" component={StartAnnosPanel} /> */}
+                    {/* <Route exact path="/login" component={LoginPanel}/>  */}
+                    <Route path="/myReviews/" component={MyReviewsPanel} />
+                    <Route exact path="/download/" component={DownloadPanel} />
+                    <Route path="/case/" component={CornerstoneElement} />
+                    <Route path="/patientInfo/" component={PatientPanel} />
+                    {/* <Route path="/cov19List/" component={Cov19ListPanel} />
+                          <Route path='/cov19Case/' component={Cov19DisplayPanel}/> */}
+                    <Route path="/homepage/" component={HomepagePanel} />
+                    <Route path="/preprocess/" component={preprocess} />
+                    <Route path="/adminManage" component={AdminManagePanel} />
+                    <Route path="/followup" component={FollowUpDisplayPanel} />
+                  </Switch>
+                </>
+              ) : (
+                <>
+                  <Switch>
+                    <Route path="/searchCase" component={SearchCasePanel} />
+                    <Route path="/case/" component={CornerstoneElement} />
+                    <Route path="/" component={LoginPanel}></Route>
+                  </Switch>
+                </>
+              )}
             </div>
+            <div id="footer">
+              <div className="inline">
+                © 2019 Sichuan University. All rights reserved
+              </div>
 
-            <div className="inline">
-              <Image src={src3} id="img-size"></Image>
+              <div className="inline">
+                <Image src={src3} id="img-size"></Image>
+              </div>
             </div>
           </div>
-        </div>
-      </Router>
-    );
+        </Router>
+      );
+    } else {
+      return <></>;
+    }
   }
 }
 

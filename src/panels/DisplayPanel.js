@@ -17,19 +17,21 @@ class DisplayPanel extends Component {
       show: false,
     };
   }
-  handleClickScreen(e, href) {
+  handleClickScreen(e, href, status) {
     console.log("card", href);
-    if (
-      window.location.pathname.split("/case/")[1].split("/")[0] !==
-      href.split("/case/")[1].split("/")[0]
-    ) {
-      this.setState({
-        caseId: href.split("/case/")[1].split("/")[0],
-        username: href.split("/")[3],
-        show: false,
-      });
-      // this.nextPath(href)
-      window.location.href = href;
+    if (status === "ok") {
+      if (
+        window.location.pathname.split("/case/")[1].split("/")[0] !==
+        href.split("/case/")[1].split("/")[0]
+      ) {
+        this.setState({
+          caseId: href.split("/case/")[1].split("/")[0],
+          username: href.split("/")[3],
+          show: false,
+        });
+        // this.nextPath(href)
+        window.location.href = href;
+      }
     }
   }
 
@@ -153,16 +155,6 @@ class DisplayPanel extends Component {
   }
 
   async componentWillMount() {
-    const promise = new Promise((resolve, reject) => {
-      axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-        const config = res.data;
-        console.log("config", config);
-        localStorage.setItem("config", JSON.stringify(config));
-        resolve(config);
-      }, reject);
-    });
-    const config = await promise;
-    this.config = config;
     // first let's check the status to display the proper contents.
     // const pathname = window.location.pathname
     // send our token to the server, combined with the current pathname
@@ -234,43 +226,38 @@ class DisplayPanel extends Component {
         const readonly = readonlyResponse.data.readonly === "true";
         console.log("readonly", readonly);
         // const readonly = false
-        cornerstone
-          .loadAndCacheImage(dataResponse.data[0])
-          // .loadAndCacheImage(dataResponse.data[0].replace("#", "%23"))
-          .then((image) => {
-            console.log("image info", image.data);
-            const dicomtag = image.data;
-            let draftStatus = -1;
-            draftStatus = readonlyResponse.data.status;
-            let boxes = draftResponse.data;
-            // dataResponse.data.forEach((item, index) => {
-            //   dataResponse.data[index] = item.replace("#", "%23");
-            // });
-            console.log("boxes", boxes);
-            if (boxes !== "") boxes.sort(this.sliceIdxSort("slice_idx"));
-            for (var i = 0; i < boxes.length; i++) {
-              boxes[i].nodule_no = "" + i;
-              boxes[i].rect_no = "a00" + i;
-            }
-            console.log("boxidx", boxes);
-            console.log("dataResponse.data", dataResponse.data);
+        cornerstone.loadAndCacheImage(dataResponse.data[0]).then((image) => {
+          console.log("image info", image.data);
+          const dicomtag = image.data;
+          let draftStatus = -1;
+          draftStatus = readonlyResponse.data.status;
+          let boxes = draftResponse.data;
+          console.log("boxes", boxes);
+          for (var i = 0; i < boxes.length; i++) {
+            boxes[i].backend_no = i;
+          }
+          if (boxes !== "") boxes.sort(this.sliceIdxSort("slice_idx"));
+          for (var i = 0; i < boxes.length; i++) {
+            boxes[i].nodule_no = "" + i;
+            boxes[i].rect_no = "a00" + i;
+          }
+          console.log("boxidx", boxes);
+          const stack = {
+            imageIds: dataResponse.data,
+            caseId: this.state.caseId,
+            boxes: boxes,
+            // readonly: false,
+            readonly: readonly,
+            draftStatus: draftStatus,
+            noduleNo: noduleNo,
+            dicomTag: dicomtag,
+          };
 
-            const stack = {
-              imageIds: dataResponse.data,
-              caseId: this.state.caseId,
-              boxes: boxes,
-              // readonly: false,
-              readonly: readonly,
-              draftStatus: draftStatus,
-              noduleNo: noduleNo,
-              dicomTag: dicomtag,
-            };
-
-            // console.log('readonly',readonlyResponse)
-            // console.log('draftdata',draftResponse,draftParams)
-            // console.log('dataResponse',dataResponse)
-            this.setState({ stack: stack, show: true });
-          });
+          // console.log('readonly',readonlyResponse)
+          // console.log('draftdata',draftResponse,draftParams)
+          // console.log('dataResponse',dataResponse)
+          this.setState({ stack: stack, show: true });
+        });
       });
     }
   }

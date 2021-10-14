@@ -53,7 +53,7 @@ class MyQueuePanel extends Component {
       queueName: '',
       patientList: [],
       deleteQueueModalOpens: [],
-      deleteQueueModalToggleds: []
+      deleteQueueModalToggleds: [],
     }
     this.config = JSON.parse(localStorage.getItem('config'))
     this.handlePaginationChange = this.handlePaginationChange.bind(this)
@@ -323,6 +323,11 @@ class MyQueuePanel extends Component {
         nums['危险'] = null
         this.setState({ malignancy: -1, activePage: '1' })
         break
+      case '中危':
+        // console.log('value',value)
+        nums['危险'] = null
+        this.setState({ malignancy: -1, activePage: '1' })
+        break
       case '高危':
         // console.log('value',value)
         nums['危险'] = null
@@ -498,14 +503,17 @@ class MyQueuePanel extends Component {
         case '低危':
           this.setState({ malignancy: 1, activePage: '1' })
           break
-        case '高危':
+        case '中危':
           this.setState({ malignancy: 2, activePage: '1' })
+          break
+        case '高危':
+          this.setState({ malignancy: 3, activePage: '1' })
           break
       }
     }
   }
   setDeleteQueueModalOpen(index, deleteQueueModalOpen) {
-    if(this.state.open){
+    if (this.state.open) {
       return
     }
     const deleteQueueModalOpens = this.state.deleteQueueModalOpens
@@ -515,7 +523,7 @@ class MyQueuePanel extends Component {
     })
   }
   setDeleteQueueModalToggled(index) {
-    if(this.state.open){
+    if (this.state.open) {
       return
     }
     const deleteQueueModalToggleds = this.state.deleteQueueModalToggleds
@@ -627,36 +635,27 @@ class MyQueuePanel extends Component {
 
     let leftFloat = this.left
     let rightFloat = this.right
-    if(!leftFloat){
+    if (!leftFloat) {
       leftFloat = 0
     }
-    if(!rightFloat && rightFloat !== 0){
+    if (!rightFloat && rightFloat !== 0) {
       rightFloat = 50
     }
-    console.log("add", this.left, leftFloat);
-    console.log("add", this.right, rightFloat);
-    if (
-      parseFloat(leftFloat) < parseFloat(rightFloat) &&
-      parseFloat(leftFloat) >= 0 &&
-      parseFloat(rightFloat) >= 0 &&
-      parseFloat(rightFloat) <= 50
-    ) {
-      nums[leftFloat + "cm-" + rightFloat + "cm"] =
-      leftFloat + "cm-" + rightFloat + "cm";
+    console.log('add', this.left, leftFloat)
+    console.log('add', this.right, rightFloat)
+    if (parseFloat(leftFloat) < parseFloat(rightFloat) && parseFloat(leftFloat) >= 0 && parseFloat(rightFloat) >= 0 && parseFloat(rightFloat) <= 50) {
+      nums[leftFloat + 'cm-' + rightFloat + 'cm'] = leftFloat + 'cm-' + rightFloat + 'cm'
       this.setState((state, props) => ({
-        diameterContainer:
-          state.diameterContainer === "0_5"
-            ? leftFloat + "_" + rightFloat
-            : state.diameterContainer + "@" + leftFloat + "_" + rightFloat,
-        activePage: "1",
-      }));
+        diameterContainer: state.diameterContainer === '0_5' ? leftFloat + '_' + rightFloat : state.diameterContainer + '@' + leftFloat + '_' + rightFloat,
+        activePage: '1',
+      }))
     } else {
       notification.warning({
         top: 48,
         duration: 6,
-        message: "提醒",
-        description: "直径输入范围为0-50cm且注意大小关系",
-      });
+        message: '提醒',
+        description: '直径输入范围为0-50cm且注意大小关系',
+      })
     }
   }
 
@@ -790,7 +789,7 @@ class MyQueuePanel extends Component {
 
   render() {
     if (localStorage.getItem('auths') !== null && JSON.parse(localStorage.getItem('auths')).indexOf('my_subsets') > -1) {
-      const { leftpidList, rightpidList, queueList, open, patientList, deleteQueueModalToggleds, deleteQueueModalOpens} = this.state
+      const { leftpidList, rightpidList, queueList, open, patientList, deleteQueueModalToggleds, deleteQueueModalOpens } = this.state
       return (
         <div>
           <Grid>
@@ -844,6 +843,15 @@ class MyQueuePanel extends Component {
                                 低危
                               </a>
                             </Grid.Column>
+                            {/* <Grid.Column width={2}>
+                              <a
+                                style={{ color: "#66cfec" }}
+                                id="feaDropdown"
+                                onClick={this.handleLabels}
+                              >
+                                中危
+                              </a>
+                            </Grid.Column> */}
                             <Grid.Column width={2}>
                               <a style={{ color: '#66cfec' }} id="feaDropdown" onClick={this.handleLabels}>
                                 高危
@@ -1099,7 +1107,7 @@ class MyQueuePanel extends Component {
                               onClose={this.setDeleteQueueModalOpen.bind(this, index, false)}
                               onOpen={this.setDeleteQueueModalOpen.bind(this, index, true)}
                               open={deleteQueueModalOpens[index]}
-                              trigger={<Icon name="trash alternate" id={value} delName={value} style={{cursor:'pointer'}}></Icon>}>
+                              trigger={<Icon name="trash alternate" id={value} delName={value} style={{ cursor: 'pointer' }}></Icon>}>
                               {/* <Modal.Header>Select a Photo</Modal.Header> */}
                               <div className={'admin-manage-log-block ' + (deleteQueueModalToggleds[index] ? 'admin-manage-log-block-toggled' : '')}>
                                 <div className={'admin-manage-log-heading'}>
@@ -1125,7 +1133,7 @@ class MyQueuePanel extends Component {
                             </Modal>
                           </Table.Cell>
                           <Table.Cell width={4}>
-                            <Icon name="caret right" data-id={value} onClick={this.toPatientList} style={{cursor:'pointer'}}></Icon>
+                            <Icon name="caret right" data-id={value} onClick={this.toPatientList} style={{ cursor: 'pointer' }}></Icon>
                           </Table.Cell>
                         </Table.Row>
                       )

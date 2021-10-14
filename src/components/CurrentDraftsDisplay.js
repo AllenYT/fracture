@@ -174,8 +174,8 @@ class CurrentDraftsDisplay extends Component {
           <div id="model-results">{ReactHtmlParser(modelResults)}</div>
           <h4>标注结果</h4>
           <div id="anno-results">{ReactHtmlParser(annoResults)}</div>
-          <h4>审核结果</h4>
-          <div id="review-results">{ReactHtmlParser(reviewResults)}</div>
+          {/* <h4>审核结果</h4>
+          <div id="review-results">{ReactHtmlParser(reviewResults)}</div> */}
         </div>
       );
     } else {

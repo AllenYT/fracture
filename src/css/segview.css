@@ -51,7 +51,10 @@
 .segment-container {
   position: relative;
   width: 100%;
-  min-height: 880px;
+  height: 100%;
+  /* min-height: 880px; */
+  border-radius: 0.5rem;
+  border: 2px solid #d1d1d1e0;;
 }
 .mpr-viewer-container {
   display: flex;

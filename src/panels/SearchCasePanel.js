@@ -11,49 +11,52 @@ import LowerAuth from '../components/LowerAuth'
 
 const { Option } = Select
 const style = {
-  textAlign: "center",
-  marginTop: "300px",
-};
+  textAlign: 'center',
+  marginTop: '300px',
+}
 let queueSearchErrorTimer = null
 
 export class SearchPanel extends Component {
   constructor(props) {
-    super(props);
+    super(props)
     this.state = {
       checked: false,
       activePage: 1,
       totalPage: 1,
-      pidKeyword: "",
-      dateKeyword: "",
+      pidKeyword: '',
+      dateKeyword: '',
       // searchResults: true,
       queue: [],
-      chooseQueue: "不限队列",
+      chooseQueue: '不限队列',
       activeQueue: [],
       activePageQueue: 1,
       totalPageQueue: 1,
       searchQueue: [],
       search: false,
-    };
-    this.config = JSON.parse(localStorage.getItem("config"));
-    this.handlePaginationChange = this.handlePaginationChange.bind(this);
-    this.handleInputChange = this.handleInputChange.bind(this);
+      queueSearchHasError: false,
+      downloading: false,
+    }
+    this.config = JSON.parse(localStorage.getItem('config'))
+    this.handlePaginationChange = this.handlePaginationChange.bind(this)
+    this.handleInputChange = this.handleInputChange.bind(this)
 
-    this.handleCheckbox = this.handleCheckbox.bind(this);
-    this.startDownload = this.startDownload.bind(this);
-    this.getQueue = this.getQueue.bind(this);
-    this.left = this.left.bind(this);
-    this.right = this.right.bind(this);
+    this.handleCheckbox = this.handleCheckbox.bind(this)
+    this.startDownload = this.startDownload.bind(this)
+    this.getQueue = this.getQueue.bind(this)
+    this.onKeyDown = this.onKeyDown.bind(this)
+    this.left = this.left.bind(this)
+    this.right = this.right.bind(this)
     this.onKeyDown = this.onKeyDown.bind(this)
   }
 
-  componentDidMount() {
-    this.getTotalPages();
-    this.getQueue();
-    document.addEventListener("keydown", this.onKeyDown);
+  async componentDidMount() {
+    this.getTotalPages()
+    this.getQueue()
+    document.addEventListener('keydown', this.onKeyDown)
   }
 
   componentWillUnmount() {
-    document.removeEventListener("keydown", this.onKeyDown);
+    document.removeEventListener('keydown', this.onKeyDown)
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -77,37 +80,32 @@ export class SearchPanel extends Component {
     //         this.setState({searchResults: false})
     //     }
     // }
+
+    console.log('main config', this.config)
     if (prevState.chooseQueue !== this.state.chooseQueue) {
-      this.getTotalPages();
+      this.getTotalPages()
     }
 
     if (prevState.checked !== this.state.checked) {
       // console.log('true')
       // this.setState({searchResults: true})
-      this.getTotalPages();
+      this.getTotalPages()
     }
     if (prevState.activePageQueue != this.state.activePageQueue) {
-      let activeQueue = [];
-      let i = 0;
-      for (
-        ;
-        i < 5 &&
-        i + (this.state.activePageQueue - 1) * 5 < this.state.queue.length;
-        i++
-      ) {
-        activeQueue.push(
-          this.state.queue[i + (this.state.activePageQueue - 1) * 5]
-        );
+      let activeQueue = []
+      let i = 0
+      for (; i < 5 && i + (this.state.activePageQueue - 1) * 5 < this.state.queue.length; i++) {
+        activeQueue.push(this.state.queue[i + (this.state.activePageQueue - 1) * 5])
       }
       for (; i < 5; i++) {
-        activeQueue.push("");
+        activeQueue.push('')
       }
-      this.setState({ activeQueue: activeQueue });
+      this.setState({ activeQueue: activeQueue })
     }
   }
 
   onKeyDown(event) {
-    // console.log('enter',event.which)
+    // console.log('enter', event)
     if (event.which === 13) {
       if (event.path.length > 1 && event.path[0].id === 'queueDropdown') {
         return
@@ -142,7 +140,7 @@ export class SearchPanel extends Component {
           return
         }
         const patientValue = document.getElementById('patient-search').value
-        let patientRegex = new RegExp('^([a-zA-Z0-9_#]){0,35}$')
+        let patientRegex = new RegExp('^([a-zA-Z0-9_#]){0,32}$')
         if (patientRegex.test(patientValue)) {
           this.setState({
             activePage: 1,
@@ -165,146 +163,170 @@ export class SearchPanel extends Component {
 
   getQueue() {
     const params = {
-      username: localStorage.getItem("username"),
-    };
+      username: localStorage.getItem('username'),
+    }
     axios
       .post(this.config.subset.getQueue, qs.stringify(params))
       .then((res) => {
-        let queue = ["不限队列"];
-        let searchQueue = [
-          { key: "不限队列", value: "不限队列", text: "不限队列" },
-        ];
-        let activeQueue = ["不限队列"];
-        let totalPageQueue = 1;
-        let i = 0;
+        let queue = ['不限队列']
+        let searchQueue = [{ key: '不限队列', value: '不限队列', text: '不限队列' }]
+        let activeQueue = ['不限队列']
+        let totalPageQueue = 1
+        let i = 0
         for (; i < res.data.length; i++) {
-          queue.push(res.data[i]);
+          queue.push(res.data[i])
           searchQueue.push({
             key: res.data[i],
             value: res.data[i],
             text: res.data[i],
-          });
+          })
           if (i < 4) {
-            activeQueue.push(res.data[i]);
+            activeQueue.push(res.data[i])
           }
         }
         for (; i < 4; i++) {
-          activeQueue.push("");
+          activeQueue.push('')
         }
-        totalPageQueue = parseInt(res.data.length / 5) + 1;
+        totalPageQueue = parseInt(res.data.length / 5) + 1
         this.setState({
           queue: queue,
           searchQueue: searchQueue,
           activeQueue: activeQueue,
           totalPageQueue: totalPageQueue,
-        });
+        })
       })
       .catch((err) => {
-        console.log(err);
-      });
+        console.log(err)
+      })
   }
 
   getTotalPages() {
-    if (this.state.chooseQueue === "不限队列") {
-      const token = localStorage.getItem("token");
+    if (this.state.chooseQueue === '不限队列') {
+      const token = localStorage.getItem('token')
       const headers = {
-        Authorization: "Bearer ".concat(token),
-      };
-      let type = "pid";
+        Authorization: 'Bearer '.concat(token),
+      }
+      let type = 'pid'
       if (this.state.checked) {
-        type = "date";
+        type = 'date'
       }
       const params = {
         type: type,
         pidKeyword: this.state.pidKeyword,
         dateKeyword: this.state.dateKeyword,
-      };
+      }
 
       axios
         .post(this.config.record.getTotalPages, qs.stringify(params), {
           headers,
         })
         .then((response) => {
-          const data = response.data;
-          if (data.status !== "okay") {
-            alert("错误，请联系管理员");
-            window.location.href = "/";
+          // console.log("getTotalPages buxian response", response)
+          const data = response.data
+          if (data.status !== 'okay') {
+            alert('错误，请联系管理员')
+            window.location.href = '/'
           } else {
-            const totalPage = data.count;
-            console.log(totalPage);
-            this.setState({ totalPage: totalPage });
+            const totalPage = data.count
+            console.log('totalPage', totalPage)
+            this.setState({ totalPage: totalPage })
           }
         })
-        .catch((error) => console.log(error));
+        .catch((error) => console.log(error))
     } else {
-      let type = "pid";
+      let type = 'pid'
       if (this.state.checked) {
-        type = "date";
+        type = 'date'
       }
       const params = {
         type: type,
         pidKeyword: this.state.pidKeyword,
         dateKeyword: this.state.dateKeyword,
-        username: localStorage.getItem("username"),
+        username: localStorage.getItem('username'),
         subsetName: this.state.chooseQueue,
-      };
+      }
       axios
         .post(this.config.record.getTotalPagesForSubset, qs.stringify(params))
         .then((response) => {
-          const data = response.data;
-          const totalPage = data.count;
-          console.log("totalPage", totalPage);
-          this.setState({ totalPage: totalPage });
+          // console.log("getTotalPages qita response", response)
+          const data = response.data
+          const totalPage = data.count
+          console.log('totalPage', totalPage)
+          this.setState({ totalPage: totalPage })
         })
-        .catch((error) => console.log(error));
+        .catch((error) => console.log(error))
     }
   }
 
   handleCheckbox(e) {
+    // console.log("handle check box", this.state)
     this.setState({
       checked: !this.state.checked,
-      pidKeyword: "",
-      dateKeyword: "",
-    });
-    this.setState({ activePage: 1 });
+      pidKeyword: '',
+      dateKeyword: '',
+    })
+    this.setState({ activePage: 1 })
   }
 
   handleInputChange(e) {
-    const value = e.currentTarget.value;
-    const name = e.currentTarget.name;
-    this.setState({ activePage: 1 });
+    const value = e.currentTarget.value
+    const name = e.currentTarget.name
+    this.setState({ activePage: 1 })
     // var reg = new RegExp("^[A-Za-z0-9]+$");
     // if (name === "pid" && !isNaN(value)) {
-    if (name === "pid") {
-      this.setState({ pidKeyword: value });
-    } else if (name === "date") {
-      this.setState({ dateKeyword: value });
+    if (name === 'pid') {
+      this.setState({ pidKeyword: value })
+    } else if (name === 'date') {
+      this.setState({ dateKeyword: value })
     }
   }
 
   handlePaginationChange(e, { activePage }) {
-    this.setState({ activePage });
+    this.setState({ activePage })
   }
 
   startDownload() {
-    console.log("Start downloading");
-    this.setState({ loading: true });
-    const token = localStorage.getItem("token");
+    let cart
+    if (this.mainList && this.mainList.subList) {
+      cart = this.mainList.subList.state.cart
+    }
+    console.log('Start downloading', cart)
+
+    if (cart.size === 0) {
+      if (document.getElementsByClassName('cart-empty').length === 0) {
+        notification.open({
+          className: 'cart-empty',
+          message: '提示',
+          style: {
+            backgroundColor: 'rgba(255,232,230)',
+          },
+          description: '未勾选需要下载的病例',
+        })
+      }
+      return
+    }
+    this.setState({ loading: true, downloading: true })
+    const token = localStorage.getItem('token')
     const headers = {
-      Authorization: "Bearer ".concat(token),
-    };
+      Authorization: 'Bearer '.concat(token),
+    }
     axios
       .get(this.config.cart.downloadCart, { headers })
       .then((res) => {
-        const filename = res.data;
-        console.log("Filename", filename);
-        window.location.href = this.config.data.download + "/" + filename;
-        this.setState({ loading: false });
+        const filename = res.data
+        console.log('Filename', filename)
+        window.location.href = this.config.data.download + '/' + filename
+        this.setState({ loading: false, downloading: false })
+        if (this.mainList && this.mainList.subList) {
+          this.mainList.subList.setState({
+            cart: new Set(),
+          })
+        }
         // window.location.reload()
       })
       .catch((err) => {
-        console.log(err);
-      });
+        console.log(err)
+      })
   }
   onChangeQueue(value) {
     console.log('queue', value)
@@ -354,33 +376,33 @@ export class SearchPanel extends Component {
     if (this.state.activePageQueue > 1) {
       this.setState((state, props) => ({
         activePageQueue: state.activePageQueue - 1,
-      }));
+      }))
     }
   }
   right(e) {
     if (this.state.activePageQueue < this.state.totalPageQueue) {
       this.setState((state, props) => ({
         activePageQueue: state.activePageQueue + 1,
-      }));
+      }))
     }
   }
   buttonQueue(e) {
-    let text = e.currentTarget.innerHTML;
+    let text = e.currentTarget.innerHTML
     // console.log('button',e.currentTarget.innerHTML)
-    if (text === "不限队列" || text === "") {
-      this.setState({ chooseQueue: "不限队列" });
+    if (text === '不限队列' || text === '') {
+      this.setState({ chooseQueue: '不限队列' })
     } else {
-      this.setState({ chooseQueue: text });
+      this.setState({ chooseQueue: text })
     }
   }
 
   render() {
-    const { activePage } = this.state;
-    const isChecked = this.state.checked;
-    let type = "pid";
+    const { activePage } = this.state
+    const isChecked = this.state.checked
+    let type = 'pid'
 
     if (isChecked) {
-      type = "date";
+      type = 'date'
     }
     // let searchResults
     // if (this.state.searchResults) {
@@ -413,7 +435,7 @@ export class SearchPanel extends Component {
     //     )
     // }
     const options = this.state.searchQueue.map((item, index) => {
-      return <Option value={item.value}>{item.text}</Option>
+      return <Option key={index} value={item.value}>{item.text}</Option>
     })
 
     return (
@@ -440,52 +462,25 @@ export class SearchPanel extends Component {
               </Grid.Row>
               <Grid.Row columns={7}>
                 <Grid.Column floated="left">
-                  <Button
-                    inverted
-                    color="green"
-                    size="small"
-                    icon="caret left"
-                    floated="left"
-                    onClick={this.left}
-                  ></Button>
+                  <Button inverted color="green" size="small" icon="caret left" floated="left" onClick={this.left}></Button>
                 </Grid.Column>
                 {this.state.activeQueue.map((content, index) => {
                   return (
                     <Grid.Column key={index}>
-                      {content === "" ? (
-                        <Button
-                          fluid
-                          inverted
-                          color="green"
-                          size="large"
-                          onClick={this.buttonQueue.bind(this)}
-                          style={{ visibility: "hidden" }}
-                        >
+                      {content === '' ? (
+                        <Button fluid inverted color="green" size="large" onClick={this.buttonQueue.bind(this)} style={{ visibility: 'hidden' }}>
                           {content}
                         </Button>
                       ) : (
-                        <Button
-                          fluid
-                          inverted
-                          color="green"
-                          size="large"
-                          onClick={this.buttonQueue.bind(this)}
-                        >
+                        <Button fluid inverted color="green" size="large" onClick={this.buttonQueue.bind(this)}>
                           {content}
                         </Button>
                       )}
                     </Grid.Column>
-                  );
+                  )
                 })}
                 <Grid.Column floated="right">
-                  <Button
-                    inverted
-                    color="green"
-                    size="small"
-                    icon="caret right"
-                    floated="right"
-                    onClick={this.right}
-                  ></Button>
+                  <Button inverted color="green" size="small" icon="caret right" floated="right" onClick={this.right}></Button>
                 </Grid.Column>
               </Grid.Row>
               <Grid.Row></Grid.Row>
@@ -508,16 +503,12 @@ export class SearchPanel extends Component {
                   icon="user"
                   iconPosition="left"
                   placeholder="病人ID"
-                  maxLength={16}
+                  // maxLength={16}
                   disabled={this.state.checked}
                 />
 
                 <span id="type-slider">
-                  <Checkbox
-                    slider
-                    onChange={this.handleCheckbox}
-                    defaultChecked={this.state.checked}
-                  />
+                  <Checkbox slider onChange={this.handleCheckbox} defaultChecked={this.state.checked} />
                 </span>
 
                 <Input
@@ -528,7 +519,7 @@ export class SearchPanel extends Component {
                   icon="calendar"
                   iconPosition="left"
                   placeholder="检查时间"
-                  maxLength={8}
+                  // maxLength={8}
                   disabled={!this.state.checked}
                 />
               </div>
@@ -543,29 +534,26 @@ export class SearchPanel extends Component {
                       dateKeyword={this.state.dateKeyword}
                       subsetName={this.state.chooseQueue}
                       search={this.state.search}
+                      onRef={(input) => {
+                        this.mainList = input
+                      }}
                     />
-                    {localStorage.getItem("auths") !== null &&
-                    JSON.parse(localStorage.getItem("auths")).indexOf(
-                      "data_search"
-                    ) > -1 ? (
+                    {localStorage.getItem('auths') !== null && JSON.parse(localStorage.getItem('auths')).indexOf('data_search') > -1 ? (
                       <div className="exportButton">
-                        <Button
-                          inverted
-                          color="blue"
-                          onClick={this.startDownload}
-                        >
-                          导出
-                        </Button>
+                        {this.state.loading ? (
+                          <Button inverted color="blue" loading>
+                            导出
+                          </Button>
+                        ) : (
+                          <Button inverted color="blue" onClick={this.startDownload}>
+                            导出
+                          </Button>
+                        )}
                       </div>
                     ) : null}
 
                     <div className="pagination-component">
-                      <Pagination
-                        id="pagination"
-                        onPageChange={this.handlePaginationChange}
-                        activePage={this.state.activePage}
-                        totalPages={this.state.totalPage}
-                      />
+                      <Pagination id="pagination" onPageChange={this.handlePaginationChange} activePage={this.state.activePage} totalPages={this.state.totalPage} />
                     </div>
                   </div>
                 </div>
@@ -576,8 +564,8 @@ export class SearchPanel extends Component {
           <Grid.Column width={2}></Grid.Column>
         </Grid.Row>
       </Grid>
-    );
+    )
   }
 }
 
-export default SearchPanel;
+export default SearchPanel

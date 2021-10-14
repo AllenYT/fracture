@@ -69,172 +69,164 @@
     background-color: #E7EEF2;
 } */
 
-
 .banner {
-    /* background-color: cornflowerblue; */
-    background-repeat: no-repeat;
-    background-size: 100%;
-    background: transparent;
-    /* border: 1px solid #313131; */
+  /* background-color: cornflowerblue; */
+  background-repeat: no-repeat;
+  background-size: 100%;
+  background: transparent;
+  /* border: 1px solid #313131; */
 }
 
 .searchBar {
-    text-align: center;
-    margin-top: 10px;
-    margin-bottom: 50px;
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 50px;
 }
-#queuestyle .ant-select{
-    color:whitesmoke !important;
-    background-color: rgba(1, 23, 46, 0.997) !important;
-    /* border: 0.5px solid whitesmoke !important; */
+#queuestyle .ant-select {
+  color: whitesmoke !important;
+  background-color: rgba(1, 23, 46, 0.997) !important;
+  /* border: 0.5px solid whitesmoke !important; */
 }
-#queuestyle .ant-select-selector{
-    background-color: rgba(1, 23, 46, 0.997) !important;
+#queuestyle .ant-select-selector {
+  background-color: rgba(1, 23, 46, 0.997) !important;
 }
-#queuestyle .ant-select-arrow{
-    color:whitesmoke !important;
+#queuestyle .ant-select-arrow {
+  color: whitesmoke !important;
 }
-.queue-option-item{
-    background-color: rgba(1, 23, 46, 0.997) !important;
+.queue-option-item {
+  background-color: rgba(1, 23, 46, 0.997) !important;
 }
-.queue-option-item .ant-select-item-option{
-    color:whitesmoke !important;
+.queue-option-item .ant-select-item-option {
+  color: whitesmoke !important;
 }
-.queue-option-item .ant-select-item-option-active{
-    background-color: rgba(30, 43, 76, 0.997) !important;
+.queue-option-item .ant-select-item-option-active {
+  background-color: rgba(30, 43, 76, 0.997) !important;
 }
-.queue-option-item .ant-select-item-option-selected{
-    background-color: rgba(50, 63, 96, 0.997) !important;
+.queue-option-item .ant-select-item-option-selected {
+  background-color: rgba(50, 63, 96, 0.997) !important;
 }
-.queue-option-item .ant-select-item-empty{
-    color:whitesmoke !important;
+.queue-option-item .ant-select-item-empty {
+  color: whitesmoke !important;
 }
 
 #patient-search {
-    width: 250px;
-    margin-right: 30px;
-    background: transparent;
-    color:whitesmoke;
-    border-color: aliceblue;
+  width: 250px;
+  margin-right: 30px;
+  background: transparent;
+  color: whitesmoke;
+  border-color: aliceblue;
 }
 
 #type-slider {
-    margin-right: 30px;
-    /* background-color: white; */
+  margin-right: 30px;
+  /* background-color: white; */
 }
 
 #date-search {
-    width: 250px;
-    margin-right: 30px;
-    background: transparent;
-    color:whitesmoke;
-    border-color: aliceblue;
+  width: 250px;
+  margin-right: 30px;
+  background: transparent;
+  color: whitesmoke;
+  border-color: aliceblue;
 }
 
 .statistics {
-    text-align: center;
-    margin-top: 40px;
+  text-align: center;
+  margin-top: 40px;
 }
 
 .pagination-component {
-    /* margin-top: 70px; */
-    margin-top: 20px;
-    margin-bottom: 10px;
-    text-align: center;
+  /* margin-top: 70px; */
+  margin-top: 20px;
+  margin-bottom: 10px;
+  text-align: center;
 }
 
 .type-slider {
-    margin-left: 5px;
-    margin-right: 5px;
-    margin-bottom: 70px;
-    text-align: center;
+  margin-left: 5px;
+  margin-right: 5px;
+  margin-bottom: 70px;
+  text-align: center;
 }
 
 .ui.secondary.vertical.pointing.menu .active.item {
-    border-color: white;
+  border-color: white;
 }
 
-#queuestyle{
-    border-top: 1px solid aliceblue;
-    border-bottom: 1px solid aliceblue;
-    border-radius: 4px;
+#queuestyle {
+  border-top: 1px solid aliceblue;
+  border-bottom: 1px solid aliceblue;
+  border-radius: 4px;
 }
 
 #container {
-    height: 616px;
+  /* height: 616px; */
+  margin-top: 40px;
+  margin-bottom: 60px;
+  padding: 30px 20px;
+  background-image: url(../images/sidebar.png);
+  border: 1px solid aliceblue;
+  border-radius: 4px;
+  /* box-shadow: 0 1px 0 rgba(255, 255, 255, 0), 0 0 10px rgba(0, 0, 0, 0.1); */
+}
 
-   
-    margin-top: 40px; 
+.data-content {
+  /* background:#020022 url(../images/app-bg.jpg) no-repeat center center/cover; */
+  background: #020022 url(../images/bg.png) no-repeat center center/cover;
+}
+
+#total-bg {
+  background: transparent;
+}
+
+#mainList {
+  min-width: 400px;
+  white-space: pre-wrap;
+}
+
+#mainList .active.item {
+  border-color: white;
+}
+
+#pagination > .active.item {
+  font-size: 1.25em;
+  border-bottom: white solid;
+}
+
+#mainList td {
+  width: 22%;
+  /* text-align: left;  */
+  text-align: justify;
+}
+.exportButton {
+  margin-top: 10px;
+  margin-bottom: 10px;
+  margin-left: 70%;
+}
+
+@media screen and (min-width: 1441px) and (max-width: 1619px) {
+  #mainList {
+    min-width: 350px;
+    white-space: pre-wrap;
+  }
+}
+
+@media screen and (min-width: 1200px) and (max-width: 1440px) {
+  #mainList {
+    min-width: 300px;
+    white-space: pre-wrap;
+  }
+}
+
+@media screen and (min-width: 2340px) and (max-width: 2660px) {
+  #container {
+    min-height: 1280px;
+    margin-top: 40px;
     margin-bottom: 60px;
     padding: 30px 20px;
     background-image: url(../images/sidebar.png);
     border: 1px solid aliceblue;
     border-radius: 4px;
     /* box-shadow: 0 1px 0 rgba(255, 255, 255, 0), 0 0 10px rgba(0, 0, 0, 0.1); */
+  }
 }
-
-
-.data-content {
-    /* background:#020022 url(../images/app-bg.jpg) no-repeat center center/cover; */
-    background:#020022 url(../images/bg.png) no-repeat center center/cover; 
-}
-
-#total-bg{
-    background:transparent;
-}
-
-#mainList {
-    min-width: 400px;
-    white-space: pre-wrap;
-}
-
-#mainList .active.item {
-    border-color: white;
-}
-
-#pagination > .active.item {
-    font-size: 1.25em;
-    border-bottom: white solid;
-}
-
-#mainList td{
-    width: 22%; 
-    /* text-align: left;  */
-    text-align:justify;
-    
-
-}
-.exportButton{
-    margin-top: 10px;
-    margin-bottom: 10px;
-    margin-left: 70%;
-}
-
-
-@media screen and (min-width: 1441px)  and (max-width:1619px){
-    #mainList {
-        min-width: 350px;
-        white-space: pre-wrap;
-    }
-}
-
-@media screen and (min-width: 1200px)  and (max-width:1440px){
-    #mainList {
-        min-width: 300px;
-        white-space: pre-wrap;
-    }
-}
-
-@media screen and (min-width: 2340px)  and (max-width:2660px){
-    #container {
-        min-height: 1280px;
-        margin-top: 40px; 
-        margin-bottom: 60px;
-        padding: 30px 20px;
-        background-image: url(../images/sidebar.png);
-        border: 1px solid aliceblue;
-        border-radius: 4px;
-        /* box-shadow: 0 1px 0 rgba(255, 255, 255, 0), 0 0 10px rgba(0, 0, 0, 0.1); */
-    }
-}
-

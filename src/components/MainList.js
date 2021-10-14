@@ -29,6 +29,7 @@ class MainList extends Component {
   }
 
   componentDidMount() {
+    this.props.onRef(this)
     this.loadMainList()
   }
 
@@ -75,7 +76,7 @@ class MainList extends Component {
         type: this.props.type,
         pidKeyword: this.props.pidKeyword,
         dateKeyword: this.props.dateKeyword,
-        username: localStorage.getItem("username"),
+        username: localStorage.getItem('username'),
         subsetName: this.props.subsetName,
       }
       axios
@@ -126,7 +127,7 @@ class MainList extends Component {
   }
 
   render() {
-    let elements = this.state.mainList;
+    let elements = this.state.mainList
     // console.log(elements, this.props.type)
     const selectMainItem = this.state.selectMainItem
     // let otherKeyword
@@ -148,39 +149,28 @@ class MainList extends Component {
               <Grid.Column width={5}>
                 <Menu pointing secondary vertical id="mainList">
                   {elements.map((value, index) => {
-                      let patientId = value["patientId"];
-                      let patientName = "";
-                      let patientSex =
-                        value["gender"] === ""
-                          ? ""
-                          : value["gender"] === "M"
-                          ? "男"
-                          : "女";
-                      let newValue = [patientId, patientName, patientSex];
-                    if (this.props.type === "pid") {
+                    let patientId = value['patientId']
+                    let patientName = ''
+                    let patientSex = value['gender'] === '' ? '' : value['gender'] === 'M' ? '男' : '女'
+                    let newValue = [patientId, patientName, patientSex]
+                    if (this.props.type === 'pid') {
                       return (
                         <Menu.Item
                           icon={icon}
                           key={index}
-                          active={
-                            this.state.selectMainItem == value["patientId"]
-                          }
+                          active={this.state.selectMainItem == value['patientId']}
                           onClick={this.handlePatientIdClick}
-                          data-id={value["patientId"]}
+                          data-id={value['patientId']}
                           // name={newValue}
                           content={
                             <div className="main-list-menu-item">
-                              <div className="main-list-menu-item-one" >{newValue[0]}</div>
-                              <div className="main-list-menu-item-two" >{newValue[1]}</div>
-                              <div className="main-list-menu-item-three" >{newValue[2]}</div>                              
+                              <div className="main-list-menu-item-one">{newValue[0]}</div>
+                              <div className="main-list-menu-item-two">{newValue[1]}</div>
+                              <div className="main-list-menu-item-three">{newValue[2]}</div>
                             </div>
-                          }
-                        ></Menu.Item>
-                      );
-                    } else if (
-                      this.props.type === "date" &&
-                      typeof value == "string"
-                    ) {
+                          }></Menu.Item>
+                      )
+                    } else if (this.props.type === 'date' && typeof value == 'string') {
                       return (
                         <Menu.Item
                           icon={icon}
@@ -191,11 +181,10 @@ class MainList extends Component {
                           // name={newValue}
                           content={
                             <div className="main-list-menu-item-content">
-                              <div className="main-list-menu-item-one" >{value}</div>
+                              <div className="main-list-menu-item-one">{value}</div>
                             </div>
-                          }
-                        ></Menu.Item>
-                      );
+                          }></Menu.Item>
+                      )
                     }
                   })}
                 </Menu>
@@ -203,16 +192,24 @@ class MainList extends Component {
 
               <Grid.Column width={11} as={'table'}>
                 <tbody>
-                <tr>
-                  <td>
-                    <SubList mainItem={selectMainItem} type={this.props.type} otherKeyword={otherKeyword} contextRef={this.contextRef} />
-                  </td>
-                  <td>
-                    <label ref={this.contextRef} style={{ visibility: 'hidden' }}>
-                      hidden ref
-                    </label>
-                  </td>
-                </tr>
+                  <tr>
+                    <td>
+                      <SubList
+                        mainItem={selectMainItem}
+                        type={this.props.type}
+                        otherKeyword={otherKeyword}
+                        contextRef={this.contextRef}
+                        onRef={(input) => {
+                          this.subList = input
+                        }}
+                      />
+                    </td>
+                    <td>
+                      <label ref={this.contextRef} style={{ visibility: 'hidden' }}>
+                        hidden ref
+                      </label>
+                    </td>
+                  </tr>
                 </tbody>
               </Grid.Column>
             </Grid.Row>

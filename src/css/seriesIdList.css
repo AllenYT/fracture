@@ -1,29 +1,46 @@
 p {
-    display: inline-block;
-    font-size: 1.05em;
+  display: inline-block;
+  font-size: 1.05em;
 }
 
 .sid {
-    margin-right: 10px;
-    margin-left: 10px;
+  margin-right: 10px;
+  margin-left: 10px;
 }
 
-.export{
-    display: inline-block;
+.export {
+  display: inline-block;
 }
 
-.ant-notification-notice-message{
-    color:rgba(200, 33, 33);
+.ant-notification-notice {
+  background-color: rgba(255, 232, 230);
 }
 
-.ant-notification-notice-description{
-    color: rgba(219, 40, 40);
-}
-.seriesId-popup.visible.transition{
-    display: none !important;
+.ant-notification-notice-message {
+  color: rgba(200, 33, 33);
 }
 
-.ui.button .searchCase_tooltip_button{
-    background-color: transparent;
+.ant-notification-notice-description {
+  color: rgba(219, 40, 40);
+}
 
+.seriesId-popup.visible.transition {
+  display: none !important;
+}
+
+.ui.button .searchCase_tooltip_button {
+  background-color: transparent;
+}
+
+.seriesidlist-popup-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.seriesidlist-popup-item-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
 }

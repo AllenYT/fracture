@@ -174,7 +174,71 @@ class MiniReport extends Component {
           if (hist_data !== undefined) {
             let bins = hist_data.bins;
             let ns = hist_data.n;
+            // console.log('bins',bins)
+            // console.log('ns',ns)
+            // var histogram = []
+            // var line=[]
+            // for (var i = 0; i < bins.length-1; i++) {
+            //     var obj = {}
+            //     obj.value = [bins[i],bins[i+1]]
+            //     obj.count=ns[i]
+            //     histogram.push(obj)
 
+            //     // var obj2={}
+            //     // obj2.value=bins[i]
+            //     // obj2.count=ns[i]
+            //     // line.push(obj2)
+            // }
+            // const ds = new DataSet();
+            // const dv = ds.createView().source(histogram)
+
+            // const chart = new Chart({
+            //     container: visId,
+            //     // forceFit: true,
+            //     forceFit:true,
+            //     height: 300,
+            //     width:250
+            //     // padding: [30,30,'auto',30]
+            // });
+
+            // let view1=chart.view()
+            // // view1.axis(false)
+            // view1.source(dv, {
+            //     value: {
+            //     //   nice: true,
+            //         minLimit: bins[0]-50,
+            //         maxLimit:bins[bins.length-1]+50,
+            //     //   tickCount:10
+            //     },
+            //     count: {
+            //     //   max: 350000,
+            //       tickInterval:1
+            //         // tickCount:10
+            //     }
+            //     })
+            // // view1.source(dv)
+            // view1.interval().position('value*count')
+
+            // // var view2 = chart.view()
+            // // view2.axis(false)
+            // // // view2.source(line)
+            // // view2.source(line,{
+            // //     value: {
+            // //         // nice: true,
+            // //         minLimit: bins[0]-50,
+            // //         maxLimit:bins[bins.length-1]+50,
+            // //         // tickCount:10
+            // //         },
+            // //         count: {
+            // //         // max: 350000,
+            // //         tickCount:10
+            // //         }
+            // // })
+            // // view2.line().position('value*count').style({
+            // //     stroke: 'grey',
+
+            // //     }).shape('smooth')
+            // chart.render()
             myChart.setOption({
               color: ["#00FFFF"],
               tooltip: {
@@ -259,6 +323,34 @@ class MiniReport extends Component {
             }
           });
         });
+        //     for(var i = 0;i<nodules.length;i++){
+        //     nodule_id = 'nodule-' + nodules[i].nodule_no + '-' + nodules[i].slice_idx
+        //     // console.log('id',nodule_id)
+        //     const element = document.getElementById(nodule_id);
+        //     // console.log('element',element)
+        //     let imageId = imageIds[nodules[i].slice_idx]
+        //     cornerstone.enable(element);
+        //     // let viewport =this.state.viewport
+        //     // console.log('viewport',viewport)
+        //     // viewport.voi.windowWidth = 1600
+        //     // viewport.voi.windowCenter = -600
+        //     // cornerstone.setViewport(element, viewport)
+        //     cornerstone.loadAndCacheImage(imageId).then(function(image) {
+        //         console.log('cache')
+        //         var viewport = cornerstone.getDefaultViewportForImage(element, image);
+        //         viewport.voi.windowWidth = 1600
+        //         viewport.voi.windowCenter = -600
+        //         viewport.scale=2
+        //         console.log('nodules',i)
+        //         // const xCenter = nodules[0].x1 + (nodules[0].x2 - nodules[0].x1) / 2
+        //         // const yCenter = nodules[0].y1 + (nodules[0].y2 - nodules[0].y1) / 2
+        //         viewport.translation.x=100
+        //         viewport.translation.y=0
+        //         console.log('viewport',viewport)
+        //         cornerstone.setViewport(element, viewport)
+        //         cornerstone.displayImage(element, image);
+        //     });
+        // }
         clearInterval(timer);
       }
     }, 100);
@@ -415,6 +507,12 @@ class MiniReport extends Component {
               represent = represent + "、" + representArray[index];
             }
           }
+          // if(this.props.boxes[i]['calcification']===2){
+          //     calcification='有钙化成分，'
+          // }
+          // else{
+          //     calcification='无钙化成分，'
+          // }
           if (this.props.boxes[i]["malignancy"] === 3) {
             malignancy = "风险较高。";
           } else if (this.props.boxes[i]["malignancy"] === 2) {
@@ -525,6 +623,12 @@ class MiniReport extends Component {
         } else {
           texture = "磨玻璃";
         }
+        // if(this.state.boxes[this.props.activeItem]['calcification']===2){
+        //     calcification='有钙化成分，'
+        // }
+        // else{
+        //     calcification='无钙化成分，'
+        // }
         if (this.props.boxes[this.props.activeItem]["lobulation"] === 2) {
           representArray.push("分叶");
         }
@@ -556,6 +660,12 @@ class MiniReport extends Component {
             represent = represent + "、" + representArray[index];
           }
         }
+        // if(this.state.boxes[i]['calcification']===2){
+        //     calcification='有钙化成分，'
+        // }
+        // else{
+        //     calcification='无钙化成分，'
+        // }
         if (this.props.boxes[this.props.activeItem]["malignancy"] === 3) {
           malignancy = "风险较高。";
         } else if (
@@ -995,10 +1105,10 @@ class MiniReport extends Component {
                 <Modal.Header>
                   <Grid>
                     <Grid.Row>
-                      <Grid.Column width={3} textAlign="left">
+                      <Grid.Column width={5} textAlign="left">
                         影像诊断报告
                       </Grid.Column>
-                      <Grid.Column width={6}></Grid.Column>
+                      <Grid.Column width={5}></Grid.Column>
                       <Grid.Column width={3} textAlign="right">
                         {this.state.temp === 1 ? (
                           <Button color="blue" onClick={this.exportPDF}>
@@ -1015,6 +1125,9 @@ class MiniReport extends Component {
                 </Modal.Header>
                 <Modal.Content image scrolling id="pdf">
                   <Modal.Description>
+                    <Header style={{ marginBottom: "20px" }}>
+                      肺结节CT影像辅助检测软件
+                    </Header>
                     <table>
                       <tbody>
                         <tr>

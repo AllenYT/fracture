@@ -25,17 +25,6 @@ class App extends Component {
   constructor(props) {
     super(props)
   }
-  componentWillMount() {
-    // console.timeEnd("d")
-    // const promise = new Promise((resolve, reject) =>{axios.get(process.env.PUBLIC_URL + "/config.json").then((res) => {
-    //     const config = res.data
-    //     console.log('config', config)
-    //     localStorage.setItem('config', JSON.stringify(config))
-    //     resolve(true)
-    //   }, reject)
-    // })
-    // await promise
-  }
   componentDidMount() {
     AOS.init({})
   }
