@@ -7,8 +7,8 @@ import {
   Link,
 } from "react-router-dom";
 import qs from "qs";
-import { connect } from 'react-redux'
-import { getConfigJson } from '../actions'
+import { connect } from "react-redux";
+import { getConfigJson } from "../actions";
 
 import LoginPanel from "../panels/LoginPanel";
 import DataCockpit from "../panels/DataCockpit";
@@ -32,6 +32,7 @@ import ViewerPanel from "../panels/ViewerPanel";
 import AdminManagePanel from "../panels/AdminManagePanel";
 
 import md5 from "js-md5";
+import FollowUpDisplayPanel from "../panels/FollowUpDisplayPanel";
 
 class Main extends Component {
   constructor(props) {
@@ -46,7 +47,7 @@ class Main extends Component {
       isLoggedIn: false,
       expiration: false,
     };
-    this.newConfig = this.props.newConfig
+    this.newConfig = this.props.newConfig;
 
     this.handleItemClick = this.handleItemClick.bind(this);
     this.handleLogout = this.handleLogout.bind(this);
@@ -108,14 +109,14 @@ class Main extends Component {
     // });
     // const config = await configPromise;
     // this.config = config;
-    if(!localStorage.getItem('config')){
-      await this.props.getConfigJson(process.env.PUBLIC_URL + "/config.json")
-      this.config = this.props.config
+    if (!localStorage.getItem("config")) {
+      await this.props.getConfigJson(process.env.PUBLIC_URL + "/config.json");
+      this.config = this.props.config;
       // localStorage.setItem('config', JSON.stringify(this.config))
-    }else{
-      this.config = JSON.parse(localStorage.getItem("config"))
+    } else {
+      this.config = JSON.parse(localStorage.getItem("config"));
     }
-    console.log("main config", this.config)
+    console.log("main config", this.config);
 
     if (
       localStorage.getItem("username") === null &&
@@ -485,6 +486,7 @@ class Main extends Component {
             <Route path="/homepage/" component={HomepagePanel} />
             <Route path="/preprocess/" component={preprocess} />
             <Route path="/segView/" component={ViewerPanel} />
+            <Route path="/followup/" component={FollowUpDisplayPanel} />
             <Route path="/adminManage" component={AdminManagePanel} />
           </div>
           <div className="ui inverted vertical footer segment">
@@ -503,15 +505,15 @@ class Main extends Component {
 }
 
 export default connect(
-  state=>{
+  (state) => {
     return {
-      config: state.config.config
-    }
-  }, 
-  dispatch=>{
+      config: state.config.config,
+    };
+  },
+  (dispatch) => {
     return {
-      getConfigJson: url=>dispatch(getConfigJson(url)),
-      dispatch
-    }
+      getConfigJson: (url) => dispatch(getConfigJson(url)),
+      dispatch,
+    };
   }
-)(Main)
+)(Main);

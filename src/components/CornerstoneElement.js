@@ -407,6 +407,7 @@ class CornerstoneElement extends Component {
       nodules: [],
 
       show3DVisualization: false,
+      showFollowUp: false,
       showStudyList: true,
       enterStudyListOption: false,
       /*显示变量*/
@@ -1639,6 +1640,7 @@ class CornerstoneElement extends Component {
       show3DVisualization,
       showStudyList,
       enterStudyListOption,
+      showFollowUp,
     } = this.state;
 
     let tableContent = "";
@@ -3941,6 +3943,22 @@ class CornerstoneElement extends Component {
                     ></Icon>
                   </Button>
                 )}
+                {/* {
+                  showFollowUp ?
+                  <Button>
+
+                  </Button>:
+                  <Button>
+
+                  </Button>
+                } */}
+                <Button
+                  title="随访"
+                  className="funcbtn"
+                  onClick={this.toFollowUp.bind(this)}
+                >
+                  随访
+                </Button>
               </Button.Group>
             </Menu.Item>
             <span id="line-left" hidden={!show3DVisualization}></span>
@@ -6134,6 +6152,55 @@ class CornerstoneElement extends Component {
   doubleClickListItems(e) {
     console.log("doubleclick");
     this.setState({ doubleClick: true });
+  }
+
+  async toFollowUp() {
+    console.log("followup");
+    const dataListParams = {
+      type: "pid",
+      mainItem: this.state.caseId.split("_")[0],
+      otherKeyword: "",
+    };
+    const allListPromise = new Promise((resolve, reject) => {
+      axios
+        .post(
+          this.config.record.getSubListForMainItem_front,
+          qs.stringify(dataListParams)
+        )
+        .then((sublistResponse) => {
+          const sublistData = sublistResponse.data.subList;
+          resolve(sublistData);
+        }, reject);
+    });
+
+    const sublistData = await allListPromise;
+    console.log("subl", sublistData);
+    const currentDate = this.state.caseId.split("_")[1];
+    var i = 0;
+    for (var key in sublistData) {
+      i += 1;
+      if (key === currentDate) break;
+    }
+    var preCaseId = "";
+    for (var key in sublistData) {
+      i -= 1;
+      if (i === 1) {
+        preCaseId = sublistData[key][0].caseId;
+        break;
+      }
+    }
+    if (preCaseId === "") {
+      preCaseId = this.state.caseId;
+    }
+
+    console.log("preCaseId", preCaseId);
+    window.location.href =
+      "/followup/" +
+      this.state.caseId +
+      "&" +
+      preCaseId +
+      "/" +
+      this.state.username;
   }
 
   reset() {
