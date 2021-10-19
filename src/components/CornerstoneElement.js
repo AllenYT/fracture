@@ -388,9 +388,6 @@ class CornerstoneElement extends Component {
       bottomRowHeight: 0,
       viewerWidth: 1200,
       viewerHeight: 800,
-      opTop: 46,
-      opWidth: 314,
-      opHeight: 42,
 
       /*3d数据*/
       urls: [],
@@ -872,6 +869,42 @@ class CornerstoneElement extends Component {
     }
   }
   onShowStudyList() {
+    // const apiTool = cornerstoneTools[`RectangleRoiTool`]
+    // cornerstoneTools.addTool(apiTool)
+    // cornerstoneTools.setToolActive('RectangleRoi', {
+    //   mouseButtonMask: 1,
+    //   isTouchActive: true,
+    // })
+    // cornerstoneTools.addToolState(this.element, 'RectangleRoi', {
+    //   visible: true,
+    //   active: true,
+    //   color: undefined,
+    //   invalidated: true,
+    //   handles: {
+    //     start: {
+    //       x: 50,
+    //       y: 50,
+    //       highlight: true,
+    //       active: false,
+    //     },
+    //     end: {
+    //       x: 300,
+    //       y: 300,
+    //       highlight: true,
+    //       active: true,
+    //     },
+    //     textBox: {
+    //       active: false,
+    //       hasMoved: false,
+    //       movesIndependently: false,
+    //       drawnIndependently: true,
+    //       allowedOutsideImage: true,
+    //       hasBoundingBox: true,
+    //     },
+    //   },
+    // })
+    // console.log('tool data', cornerstoneTools.getToolState(this.element, 'RectangleRoi'))
+    // cornerstoneTools.setToolEnabled('RectangleRoi')
     const studyListShowed = !this.state.studyListShowed
     this.setState(
       {
@@ -1517,9 +1550,6 @@ class CornerstoneElement extends Component {
       nodulesController,
       lobesController,
       tubularController,
-      opTop,
-      opWidth,
-      opHeight,
       MPR,
       CPR,
       viewerWidth,
@@ -2159,248 +2189,6 @@ class CornerstoneElement extends Component {
         </div>
       )
 
-    let lobesInfo = <></>
-    let lobesOp = <></>
-    if (lobesData && lobesData.length > 0) {
-      lobesInfo = lobesData.map((item, index) => {
-        return (
-          <Table.Row key={index}>
-            <Table.Cell>{item.lobeName}</Table.Cell>
-            <Table.Cell>
-              {item.volume}cm<sup>2</sup>
-            </Table.Cell>
-            <Table.Cell>{item.percent}%</Table.Cell>
-          </Table.Row>
-        )
-      })
-      lobesOp = lobesData.map((item, index) => {
-        const inputRangeStyle = {
-          backgroundSize: lobesController.lobesOpacities[index] * 100 + '%',
-        }
-        const segmentListSidebarContentStyle = {
-          width: opWidth,
-          height: opHeight,
-        }
-        return (
-          <Sidebar.Pushable as={'div'} key={index} onClick={this.setActive.bind(this, 0, index, item.index)}>
-            <div className="segment-list-sidebar-content" style={segmentListSidebarContentStyle}></div>
-            <Sidebar animation="overlay" direction="right" visible={lobesController.lobesActive[index]}>
-              <div className="segment-list-sidebar-visibility">
-                <Button inverted color="blue" size="tiny" hidden={lobesController.lobesVisible[index]} onClick={this.setVisible.bind(this, 0, index, item.index)}>
-                  显示
-                </Button>
-                <Button inverted color="blue" size="tiny" hidden={!lobesController.lobesVisible[index]} onClick={this.setVisible.bind(this, 0, index, item.index)}>
-                  隐藏
-                </Button>
-              </div>
-              <div className="segment-list-sidebar-opacity">
-                <Button inverted color="blue" size="tiny" hidden={lobesController.lobesOpacityChangeable[index]} onClick={this.setOpacityChangeable.bind(this, 0, index)}>
-                  透明度
-                </Button>
-                <Button inverted color="blue" size="tiny" hidden={!lobesController.lobesOpacityChangeable[index]} onClick={this.setOpacityChangeable.bind(this, 0, index)}>
-                  关闭
-                </Button>
-                <div className="segment-list-content-tool-input" hidden={!lobesController.lobesActive[index] || !lobesController.lobesOpacityChangeable[index]} onClick={this.selectOpacity.bind(this)}>
-                  {lobesController.lobesOpacities[index] * 100}%
-                  <input style={inputRangeStyle} type="range" min={0} max={1} step={0.1} value={lobesController.lobesOpacities[index]} onChange={this.changeOpacity.bind(this, 0, index, item.index)} />
-                </div>
-              </div>
-            </Sidebar>
-          </Sidebar.Pushable>
-        )
-      })
-    }
-
-    let nodulesInfo = <></>
-    let nodulesOp = <></>
-    if (nodulesData && nodulesData.length > 0) {
-      nodulesInfo = nodulesData.map((item, index) => {
-        return (
-          <Table.Row key={index}>
-            <Table.Cell>{item.name}</Table.Cell>
-            <Table.Cell>{item.position}</Table.Cell>
-            <Table.Cell className={'segment-list-malignancy-' + item.malignancy}>{item.malignancyName}</Table.Cell>
-          </Table.Row>
-        )
-      })
-      nodulesOp = nodulesData.map((item, index) => {
-        const inputRangeStyle = {
-          backgroundSize: nodulesController.nodulesOpacities[index] * 100 + '%',
-        }
-        const segmentListSidebarContentStyle = {
-          width: opWidth,
-          height: opHeight,
-        }
-        return (
-          <Sidebar.Pushable as={'div'} key={index} onClick={this.setActive.bind(this, 2, index, item.index)}>
-            <div className="segment-list-sidebar-content" style={segmentListSidebarContentStyle}></div>
-            <Sidebar animation="overlay" direction="right" visible={nodulesController.nodulesActive[index]}>
-              <div className="segment-list-sidebar-visibility">
-                <Button inverted color="blue" size="tiny" hidden={nodulesController.nodulesVisible[index]} onClick={this.setVisible.bind(this, 2, index, item.index)}>
-                  显示
-                </Button>
-                <Button inverted color="blue" size="tiny" hidden={!nodulesController.nodulesVisible[index]} onClick={this.setVisible.bind(this, 2, index, item.index)}>
-                  隐藏
-                </Button>
-              </div>
-              <div className="segment-list-sidebar-opacity">
-                <Button inverted color="blue" size="tiny" hidden={nodulesController.nodulesOpacityChangeable[index]} onClick={this.setOpacityChangeable.bind(this, 2, index)}>
-                  透明度
-                </Button>
-                <Button inverted color="blue" size="tiny" hidden={!nodulesController.nodulesOpacityChangeable[index]} onClick={this.setOpacityChangeable.bind(this, 2, index)}>
-                  关闭
-                </Button>
-                <div
-                  className="segment-list-content-tool-input"
-                  hidden={!nodulesController.nodulesActive[index] || !nodulesController.nodulesOpacityChangeable[index]}
-                  onClick={this.selectOpacity.bind(this)}>
-                  {nodulesController.nodulesOpacities[index] * 100}%
-                  <input
-                    style={inputRangeStyle}
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.1}
-                    value={nodulesController.nodulesOpacities[index]}
-                    onChange={this.changeOpacity.bind(this, 2, index, item.index)}
-                  />
-                </div>
-              </div>
-            </Sidebar>
-          </Sidebar.Pushable>
-        )
-      })
-    }
-    let tubularInfo = <></>
-    let tubularOp = <></>
-    if (tubularData && tubularData.length > 0) {
-      tubularInfo = tubularData.map((item, index) => {
-        return (
-          <Table.Row key={index}>
-            <Table.Cell>{item.name}</Table.Cell>
-            <Table.Cell>{item.number}</Table.Cell>
-          </Table.Row>
-        )
-      })
-      tubularOp = tubularData.map((item, index) => {
-        const inputRangeStyle = {
-          backgroundSize: tubularController.tubularOpacities[index] * 100 + '%',
-        }
-        const segmentListSidebarContentStyle = {
-          width: opWidth,
-          height: opHeight,
-        }
-        return (
-          <Sidebar.Pushable as={'div'} key={index} onClick={this.setActive.bind(this, 1, index, item.index)}>
-            <div className="segment-list-sidebar-content" style={segmentListSidebarContentStyle}></div>
-            <Sidebar animation="overlay" direction="right" visible={tubularController.tubularActive[index]}>
-              <div className="segment-list-sidebar-visibility">
-                <Button inverted color="blue" size="tiny" hidden={tubularController.tubularVisible[index]} onClick={this.setVisible.bind(this, 1, index, item.index)}>
-                  显示
-                </Button>
-                <Button inverted color="blue" size="tiny" hidden={!tubularController.tubularVisible[index]} onClick={this.setVisible.bind(this, 1, index, item.index)}>
-                  隐藏
-                </Button>
-              </div>
-              <div className="segment-list-sidebar-opacity">
-                <Button inverted color="blue" size="tiny" hidden={tubularController.tubularOpacityChangeable[index]} onClick={this.setOpacityChangeable.bind(this, 1, index)}>
-                  透明度
-                </Button>
-                <Button inverted color="blue" size="tiny" hidden={!tubularController.tubularOpacityChangeable[index]} onClick={this.setOpacityChangeable.bind(this, 1, index)}>
-                  关闭
-                </Button>
-                <div
-                  className="segment-list-content-tool-input"
-                  hidden={!tubularController.tubularActive[index] || !tubularController.tubularOpacityChangeable[index]}
-                  onClick={this.selectOpacity.bind(this)}>
-                  {tubularController.tubularOpacities[index] * 100}%
-                  <input
-                    style={inputRangeStyle}
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.1}
-                    value={tubularController.tubularOpacities[index]}
-                    onChange={this.changeOpacity.bind(this, 1, index, item.index)}
-                  />
-                </div>
-              </div>
-            </Sidebar>
-          </Sidebar.Pushable>
-        )
-      })
-    }
-    const segmentListOperationStyles = {
-      top: opTop,
-    }
-    const panes3D = [
-      {
-        menuItem: '肺叶',
-        render: () => {
-          return (
-            <div className="segment-list-block">
-              <Table celled inverted>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>肺叶</Table.HeaderCell>
-                    <Table.HeaderCell>体积</Table.HeaderCell>
-                    <Table.HeaderCell>占比</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>{lobesInfo}</Table.Body>
-              </Table>
-              <div className="segment-list-operation" style={segmentListOperationStyles}>
-                {lobesOp}
-              </div>
-            </div>
-          )
-        },
-      },
-      {
-        menuItem: '肺结节',
-        render: () => {
-          return (
-            <div className="segment-list-block">
-              <Table celled selectable inverted>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>肺结节</Table.HeaderCell>
-                    <Table.HeaderCell>位置</Table.HeaderCell>
-                    <Table.HeaderCell>危险度</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>{nodulesInfo}</Table.Body>
-              </Table>
-              <div className="segment-list-operation" style={segmentListOperationStyles}>
-                {nodulesOp}
-              </div>
-            </div>
-          )
-        },
-      },
-      {
-        menuItem: '气管和血管',
-        render: () => {
-          return (
-            <div className="segment-list-block">
-              <Table celled selectable inverted>
-                <Table.Header>
-                  <Table.Row>
-                    <Table.HeaderCell>名称</Table.HeaderCell>
-                    <Table.HeaderCell>长度</Table.HeaderCell>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>{tubularInfo}</Table.Body>
-              </Table>
-              <div className="segment-list-operation" style={segmentListOperationStyles}>
-                {tubularOp}
-              </div>
-            </div>
-          )
-        },
-      },
-    ]
-
     let loadingList = []
     const loadingStyle = this.getLoadingStyle()
     if (urls && urls.length) {
@@ -2899,7 +2687,7 @@ class CornerstoneElement extends Component {
                     </Grid.Column>
                   </Grid.Row>
                   <Grid.Row>
-                    <Grid.Column width={12}>
+                    <Grid.Column width={12} style={{ textAlign: 'left' }}>
                       <Button size="mini" circular inverted icon="chart bar" title="特征分析" value={idx} onClick={this.featureAnalysis.bind(this, idx)}></Button>
                     </Grid.Column>
                     <Grid.Column width={4}>
@@ -2937,15 +2725,18 @@ class CornerstoneElement extends Component {
               <Accordion.Title onClick={this.setActive.bind(this, 0, index, item.index)} active={lobesController.lobesActive[index]}>
                 <div className="accordion-title-index">{index + 1}</div>
                 <div className="accordion-title-name">{item.lobeName}</div>
+                <div className="accordion-title-volume">
+                  {item.volume}cm<sup>3</sup>
+                </div>
               </Accordion.Title>
               <Accordion.Content active={lobesController.lobesActive[index]}>
                 <Grid>
                   <Grid.Row>
-                    <Grid.Column width={6} textAlign="center">
-                      {item.volume}cm<sup>2</sup>
+                    <Grid.Column width={6} textAlign="left">
+                      体积:&nbsp;{item.volume}cm<sup>3</sup>
                     </Grid.Column>
-                    <Grid.Column width={3} textAlign="center">
-                      {item.percent}%
+                    <Grid.Column width={6} textAlign="left">
+                      {`${item.lobeName}/全肺`}:&nbsp;{item.percent}%
                     </Grid.Column>
                   </Grid.Row>
                   <Grid.Row>
@@ -2970,7 +2761,7 @@ class CornerstoneElement extends Component {
                     </Grid.Column>
                   </Grid.Row>
                   <Grid.Row>
-                    <Grid.Column width={12}>
+                    <Grid.Column width={12} style={{ textAlign: 'left' }}>
                       <Button size="mini" circular inverted icon="chart bar" title="特征分析"></Button>
                     </Grid.Column>
                     <Grid.Column width={4}>
@@ -2998,14 +2789,17 @@ class CornerstoneElement extends Component {
               <Accordion.Title onClick={this.setActive.bind(this, 1, index, item.index)} active={tubularController.tubularActive[index]}>
                 <div className="accordion-title-index">{index + 1}</div>
                 <div className="accordion-title-name">{item.name}</div>
+                <div className="accordion-title-volume">
+                  100cm<sup>3</sup>
+                </div>
               </Accordion.Title>
               <Accordion.Content active={tubularController.tubularActive[index]}>
                 <Grid>
                   <Grid.Row>
-                    <Grid.Column width={6} textAlign="center">
-                      体积
+                    <Grid.Column width={6} textAlign="left">
+                      体积:&nbsp;100cm<sup>3</sup>
                     </Grid.Column>
-                    <Grid.Column width={3} textAlign="center"></Grid.Column>
+                    <Grid.Column width={3} textAlign="left"></Grid.Column>
                   </Grid.Row>
                   <Grid.Row>
                     <Grid.Column width={16} className="accordion-content-opacity">
@@ -3029,7 +2823,7 @@ class CornerstoneElement extends Component {
                     </Grid.Column>
                   </Grid.Row>
                   <Grid.Row>
-                    <Grid.Column width={12}>
+                    <Grid.Column width={12} style={{ textAlign: 'left' }}>
                       <Button size="mini" circular inverted icon="chart bar" title="特征分析"></Button>
                     </Grid.Column>
                     <Grid.Column width={4}>
@@ -5606,20 +5400,6 @@ class CornerstoneElement extends Component {
               // console.log('resize3DView', segmentContainerWidth, segmentContainerHeight)
               this.resizeViewer(segmentContainerWidth - 4, segmentContainerHeight - 4)
             }
-
-            if (document.getElementsByClassName('segment-list-block') !== null && document.getElementsByClassName('segment-list-block').length > 2) {
-              const outElement = document.getElementsByClassName('segment-list-block')[0]
-              if (outElement.getElementsByTagName('tr') !== null && outElement.getElementsByTagName('tr').length > 1) {
-                const firstElement = outElement.getElementsByTagName('tr')[0]
-                const secondElement = outElement.getElementsByTagName('tr')[2]
-
-                this.setState({
-                  opTop: firstElement.clientHeight,
-                  opWidth: secondElement.clientWidth,
-                  opHeight: secondElement.clientHeight,
-                })
-              }
-            }
           } else {
             if (document.getElementById('canvas-border') !== null && document.getElementById('cor-container') != null) {
               const corContainer = document.getElementById('cor-container')
@@ -6815,7 +6595,7 @@ class CornerstoneElement extends Component {
     const menuTotalPages = Math.ceil(menuItemButtons.scrollWidth / menuButtonsWidth)
     let menuNowPage = this.state.menuNowPage
     let menuTransform = this.state.menuTransform
-    if(menuNowPage > menuTotalPages){
+    if (menuNowPage > menuTotalPages) {
       menuNowPage = menuTotalPages
       menuTransform = (menuNowPage - 1) * menuButtonsWidth
     }
@@ -7197,7 +6977,10 @@ class CornerstoneElement extends Component {
       imageData.setOrigin(...origin)
       imageData.getPointData().setScalars(scalarArray)
 
-      const { actor } = this.createActorMapper(imageData)
+      const { actor, mapper } = this.createActorMapper(imageData)
+
+      // mapper.setMaximumSamplesPerRay(2000);
+      // mapper.setSampleDistance(0.5);
       const volumesRange = imageData.getBounds()
       const segRange = {
         xMin: volumesRange[0],
@@ -7350,7 +7133,7 @@ class CornerstoneElement extends Component {
 
       const labelMapInputData = this.setupSyncedBrush(imageDataObject)
 
-      const { actor } = this.createActorMapper(imageDataObject.vtkImageData)
+      const { actor, mapper } = this.createActorMapper(imageDataObject.vtkImageData)
 
       this.setState({
         vtkImageData: imageDataObject.vtkImageData,
@@ -7392,7 +7175,7 @@ class CornerstoneElement extends Component {
       loadImageData(imageDataObject)
 
       const onAllPixelDataInsertedCallback = () => {
-        const { actor } = this.createActorMapper(imageDataObject.vtkImageData)
+        const { actor, mapper } = this.createActorMapper(imageDataObject.vtkImageData)
 
         const scalarsData = imageDataObject.vtkImageData.getPointData().getScalars().getData()
         // const scalarsData = imageDataObject.vtkImageData.getPointData().getScalars().getData()
@@ -7462,12 +7245,16 @@ class CornerstoneElement extends Component {
         numberProcessed++
 
         if (numberProcessed > reRenderTarget) {
+          console.time("volumes modified")
           reRenderTarget += reRenderFraction
           this.state.vtkImageData.modified()
+          console.timeEnd("volumes modified")
+
         }
         if (numberProcessed === imageIds.length) {
-          // Done loading, publish complete and remove all subscriptions.
+          console.time("volumes modified")
           this.state.vtkImageData.modified()
+          console.timeEnd("volumes modified")
         }
       })
     })

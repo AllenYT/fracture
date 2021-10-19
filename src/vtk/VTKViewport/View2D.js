@@ -590,7 +590,10 @@ export default class View2D extends Component {
       if (this.props.volumes.length) {
         // this.renderer.removeAllVolumes()
         this.props.volumes.forEach(this.renderer.addVolume)
-        console.log('volumes length', this.renderer.getVolumes().length)
+        // console.log('volumes length', this.renderer.getVolumes().length)
+        console.time("volumes add")
+        this.renderWindow.render()
+        console.timeEnd("volumes add")
       } else {
         // TODO: Remove all volumes
         // this.renderer.removeAllVolumes()
@@ -599,8 +602,6 @@ export default class View2D extends Component {
         // }
       }
       // this.renderer.resetCamera();
-
-      this.renderWindow.render()
     }
 
     if (!prevProps.paintFilterBackgroundImageData && this.props.paintFilterBackgroundImageData) {

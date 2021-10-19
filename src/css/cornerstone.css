@@ -544,7 +544,7 @@ input:focus {
 #tubular-accordion .accordion-title-name {
   opacity: 0.45;
   font-size: 1em;
-  margin-left: 30px;
+  margin-left: 15%;
 }
 .accordion-title-index {
   font-size: large;
@@ -552,6 +552,13 @@ input:focus {
 #lobe-accordion .active .accordion-title-name,
 #tubular-accordion .active .accordion-title-name {
   opacity: 1;
+}
+#lobe-accordion .accordion-title-volume,
+#tubular-accordion .accordion-title-volume {
+  margin-left: 15%;
+  font-size: small;
+  appearance: none;
+  color: green;
 }
 .accordion-content-opacity {
   display: flex !important;
@@ -753,10 +760,10 @@ input:focus {
   text-align: center;
 }
 .corner-list-horizontal-block {
-  width: 30%;
+  width: 33%;
 }
 .corner-list-horizontal-block.corner-list-contract-block {
-  width: 30%;
+  width: 33%;
 }
 .corner-list-vertical-block {
   width: 90%;
