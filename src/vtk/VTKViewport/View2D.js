@@ -96,7 +96,7 @@ export default class View2D extends Component {
   }
 
   componentDidMount() {
-    // console.log('mount!')
+    console.time('mount!')
     // Tracking ID to tie emitted events to this component
     const uid = uuidv4()
 
@@ -124,6 +124,7 @@ export default class View2D extends Component {
     this.renderWindow.setNumberOfLayers(2)
     this.paintRenderer.setLayer(1)
     this.paintRenderer.setInteractive(false)
+
 
     // update view node tree so that vtkOpenGLHardwareSelector can access
     // the vtkOpenGLRenderer instance.
@@ -226,7 +227,7 @@ export default class View2D extends Component {
 
     // TODO: Not sure why this is necessary to force the initial draw
     this.genericRenderWindow.resize()
-
+    
     const boundUpdateVOI = this.updateVOI.bind(this)
     const boundGetOrienation = this.getOrientation.bind(this)
     const boundSetOrientation = this.setOrientation.bind(this)
@@ -300,10 +301,11 @@ export default class View2D extends Component {
         set: boundSetApiProperty,
         type: 'VIEW2D',
       }
-
       this.props.onCreated(api)
+
       // this.updateSlider()
     }
+    console.timeEnd('mount!')
   }
 
   getViewUp() {
@@ -580,6 +582,7 @@ export default class View2D extends Component {
   }
   afterChangeSlice(e) {}
   componentDidUpdate(prevProps) {
+    console.time("componentDidUpdate")
     if (prevProps.volumes !== this.props.volumes) {
       // this.props.volumes.forEach((volume) => {
       //   if (!volume.isA('vtkVolume')) {
@@ -728,6 +731,7 @@ export default class View2D extends Component {
         this.genericRenderWindow.resize()
       }
     }
+    console.timeEnd("componentDidUpdate")
   }
 
   componentWillUnmount() {

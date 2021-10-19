@@ -778,7 +778,7 @@ class CornerstoneElement extends Component {
     } else {
       if (this.state.show3DVisualization) {
         if (this.state.MPR && this.state.painting) {
-          this.createNoduleMask(index)
+          // this.createNoduleMask(index)
         }
       }
       if (id !== 'del-' + id.split('-')[1]) {
@@ -2273,9 +2273,9 @@ class CornerstoneElement extends Component {
           }}
           showRotation={true}
           paintFilterBackgroundImageData={vtkImageData}
-          paintFilterLabelMapImageData={labelMapInputData}
+          // paintFilterLabelMapImageData={labelMapInputData}
           painting={painting}
-          onPaintEnd={this.onPaintEnd.bind(this)}
+          // onPaintEnd={this.onPaintEnd.bind(this)}
           onChangeSlice={this.onChangeSlice.bind(this)}
           sliderMax={Math.round(segRange.zMax)}
           sliderMin={Math.round(segRange.zMin)}
@@ -2294,7 +2294,7 @@ class CornerstoneElement extends Component {
           }}
           showRotation={true}
           paintFilterBackgroundImageData={vtkImageData}
-          paintFilterLabelMapImageData={labelMapInputData}
+          // paintFilterLabelMapImageData={labelMapInputData}
           painting={painting}
           onChangeSlice={this.onChangeSlice.bind(this)}
           sliderMax={Math.round(segRange.yMax)}
@@ -2314,7 +2314,7 @@ class CornerstoneElement extends Component {
           }}
           showRotation={true}
           paintFilterBackgroundImageData={vtkImageData}
-          paintFilterLabelMapImageData={labelMapInputData}
+          // paintFilterLabelMapImageData={labelMapInputData}
           painting={painting}
           onChangeSlice={this.onChangeSlice.bind(this)}
           sliderMax={Math.round(segRange.xMax)}
@@ -2969,7 +2969,7 @@ class CornerstoneElement extends Component {
                               <Icon className="icon-custom icon-custom-SC" size="large" />
                             </Button>
 
-                            <Button icon className="funcbtn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} title="停止勾画" description="end painting">
+                            {/* <Button icon className="funcbtn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} title="停止勾画" description="end painting">
                               <Icon name="window close outline" size="large" />
                             </Button>
                             <Button icon className="funcbtn" hidden={painting} onClick={this.handleFuncButton.bind(this, 'BP')} title="开始勾画" description="begin painting">
@@ -3042,7 +3042,8 @@ class CornerstoneElement extends Component {
                                 颜色选择器：
                                 <InputColor initialValue="#FF0000" onChange={this.setPaintColor.bind(this)} placement="right" />
                               </div>
-                            </Popup>
+                            </Popup> */}
+                            <span className="menu-line"></span>
                             {CPR ? (
                               <>
                                 <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'STCPR')} title="取消CPR" hidden={!CPR}>
@@ -6998,27 +6999,27 @@ class CornerstoneElement extends Component {
 
       // If you want to load a segmentation labelmap, you would want to load
       // it into this array at this point.
-      const threeDimensionalPixelData = new Float32Array(numVolumePixels)
-      // Create VTK Image Data with buffer as input
-      const labelMap = vtkImageData.newInstance()
+      // const threeDimensionalPixelData = new Float32Array(numVolumePixels)
+      // // Create VTK Image Data with buffer as input
+      // const labelMap = vtkImageData.newInstance() 
 
-      // right now only support 256 labels
-      const dataArray = vtkDataArray.newInstance({
-        numberOfComponents: 1, // labelmap with single component
-        values: threeDimensionalPixelData,
-      })
+      // // right now only support 256 labels
+      // const dataArray = vtkDataArray.newInstance({
+      //   numberOfComponents: 1, // labelmap with single component
+      //   values: threeDimensionalPixelData,
+      // })
 
-      labelMap.getPointData().setScalars(dataArray)
-      labelMap.setDimensions(xVoxels, yVoxels, zVoxels)
-      labelMap.setSpacing(...imageData.getSpacing())
-      labelMap.setOrigin(...imageData.getOrigin())
-      labelMap.setDirection(...imageData.getDirection())
+      // labelMap.getPointData().setScalars(dataArray)
+      // labelMap.setDimensions(xVoxels, yVoxels, zVoxels)
+      // labelMap.setSpacing(...imageData.getSpacing())
+      // labelMap.setOrigin(...imageData.getOrigin())
+      // labelMap.setDirection(...imageData.getDirection())
 
       this.setState(
         {
           vtkImageData: imageData,
           volumes: [actor],
-          labelMapInputData: labelMap,
+          // labelMapInputData: labelMap,
           origin: [(segRange.xMax + segRange.xMin) / 2, (segRange.yMax + segRange.yMin) / 2, (segRange.zMax + segRange.zMin) / 2],
           dimensions: [xVoxels, yVoxels, zVoxels],
           spacing: [xSpacing, ySpacing, zSpacing],
@@ -7029,6 +7030,7 @@ class CornerstoneElement extends Component {
         },
         () => {
           this.getMPRInfoWithPriority(imageIds)
+          // this.getMPRInfo(imageIds)
         }
       )
     })
@@ -7133,44 +7135,44 @@ class CornerstoneElement extends Component {
 
       const labelMapInputData = this.setupSyncedBrush(imageDataObject)
 
-      const { actor, mapper } = this.createActorMapper(imageDataObject.vtkImageData)
+      // const { actor, mapper } = this.createActorMapper(imageDataObject.vtkImageData)
 
-      this.setState({
-        vtkImageData: imageDataObject.vtkImageData,
-        volumes: [actor],
-        labelMapInputData,
-      })
+      // this.setState({
+      //   vtkImageData: imageDataObject.vtkImageData,
+      //   volumes: [actor],
+      //   labelMapInputData,
+      // })
 
-      const dimensions = imageDataObject.dimensions
-      const spacing = imageDataObject.spacing
-      const imagePositionPatient = imageDataObject.metaData0.imagePositionPatient
+      // const dimensions = imageDataObject.dimensions
+      // const spacing = imageDataObject.spacing
+      // const imagePositionPatient = imageDataObject.metaData0.imagePositionPatient
 
-      const volumesRange = imageDataObject.vtkImageData.getBounds()
-      const segRange = {
-        xMin: volumesRange[0],
-        xMax: volumesRange[1],
-        yMin: volumesRange[2],
-        yMax: volumesRange[3],
-        zMin: volumesRange[4],
-        zMax: volumesRange[5],
-      }
-      console.log('segRange', segRange)
-      const origin = [(segRange.xMax + segRange.xMin) / 2, (segRange.yMax + segRange.yMin) / 2, (segRange.zMax + segRange.zMin) / 2]
-      console.log('origin', origin)
-      const originXBorder = Math.round(512 * spacing[0])
-      const originYBorder = Math.round(512 * spacing[1])
-      const originZBorder = imageIds.length
-      console.log('originXBorder', originXBorder, 'originYBorder', originYBorder, 'originZBorder', originZBorder)
+      // const volumesRange = imageDataObject.vtkImageData.getBounds()
+      // const segRange = {
+      //   xMin: volumesRange[0],
+      //   xMax: volumesRange[1],
+      //   yMin: volumesRange[2],
+      //   yMax: volumesRange[3],
+      //   zMin: volumesRange[4],
+      //   zMax: volumesRange[5],
+      // }
+      // console.log('segRange', segRange)
+      // const origin = [(segRange.xMax + segRange.xMin) / 2, (segRange.yMax + segRange.yMin) / 2, (segRange.zMax + segRange.zMin) / 2]
+      // console.log('origin', origin)
+      // const originXBorder = Math.round(512 * spacing[0])
+      // const originYBorder = Math.round(512 * spacing[1])
+      // const originZBorder = imageIds.length
+      // console.log('originXBorder', originXBorder, 'originYBorder', originYBorder, 'originZBorder', originZBorder)
 
-      this.setState({
-        origin,
-        dimensions,
-        spacing,
-        originXBorder,
-        originYBorder,
-        originZBorder,
-        segRange,
-      })
+      // this.setState({
+      //   origin,
+      //   dimensions,
+      //   spacing,
+      //   originXBorder,
+      //   originYBorder,
+      //   originZBorder,
+      //   segRange,
+      // })
 
       loadImageData(imageDataObject)
 
@@ -8428,7 +8430,7 @@ class CornerstoneElement extends Component {
       if (!strokeOnFrame) {
         continue
       }
-      // console.log("strokeOnFrame", " i", i);
+      console.log("strokeOnFrame", " i", i);
     }
   }
 
