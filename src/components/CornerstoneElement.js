@@ -6754,8 +6754,8 @@ class CornerstoneElement extends Component {
     })
     const boxes = nodules
     const annoImageIds = []
-    
-    cornerstone.loadAndCacheImage(imageIds[0])
+
+    await cornerstone.loadAndCacheImage(imageIds[0])
 
     for (let i = 0; i < boxes.length; i++) {
       let slice_idx = boxes[i].slice_idx
@@ -6766,7 +6766,6 @@ class CornerstoneElement extends Component {
         //     annoHash[this[i]] = true
         if (j >= 0 && j < imageIds.length) {
           annoImageIds.push(imageIds[j])
-
         }
         // }
       }
@@ -6791,7 +6790,7 @@ class CornerstoneElement extends Component {
       console.log('promise', value)
       // console.log("111",promise)
     })
-    console.log("imageIds loading completed")
+    console.log('imageIds loading completed')
 
     await axios
       .post(
