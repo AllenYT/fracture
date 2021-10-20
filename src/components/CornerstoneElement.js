@@ -6754,6 +6754,8 @@ class CornerstoneElement extends Component {
     })
     const boxes = nodules
     const annoImageIds = []
+    
+    cornerstone.loadAndCacheImage(imageIds[0])
 
     for (let i = 0; i < boxes.length; i++) {
       let slice_idx = boxes[i].slice_idx
@@ -6764,6 +6766,7 @@ class CornerstoneElement extends Component {
         //     annoHash[this[i]] = true
         if (j >= 0 && j < imageIds.length) {
           annoImageIds.push(imageIds[j])
+
         }
         // }
       }
