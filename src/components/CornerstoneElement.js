@@ -1791,7 +1791,24 @@ class CornerstoneElement extends Component {
             if (isNaN(sl)) {
               sl = 0;
             }
+            if (
+              inside.measure.x1 === 0 &&
+              inside.measure.y1 === 0 &&
+              inside.measure.x2 === 0 &&
+              inside.measure.y2 === 0 &&
+              inside.measure.x3 === 0 &&
+              inside.measure.y3 === 0 &&
+              inside.measure.x4 === 0 &&
+              inside.measure.y4 === 0
+            ) {
+              ll = 0;
+              sl = 0;
+            }
           }
+
+          console.log("ll", ll, sl);
+          let diameter = inside.diameter;
+          console.log("diameter", diameter);
 
           let showMeasure = measureStateList[idx];
           let showMask = maskStateList[idx];
@@ -2282,15 +2299,22 @@ class CornerstoneElement extends Component {
                       </div>
                     </Grid.Column>
 
-                    <Grid.Column widescreen={6} computer={6}>
-                      {"\xa0\xa0" +
-                        (ll / 10).toFixed(2) +
-                        "\xa0\xa0" +
-                        " ×" +
-                        "\xa0\xa0" +
-                        (sl / 10).toFixed(2) +
-                        " cm"}
-                    </Grid.Column>
+                    {ll === 0 && sl === 0 ? (
+                      <Grid.Column widescreen={6} computer={6}>
+                        {"\xa0\xa0" + (diameter / 10).toFixed(2) + " cm"}
+                      </Grid.Column>
+                    ) : (
+                      <Grid.Column widescreen={6} computer={6}>
+                        {"\xa0\xa0" +
+                          (ll / 10).toFixed(2) +
+                          "\xa0\xa0" +
+                          " ×" +
+                          "\xa0\xa0" +
+                          (sl / 10).toFixed(2) +
+                          " cm"}
+                      </Grid.Column>
+                    )}
+
                     <Grid.Column widescreen={3} computer={3} textAlign="center">
                       {inside.volume !== undefined
                         ? (Math.floor(inside.volume * 100) / 100).toFixed(2) +

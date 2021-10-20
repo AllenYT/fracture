@@ -457,16 +457,28 @@ class MiniReport extends Component {
             if (isNaN(sl)) {
               sl = 0;
             }
-            diameter =
-              "\xa0\xa0" +
-              (ll / 10).toFixed(2) +
-              "\xa0" +
-              "×" +
-              "\xa0" +
-              (sl / 10).toFixed(2) +
-              " 厘米";
-          } else {
-            diameter = "未知";
+            if (ll === 0 && sl === 0) {
+              if (
+                this.props.boxes[i]["diameter"] !== undefined &&
+                this.props.boxes[i]["diameter"] !== 0
+              ) {
+                diameter =
+                  "\xa0\xa0" +
+                  (this.props.boxes[i]["diameter"] / 10).toFixed(2) +
+                  " 厘米";
+              } else {
+                diameter = "未知";
+              }
+            } else {
+              diameter =
+                "\xa0\xa0" +
+                (ll / 10).toFixed(2) +
+                "\xa0" +
+                "×" +
+                "\xa0" +
+                (sl / 10).toFixed(2) +
+                " 厘米";
+            }
           }
           if (this.props.boxes[i]["texture"] === 2) {
             texture = "实性";
