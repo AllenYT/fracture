@@ -267,8 +267,14 @@ export default class View2D extends Component {
       // this.updateSlider()
     }
   }
+  setContainerSize(width, height) {
+    const oglrw = this.genericRenderWindow.getOpenGLRenderWindow()
+    oglrw.setSize(width, height)
+    this.renderWindow.render()
+  }
 
   componentDidMount() {
+    this.props.onRef(this)
     console.time('mount!')
     // Tracking ID to tie emitted events to this component
     this.uid = uuidv4()
@@ -312,7 +318,6 @@ export default class View2D extends Component {
         initialized: true,
       })
     }, 200)
-    // setTimeout(this.initVolumes(), 1000)
     console.timeEnd('mount!')
   }
 
@@ -779,7 +784,7 @@ export default class View2D extends Component {
     if (!this.props.volumes || !this.props.volumes.length) {
       return null
     }
-
+    const viewerStyle = this.props.viewerStyle
     const style = { width: '100%', height: '100%', position: 'relative' }
     const sliderStyle = { marginTop: '15%', height: '50%', position: 'absolute', top: 0, right: 0, zIndex: 1 }
     const sliderValue = this.state.sliderValue
@@ -807,7 +812,7 @@ export default class View2D extends Component {
       <></>
     )
     return (
-      <div style={style}>
+      <div style={viewerStyle}>
         {slider}
         <div ref={this.container} style={style} />
         <ViewportOverlay {...this.props.dataDetails} voi={voi} rotation={rotation} />

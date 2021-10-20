@@ -751,6 +751,7 @@ input:focus {
 .corner-center-vertical-block {
   width: 90%;
   margin-left: 5%;
+  height: 50%;
 }
 .corner-center-vertical-block.corner-center-contract-block {
   width: 70%;
@@ -784,6 +785,15 @@ input:focus {
   flex-direction: column;
   justify-content: space-between;
   height: 100%;
+}
+.threed-card-container {
+  height: 100%;
+}
+.threed-card-container .ant-tabs {
+  max-height: 100%;
+}
+.threed-card-container .ant-tabs-content-holder {
+  overflow-y: auto;
 }
 .nodule-card-container {
   overflow: auto;

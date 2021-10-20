@@ -319,7 +319,7 @@ class CornerstoneElement extends Component {
       tmpBox: {},
       showNodules: true,
       immersive: false,
-      readonly: false,
+      readonly: true,
       listsActiveIndex: -1, //右方list活动item
       dropDownOpen: -1,
 
@@ -352,6 +352,7 @@ class CornerstoneElement extends Component {
       isPlaying: false,
       windowWidth: document.body.clientWidth,
       windowHeight: document.body.clientHeight,
+      verticalMode: false,
       slideSpan: 0,
       preListActiveIdx: -1,
       currentImage: null,
@@ -845,29 +846,32 @@ class CornerstoneElement extends Component {
     this.setState(({ showNodules }) => ({
       showNodules: !showNodules,
     }))
-    if (this.state.showNodules) {
-      document.getElementById('showNodule').style.display = 'none'
-      document.getElementById('hideNodule').style.display = ''
-    } else {
-      document.getElementById('showNodule').style.display = ''
-      document.getElementById('hideNodule').style.display = 'none'
-    }
     this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
   }
 
   toHideInfo() {
-    this.setState(({ showInfo }) => ({
-      showInfo: !showInfo,
-    }))
-    if (this.state.showInfo) {
-      document.getElementById('showInfo').style.display = 'none'
-      document.getElementById('hideInfo').style.display = ''
-      document.getElementById('dicomTag').style.display = 'none'
-    } else {
-      document.getElementById('showInfo').style.display = ''
-      document.getElementById('hideInfo').style.display = 'none'
-      document.getElementById('dicomTag').style.display = ''
-    }
+    this.setState(({ showInfo }) => {
+      if (document.getElementById('dicomTag')) {
+        if (showInfo) {
+          document.getElementById('dicomTag').style.display = 'none'
+        } else {
+          document.getElementById('dicomTag').style.display = ''
+        }
+      }
+
+      return {
+        showInfo: !showInfo,
+      }
+    })
+    // if (this.state.showInfo) {
+    //   document.getElementById('showInfo').style.display = 'none'
+    //   document.getElementById('hideInfo').style.display = ''
+    //   document.getElementById('dicomTag').style.display = 'none'
+    // } else {
+    //   document.getElementById('showInfo').style.display = ''
+    //   document.getElementById('hideInfo').style.display = 'none'
+    //   document.getElementById('dicomTag').style.display = ''
+    // }
   }
   onShowStudyList() {
     // const apiTool = cornerstoneTools[`RectangleRoiTool`]
@@ -1499,6 +1503,7 @@ class CornerstoneElement extends Component {
   render() {
     const {
       showNodules,
+      showInfo,
       activeIndex,
       modalOpenNew,
       modalOpenCur,
@@ -1510,6 +1515,7 @@ class CornerstoneElement extends Component {
       cacheModal,
       windowWidth,
       windowHeight,
+      verticalMode,
       canvasWidth,
       canvasHeight,
       slideSpan,
@@ -1518,9 +1524,7 @@ class CornerstoneElement extends Component {
       dateSeries,
 
       lobesData,
-      nodulesData,
       tubularData,
-      nodulesController,
       lobesController,
       tubularController,
       MPR,
@@ -1570,7 +1574,6 @@ class CornerstoneElement extends Component {
     let canvas
     let slideLabel
     let dicomTagPanel
-    const verticalMode = windowWidth < windowHeight ? true : false
     const places = nodulePlaces
     // const noduleSegments = noduleSegments 引用了全局变量
 
@@ -2228,74 +2231,68 @@ class CornerstoneElement extends Component {
     let MPRAxialPanel
     let MPRCoronalPanel
     let MPRSagittalPanel
-    if (false) {
-      // if (!volumes || !volumes.length) {
-      MPRAxialPanel = loadingPanel
-      MPRCoronalPanel = loadingPanel
-      MPRSagittalPanel = loadingPanel
-    } else {
-      MPRAxialPanel = (
-        <View2D
-          viewerType={0}
-          parallelScale={originYBorder / 2}
-          volumes={volumes}
-          onCreated={this.storeApi(0)}
-          onDestroyed={this.deleteApi(0)}
-          orientation={{
-            sliceNormal: [0, 0, 1],
-            viewUp: [0, -1, 0],
-          }}
-          showRotation={true}
-          paintFilterBackgroundImageData={vtkImageData}
-          // paintFilterLabelMapImageData={labelMapInputData}
-          painting={painting}
-          // onPaintEnd={this.onPaintEnd.bind(this)}
-          onChangeSlice={this.onChangeSlice.bind(this)}
-          sliderMax={Math.round(segRange.zMax)}
-          sliderMin={Math.round(segRange.zMin)}
-        />
-      )
-      MPRCoronalPanel = (
-        <View2D
-          viewerType={1}
-          parallelScale={originZBorder / 2}
-          volumes={volumes}
-          onCreated={this.storeApi(1)}
-          onDestroyed={this.deleteApi(1)}
-          orientation={{
-            sliceNormal: [0, 1, 0],
-            viewUp: [0, 0, 1],
-          }}
-          showRotation={true}
-          paintFilterBackgroundImageData={vtkImageData}
-          // paintFilterLabelMapImageData={labelMapInputData}
-          painting={painting}
-          onChangeSlice={this.onChangeSlice.bind(this)}
-          sliderMax={Math.round(segRange.yMax)}
-          sliderMin={Math.round(segRange.yMin)}
-        />
-      )
-      MPRSagittalPanel = (
-        <View2D
-          viewerType={2}
-          parallelScale={originZBorder / 2}
-          volumes={volumes}
-          onCreated={this.storeApi(2)}
-          onDestroyed={this.deleteApi(2)}
-          orientation={{
-            sliceNormal: [-1, 0, 0],
-            viewUp: [0, 0, 1],
-          }}
-          showRotation={true}
-          paintFilterBackgroundImageData={vtkImageData}
-          // paintFilterLabelMapImageData={labelMapInputData}
-          painting={painting}
-          onChangeSlice={this.onChangeSlice.bind(this)}
-          sliderMax={Math.round(segRange.xMax)}
-          sliderMin={Math.round(segRange.xMin)}
-        />
-      )
-    }
+    MPRAxialPanel = (
+      <View2D
+        viewerType={0}
+        parallelScale={originYBorder / 2}
+        volumes={volumes}
+        onCreated={this.storeApi(0)}
+        onDestroyed={this.deleteApi(0)}
+        orientation={{
+          sliceNormal: [0, 0, 1],
+          viewUp: [0, -1, 0],
+        }}
+        showRotation={true}
+        paintFilterBackgroundImageData={vtkImageData}
+        // paintFilterLabelMapImageData={labelMapInputData}
+        painting={painting}
+        // onPaintEnd={this.onPaintEnd.bind(this)}
+        onChangeSlice={this.onChangeSlice.bind(this)}
+        sliderMax={Math.round(segRange.zMax)}
+        sliderMin={Math.round(segRange.zMin)}
+      />
+    )
+    MPRCoronalPanel = (
+      <View2D
+        viewerType={1}
+        parallelScale={originZBorder / 2}
+        volumes={volumes}
+        onCreated={this.storeApi(1)}
+        onDestroyed={this.deleteApi(1)}
+        orientation={{
+          sliceNormal: [0, 1, 0],
+          viewUp: [0, 0, 1],
+        }}
+        showRotation={true}
+        paintFilterBackgroundImageData={vtkImageData}
+        // paintFilterLabelMapImageData={labelMapInputData}
+        painting={painting}
+        onChangeSlice={this.onChangeSlice.bind(this)}
+        sliderMax={Math.round(segRange.yMax)}
+        sliderMin={Math.round(segRange.yMin)}
+      />
+    )
+    MPRSagittalPanel = (
+      <View2D
+        viewerType={2}
+        parallelScale={originZBorder / 2}
+        volumes={volumes}
+        onCreated={this.storeApi(2)}
+        onDestroyed={this.deleteApi(2)}
+        orientation={{
+          sliceNormal: [-1, 0, 0],
+          viewUp: [0, 0, 1],
+        }}
+        showRotation={true}
+        paintFilterBackgroundImageData={vtkImageData}
+        // paintFilterLabelMapImageData={labelMapInputData}
+        painting={painting}
+        onChangeSlice={this.onChangeSlice.bind(this)}
+        sliderMax={Math.round(segRange.xMax)}
+        sliderMin={Math.round(segRange.xMin)}
+      />
+    )
+
     let panel
     if (mode === 1) {
       panel = threeDPanel
@@ -2314,15 +2311,76 @@ class CornerstoneElement extends Component {
           <div className="loading-list" style={loadingStyle}>
             {loadingList}
           </div>
-          <div style={MPRStyles.axial} className="mpr-viewer-container">
-            {MPRAxialPanel}
-          </div>
-          <div style={MPRStyles.coronal} className="mpr-viewer-container">
-            {MPRCoronalPanel}
-          </div>
-          <div style={MPRStyles.sagittal} className="mpr-viewer-container">
-            {MPRSagittalPanel}
-          </div>
+          <View2D
+            // axial
+            viewerStyle={MPRStyles.axial}
+            viewerType={0}
+            parallelScale={originYBorder / 2}
+            volumes={volumes}
+            onCreated={this.storeApi(0)}
+            onDestroyed={this.deleteApi(0)}
+            orientation={{
+              sliceNormal: [0, 0, 1],
+              viewUp: [0, -1, 0],
+            }}
+            showRotation={true}
+            paintFilterBackgroundImageData={vtkImageData}
+            // paintFilterLabelMapImageData={labelMapInputData}
+            painting={painting}
+            // onPaintEnd={this.onPaintEnd.bind(this)}
+            onChangeSlice={this.onChangeSlice.bind(this)}
+            sliderMax={Math.round(segRange.zMax)}
+            sliderMin={Math.round(segRange.zMin)}
+            onRef={(ref) => {
+              this.viewerAxial = ref
+            }}
+          />
+          <View2D
+            //coronal
+            viewerStyle={MPRStyles.coronal}
+            viewerType={1}
+            parallelScale={originZBorder / 2}
+            volumes={volumes}
+            onCreated={this.storeApi(1)}
+            onDestroyed={this.deleteApi(1)}
+            orientation={{
+              sliceNormal: [0, 1, 0],
+              viewUp: [0, 0, 1],
+            }}
+            showRotation={true}
+            paintFilterBackgroundImageData={vtkImageData}
+            // paintFilterLabelMapImageData={labelMapInputData}
+            painting={painting}
+            onChangeSlice={this.onChangeSlice.bind(this)}
+            sliderMax={Math.round(segRange.yMax)}
+            sliderMin={Math.round(segRange.yMin)}
+            onRef={(ref) => {
+              this.viewerCoronal = ref
+            }}
+          />
+          <View2D
+            //sagittal
+            viewerStyle={MPRStyles.sagittal}
+            viewerType={2}
+            parallelScale={originZBorder / 2}
+            volumes={volumes}
+            onCreated={this.storeApi(2)}
+            onDestroyed={this.deleteApi(2)}
+            orientation={{
+              sliceNormal: [-1, 0, 0],
+              viewUp: [0, 0, 1],
+            }}
+            showRotation={true}
+            paintFilterBackgroundImageData={vtkImageData}
+            // paintFilterLabelMapImageData={labelMapInputData}
+            painting={painting}
+            onChangeSlice={this.onChangeSlice.bind(this)}
+            sliderMax={Math.round(segRange.xMax)}
+            sliderMin={Math.round(segRange.xMin)}
+            onRef={(ref) => {
+              this.viewerSagittal = ref
+            }}
+          />
         </>
       )
       panel = MPRPanel
@@ -2334,8 +2392,6 @@ class CornerstoneElement extends Component {
           <VTK3DViewer
             viewerStyle={CPRStyles.threeD}
             actors={segments}
-            onSelectAirwayRange={this.selectAirwayRange.bind(this)}
-            onSelectAirwayRangeByWidget={this.selectAirwayRangeByWidget.bind(this)}
             onRef={(ref) => {
               this.viewer3D = ref
             }}
@@ -2343,22 +2399,76 @@ class CornerstoneElement extends Component {
           <div className="loading-list" style={loadingStyle}>
             {loadingList}
           </div>
-          <div style={CPRStyles.axial} className="cpr-viewer-container">
-            {MPRAxialPanel}
-          </div>
-          <div style={CPRStyles.coronal} className="cpr-viewer-container">
-            {MPRCoronalPanel}
-          </div>
-          <div style={CPRStyles.sagittal} className="cpr-viewer-container">
-            {MPRSagittalPanel}
-          </div>
-          {/* <VTK2DViewer
-                          viewerStyle={channelStyles.fragment}
-                          volumes={fragmentVolumes}
-                          onRef={(ref) => {
-                              this.viewerFragment = ref;
-                          }}
-                      /> */}
+          <View2D
+            // axial
+            viewerStyle={CPRStyles.axial}
+            viewerType={0}
+            parallelScale={originYBorder / 2}
+            volumes={volumes}
+            onCreated={this.storeApi(0)}
+            onDestroyed={this.deleteApi(0)}
+            orientation={{
+              sliceNormal: [0, 0, 1],
+              viewUp: [0, -1, 0],
+            }}
+            showRotation={true}
+            paintFilterBackgroundImageData={vtkImageData}
+            // paintFilterLabelMapImageData={labelMapInputData}
+            painting={painting}
+            // onPaintEnd={this.onPaintEnd.bind(this)}
+            onChangeSlice={this.onChangeSlice.bind(this)}
+            sliderMax={Math.round(segRange.zMax)}
+            sliderMin={Math.round(segRange.zMin)}
+            onRef={(ref) => {
+              this.viewerAxial = ref
+            }}
+          />
+          <View2D
+            //coronal
+            viewerStyle={CPRStyles.coronal}
+            viewerType={1}
+            parallelScale={originZBorder / 2}
+            volumes={volumes}
+            onCreated={this.storeApi(1)}
+            onDestroyed={this.deleteApi(1)}
+            orientation={{
+              sliceNormal: [0, 1, 0],
+              viewUp: [0, 0, 1],
+            }}
+            showRotation={true}
+            paintFilterBackgroundImageData={vtkImageData}
+            // paintFilterLabelMapImageData={labelMapInputData}
+            painting={painting}
+            onChangeSlice={this.onChangeSlice.bind(this)}
+            sliderMax={Math.round(segRange.yMax)}
+            sliderMin={Math.round(segRange.yMin)}
+            onRef={(ref) => {
+              this.viewerCoronal = ref
+            }}
+          />
+          <View2D
+            //sagittal
+            viewerStyle={CPRStyles.sagittal}
+            viewerType={2}
+            parallelScale={originZBorder / 2}
+            volumes={volumes}
+            onCreated={this.storeApi(2)}
+            onDestroyed={this.deleteApi(2)}
+            orientation={{
+              sliceNormal: [-1, 0, 0],
+              viewUp: [0, 0, 1],
+            }}
+            showRotation={true}
+            paintFilterBackgroundImageData={vtkImageData}
+            // paintFilterLabelMapImageData={labelMapInputData}
+            painting={painting}
+            onChangeSlice={this.onChangeSlice.bind(this)}
+            sliderMax={Math.round(segRange.xMax)}
+            sliderMin={Math.round(segRange.xMin)}
+            onRef={(ref) => {
+              this.viewerSagittal = ref
+            }}
+          />
           <VTK2DViewer
             viewerStyle={CPRStyles.airway}
             volumes={airwayCenterVolumes}
@@ -3131,18 +3241,36 @@ class CornerstoneElement extends Component {
                                         </div>
                                         </Grid>
                                     )} */}
-                        <Button icon onClick={this.toHidebox} className="funcbtn" id="showNodule" title="显示结节">
+                        {showNodules ? (
+                          <Button icon onClick={this.toHidebox} className="funcbtn" id="hideNodule" title="隐藏结节">
+                            <Icon id="cache-button" name="eye slash" size="large"></Icon>
+                          </Button>
+                        ) : (
+                          <Button icon onClick={this.toHidebox} className="funcbtn" id="showNodule" title="显示结节">
+                            <Icon id="cache-button" name="eye" size="large"></Icon>
+                          </Button>
+                        )}
+                        {/* <Button icon onClick={this.toHidebox} className="funcbtn" id="showNodule" title="显示结节">
                           <Icon id="cache-button" name="eye" size="large"></Icon>
                         </Button>
                         <Button icon onClick={this.toHidebox} className="funcbtn" id="hideNodule" title="隐藏结节">
                           <Icon id="cache-button" name="eye slash" size="large"></Icon>
-                        </Button>
-                        <Button icon onClick={this.toHideInfo} className="funcbtn" id="showInfo" title="显示信息">
+                        </Button> */}
+                        {showInfo ? (
+                          <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
+                            <Icon id="cache-button" name="delete calendar" size="large"></Icon>
+                          </Button>
+                        ) : (
+                          <Button icon onClick={this.toHideInfo} className="funcbtn" id="showInfo" title="显示信息">
+                            <Icon id="cache-button" name="content" size="large"></Icon>
+                          </Button>
+                        )}
+                        {/* <Button icon onClick={this.toHideInfo} className="funcbtn" id="showInfo" title="显示信息">
                           <Icon id="cache-button" name="content" size="large"></Icon>
                         </Button>
                         <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
                           <Icon id="cache-button" name="delete calendar" size="large"></Icon>
-                        </Button>
+                        </Button> */}
 
                         {/* <Button
                   onClick={() => {
@@ -3375,11 +3503,7 @@ class CornerstoneElement extends Component {
                         <div className={'threed-card-container'} data-aos="fade-left" data-aos-duration="1500">
                           <Tabs type="card" defaultActiveKey={1} size="small">
                             <TabPane tab={noduleNumTab} key="1">
-                              <div
-                                id="elec-table"
-                                style={{
-                                  height: (this.state.windowHeight * 1) / 2,
-                                }}>
+                              <div id="elec-table">
                                 {this.state.boxes.length === 0 ? (
                                   <div
                                     style={{
@@ -3402,11 +3526,7 @@ class CornerstoneElement extends Component {
                               </div>
                             </TabPane>
                             <TabPane tab={'肺叶'} key="2">
-                              <div
-                                id="elec-table"
-                                style={{
-                                  height: (this.state.windowHeight * 1) / 2,
-                                }}>
+                              <div id="elec-table">
                                 <Accordion styled id="lobe-accordion" fluid>
                                   {lobeContent}
                                 </Accordion>
@@ -3428,11 +3548,7 @@ class CornerstoneElement extends Component {
                       </div> */}
                             </TabPane>
                             <TabPane tab={'气管和血管'} key="3">
-                              <div
-                                id="elec-table"
-                                style={{
-                                  height: (this.state.windowHeight * 1) / 2,
-                                }}>
+                              <div id="elec-table">
                                 <Accordion styled id="tubular-accordion" fluid>
                                   {tubularContent}
                                 </Accordion>
@@ -5352,9 +5468,11 @@ class CornerstoneElement extends Component {
 
   resizeScreen(e) {
     // console.log("resizeScreen enter", document.body.clientWidth, document.body.clientHeight)
+    const verticalMode = document.body.clientWidth < document.body.clientHeight ? true : false
     this.setState({
       windowWidth: document.body.clientWidth,
       windowHeight: document.body.clientHeight,
+      verticalMode,
     })
     this.menuButtonsCalc()
     if (document.getElementsByClassName('corner-top-row') !== null && document.getElementsByClassName('corner-top-row').length > 0) {
@@ -5400,6 +5518,9 @@ class CornerstoneElement extends Component {
                     console.log('not init')
                     this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
                   }
+                  if (this.state.initialized) {
+                    this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
+                  }
                 }
               )
             }
@@ -5432,7 +5553,7 @@ class CornerstoneElement extends Component {
     // console.log('element',element)
     if (initial) {
       cornerstone.enable(element)
-      console.log('enable', cornerstone.enable(element))
+      console.log('enable', cornerstone.getEnabledElements())
       if (this.state.imageIds.length !== 0) {
         const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
         this.setState({ leftBtnSpeed: leftBtnSpeed })
@@ -6478,13 +6599,6 @@ class CornerstoneElement extends Component {
                 console.log(err)
               })
 
-            if (document.getElementById('hideNodule') != null) {
-              document.getElementById('hideNodule').style.display = 'none'
-            }
-            if (document.getElementById('hideInfo') != null) {
-              document.getElementById('hideInfo').style.display = 'none'
-            }
-
             document.getElementById('closeVisualContent').style.display = 'none'
 
             var stateListLength = this.state.boxes.length
@@ -6667,9 +6781,6 @@ class CornerstoneElement extends Component {
     }
     document.getElementById('header').style.display = 'none'
 
-    document.getElementById('hideNodule').style.display = 'none'
-    document.getElementById('hideInfo').style.display = 'none'
-
     const token = localStorage.getItem('token')
     const headers = {
       Authorization: 'Bearer '.concat(token),
@@ -6802,6 +6913,7 @@ class CornerstoneElement extends Component {
         const segments = Object.keys(urls).map((key) => null)
         const percent = Object.keys(urls).map((key) => 0)
         const listLoading = Object.keys(urls).map((key) => true)
+        console.log('urls', urls)
         this.setState({
           urls: urls,
           lobesLength,
@@ -6837,27 +6949,36 @@ class CornerstoneElement extends Component {
         console.log('lobe info request', res)
         const data = res.data
         if (data.lobes) {
-          const lobesData = data.lobes
-          lobesData.forEach((item, index) => {
-            item.index = index
-            item.order = this.state.urls[index].order
-            item.lobeName = lobeName[item.name]
+          const lobesData = []
+          data.lobes.forEach((item, index) => {
+            const lobeIndex = _.findIndex(this.state.urls, { order: item.name })
+            if (lobeIndex !== -1) {
+              item.index = this.state.urls[lobeIndex].index
+              item.lobeName = lobeName[item.name]
+              lobesData.push(item)
+            }
           })
+          lobesData.sort((a, b) => a.index - b.index)
           this.saveLobesData(lobesData)
         }
       })
-    const tubularData = [
-      {
-        name: '血管',
-        number: '未知',
-        index: 14,
-      },
-      {
+    const tubularData = []
+    const airwayIndex = _.findIndex(this.state.urls, { class: 1 })
+    if (airwayIndex !== -1) {
+      tubularData.push({
         name: '气管',
         number: '未知',
-        index: 5,
-      },
-    ]
+        index: this.state.urls[airwayIndex].index,
+      })
+    }
+    const vesselIndex = _.findIndex(this.state.urls, { class: 4 })
+    if (vesselIndex !== -1) {
+      tubularData.push({
+        name: '血管',
+        number: '未知',
+        index: this.state.urls[vesselIndex].index,
+      })
+    }
     this.saveTubularData(tubularData)
     // const lobesData = lobes.lobes
     // console.log(lobesData)
@@ -7061,12 +7182,6 @@ class CornerstoneElement extends Component {
 
     if (prevState.immersive !== this.state.immersive) {
       this.refreshImage(true, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
-      if (document.getElementById('hideNodule') != null) {
-        document.getElementById('hideNodule').style.display = 'none'
-      }
-      if (document.getElementById('hideInfo') != null) {
-        document.getElementById('hideInfo').style.display = 'none'
-      }
     }
 
     if (prevState.random !== this.state.random) {
@@ -7712,7 +7827,7 @@ class CornerstoneElement extends Component {
       },
     }
 
-    const channelStyles = {
+    const CPRStyles = {
       threeD: styleOfSelectionFour.topRight,
       axial: styleOfSelectionFour.topLeft,
       coronal: styleOfSelectionFour.bottomLeft,
@@ -7721,7 +7836,7 @@ class CornerstoneElement extends Component {
       airway: styleOfSelectionFour.bottom,
     }
 
-    return channelStyles
+    return CPRStyles
   }
   getLoadingStyle() {
     const mode = this.state.mode
@@ -7947,9 +8062,9 @@ class CornerstoneElement extends Component {
         nodulesController,
       })
 
-      if (this.state.MPR && this.state.painting && nodulesController.nodulesActive[index]) {
-        this.createNoduleMask(urlIndex)
-      }
+      // if (this.state.MPR && this.state.painting && nodulesController.nodulesActive[index]) {
+      //   this.createNoduleMask(urlIndex)
+      // }
     }
   }
   setVisible(classfication, index, urlIndex, e) {
@@ -8162,27 +8277,38 @@ class CornerstoneElement extends Component {
       this.viewer3D.setContainerSize(viewerWidth, viewerHeight)
     } else if (mode === 2) {
       const MPRStyles = this.getMPRStyles()
-      if (MPRStyles.threeD) {
-        this.viewer3D.setContainerSize(MPRStyles.threeD.width, MPRStyles.threeD.height)
-      }
+      this.viewer3D.setContainerSize(MPRStyles.threeD.width, MPRStyles.threeD.height)
     } else if (mode === 3) {
       const CPRStyles = this.getCPRStyles()
-      if (CPRStyles.threeD) {
-        this.viewer3D.setContainerSize(CPRStyles.threeD.width, CPRStyles.threeD.height)
-      }
+      this.viewer3D.setContainerSize(CPRStyles.threeD.width, CPRStyles.threeD.height)
       // if (channelStyles.fragment) {
       //     this.viewerFragment.setContainerSize(
       //         channelStyles.fragment.width,
       //         channelStyles.fragment.height
       //     );
       // }
-      if (CPRStyles.airway) {
-        this.viewerAirway.setContainerSize(CPRStyles.airway.width, CPRStyles.airway.height)
-      }
     }
-    this.setState({
-      mode: mode,
-    })
+    this.setState(
+      {
+        mode: mode,
+      },
+      () => {
+        // after rendering
+        if (mode === 2) {
+          const MPRStyles = this.getMPRStyles()
+          this.viewerAxial.setContainerSize(MPRStyles.axial.width, MPRStyles.axial.height)
+          this.viewerCoronal.setContainerSize(MPRStyles.coronal.width, MPRStyles.coronal.height)
+          this.viewerSagittal.setContainerSize(MPRStyles.sagittal.width, MPRStyles.sagittal.height)
+        }
+        if (mode === 3) {
+          const CPRStyles = this.getCPRStyles()
+          this.viewerAxial.setContainerSize(CPRStyles.axial.width, CPRStyles.axial.height)
+          this.viewerCoronal.setContainerSize(CPRStyles.coronal.width, CPRStyles.coronal.height)
+          this.viewerSagittal.setContainerSize(CPRStyles.sagittal.width, CPRStyles.sagittal.height)
+          this.viewerAirway.setContainerSize(CPRStyles.airway.width, CPRStyles.airway.height)
+        }
+      }
+    )
   }
   changeSelectedNum(selectedNum) {
     this.setState({
