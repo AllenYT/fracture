@@ -322,6 +322,7 @@ class CornerstoneElement extends Component {
       readonly: true,
       listsActiveIndex: -1, //右方list活动item
       dropDownOpen: -1,
+      histogramHeight: 208,
 
       modelResults: '<p style="color:white;">暂无结果</p>',
       annoResults: '<p style="color:white;">暂无结果</p>',
@@ -1502,6 +1503,7 @@ class CornerstoneElement extends Component {
       measureStateList,
       maskStateList,
       dateSeries,
+      histogramHeight,
 
       lobesData,
       tubularData,
@@ -3472,7 +3474,7 @@ class CornerstoneElement extends Component {
 
                       {/* </div> */}
                       {visualContent}
-                      <button id="closeVisualContent" className="closeVisualContent-cross" onClick={this.closeVisualContent}>
+                      <button id="closeVisualContent" className="closeVisualContent-cross" style={{ bottom: `${histogramHeight}px` }} onClick={this.closeVisualContent}>
                         ×
                       </button>
                     </div>
@@ -5498,6 +5500,7 @@ class CornerstoneElement extends Component {
                     this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
                   }
                   if (this.state.initialized) {
+                    console.log('initialized', this.state.currentIdx)
                     this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
                   }
                 }
@@ -5506,6 +5509,14 @@ class CornerstoneElement extends Component {
           }
         }
       )
+    }
+    if (document.getElementsByClassName('histogram') && document.getElementsByClassName('histogram').length > 0 && document.getElementById('cor-container')) {
+      const histogramClientHeight = document.getElementsByClassName('histogram')[0].clientHeight
+      const corContainerClientHeight = document.getElementById('cor-container').clientHeight
+      console.log('histogram clientHeight', histogramClientHeight + corContainerClientHeight * 0.01)
+      this.setState({
+        histogramHeight: histogramClientHeight + 20,
+      })
     }
   }
 
@@ -5563,6 +5574,7 @@ class CornerstoneElement extends Component {
 
       // }
       if (element !== undefined) {
+        console.log('loadAndCacheImage', imageId)
         cornerstone.displayImage(element, image)
       }
 
@@ -6478,7 +6490,7 @@ class CornerstoneElement extends Component {
     }
     const imageIds = this.state.imageIds
     if (this.state.modelName === 'origin') {
-      cornerstone.loadAndCacheImage(currentIdx).then((image) => {
+      loadAndCacheImagePlus(currentIdx, 1).then((image) => {
         // const readonly = readonlyResponse.data.readonly === 'true'
         // console.log('parse',dicomParser.parseDicom(image))
         const dicomTag = image.data
@@ -6511,14 +6523,13 @@ class CornerstoneElement extends Component {
           console.log('readonly', readonly)
           console.log('load display request', readonlyResponse)
           // const readonly = false
-          cornerstone.loadAndCacheImage(imageIds[currentIdx]).then((image) => {
+          loadAndCacheImagePlus(imageIds[currentIdx], 1).then((image) => {
             // console.log('image info', image.data)
             const dicomTag = image.data
 
             let draftStatus = -1
             draftStatus = readonlyResponse.data.status
             let boxes = this.state.nodules
-            if (boxes !== '') boxes.sort(this.sliceIdxSort('slice_idx'))
             for (var i = 0; i < boxes.length; i++) {
               boxes[i].nodule_no = '' + i
               boxes[i].rect_no = 'a00' + i
@@ -6749,13 +6760,32 @@ class CornerstoneElement extends Component {
       imageIds = this.props.caseData[caseDataIndex].imageIds
       nodules = this.props.caseData[caseDataIndex].nodules
     }
-    const currentIdx = noduleNo === -1 ? 0 : nodules[noduleNo].slice_idx
+    nodules.forEach((item, index) => {
+      item.prevIdx = index
+    })
+    nodules.sort(this.sliceIdxSort('slice_idx'))
+    let currentIdx
+    let listsActiveIndex
+    if (noduleNo === -1) {
+      currentIdx = 0
+      listsActiveIndex = -1
+    } else {
+      nodules.forEach((item, index) => {
+        if (item.prevIdx === noduleNo) {
+          currentIdx = item.slice_idx
+          listsActiveIndex = index
+        }
+      })
+    }
     this.setState({
       imageIds,
       nodules,
       currentIdx,
-      listsActiveIndex: noduleNo,
+      listsActiveIndex,
     })
+    loadAndCacheImagePlus(imageIds[currentIdx], 1)
+    executeTask()
+    this.loadDisplay(currentIdx)
     const boxes = nodules
     const annoImageIds = []
 
@@ -6773,20 +6803,19 @@ class CornerstoneElement extends Component {
       }
     }
     const annoPromises = annoImageIds.map((annoImageId) => {
-      return cornerstone.loadAndCacheImage(annoImageId)
+      return loadAndCacheImagePlus(annoImageId, 2)
     })
     Promise.all(annoPromises).then((value) => {
       console.log('promise', value)
     })
 
-    this.loadDisplay(currentIdx)
     this.loadStudyBrowser()
     this.loadReport()
     this.resizeScreen()
 
     const promises = imageIds.map((imageId) => {
       // console.log(imageId)
-      return cornerstone.loadAndCacheImage(imageId)
+      return loadAndCacheImagePlus(imageId, 3)
     })
     await Promise.all(promises).then((value) => {
       console.log('promise', value)

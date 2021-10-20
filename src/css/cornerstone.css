@@ -110,8 +110,8 @@ input[type='range']:focus {
 
 .closeVisualContent-cross {
   position: absolute;
-  left: 80%;
-  bottom: 23%;
+  left: 5%;
+  bottom: 50px;
   /* bottom: 225px;
   left: 940px; */
   background: transparent;
