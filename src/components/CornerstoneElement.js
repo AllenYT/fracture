@@ -851,27 +851,10 @@ class CornerstoneElement extends Component {
 
   toHideInfo() {
     this.setState(({ showInfo }) => {
-      if (document.getElementById('dicomTag')) {
-        if (showInfo) {
-          document.getElementById('dicomTag').style.display = 'none'
-        } else {
-          document.getElementById('dicomTag').style.display = ''
-        }
-      }
-
       return {
         showInfo: !showInfo,
       }
     })
-    // if (this.state.showInfo) {
-    //   document.getElementById('showInfo').style.display = 'none'
-    //   document.getElementById('hideInfo').style.display = ''
-    //   document.getElementById('dicomTag').style.display = 'none'
-    // } else {
-    //   document.getElementById('showInfo').style.display = ''
-    //   document.getElementById('hideInfo').style.display = 'none'
-    //   document.getElementById('dicomTag').style.display = ''
-    // }
   }
   onShowStudyList() {
     // const apiTool = cornerstoneTools[`RectangleRoiTool`]
@@ -1562,7 +1545,6 @@ class CornerstoneElement extends Component {
       show3DVisualization,
       studyListShowed,
     } = this.state
-
     let tableContent = ''
     let lobeContent = ''
     let tubularContent = ''
@@ -2006,7 +1988,7 @@ class CornerstoneElement extends Component {
     }
 
     dicomTagPanel =
-      dicomTag === null ? null : (
+      !showInfo || dicomTag === null ? null : (
         <div>
           <div id="dicomTag">
             <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
@@ -6545,36 +6527,6 @@ class CornerstoneElement extends Component {
               boxes[i].nodule_no = '' + i
               boxes[i].rect_no = 'a00' + i
             }
-            const annoImageIds = []
-
-            for (let i = 0; i < boxes.length; i++) {
-              let slice_idx = boxes[i].slice_idx
-              // console.log('cornerstone', slice_idx, imageIds[slice_idx])
-              for (let j = slice_idx - 5; j < slice_idx + 5; j++) {
-                // cornerstone.loadAndCacheImage(imageIds[j])
-                // if(!annoHash[this[i]]){
-                //     annoHash[this[i]] = true
-                if (j >= 0 && j < imageIds.length) {
-                  annoImageIds.push(imageIds[j])
-                }
-                // }
-              }
-            }
-            const annoPromises = annoImageIds.map((annoImageId) => {
-              return cornerstone.loadAndCacheImage(annoImageId)
-            })
-            Promise.all(annoPromises).then((value) => {
-              console.log('promise', value)
-            })
-
-            const promises = imageIds.map((imageId) => {
-              // console.log(imageId)
-              return cornerstone.loadAndCacheImage(imageId)
-            })
-            Promise.all(promises).then((value) => {
-              console.log('promise', value)
-              // console.log("111",promise)
-            })
 
             this.refreshImage(true, imageIds[this.state.currentIdx], undefined)
 
@@ -6800,10 +6752,43 @@ class CornerstoneElement extends Component {
       imageIds,
       nodules,
     })
+    const boxes = nodules
+    const annoImageIds = []
+
+    for (let i = 0; i < boxes.length; i++) {
+      let slice_idx = boxes[i].slice_idx
+      // console.log('cornerstone', slice_idx, imageIds[slice_idx])
+      for (let j = slice_idx - 5; j < slice_idx + 5; j++) {
+        // cornerstone.loadAndCacheImage(imageIds[j])
+        // if(!annoHash[this[i]]){
+        //     annoHash[this[i]] = true
+        if (j >= 0 && j < imageIds.length) {
+          annoImageIds.push(imageIds[j])
+        }
+        // }
+      }
+    }
+    const annoPromises = annoImageIds.map((annoImageId) => {
+      return cornerstone.loadAndCacheImage(annoImageId)
+    })
+    Promise.all(annoPromises).then((value) => {
+      console.log('promise', value)
+    })
+
     this.loadDisplay()
     this.loadStudyBrowser()
     this.loadReport()
     this.resizeScreen()
+
+    const promises = imageIds.map((imageId) => {
+      // console.log(imageId)
+      return cornerstone.loadAndCacheImage(imageId)
+    })
+    await Promise.all(promises).then((value) => {
+      console.log('promise', value)
+      // console.log("111",promise)
+    })
+    console.log("imageIds loading completed")
 
     await axios
       .post(
