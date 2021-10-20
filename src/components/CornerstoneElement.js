@@ -566,7 +566,6 @@ class CornerstoneElement extends Component {
     //         : index
 
     //DisplayPanel
-    this.loadDisplay = this.loadDisplay.bind(this)
     this.updateDisplay = this.updateDisplay.bind(this)
     //StudyBrowser
     this.loadStudyBrowser = this.loadStudyBrowser.bind(this)
@@ -768,10 +767,10 @@ class CornerstoneElement extends Component {
   // };
 
   handleListClick = (currentIdx, index, e) => {
-    const id = e.target.id
     console.log('dropdown', this.state.listsActiveIndex, index, currentIdx)
     if (index === this.state.listsActiveIndex) {
       this.setState({
+        listsActiveIndex: -1,
         currentIdx: currentIdx - 1,
         autoRefresh: true,
         doubleClick: false,
@@ -783,18 +782,16 @@ class CornerstoneElement extends Component {
           // this.createNoduleMask(index)
         }
       }
-      if (id !== 'del-' + id.split('-')[1]) {
-        const { listsActiveIndex } = this.state
-        const newIndex = listsActiveIndex === index ? -1 : index
+      const { listsActiveIndex } = this.state
+      const newIndex = listsActiveIndex === index ? -1 : index
 
-        this.setState({
-          listsActiveIndex: newIndex,
-          currentIdx: currentIdx - 1,
-          autoRefresh: true,
-          doubleClick: false,
-          dropDownOpen: -1,
-        })
-      }
+      this.setState({
+        listsActiveIndex: newIndex,
+        currentIdx: currentIdx - 1,
+        autoRefresh: true,
+        doubleClick: false,
+        dropDownOpen: -1,
+      })
     }
   }
 
@@ -5665,7 +5662,7 @@ class CornerstoneElement extends Component {
       const boxes = this.state.boxes
       const toIdx = this.state.boxes[noduleNo].slice_idx
       boxes[noduleNo].highlight = true
-      // console.log("1464:", boxes)
+      console.log('noduleNo:', noduleNo)
 
       this.setState({
         boxes: boxes,
@@ -5868,7 +5865,7 @@ class CornerstoneElement extends Component {
       S17: '左肺下叶外基底段',
       S18: '左肺下叶后基底段',
     }
-    const { boxes } = this.state
+    const boxes = this.state.nodules
     console.log('template', boxes)
     if (type === '影像所见') {
       let texts = ''
@@ -6468,12 +6465,12 @@ class CornerstoneElement extends Component {
     }
   }
 
-  loadDisplay() {
+  loadDisplay(currentIdx) {
     // first let's check the status to display the proper contents.
     // const pathname = window.location.pathname
     // send our token to the server, combined with the current pathname
-    let noduleNo = -1
-    if (this.props.location.hash !== '') noduleNo = parseInt(this.props.location.hash.split('#').slice(-1)[0])
+    // let noduleNo = -1
+    // if (this.props.location.hash !== '') noduleNo = parseInt(this.props.location.hash.split('#').slice(-1)[0])
 
     const token = localStorage.getItem('token')
     const headers = {
@@ -6481,7 +6478,7 @@ class CornerstoneElement extends Component {
     }
     const imageIds = this.state.imageIds
     if (this.state.modelName === 'origin') {
-      cornerstone.loadAndCacheImage(imageIds[0]).then((image) => {
+      cornerstone.loadAndCacheImage(currentIdx).then((image) => {
         // const readonly = readonlyResponse.data.readonly === 'true'
         // console.log('parse',dicomParser.parseDicom(image))
         const dicomTag = image.data
@@ -6514,21 +6511,20 @@ class CornerstoneElement extends Component {
           console.log('readonly', readonly)
           console.log('load display request', readonlyResponse)
           // const readonly = false
-          cornerstone.loadAndCacheImage(imageIds[0]).then((image) => {
+          cornerstone.loadAndCacheImage(imageIds[currentIdx]).then((image) => {
             // console.log('image info', image.data)
             const dicomTag = image.data
 
             let draftStatus = -1
             draftStatus = readonlyResponse.data.status
             let boxes = this.state.nodules
-            console.log('boxes', boxes)
             if (boxes !== '') boxes.sort(this.sliceIdxSort('slice_idx'))
             for (var i = 0; i < boxes.length; i++) {
               boxes[i].nodule_no = '' + i
               boxes[i].rect_no = 'a00' + i
             }
-
-            this.refreshImage(true, imageIds[this.state.currentIdx], undefined)
+            console.log('boxes', boxes)
+            this.refreshImage(true, imageIds[currentIdx], undefined)
 
             const params = {
               caseId: this.state.caseId,
@@ -6738,6 +6734,11 @@ class CornerstoneElement extends Component {
       Authorization: 'Bearer '.concat(token),
     }
 
+    let noduleNo = -1
+    if (this.props.location.hash !== '') {
+      noduleNo = parseInt(this.props.location.hash.split('#').slice(-1)[0])
+    }
+
     const caseDataIndex = _.findIndex(this.props.caseData, { caseId: this.state.caseId })
     let imageIds
     let nodules
@@ -6748,14 +6749,15 @@ class CornerstoneElement extends Component {
       imageIds = this.props.caseData[caseDataIndex].imageIds
       nodules = this.props.caseData[caseDataIndex].nodules
     }
+    const currentIdx = noduleNo === -1 ? 0 : nodules[noduleNo].slice_idx
     this.setState({
       imageIds,
       nodules,
+      currentIdx,
+      listsActiveIndex: noduleNo,
     })
     const boxes = nodules
     const annoImageIds = []
-
-    await cornerstone.loadAndCacheImage(imageIds[0])
 
     for (let i = 0; i < boxes.length; i++) {
       let slice_idx = boxes[i].slice_idx
@@ -6777,7 +6779,7 @@ class CornerstoneElement extends Component {
       console.log('promise', value)
     })
 
-    this.loadDisplay()
+    this.loadDisplay(currentIdx)
     this.loadStudyBrowser()
     this.loadReport()
     this.resizeScreen()
