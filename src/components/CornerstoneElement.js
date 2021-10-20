@@ -305,6 +305,7 @@ class CornerstoneElement extends Component {
       modelName: window.location.pathname.split('/')[3],
 
       //cornerstoneElement
+      initialized: false,
       viewport: cornerstone.getDefaultViewport(null, undefined),
       // imageIds: props.stack.imageIds === "" ? [] : props.stack.imageIds,
       imageIds: [],
@@ -910,7 +911,9 @@ class CornerstoneElement extends Component {
       {
         studyListShowed,
       },
-      this.resizeScreen()
+      () => {
+        this.resizeScreen()
+      }
     )
   }
   toHideMeasures(idx, e) {
@@ -1436,36 +1439,6 @@ class CornerstoneElement extends Component {
           show3DVisualization: false,
         },
         () => {
-          // const element = document.querySelector('#origin-canvas')
-          const element = this.element
-          cornerstone.enable(element)
-          cornerstone.setViewport(element, this.state.viewport)
-          cornerstone.displayImage(element, this.state.currentImage)
-          if (!this.state.immersive) {
-            cornerstoneTools.addToolForElement(element, pan)
-            cornerstoneTools.setToolActiveForElement(
-              element,
-              'Pan',
-              {
-                mouseButtonMask: 4, //middle mouse button
-              },
-              ['Mouse']
-            )
-            cornerstoneTools.addToolForElement(element, zoomWheel)
-            cornerstoneTools.setToolActiveForElement(element, 'Zoom', {
-              mouseButtonMask: 2,
-            })
-          }
-          element.addEventListener('cornerstoneimagerendered', this.onImageRendered)
-          element.addEventListener('cornerstonenewimage', this.onNewImage)
-          element.addEventListener('contextmenu', this.onRightClick)
-          // if (!this.state.readonly) {
-          element.addEventListener('mousedown', this.onMouseDown)
-          element.addEventListener('mousemove', this.onMouseMove)
-          element.addEventListener('mouseup', this.onMouseUp)
-          element.addEventListener('mouseout', this.onMouseOut)
-          element.addEventListener('mouseover', this.onMouseOver)
-
           this.resizeScreen()
         }
       )
@@ -2255,7 +2228,8 @@ class CornerstoneElement extends Component {
     let MPRAxialPanel
     let MPRCoronalPanel
     let MPRSagittalPanel
-    if (!volumes || !volumes.length) {
+    if (false) {
+      // if (!volumes || !volumes.length) {
       MPRAxialPanel = loadingPanel
       MPRCoronalPanel = loadingPanel
       MPRSagittalPanel = loadingPanel
@@ -5398,7 +5372,7 @@ class CornerstoneElement extends Component {
               const segmentContainer = document.getElementById('segment-container')
               const segmentContainerWidth = segmentContainer.clientWidth
               const segmentContainerHeight = segmentContainer.clientHeight
-              // console.log('resize3DView', segmentContainerWidth, segmentContainerHeight)
+              console.log('resize3DView', segmentContainerWidth, segmentContainerHeight)
               this.resizeViewer(segmentContainerWidth - 4, segmentContainerHeight - 4)
             }
           } else {
@@ -5410,32 +5384,24 @@ class CornerstoneElement extends Component {
               const canvasBorderHeight = canvasBorder.clientHeight
               const canvasWidth = canvasBorderWidth - 20
               const canvasHeight = canvasBorderHeight - 20
-              // console.log("resizeScreen", canvasBorderWidth,canvasBorderHeight,corContainerHeight)
+              console.log('resizeScreen', canvasBorderWidth, canvasBorderHeight, corContainerHeight)
 
               // let report = document.getElementById('report')
               // let list = document.getElementsByClassName('nodule-card-container')[0]
               // report.style.height = canvasColumn.clientHeight / 3 + 'px'
               // list.style.height = (canvasColumn.clientHeight * 2) / 3 + 'px'
-              if (cornerstone.getEnabledElements() && cornerstone.getEnabledElements().length > 0) {
-                let viewport = cornerstone.getViewport(this.element)
-                viewport.translation = {
-                  x: 0,
-                  y: 0,
+              this.setState(
+                {
+                  canvasWidth,
+                  canvasHeight,
+                },
+                () => {
+                  if (!this.state.initialized && this.state.imageCaching) {
+                    console.log('not init')
+                    this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
+                  }
                 }
-                // if (document.getElementById('origin-canvas').width > document.getElementById('origin-canvas').height) {
-                //   viewport.scale = document.getElementById('origin-canvas').width / 512
-                // } else {
-                //   viewport.scale = document.getElementById('origin-canvas').height / 512
-                // }
-                cornerstone.setViewport(this.element, viewport)
-                this.setState({
-                  viewport,
-                })
-              }
-              this.setState({
-                canvasWidth,
-                canvasHeight,
-              })
+              )
             }
           }
         }
@@ -5444,6 +5410,10 @@ class CornerstoneElement extends Component {
   }
 
   refreshImage(initial, imageId, newIdx) {
+    if (this.state.show3DVisualization) {
+      console.log('error')
+      return
+    }
     // let style = $("<style>", {type:"text/css"}).appendTo("head");
     // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (newIdx -1)*100/this.state.imageIds.length+'%)}');
     this.setState({ autoRefresh: false })
@@ -5463,6 +5433,13 @@ class CornerstoneElement extends Component {
     if (initial) {
       cornerstone.enable(element)
       console.log('enable', cornerstone.enable(element))
+      if (this.state.imageIds.length !== 0) {
+        const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
+        this.setState({ leftBtnSpeed: leftBtnSpeed })
+      }
+      this.setState({
+        initialized: true,
+      })
     } else {
       cornerstone.getEnabledElement(element)
       // console.log(cornerstone.getEnabledElement(element))
@@ -5508,10 +5485,12 @@ class CornerstoneElement extends Component {
 
       if (initial) {
         let scale = 0
-        if (document.getElementById('canvas').width > document.getElementById('canvas').height) {
-          scale = document.getElementById('canvas').width / 512
-        } else {
-          scale = document.getElementById('canvas').height / 512
+        if (document.getElementById('canvas')) {
+          if (document.getElementById('canvas').width > document.getElementById('canvas').height) {
+            scale = document.getElementById('canvas').width / 512
+          } else {
+            scale = document.getElementById('canvas').height / 512
+          }
         }
         let viewport = {
           invert: false,
@@ -6381,7 +6360,10 @@ class CornerstoneElement extends Component {
     // });
   }
 
-  updateDisplay(prevProps, prevState) {}
+  updateDisplay(prevProps, prevState) {
+    if (prevState.canvasWidth !== this.state.canvasWidth || prevState.canvasHeight !== this.state.canvasHeight) {
+    }
+  }
 
   loadDisplay() {
     // first let's check the status to display the proper contents.
@@ -6505,10 +6487,6 @@ class CornerstoneElement extends Component {
 
             document.getElementById('closeVisualContent').style.display = 'none'
 
-            if (this.state.imageIds.length !== 0) {
-              const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
-              this.setState({ leftBtnSpeed: leftBtnSpeed })
-            }
             var stateListLength = this.state.boxes.length
             var measureArr = new Array(stateListLength).fill(false)
 
@@ -6981,7 +6959,7 @@ class CornerstoneElement extends Component {
       const { actor, mapper } = this.createActorMapper(imageData)
 
       // mapper.setMaximumSamplesPerRay(2000);
-      // mapper.setSampleDistance(0.5);
+      // mapper.setSampleDistance(2);
       const volumesRange = imageData.getBounds()
       const segRange = {
         xMin: volumesRange[0],
@@ -7001,7 +6979,7 @@ class CornerstoneElement extends Component {
       // it into this array at this point.
       // const threeDimensionalPixelData = new Float32Array(numVolumePixels)
       // // Create VTK Image Data with buffer as input
-      // const labelMap = vtkImageData.newInstance() 
+      // const labelMap = vtkImageData.newInstance()
 
       // // right now only support 256 labels
       // const dataArray = vtkDataArray.newInstance({
@@ -7078,9 +7056,7 @@ class CornerstoneElement extends Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (prevState.currentIdx !== this.state.currentIdx && this.state.autoRefresh === true) {
-      if (!this.state.show3DVisualization) {
-        this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
-      }
+      this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
     }
 
     if (prevState.immersive !== this.state.immersive) {
@@ -7247,16 +7223,15 @@ class CornerstoneElement extends Component {
         numberProcessed++
 
         if (numberProcessed > reRenderTarget) {
-          console.time("volumes modified")
+          console.time('volumes modified')
           reRenderTarget += reRenderFraction
           this.state.vtkImageData.modified()
-          console.timeEnd("volumes modified")
-
+          console.timeEnd('volumes modified')
         }
         if (numberProcessed === imageIds.length) {
-          console.time("volumes modified")
+          console.time('volumes modified')
           this.state.vtkImageData.modified()
-          console.timeEnd("volumes modified")
+          console.timeEnd('volumes modified')
         }
       })
     })
@@ -7767,40 +7742,22 @@ class CornerstoneElement extends Component {
     return loadingStyle
   }
   resizeViewer(viewerWidth, viewerHeight) {
-    console.log('resizeViewer', viewerWidth, viewerHeight)
     if (typeof viewerWidth == 'undefined') {
       viewerWidth = this.state.viewerWidth
     }
     if (typeof viewerHeight == 'undefined') {
       viewerHeight = this.state.viewerHeight
     }
-    const mode = this.state.mode
-    this.setState({
-      viewerWidth,
-      viewerHeight,
-    })
-    if (mode === 1) {
-      this.viewer3D.setContainerSize(viewerWidth, viewerHeight)
-    } else if (mode === 2) {
-      const MPRStyles = this.getMPRStyles()
-      if (MPRStyles.threeD) {
-        this.viewer3D.setContainerSize(MPRStyles.threeD.width, MPRStyles.threeD.height)
+    console.log('resizeViewer', viewerWidth, viewerHeight)
+    this.setState(
+      {
+        viewerWidth,
+        viewerHeight,
+      },
+      () => {
+        this.changeMode(this.state.mode)
       }
-    } else if (mode === 3) {
-      const CPRStyles = this.getCPRStyles()
-      if (CPRStyles.threeD) {
-        this.viewer3D.setContainerSize(CPRStyles.threeD.width, CPRStyles.threeD.height)
-      }
-      // if (channelStyles.fragment) {
-      //     this.viewerFragment.setContainerSize(
-      //         channelStyles.fragment.width,
-      //         channelStyles.fragment.height
-      //     );
-      // }
-      if (CPRStyles.airway) {
-        this.viewerAirway.setContainerSize(CPRStyles.airway.width, CPRStyles.airway.height)
-      }
-    }
+    )
   }
   // keydown(e) {
   //   // e.which : +/187, -/189
@@ -8200,18 +8157,32 @@ class CornerstoneElement extends Component {
     })
   }
   changeMode(mode) {
-    if (mode === 2 && this.state.mode === 3) {
-    }
-    if (mode === 3 && this.state.mode === 2) {
-    }
-    this.setState(
-      {
-        mode: mode,
-      },
-      () => {
-        this.resizeViewer()
+    const { viewerWidth, viewerHeight } = this.state
+    if (mode === 1) {
+      this.viewer3D.setContainerSize(viewerWidth, viewerHeight)
+    } else if (mode === 2) {
+      const MPRStyles = this.getMPRStyles()
+      if (MPRStyles.threeD) {
+        this.viewer3D.setContainerSize(MPRStyles.threeD.width, MPRStyles.threeD.height)
       }
-    )
+    } else if (mode === 3) {
+      const CPRStyles = this.getCPRStyles()
+      if (CPRStyles.threeD) {
+        this.viewer3D.setContainerSize(CPRStyles.threeD.width, CPRStyles.threeD.height)
+      }
+      // if (channelStyles.fragment) {
+      //     this.viewerFragment.setContainerSize(
+      //         channelStyles.fragment.width,
+      //         channelStyles.fragment.height
+      //     );
+      // }
+      if (CPRStyles.airway) {
+        this.viewerAirway.setContainerSize(CPRStyles.airway.width, CPRStyles.airway.height)
+      }
+    }
+    this.setState({
+      mode: mode,
+    })
   }
   changeSelectedNum(selectedNum) {
     this.setState({
@@ -8430,7 +8401,7 @@ class CornerstoneElement extends Component {
       if (!strokeOnFrame) {
         continue
       }
-      console.log("strokeOnFrame", " i", i);
+      console.log('strokeOnFrame', ' i', i)
     }
   }
 
