@@ -1,7 +1,7 @@
 // task-helper.js
 let taskPool = [] // 请求池
 let numRequest = 0 // 正在执行数量
-let maxRequest = 8 // 可配置
+let maxRequest = 30 // 可配置
 let taskTimer // 轮训的定时器
 let cachedTask = {} // 存放的任务数据
 

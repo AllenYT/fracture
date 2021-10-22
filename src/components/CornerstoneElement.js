@@ -53,8 +53,9 @@ import loadImageData from '../vtk/lib/loadImageData'
 import vtkSVGRotatableCrosshairsWidget from '../vtk/VTKViewport/vtkSVGRotatableCrosshairsWidget'
 import vtkInteractorStyleRotatableMPRCrosshairs from '../vtk/VTKViewport/vtkInteractorStyleRotatableMPRCrosshairs'
 import vtkInteractorStyleMPRWindowLevel from '../vtk/VTKViewport/vtkInteractorStyleMPRWindowLevel'
-import VTK2DViewer from '../components/VTK2DViewer'
-import VTK3DViewer from '../components/VTK3DViewer'
+import VTK2DViewer from './VTK2DViewer'
+import VTK3DViewer from './VTK3DViewer'
+import VTKMaskViewer from './VTKMaskViewer'
 import { frenet } from '../lib/frenet'
 import { loadAndCacheImagePlus } from '../lib/cornerstoneImageRequest'
 import { executeTask } from '../lib/taskHelper'
@@ -322,7 +323,6 @@ class CornerstoneElement extends Component {
       readonly: true,
       listsActiveIndex: -1, //右方list活动item
       dropDownOpen: -1,
-      histogramHeight: 208,
 
       modelResults: '<p style="color:white;">暂无结果</p>',
       annoResults: '<p style="color:white;">暂无结果</p>',
@@ -353,6 +353,7 @@ class CornerstoneElement extends Component {
       isPlaying: false,
       windowWidth: document.body.clientWidth,
       windowHeight: document.body.clientHeight,
+      histogramHeight: 0,
       verticalMode: false,
       slideSpan: 0,
       preListActiveIdx: -1,
@@ -389,8 +390,10 @@ class CornerstoneElement extends Component {
       windowWidth: window.screen.width,
       windowHeight: window.screen.height,
       bottomRowHeight: 0,
-      viewerWidth: 1200,
-      viewerHeight: 800,
+      viewerWidth: 0,
+      viewerHeight: 0,
+      maskWidth: 0,
+      maskHeight: 0,
 
       /*3d数据*/
       urls: [],
@@ -412,6 +415,7 @@ class CornerstoneElement extends Component {
       centerLinePoints: [],
       airwayCenterVolumes: [],
       fragmentVolumes: [],
+      maskVolumes: [],
 
       /*辅助数据*/
       lobesLength: 0,
@@ -423,6 +427,7 @@ class CornerstoneElement extends Component {
       originXBorder: 1,
       originYBorder: 1,
       originZBorder: 1,
+      maskYLength: 0,
       segRange: {
         xMax: -Infinity,
         yMax: -Infinity,
@@ -523,7 +528,6 @@ class CornerstoneElement extends Component {
     this.ZoomIn = this.ZoomIn.bind(this)
     this.ZoomOut = this.ZoomOut.bind(this)
     this.imagesFilp = this.imagesFilp.bind(this)
-    this.visualize = this.visualize.bind(this)
     this.handleLogout = this.handleLogout.bind(this)
     this.handleLogin = this.handleLogin.bind(this)
     this.toHideInfo = this.toHideInfo.bind(this)
@@ -644,6 +648,7 @@ class CornerstoneElement extends Component {
     } else {
       dom.style.width = (1380 * this.state.windowWidth) / 1800 + 'px'
     }
+
     let bins = hist_data.bins
     let ns = hist_data.n
     if (echarts.getInstanceByDom(dom)) {
@@ -718,6 +723,13 @@ class CornerstoneElement extends Component {
         },
       ],
     })
+    if (document.getElementById(visId) && document.getElementById('closeVisualContent')) {
+      const histogramClientHeight = document.getElementById(visId).clientHeight
+      const closeClientHeight = document.getElementById('closeVisualContent').clientHeight
+      this.setState({
+        histogramHeight: histogramClientHeight + 30 - closeClientHeight,
+      })
+    }
   }
 
   wcSlider = (e, { name, value }) => {
@@ -780,7 +792,7 @@ class CornerstoneElement extends Component {
     } else {
       if (this.state.show3DVisualization) {
         if (this.state.MPR && this.state.painting) {
-          // this.createNoduleMask(index)
+          this.createNoduleMask(index)
         }
       }
       const { listsActiveIndex } = this.state
@@ -1281,7 +1293,7 @@ class CornerstoneElement extends Component {
     console.log('特征分析')
     // const boxes = this.state.selectBoxes
     const boxes = this.state.boxes
-    console.log('boxes', boxes, e.target.value)
+    // console.log('boxes', boxes, e.target.value)
     if (boxes[idx] !== undefined) {
       console.log('boxes', boxes[idx])
       var hist = boxes[idx].nodule_hist
@@ -1377,7 +1389,7 @@ class CornerstoneElement extends Component {
     if (centerPanel) {
       centerPanel.style.transform = 'rotateY(180deg)'
     }
-    const rightTopPanel = document.getElementsByClassName('nodule-card-container')[0]
+    const rightTopPanel = document.getElementById('nodule-card-container')
     if (rightTopPanel) {
       rightTopPanel.style.transform = 'translateY(-200px)'
       rightTopPanel.style.opacity = 0
@@ -1409,10 +1421,15 @@ class CornerstoneElement extends Component {
     if (centerPanel) {
       centerPanel.style.transform = 'rotateY(180deg)'
     }
-    const threeDList = document.getElementsByClassName('list-tab')[0]
+    const threeDList = document.getElementById('threed-card-tabs')
     if (threeDList) {
-      threeDList.style.transform = 'translateX(200px)'
+      threeDList.style.transform = 'translateY(-200px)'
       threeDList.style.opacity = 0
+    }
+    const threeDMask = document.getElementById('threed-mask-container')
+    if (threeDMask) {
+      threeDMask.style.transform = 'translateY(200px)'
+      threeDMask.style.opacity = 0
     }
     flipTimer = setTimeout(() => {
       this.setState({
@@ -1514,6 +1531,8 @@ class CornerstoneElement extends Component {
       viewerWidth,
       viewerHeight,
       bottomRowHeight,
+      maskWidth,
+      maskHeight,
       displayCrosshairs,
       labelThreshold,
       paintRadius,
@@ -1534,6 +1553,10 @@ class CornerstoneElement extends Component {
       segRange,
       airwayPicking,
       airwayCenterVolumes,
+      maskVolumes,
+      maskYLength,
+      maskImageData,
+      maskLabelMap,
       lineActors,
 
       menuButtonsWidth,
@@ -2200,6 +2223,7 @@ class CornerstoneElement extends Component {
             height: viewerHeight,
           }}
           actors={[].concat(segments)}
+          onSelectAirwayRange={this.selectAirwayRange.bind(this)}
           onRef={(ref) => {
             this.viewer3D = ref
           }}
@@ -2208,70 +2232,6 @@ class CornerstoneElement extends Component {
           {loadingList}
         </div>
       </>
-    )
-    let MPRAxialPanel
-    let MPRCoronalPanel
-    let MPRSagittalPanel
-    MPRAxialPanel = (
-      <View2D
-        viewerType={0}
-        parallelScale={originYBorder / 2}
-        volumes={volumes}
-        onCreated={this.storeApi(0)}
-        onDestroyed={this.deleteApi(0)}
-        orientation={{
-          sliceNormal: [0, 0, 1],
-          viewUp: [0, -1, 0],
-        }}
-        showRotation={true}
-        paintFilterBackgroundImageData={vtkImageData}
-        // paintFilterLabelMapImageData={labelMapInputData}
-        painting={painting}
-        // onPaintEnd={this.onPaintEnd.bind(this)}
-        onChangeSlice={this.onChangeSlice.bind(this)}
-        sliderMax={Math.round(segRange.zMax)}
-        sliderMin={Math.round(segRange.zMin)}
-      />
-    )
-    MPRCoronalPanel = (
-      <View2D
-        viewerType={1}
-        parallelScale={originZBorder / 2}
-        volumes={volumes}
-        onCreated={this.storeApi(1)}
-        onDestroyed={this.deleteApi(1)}
-        orientation={{
-          sliceNormal: [0, 1, 0],
-          viewUp: [0, 0, 1],
-        }}
-        showRotation={true}
-        paintFilterBackgroundImageData={vtkImageData}
-        // paintFilterLabelMapImageData={labelMapInputData}
-        painting={painting}
-        onChangeSlice={this.onChangeSlice.bind(this)}
-        sliderMax={Math.round(segRange.yMax)}
-        sliderMin={Math.round(segRange.yMin)}
-      />
-    )
-    MPRSagittalPanel = (
-      <View2D
-        viewerType={2}
-        parallelScale={originZBorder / 2}
-        volumes={volumes}
-        onCreated={this.storeApi(2)}
-        onDestroyed={this.deleteApi(2)}
-        orientation={{
-          sliceNormal: [-1, 0, 0],
-          viewUp: [0, 0, 1],
-        }}
-        showRotation={true}
-        paintFilterBackgroundImageData={vtkImageData}
-        // paintFilterLabelMapImageData={labelMapInputData}
-        painting={painting}
-        onChangeSlice={this.onChangeSlice.bind(this)}
-        sliderMax={Math.round(segRange.xMax)}
-        sliderMin={Math.round(segRange.xMin)}
-      />
     )
 
     let panel
@@ -2285,6 +2245,7 @@ class CornerstoneElement extends Component {
           <VTK3DViewer
             viewerStyle={MPRStyles.threeD}
             actors={segments}
+            onSelectAirwayRange={this.selectAirwayRange.bind(this)}
             onRef={(ref) => {
               this.viewer3D = ref
             }}
@@ -2307,7 +2268,7 @@ class CornerstoneElement extends Component {
             showRotation={true}
             paintFilterBackgroundImageData={vtkImageData}
             // paintFilterLabelMapImageData={labelMapInputData}
-            painting={painting}
+            // painting={painting}
             // onPaintEnd={this.onPaintEnd.bind(this)}
             onChangeSlice={this.onChangeSlice.bind(this)}
             sliderMax={Math.round(segRange.zMax)}
@@ -2329,9 +2290,6 @@ class CornerstoneElement extends Component {
               viewUp: [0, 0, 1],
             }}
             showRotation={true}
-            paintFilterBackgroundImageData={vtkImageData}
-            // paintFilterLabelMapImageData={labelMapInputData}
-            painting={painting}
             onChangeSlice={this.onChangeSlice.bind(this)}
             sliderMax={Math.round(segRange.yMax)}
             sliderMin={Math.round(segRange.yMin)}
@@ -2352,9 +2310,6 @@ class CornerstoneElement extends Component {
               viewUp: [0, 0, 1],
             }}
             showRotation={true}
-            paintFilterBackgroundImageData={vtkImageData}
-            // paintFilterLabelMapImageData={labelMapInputData}
-            painting={painting}
             onChangeSlice={this.onChangeSlice.bind(this)}
             sliderMax={Math.round(segRange.xMax)}
             sliderMin={Math.round(segRange.xMin)}
@@ -2373,6 +2328,7 @@ class CornerstoneElement extends Component {
           <VTK3DViewer
             viewerStyle={CPRStyles.threeD}
             actors={segments}
+            onSelectAirwayRange={this.selectAirwayRange.bind(this)}
             onRef={(ref) => {
               this.viewer3D = ref
             }}
@@ -2394,9 +2350,6 @@ class CornerstoneElement extends Component {
             }}
             showRotation={true}
             paintFilterBackgroundImageData={vtkImageData}
-            // paintFilterLabelMapImageData={labelMapInputData}
-            painting={painting}
-            // onPaintEnd={this.onPaintEnd.bind(this)}
             onChangeSlice={this.onChangeSlice.bind(this)}
             sliderMax={Math.round(segRange.zMax)}
             sliderMin={Math.round(segRange.zMin)}
@@ -2417,9 +2370,6 @@ class CornerstoneElement extends Component {
               viewUp: [0, 0, 1],
             }}
             showRotation={true}
-            paintFilterBackgroundImageData={vtkImageData}
-            // paintFilterLabelMapImageData={labelMapInputData}
-            painting={painting}
             onChangeSlice={this.onChangeSlice.bind(this)}
             sliderMax={Math.round(segRange.yMax)}
             sliderMin={Math.round(segRange.yMin)}
@@ -2440,9 +2390,6 @@ class CornerstoneElement extends Component {
               viewUp: [0, 0, 1],
             }}
             showRotation={true}
-            paintFilterBackgroundImageData={vtkImageData}
-            // paintFilterLabelMapImageData={labelMapInputData}
-            painting={painting}
             onChangeSlice={this.onChangeSlice.bind(this)}
             sliderMax={Math.round(segRange.xMax)}
             sliderMin={Math.round(segRange.xMin)}
@@ -3017,120 +2964,117 @@ class CornerstoneElement extends Component {
                   <span className="menu-line"></span>
                   {show3DVisualization ? (
                     <>
-                      <Button.Group hidden={!show3DVisualization}>
-                        {MPR ? (
-                          <>
-                            <Button icon className="funcbtn" hidden={!MPR} onClick={this.handleFuncButton.bind(this, 'STMPR')} title="取消MPR">
-                              <Icon className="icon-custom icon-custom-mpr-hide" size="large" />
-                            </Button>
-                            <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'RC')} title="重置相机" description="reset camera">
-                              <Icon name="redo" size="large" />
-                            </Button>
-                            {/* <Button icon className='funcbtn' active={crosshairsTool} onClick={this.handleFuncButton.bind(this, "TC")} title="十字线" description="toggle crosshairs"><Icon name='plus' size='large'/></Button> */}
-                            <Button icon className="funcbtn" hidden={!displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'HC')} title="隐藏十字线" description="hidden crosshairs">
-                              <Icon className="icon-custom icon-custom-HC" size="large" />
-                            </Button>
-                            <Button icon className="funcbtn" hidden={displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'SC')} title="显示十字线" description="show crosshairs">
-                              <Icon className="icon-custom icon-custom-SC" size="large" />
-                            </Button>
-
-                            {/* <Button icon className="funcbtn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} title="停止勾画" description="end painting">
-                              <Icon name="window close outline" size="large" />
-                            </Button>
-                            <Button icon className="funcbtn" hidden={painting} onClick={this.handleFuncButton.bind(this, 'BP')} title="开始勾画" description="begin painting">
-                              <Icon name="paint brush" size="large" />
-                            </Button>
-                            <Button icon className="funcbtn" hidden={!painting} active={!erasing} onClick={this.handleFuncButton.bind(this, 'DP')} title="勾画" description="do painting">
-                              <Icon name="paint brush" size="large" />
-                            </Button>
-                            <Button icon className="funcbtn" hidden={!painting} active={erasing} onClick={this.handleFuncButton.bind(this, 'DE')} title="擦除" description="do erasing">
-                              <Icon name="eraser" size="large" />
-                            </Button>
-                            <Popup
-                              on="click"
-                              trigger={
-                                <Button icon className="funcbtn" hidden={!painting}>
-                                  <Icon name="dot circle" size="large" />
-                                </Button>
-                              }
-                              position="bottom center"
-                              style={{
-                                backgroundColor: '#021c38',
-                                borderColor: '#021c38',
-                                width: '200px',
-                                padding: '2px 4px 2px 4px',
-                              }}>
-                              <div>
-                                <div className="segment-widget-radius-container">
-                                  画笔半径:
-                                  <Slider
-                                    className="segment-widget-radius-slider"
-                                    value={paintRadius}
-                                    min={1}
-                                    step={1}
-                                    max={10}
-                                    tooltipVisible={false}
-                                    onChange={this.changeRadius.bind(this)}
-                                    onAfterChange={this.afterChangeRadius.bind(this)}
-                                  />
-                                </div>
-                                <div className="segment-label-threshold-container">
-                                  标记阈值:
-                                  <Slider
-                                    className="segment-label-threshold-slider"
-                                    value={labelThreshold}
-                                    min={100}
-                                    step={100}
-                                    max={1000}
-                                    tooltipVisible={false}
-                                    onChange={this.changeThreshold.bind(this)}
-                                    onAfterChange={this.afterChangeThreshold.bind(this)}
-                                  />
-                                </div>
-                              </div>
-                            </Popup>
-                            <Popup
-                              on="click"
-                              trigger={
-                                <Button icon className="funcbtn" hidden={!painting}>
-                                  <Icon name="eye dropper" size="large" />
-                                </Button>
-                              }
-                              position="bottom center"
-                              style={{
-                                backgroundColor: '#021c38',
-                                borderColor: '#021c38',
-                                width: '150px',
-                                padding: '2px 4px 2px 4px',
-                              }}>
-                              <div className="segment-label-color-selector">
-                                颜色选择器：
-                                <InputColor initialValue="#FF0000" onChange={this.setPaintColor.bind(this)} placement="right" />
-                              </div>
-                            </Popup> */}
-                            <span className="menu-line"></span>
-                            {CPR ? (
-                              <>
-                                <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'STCPR')} title="取消CPR" hidden={!CPR}>
-                                  <Icon name="window close outline" size="large" />
-                                </Button>
-                                <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'RA')} title="重建气道" description="reconstruct airway">
-                                  <Icon className="icon-custom icon-custom-RA" size="large" />
-                                </Button>
-                              </>
-                            ) : (
-                              <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'CPR')} title="CPR" hidden={CPR}>
-                                <Icon className="icon-custom icon-custom-CPR" size="large" />
+                      {MPR ? (
+                        <Button.Group>
+                          <Button icon className="funcbtn" hidden={!MPR} onClick={this.handleFuncButton.bind(this, 'STMPR')} title="取消MPR">
+                            <Icon className="icon-custom icon-custom-mpr-hide" size="large" />
+                          </Button>
+                          <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'RC')} title="重置相机" description="reset camera">
+                            <Icon name="redo" size="large" />
+                          </Button>
+                          {/* <Button icon className='funcbtn' active={crosshairsTool} onClick={this.handleFuncButton.bind(this, "TC")} title="十字线" description="toggle crosshairs"><Icon name='plus' size='large'/></Button> */}
+                          <Button icon className="funcbtn" hidden={!displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'HC')} title="隐藏十字线" description="hidden crosshairs">
+                            <Icon className="icon-custom icon-custom-HC" size="large" />
+                          </Button>
+                          <Button icon className="funcbtn" hidden={displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'SC')} title="显示十字线" description="show crosshairs">
+                            <Icon className="icon-custom icon-custom-SC" size="large" />
+                          </Button>
+                          <Button icon className="funcbtn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} title="停止勾画" description="end painting">
+                            <Icon name="window close outline" size="large" />
+                          </Button>
+                          <Button icon className="funcbtn" hidden={painting} onClick={this.handleFuncButton.bind(this, 'BP')} title="开始勾画" description="begin painting">
+                            <Icon name="paint brush" size="large" />
+                          </Button>
+                          <Button icon className="funcbtn" hidden={!painting} active={!erasing} onClick={this.handleFuncButton.bind(this, 'DP')} title="勾画" description="do painting">
+                            <Icon name="paint brush" size="large" />
+                          </Button>
+                          <Button icon className="funcbtn" hidden={!painting} active={erasing} onClick={this.handleFuncButton.bind(this, 'DE')} title="擦除" description="do erasing">
+                            <Icon name="eraser" size="large" />
+                          </Button>
+                          <Popup
+                            on="click"
+                            trigger={
+                              <Button icon className="funcbtn" hidden={!painting}>
+                                <Icon name="dot circle" size="large" />
                               </Button>
-                            )}
-                          </>
-                        ) : (
-                          <>
-                            <Button icon className="funcbtn" hidden={MPR} onClick={this.handleFuncButton.bind(this, 'MPR')} title="MPR">
-                              <Icon className="icon-custom icon-custom-mpr-show" size="large" />
+                            }
+                            position="bottom center"
+                            style={{
+                              backgroundColor: '#021c38',
+                              borderColor: '#021c38',
+                              width: '200px',
+                              padding: '2px 4px 2px 4px',
+                            }}>
+                            <div>
+                              <div className="segment-widget-radius-container">
+                                画笔半径:
+                                <Slider
+                                  className="segment-widget-radius-slider"
+                                  value={paintRadius}
+                                  min={1}
+                                  step={1}
+                                  max={10}
+                                  tooltipVisible={false}
+                                  onChange={this.changeRadius.bind(this)}
+                                  onAfterChange={this.afterChangeRadius.bind(this)}
+                                />
+                              </div>
+                              <div className="segment-label-threshold-container">
+                                标记阈值:
+                                <Slider
+                                  className="segment-label-threshold-slider"
+                                  value={labelThreshold}
+                                  min={100}
+                                  step={100}
+                                  max={1000}
+                                  tooltipVisible={false}
+                                  onChange={this.changeThreshold.bind(this)}
+                                  onAfterChange={this.afterChangeThreshold.bind(this)}
+                                />
+                              </div>
+                            </div>
+                          </Popup>
+                          <Popup
+                            on="click"
+                            trigger={
+                              <Button icon className="funcbtn" hidden={!painting}>
+                                <Icon name="eye dropper" size="large" />
+                              </Button>
+                            }
+                            position="bottom center"
+                            style={{
+                              backgroundColor: '#021c38',
+                              borderColor: '#021c38',
+                              width: '150px',
+                              padding: '2px 4px 2px 4px',
+                            }}>
+                            <div className="segment-label-color-selector">
+                              颜色选择器：
+                              <InputColor initialValue="#FF0000" onChange={this.setPaintColor.bind(this)} placement="right" />
+                            </div>
+                          </Popup>
+                          {CPR ? (
+                            <>
+                              <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'STCPR')} title="取消CPR" hidden={!CPR}>
+                                <Icon name="window close outline" size="large" />
+                              </Button>
+                              <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'RA')} title="重建气道" description="reconstruct airway">
+                                <Icon className="icon-custom icon-custom-RA" size="large" />
+                              </Button>
+                            </>
+                          ) : (
+                            <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'CPR')} title="CPR" hidden={CPR}>
+                              <Icon className="icon-custom icon-custom-CPR" size="large" />
                             </Button>
-                          </>
-                        )}
+                          )}
+                        </Button.Group>
+                      ) : (
+                        <Button icon className="funcbtn" hidden={MPR} onClick={this.handleFuncButton.bind(this, 'MPR')} title="MPR">
+                          <Icon className="icon-custom icon-custom-mpr-show" size="large" />
+                        </Button>
+                      )}
+                      <span className="menu-line"></span>
+                      <Button.Group>
                         <Button icon onClick={this.onShowStudyList.bind(this)} className="funcbtn" title="历史检查">
                           <Icon name="history" size="large"></Icon>
                         </Button>
@@ -3480,39 +3424,39 @@ class CornerstoneElement extends Component {
                     </div>
                     <div className={'corner-list-block' + (studyListShowed ? ' corner-list-contract-block' : '') + (verticalMode ? ' corner-list-vertical-block' : ' corner-list-horizontal-block')}>
                       {show3DVisualization ? (
-                        // <Tab className="list-tab" panes={panes3D} data-aos="fade-left" data-aos-duration="1500" />
-                        <div className={'threed-card-container'} data-aos="fade-left" data-aos-duration="1500">
-                          <Tabs type="card" defaultActiveKey={1} size="small">
-                            <TabPane tab={noduleNumTab} key="1">
-                              <div id="elec-table">
-                                {this.state.boxes.length === 0 ? (
-                                  <div
-                                    style={{
-                                      height: '100%',
-                                      background: '#021c38',
-                                      display: 'flex',
-                                      justifyContent: 'center',
-                                      alignItems: 'center',
-                                    }}>
-                                    <Header as="h2" inverted>
-                                      <Icon name="low vision" />
-                                      <Header.Content>未检测出任何结节</Header.Content>
-                                    </Header>
-                                  </div>
-                                ) : (
-                                  <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
-                                    {tableContent}
+                        <>
+                          <div id={'threed-card-container'}>
+                            <Tabs id="threed-card-tabs" type="card" defaultActiveKey={1} size="small" data-aos="fade-down" data-aos-duration="1500">
+                              <TabPane tab={noduleNumTab} key="1">
+                                <div id="elec-table">
+                                  {this.state.boxes.length === 0 ? (
+                                    <div
+                                      style={{
+                                        height: '100%',
+                                        background: '#021c38',
+                                        display: 'flex',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                      }}>
+                                      <Header as="h2" inverted>
+                                        <Icon name="low vision" />
+                                        <Header.Content>未检测出任何结节</Header.Content>
+                                      </Header>
+                                    </div>
+                                  ) : (
+                                    <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
+                                      {tableContent}
+                                    </Accordion>
+                                  )}
+                                </div>
+                              </TabPane>
+                              <TabPane tab={'肺叶'} key="2">
+                                <div id="elec-table">
+                                  <Accordion styled id="lobe-accordion" fluid>
+                                    {lobeContent}
                                   </Accordion>
-                                )}
-                              </div>
-                            </TabPane>
-                            <TabPane tab={'肺叶'} key="2">
-                              <div id="elec-table">
-                                <Accordion styled id="lobe-accordion" fluid>
-                                  {lobeContent}
-                                </Accordion>
-                              </div>
-                              {/* <div className="segment-list-block">
+                                </div>
+                                {/* <div className="segment-list-block">
                         <Table celled inverted>
                           <Table.Header>
                             <Table.Row>
@@ -3527,14 +3471,14 @@ class CornerstoneElement extends Component {
                           {lobesOp}
                         </div>
                       </div> */}
-                            </TabPane>
-                            <TabPane tab={'气管和血管'} key="3">
-                              <div id="elec-table">
-                                <Accordion styled id="tubular-accordion" fluid>
-                                  {tubularContent}
-                                </Accordion>
-                              </div>
-                              {/* <div className="segment-list-block">
+                              </TabPane>
+                              <TabPane tab={'气管和血管'} key="3">
+                                <div id="elec-table">
+                                  <Accordion styled id="tubular-accordion" fluid>
+                                    {tubularContent}
+                                  </Accordion>
+                                </div>
+                                {/* <div className="segment-list-block">
                         <Table celled selectable inverted>
                           <Table.Header>
                             <Table.Row>
@@ -3548,13 +3492,35 @@ class CornerstoneElement extends Component {
                           {tubularOp}
                         </div>
                       </div> */}
-                            </TabPane>
-                          </Tabs>
-                        </div>
+                              </TabPane>
+                            </Tabs>
+                          </div>
+
+                          <div id="threed-mask-container" data-aos="fade-up" data-aos-duration="1500">
+                            {MPR && painting && maskVolumes && maskVolumes.length ? (
+                              <VTKMaskViewer
+                                viewerStyle={{ width: `${maskWidth}px`, height: `${maskHeight}px` }}
+                                volumes={maskVolumes}
+                                maskWidth={maskWidth}
+                                maskHeight={maskHeight}
+                                paintFilterBackgroundImageData={maskImageData}
+                                paintFilterLabelMapImageData={maskLabelMap}
+                                painting={painting}
+                                parallelScale={maskYLength / 2}
+                                onRef={(ref) => {
+                                  this.viewerMask = ref
+                                }}
+                              />
+                            ) : (
+                              <></>
+                            )}
+                          </div>
+                        </>
                       ) : (
                         <div className={'ct-list-container'}>
                           <div
-                            className={'nodule-card-container' + (verticalMode ? ' nodule-card-container-vertical' : ' nodule-card-container-horizontal')}
+                            id="nodule-card-container"
+                            className={verticalMode ? 'nodule-card-container-vertical' : 'nodule-card-container-horizontal'}
                             data-aos="fade-down"
                             data-aos-duration="1500">
                             <Tabs type="card" animated defaultActiveKey={1} size="small">
@@ -5474,6 +5440,13 @@ class CornerstoneElement extends Component {
               console.log('resize3DView', segmentContainerWidth, segmentContainerHeight)
               this.resizeViewer(segmentContainerWidth - 4, segmentContainerHeight - 4)
             }
+            if (document.getElementById('threed-mask-container')) {
+              const threedMaskContainer = document.getElementById('threed-mask-container')
+              this.setState({
+                maskWidth: threedMaskContainer.clientWidth,
+                maskHeight: threedMaskContainer.clientHeight,
+              })
+            }
           } else {
             if (document.getElementById('canvas-border') !== null && document.getElementById('cor-container') != null) {
               const corContainer = document.getElementById('cor-container')
@@ -5510,19 +5483,17 @@ class CornerstoneElement extends Component {
         }
       )
     }
-    if (document.getElementsByClassName('histogram') && document.getElementsByClassName('histogram').length > 0 && document.getElementById('cor-container')) {
-      const histogramClientHeight = document.getElementsByClassName('histogram')[0].clientHeight
-      const corContainerClientHeight = document.getElementById('cor-container').clientHeight
-      console.log('histogram clientHeight', histogramClientHeight + corContainerClientHeight * 0.01)
-      this.setState({
-        histogramHeight: histogramClientHeight + 20,
-      })
+    if (document.getElementById(`visual-${this.state.listsActiveIndex}`) && document.getElementById('closeVisualContent')) {
+      // const visualPanel = document.getElementById(`visual-${this.state.listsActiveIndex}`)
+      if (document.getElementById('closeVisualContent').style.display !== 'none') {
+        this.featureAnalysis(this.state.listsActiveIndex)
+      }
     }
   }
 
   refreshImage(initial, imageId, newIdx) {
     if (this.state.show3DVisualization) {
-      console.log('error')
+      console.log('3Ding')
       return
     }
     // let style = $("<style>", {type:"text/css"}).appendTo("head");
@@ -6558,8 +6529,6 @@ class CornerstoneElement extends Component {
                 console.log(err)
               })
 
-            document.getElementById('closeVisualContent').style.display = 'none'
-
             var stateListLength = this.state.boxes.length
             var measureArr = new Array(stateListLength).fill(false)
 
@@ -6730,7 +6699,8 @@ class CornerstoneElement extends Component {
     this.apis = []
     window.addEventListener('resize', this.resizeScreen.bind(this))
     // this.getNoduleIfos()
-    // this.visualize()
+    document.getElementById('closeVisualContent').style.display = 'none'
+
     if (localStorage.getItem('token') == null) {
       sessionStorage.setItem(
         'location',
@@ -7356,15 +7326,11 @@ class CornerstoneElement extends Component {
         numberProcessed++
 
         if (numberProcessed > reRenderTarget) {
-          console.time('volumes modified')
           reRenderTarget += reRenderFraction
           this.state.vtkImageData.modified()
-          console.timeEnd('volumes modified')
         }
         if (numberProcessed === imageIds.length) {
-          console.time('volumes modified')
           this.state.vtkImageData.modified()
-          console.timeEnd('volumes modified')
         }
       })
     })
@@ -7703,6 +7669,7 @@ class CornerstoneElement extends Component {
         left: 0,
         width: viewerWidth / 2,
         height: viewerHeight / 2,
+        borderRight: '2px solid #d1d1d1e0',
       },
       topRight: {
         position: 'absolute',
@@ -7717,6 +7684,8 @@ class CornerstoneElement extends Component {
         left: 0,
         width: viewerWidth / 2,
         height: viewerHeight / 2,
+        borderRight: '2px solid #d1d1d1e0',
+        borderTop: '2px solid #d1d1d1e0',
       },
       bottomRight: {
         position: 'absolute',
@@ -7724,6 +7693,7 @@ class CornerstoneElement extends Component {
         left: viewerWidth / 2,
         width: viewerWidth / 2,
         height: viewerHeight / 2,
+        borderTop: '2px solid #d1d1d1e0',
       },
     }
     // MPR selected
@@ -7807,6 +7777,7 @@ class CornerstoneElement extends Component {
         left: 0,
         width: viewerWidth * 0.5,
         height: viewerHeight * 0.4,
+        borderRight: '2px solid #d1d1d1e0',
       },
       topRight: {
         position: 'absolute',
@@ -7821,6 +7792,8 @@ class CornerstoneElement extends Component {
         left: 0,
         width: viewerWidth * 0.5,
         height: viewerHeight * 0.4,
+        borderRight: '2px solid #d1d1d1e0',
+        borderTop: '2px solid #d1d1d1e0',
       },
       bottomRight: {
         position: 'absolute',
@@ -7828,6 +7801,7 @@ class CornerstoneElement extends Component {
         left: viewerWidth * 0.5,
         width: viewerWidth * 0.5,
         height: viewerHeight * 0.4,
+        borderTop: '2px solid #d1d1d1e0',
       },
       middle: {
         position: 'absolute',
@@ -7842,6 +7816,7 @@ class CornerstoneElement extends Component {
         left: 0,
         width: viewerWidth,
         height: viewerHeight * 0.2,
+        borderTop: '2px solid #d1d1d1e0',
       },
     }
 
@@ -7962,57 +7937,65 @@ class CornerstoneElement extends Component {
     })
   }
 
-  changePaintRadius(radius) {
-    const apis = this.apis
-
-    apis.forEach((api, index) => {
-      const paintWidget = api.widgets[0]
-      const paintFilter = api.filters[0]
-      paintWidget.setRadius(radius)
-      paintFilter.setRadius(radius)
-    })
-  }
   updateLabelDataByThreshold() {
     const threshold = this.state.labelThreshold
     const dimensions = this.state.dimensions
     const labelData = this.state.labelData
+    const range = labelData.range
+    const minX = range.minX - 15
+    const maxX = range.maxX + 15
+    const minY = range.minY - 15
+    const maxY = range.maxY + 15
 
-    const { minX, maxX, minY, maxY, minZ, maxZ } = labelData.range
-
-    const indices = labelData.range
-    indices.splice(0, indices.length)
+    const z = labelData.z
+    const xLength = labelData.xLength
     const scalarsDataOfImageData = this.state.vtkImageData.getPointData().getScalars().getData()
-
-    for (let z = minZ; z < maxZ; z++) {
-      for (let y = minY; y < maxY; y++) {
-        for (let x = minX; x < maxX; x++) {
-          const index = x + y * dimensions[0] + (z - 1) * dimensions[0] * dimensions[1]
-          if (scalarsDataOfImageData[index] > threshold - 1024) {
-            indices.push(index)
+    const indices = []
+    // for (let y = minY; y < maxY; y++) {
+    //   for (let x = minX; x < maxX; x++) {
+    //     const index = x + y * dimensions[0] + (z - 1) * dimensions[0] * dimensions[1]
+    //     if (scalarsDataOfImageData[index] > threshold - 1024) {
+    //       indices.push(index)
+    //     }
+    //   }
+    // }
+    for (let y = minY; y < maxY; y++) {
+      for (let x = minX; x < maxX; x++) {
+        const index = x + y * dimensions[0] + (z - 1) * dimensions[0] * dimensions[1]
+        if (scalarsDataOfImageData[index] > threshold - 1024) {
+          if (x >= range.minX && x < range.maxX && y >= range.minY && y < range.maxY) {
+            indices.push(x - minX + (y - minY) * xLength)
           }
         }
       }
     }
-
-    const labelMapInputData = this.state.labelMapInputData
+    const labelMapInputData = labelData.labelMap
     const scalarsData = labelMapInputData.getPointData().getScalars().getData()
-
+    scalarsData.forEach((item, index) => {
+      scalarsData[index] = 0
+    })
     indices.forEach((item) => {
       scalarsData[item] = 1
     })
 
     labelMapInputData.modified()
+    labelData.labelMap = labelMapInputData
+    console.log('update label', labelData.indices.length, indices.length)
+    labelData.indices = indices
+    this.setState({
+      labelData,
+      maskLabelMap: labelMapInputData,
+    })
   }
   updateLabelDataByColor() {
     const labelColor = this.state.labelColor
-    const apis = this.apis
-
-    apis.forEach((api, apiIndex) => {
-      api.setSegmentRGB(1, labelColor)
-    })
+    this.viewerMask.setSegmentRGB(1, labelColor)
   }
   changeRadius(e) {
     const radius = e
+    this.setState({
+      paintRadius: radius,
+    })
   }
   afterChangeRadius(e) {
     const radius = e
@@ -8025,8 +8008,14 @@ class CornerstoneElement extends Component {
       }
     )
   }
+  changePaintRadius(radius) {
+    this.viewerMask.setPaintFilterRadius(radius)
+  }
   changeThreshold(e) {
     const threshold = e
+    this.setState({
+      labelThreshold: threshold,
+    })
   }
   afterChangeThreshold(e) {
     const threshold = e
@@ -8079,10 +8068,6 @@ class CornerstoneElement extends Component {
       this.setState({
         nodulesController,
       })
-
-      // if (this.state.MPR && this.state.painting && nodulesController.nodulesActive[index]) {
-      //   this.createNoduleMask(urlIndex)
-      // }
     }
   }
   setVisible(classfication, index, urlIndex, e) {
@@ -8377,23 +8362,13 @@ class CornerstoneElement extends Component {
     this.setState({
       erasing: false,
     })
-    const apis = this.apis
-
-    apis.forEach((api, index) => {
-      const paintFilter = api.filters[0]
-      paintFilter.setLabel(1)
-    })
+    this.viewerMask.setPaintFilterLabel(1)
   }
   doErase() {
     this.setState({
       erasing: true,
     })
-    const apis = this.apis
-
-    apis.forEach((api, index) => {
-      const paintFilter = api.filters[0]
-      paintFilter.setLabel(0)
-    })
+    this.viewerMask.setPaintFilterLabel(0)
   }
   endPaint() {
     this.setState({
@@ -8456,40 +8431,154 @@ class CornerstoneElement extends Component {
   }
 
   createNoduleMask(idx) {
+    console.log('createNoduleMask', idx)
     const labelDataArray = this.state.labelDataArray
     let labelData = labelDataArray[idx]
+    let worldPos
 
     if (!labelData) {
-      const segment = this.state.segments[idx]
+      const segmentIndex = _.findIndex(this.state.urls, { class: 2, order: this.state.nodules[idx].prevIdx + 1 })
+      const segment = this.state.segments[segmentIndex]
       const bounds = segment.getBounds()
-      console.log('nowtime bounds', bounds)
       const firstPicked = [bounds[0], bounds[2], bounds[4]]
       const lastPicked = [bounds[1], bounds[3], bounds[5]]
+      const origin = [Math.round((firstPicked[0] + lastPicked[0]) / 2), Math.round((firstPicked[1] + lastPicked[1]) / 2), Math.round((firstPicked[2] + lastPicked[2]) / 2)]
+      worldPos = origin
+
+      const xLength = Math.round(Math.abs(bounds[1] - bounds[0])) + 40
+      const yLength = Math.round(Math.abs(bounds[3] - bounds[2])) + 40
+      const newImageData = vtkImageData.newInstance()
 
       const firstOriginIndex = this.transform3DPickedToOriginIndex(firstPicked)
       const lastOriginIndex = this.transform3DPickedToOriginIndex(lastPicked)
-      labelData = this.createLabelData(firstOriginIndex, lastOriginIndex)
+      let minX = Math.round(Math.min(firstOriginIndex[0], lastOriginIndex[0])) - 20
+      let maxX = Math.round(Math.max(firstOriginIndex[0], lastOriginIndex[0])) + 20
+      let minY = Math.round(Math.min(firstOriginIndex[1], lastOriginIndex[1])) - 20
+      let maxY = Math.round(Math.max(firstOriginIndex[1], lastOriginIndex[1])) + 20
 
-      // const firstOrigin = this.transform3DPickedToOrigin(firstPicked);
-      // const lastOrigin = this.transform3DPickedToOrigin(lastPicked);
-      const origin = [Math.round((firstPicked[0] + lastPicked[0]) / 2), Math.round((firstPicked[1] + lastPicked[1]) / 2), Math.round((firstPicked[2] + lastPicked[2]) / 2)]
-      console.log('nowtime origin', origin)
-      labelData.origin = origin
+      const range = { minX: minX + 15, maxX: maxX - 15, minY: minY + 15, maxY: maxY - 15 }
+
+      const z = Math.round((firstOriginIndex[2] + lastOriginIndex[2]) / 2)
+
+      const newPixelArray = new Float32Array(xLength * yLength * 5).fill(-1024)
+      const dimensions = this.state.dimensions
+      const scalarsData = this.state.vtkImageData.getPointData().getScalars().getData()
+      const indices = []
+
+      for (let y = minY; y < maxY; y++) {
+        for (let x = minX; x < maxX; x++) {
+          newPixelArray[x - minX + (y - minY) * xLength] = scalarsData[x + y * dimensions[0] + (z - 1) * dimensions[0] * dimensions[1]]
+          if (newPixelArray[x - minX + (y - minY) * xLength] > this.state.labelThreshold - 1024) {
+            if (x >= range.minX && x < range.maxX && y >= range.minY && y < range.maxY) {
+              indices.push(x - minX + (y - minY) * xLength)
+            }
+          }
+        }
+      }
+      const newScalarArray = vtkDataArray.newInstance({
+        name: 'Pixels',
+        values: newPixelArray,
+      })
+      newImageData.setDimensions(xLength, yLength, 5)
+      // newImageData.setSpacing(spacing)
+      // newImageData.setOrigin(origin)
+      // newImageData.computeTransforms();
+      newImageData.getPointData().setScalars(newScalarArray)
+
+      const actor = vtkVolume.newInstance()
+      const mapper = vtkVolumeMapper.newInstance()
+      mapper.setInputData(newImageData)
+      actor.setMapper(mapper)
+
+      const rgbTransferFunction = actor.getProperty().getRGBTransferFunction(0)
+
+      const voi = this.state.voi
+
+      const low = voi.windowCenter - voi.windowWidth / 2
+      const high = voi.windowCenter + voi.windowWidth / 2
+
+      rgbTransferFunction.setMappingRange(low, high)
+
+      const labelMapPixelArray = new Float32Array(xLength * yLength * 5).fill(-1024)
+      indices.forEach((item) => {
+        labelMapPixelArray[item] = 1
+      })
+      // Create VTK Image Data with buffer as input
+      const labelMap = vtkImageData.newInstance()
+
+      labelMap.getPointData().setScalars(
+        vtkDataArray.newInstance({
+          numberOfComponents: 1, // labelmap with single component
+          values: labelMapPixelArray,
+        })
+      )
+      labelMap.setDimensions(xLength, yLength, 5)
+      labelMap.setSpacing(...newImageData.getSpacing())
+      labelMap.setOrigin(...newImageData.getOrigin())
+      labelMap.setDirection(...newImageData.getDirection())
+      labelData = {
+        idx,
+        indices,
+        origin,
+        range,
+        z,
+        imageData: newImageData,
+        labelMap,
+        volumes: actor,
+        xLength: xLength,
+        yLength: yLength,
+      }
+
       labelDataArray[idx] = labelData
+      this.setState({
+        maskImageData: newImageData,
+        maskLabelMap: labelMap,
+        maskVolumes: [actor],
+        maskYLength: yLength,
+        labelDataArray,
+        labelData,
+      })
+    } else {
+      worldPos = labelData.origin
+      this.setState({
+        maskImageData: labelData.imageData,
+        maskLabelMap: labelData.labelMap,
+        maskVolumes: [labelData.volumes],
+        maskYLength: labelData.yLength,
+        labelData,
+      })
     }
 
-    const indices = labelData.indices
-    const labelMapInputData = this.state.labelMapInputData
-    const scalarsData = labelMapInputData.getPointData().getScalars().getData()
+    // if (!labelData) {
+    //   const segment = this.state.segments[idx]
+    //   const bounds = segment.getBounds()
+    //   console.log('nowtime bounds', bounds)
+    //   const firstPicked = [bounds[0], bounds[2], bounds[4]]
+    //   const lastPicked = [bounds[1], bounds[3], bounds[5]]
 
-    indices.forEach((item) => {
-      scalarsData[item] = 1
-    })
+    //   const firstOriginIndex = this.transform3DPickedToOriginIndex(firstPicked)
+    //   const lastOriginIndex = this.transform3DPickedToOriginIndex(lastPicked)
+    //   labelData = this.createLabelData(firstOriginIndex, lastOriginIndex)
 
-    labelMapInputData.modified()
+    //   // const firstOrigin = this.transform3DPickedToOrigin(firstPicked);
+    //   // const lastOrigin = this.transform3DPickedToOrigin(lastPicked);
+    //   const origin = [Math.round((firstPicked[0] + lastPicked[0]) / 2), Math.round((firstPicked[1] + lastPicked[1]) / 2), Math.round((firstPicked[2] + lastPicked[2]) / 2)]
+    //   console.log('nowtime origin', origin)
+    //   labelData.origin = origin
+    //   labelDataArray[idx] = labelData
+    // }
+
+    // const indices = labelData.indices
+    // const labelMapInputData = this.state.labelMapInputData
+    // const scalarsData = labelMapInputData.getPointData().getScalars().getData()
+
+    // indices.forEach((item) => {
+    //   scalarsData[item] = 1
+    // })
+
+    // labelMapInputData.modified()
 
     const apis = this.apis
-    const worldPos = labelData.origin
     apis[0].svgWidgets.rotatableCrosshairsWidget.moveCrosshairs(worldPos, apis, 0)
     const renderWindow = apis[0].genericRenderWindow.getRenderWindow()
     const istyle = renderWindow.getInteractor().getInteractorStyle()
@@ -8670,6 +8759,9 @@ class CornerstoneElement extends Component {
         }
       })
       console.log('seleted points', points)
+      if (!points.length) {
+        alert('没有选中')
+      }
       this.setState(
         {
           points,

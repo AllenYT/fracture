@@ -180,13 +180,6 @@ export default class View2D extends Component {
     })
     this.updatePaintbrush()
 
-    const svgWidgetManager = vtkSVGWidgetManager.newInstance()
-
-    svgWidgetManager.setRenderer(this.renderer)
-    svgWidgetManager.setScale(1)
-
-    this.svgWidgetManager = svgWidgetManager
-
     // TODO: Not sure why this is necessary to force the initial draw
     this.genericRenderWindow.resize()
 
@@ -310,6 +303,13 @@ export default class View2D extends Component {
     this.paintFilter = vtkPaintFilter.newInstance()
     this.paintFilter.setLabel(label)
     this.paintFilter.setRadius(radius)
+
+    const svgWidgetManager = vtkSVGWidgetManager.newInstance()
+
+    svgWidgetManager.setRenderer(this.renderer)
+    svgWidgetManager.setScale(1)
+
+    this.svgWidgetManager = svgWidgetManager
     // trigger pipeline update
     // this.componentDidUpdate({})
     this.renderWindow.render()
@@ -596,9 +596,10 @@ export default class View2D extends Component {
   afterChangeSlice(e) {}
 
   componentDidUpdate(prevProps, prevState) {
-    console.time('componentDidUpdate')
     if (!prevState.initialized && this.state.initialized) {
+      console.time('volumes init')
       this.initVolumes()
+      console.timeEnd('volumes init')
     }
     // if (prevProps.volumes !== this.props.volumes) {
     //   // this.props.volumes.forEach((volume) => {
@@ -748,7 +749,6 @@ export default class View2D extends Component {
         this.genericRenderWindow.resize()
       }
     }
-    console.timeEnd('componentDidUpdate')
   }
 
   componentWillUnmount() {
