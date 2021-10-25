@@ -626,7 +626,7 @@ input:focus {
 .ui.button.funcbtn {
   min-width: 50px;
   height: 50px;
-  font-size: large;
+  /* font-size: large; */
   background-color: #010c29;
   color: rgb(212, 212, 212);
   padding: 0;

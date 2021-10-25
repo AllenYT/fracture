@@ -44,13 +44,14 @@ class SeriesIdList extends Component {
       const params = {
         caseId: item['caseId'],
       }
+
       axios
         .post(this.config.draft.getDataPath, qs.stringify(params), { headers })
         .then((res) => {
           console.log('result from server', res.data)
           console.log('params', params)
           const oa = document.createElement('a')
-          oa.href = '/case/' + params.caseId + '/' + res.data
+          oa.href = '/case/' + params.caseId.replace('#', '%23') + '/' + res.data
           oa.setAttribute('target', '_blank')
           oa.setAttribute('rel', 'nofollow noreferrer')
           document.body.appendChild(oa)

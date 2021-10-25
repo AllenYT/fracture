@@ -49,6 +49,7 @@ export const getNodulesByCaseId = (url, caseId, username) => (dispatch) => {
         })
       )
       .then((res) => {
+        console.log('RECEIVE_NODULES', res)
         dispatch({
           type: 'RECEIVE_NODULES',
           nodules: res.data,

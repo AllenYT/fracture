@@ -301,7 +301,7 @@ class CornerstoneElement extends Component {
     super(props)
     this.state = {
       // displayPanel
-      caseId: window.location.pathname.split('/case/')[1].split('/')[0],
+      caseId: window.location.pathname.split('/case/')[1].split('/')[0].replace('%23', '#'),
       username: localStorage.getItem('username'),
       modelName: window.location.pathname.split('/')[3],
 
@@ -6631,7 +6631,7 @@ class CornerstoneElement extends Component {
     })
   }
   async componentDidMount() {
-    console.log('componentDidMount')
+    console.log('componentDidMount', this.state.caseId)
     if (localStorage.getItem('username') === null && window.location.pathname !== '/') {
       const ipPromise = new Promise((resolve, reject) => {
         axios.post(this.config.user.getRemoteAddr).then((addrResponse) => {
@@ -6730,6 +6730,7 @@ class CornerstoneElement extends Component {
       imageIds = this.props.caseData[caseDataIndex].imageIds
       nodules = this.props.caseData[caseDataIndex].nodules
     }
+
     nodules.forEach((item, index) => {
       item.prevIdx = index
     })
@@ -7482,7 +7483,7 @@ class CornerstoneElement extends Component {
     const color = this.state.urls[idx].color
     const cl = this.state.urls[idx].class
     const cur_url = this.state.urls[idx].url + '?caseId=' + this.state.caseId
-    HttpDataAccessHelper.fetchBinary(cur_url, { progressCallback }).then((binary) => {
+    HttpDataAccessHelper.fetchBinary(cur_url.replace("#", "%23"), { progressCallback }).then((binary) => {
       // let opacity = 1.0
       let actor
       if (cl === 0) {
