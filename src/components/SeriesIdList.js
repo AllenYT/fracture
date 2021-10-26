@@ -85,8 +85,17 @@ class SeriesIdList extends Component {
   }
 
   validValue(value) {
-    if (this.props.cart.has(value)) return true;
-    else return false;
+    let has = false;
+    if (this.props.cart && this.props.cart.size) {
+      this.props.cart.forEach((v) => {
+        if (value.caseId === v.caseId) {
+          has = true;
+        }
+      });
+    }
+    return has;
+    // if (this.props.cart.has(value)) return true;
+    // else return false;
   }
   popupEnter(index) {
     console.log("popupEnter", index);
@@ -315,6 +324,7 @@ class SeriesIdList extends Component {
 
     // if (dataValidContnt.length !== 0) {
     resultsPopup = content.map((item, index) => {
+      console.log("getCart", item);
       const idName = item.caseId + "_" + index;
       var popupContent = "";
       var dataValidbyCaseId = "";
@@ -402,7 +412,7 @@ class SeriesIdList extends Component {
       } else {
         statusIcon = <SyncOutlined spin />;
       }
-
+      const itemChecked = this.validValue(item);
       return (
         <div key={index} className={"seriesidlist-popup-item"}>
           <div className={"seriesidlist-popup-item-left"}>
@@ -411,7 +421,7 @@ class SeriesIdList extends Component {
                 // id={idName}
                 onChange={this.storeCaseId}
                 item={item}
-                checked={this.validValue(item)}
+                checked={itemChecked}
                 style={CheckboxDis}
               ></Checkbox>
             </div>

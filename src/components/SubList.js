@@ -61,8 +61,21 @@ class SubList extends Component {
 
   getCheckedSeries = (result, params) => {
     let currentCart = this.state.cart;
-    if (params.status === "add") currentCart.add(params.value);
-    else currentCart.delete(params.value);
+    console.log("getCheckedSeries before", currentCart);
+    if (params.status === "add") {
+      currentCart.add(params.value);
+    } else {
+      let deleteItem = -1;
+      currentCart.forEach((v) => {
+        if (v.caseId === params.value.caseId) {
+          deleteItem = v;
+        }
+      });
+      if (deleteItem !== -1) {
+        currentCart.delete(deleteItem);
+      }
+    }
+    console.log("getCheckedSeries after", currentCart);
     // currentCart.add(Math.random())
     this.setState({
       cart: currentCart,
@@ -96,6 +109,7 @@ class SubList extends Component {
         .then((res) => {
           if (res.data.status === "okay") {
             const cartString = res.data.cart;
+            console.log("getCart", cartString);
             let cart_lst = cartString;
             let cart_set = new Set(cart_lst);
             this.setState({ cart: cart_set });
