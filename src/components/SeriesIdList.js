@@ -69,13 +69,13 @@ class SeriesIdList extends Component {
     }
   }
 
-  storeCaseId(e, { checked, value, id }) {
+  storeCaseId(e, { checked, item, id }) {
     console.log("checked", checked);
-    console.log(value);
+    console.log(item);
     let params = {};
-    if (checked) params = { status: "add", value: value };
+    if (checked) params = { status: "add", value: item };
     else {
-      params = { status: "del", value: value };
+      params = { status: "del", value: item };
     }
     this.props.parent.getCheckedSeries(this, params);
   }

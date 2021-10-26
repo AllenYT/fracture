@@ -1000,10 +1000,20 @@ export class SearchNodulePanel extends Component {
             .then((res) => {
               console.log(queueParams);
               console.log(res.data.status);
-              if (res.data.status === "ok") {
-                alert("创建队列'" + text + "'成功!");
-                this.setState({ load: false });
+              let responseStatus;
+              if (res.data && res.data.status) {
+                responseStatus = res.data.status;
               }
+              if (responseStatus === "ok") {
+                alert("创建队列'" + text + "'成功!");
+              } else if (responseStatus === "failed") {
+                alert("创建失败");
+              } else if (responseStatus === "existed") {
+                alert("队列名已存在");
+              } else if (responseStatus === "no patient") {
+                alert("未选中结节");
+              }
+              this.setState({ load: false });
             })
             .catch((err) => {
               console.log(err);
