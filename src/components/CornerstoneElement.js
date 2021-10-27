@@ -8166,7 +8166,8 @@ class CornerstoneElement extends Component {
       const lobesController = this.state.lobesController
       lobesController.lobesVisible[index] = !lobesController.lobesVisible[index]
       if (lobesController.lobesVisible[index]) {
-        this.setSegmentOpacity(urlIndex, lobesController.lobesOpacities[index])
+        console.log("setVisible", lobesController.lobesOpacities[index])
+        this.setSegmentOpacity(urlIndex, lobesController.lobesOpacities[index] / 100)
       } else {
         this.setSegmentOpacity(urlIndex, 0)
       }
@@ -8178,7 +8179,7 @@ class CornerstoneElement extends Component {
       const tubularController = this.state.tubularController
       tubularController.tubularVisible[index] = !tubularController.tubularVisible[index]
       if (tubularController.tubularVisible[index]) {
-        this.setSegmentOpacity(urlIndex, tubularController.tubularOpacities[index])
+        this.setSegmentOpacity(urlIndex, tubularController.tubularOpacities[index] / 100)
       } else {
         this.setSegmentOpacity(urlIndex, 0)
       }
@@ -8190,7 +8191,7 @@ class CornerstoneElement extends Component {
       const nodulesController = this.state.nodulesController
       nodulesController.nodulesVisible[index] = !nodulesController.nodulesVisible[index]
       if (nodulesController.nodulesVisible[index]) {
-        this.setSegmentOpacity(urlIndex, nodulesController.nodulesOpacities[index])
+        this.setSegmentOpacity(urlIndex, nodulesController.nodulesOpacities[index] / 100)
       } else {
         this.setSegmentOpacity(urlIndex, 0)
       }
@@ -8531,8 +8532,8 @@ class CornerstoneElement extends Component {
         class: 2,
         order: parseInt(this.state.nodules[idx].nodule_no) + 1,
       })
-      if(segmentIndex === -1){
-        alert("用户新增结节，没有分割结果")
+      if (segmentIndex === -1) {
+        alert('用户新增结节，没有分割结果')
         return
       }
       const segment = this.state.segments[segmentIndex]
