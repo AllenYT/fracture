@@ -4,12 +4,36 @@ h3.ant-typography,
 }
 
 .current-nodule-accordion-title {
-  color: white;
+  color: white !important;
   font: white;
   background-color: rgba(7, 116, 211, 0.466);
 }
 
 .current-nodule-accordion-content {
+  background-color: rgba(17, 87, 148, 0.466);
+}
+.current-nodule-accordion{
+  overflow-y:scroll;
+  max-height: 220px;
+}
+.ant-typography{
+  color: white;
+}
+
+.register-nodule-match-card{
+  color: white;
+}
+
+.register-nodule-new-card{
+  color:white;
+}
+
+.register-nodule-previews-card{
+  color: white;
+}
+
+.BoxesAccord-Row{
+  height: 220px;
   background-color: rgba(17, 87, 148, 0.466);
 }
 
@@ -68,9 +92,28 @@ h3.ant-typography,
   border: none;
 }
 
-.doublingTimeText {
+.doublingTypeText {
   color: white;
   font-size: 12px;
+}
+
+.VDTText{
+  color: white;
+  font-size: 10px;
+}
+
+.MDTText{
+  color: white;
+  font-size: 10px;
+}
+
+.match-checkbox{
+  width: 100%;
+
+}
+
+.ant-checkbox-wrapper{
+  color: white;
 }
 
 .all-nodule-table {

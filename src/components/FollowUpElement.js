@@ -37,12 +37,14 @@ import {
 import src1 from "../images/scu-logo.jpg";
 
 import * as echarts from "echarts/lib/echarts";
+import { convertLegacyProps } from "_antd@4.16.8@antd/lib/button/button";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
 const { TabPane } = Tabs;
 cornerstoneTools.external.cornerstone = cornerstone;
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+// cornerstoneTools.external.Drawing = Drawing;
 // cornerstoneWebImageLoader.external.cornerstone = cornerstone
 cornerstoneWadoImageLoader.external.cornerstone = cornerstone;
 cornerstoneWadoImageLoader.external.dicomParser = dicomParser;
@@ -52,8 +54,8 @@ cornerstoneTools.toolColors.setActiveColor("rgb(0, 255, 0)");
 cornerstoneTools.toolColors.setToolColor("rgb(255, 255, 0)");
 
 // const config = require('../config.json')
-// const segmentConfig = config.segment
-// const dangerLevelConfig = config.dangerLevel
+// const segment = config.segment
+// const dangerLevel = config.dangerLevel
 // const densityConfig = config.density
 
 const lungLoc = {
@@ -180,6 +182,8 @@ class FollowUpElement extends Component {
     this.nextPath = this.nextPath.bind(this);
     this.startRegistering = this.startRegistering.bind(this);
     this.noduleTblCheckboxChange = this.noduleTblCheckboxChange.bind(this);
+    this.drawCustomRectangleRoi = this.drawCustomRectangleRoi.bind(this);
+    // this.onKeydown = this.onKeydown.bind(this);
   }
 
   componentDidMount() {
@@ -193,49 +197,7 @@ class FollowUpElement extends Component {
       return cornerstone.loadAndCacheImage(preImageId);
     });
 
-    Promise.all([curImagePromise, preImagePromise]).then(() => {
-      const targets = document.getElementsByClassName("viewport-element");
-      const currentTarget = targets[0];
-      for (let i = 0; i < curBoxes.length; i++) {
-        console.log("box", curBoxes[i]);
-
-        cornerstoneTools.addToolState(currentTarget, "RectangleRoi", {
-          visible: false,
-          active: true,
-          color: undefined,
-          invalidated: true,
-          handles: {
-            start: {
-              x: curBoxes[i].x1,
-              y: curBoxes[i].y1,
-              highlight: true,
-              active: false,
-            },
-            end: {
-              x: curBoxes[i].x2,
-              y: curBoxes[i].y2,
-              highlight: true,
-              active: false,
-            },
-            textBox: {
-              active: false,
-              hasMoved: false,
-              movesIndependently: false,
-              drawnIndependently: true,
-              allowedOutsideImage: true,
-              hasBoundingBox: true,
-            },
-          },
-        });
-        const toolData = cornerstoneTools.getToolState(
-          currentTarget,
-          "RectangleRoi"
-        );
-        curBoxes[i].uuid = toolData["data"][toolData.length - 1];
-        console.log(toolData);
-        // }
-      }
-    });
+    Promise.all([curImagePromise, preImagePromise]).then(() => {});
 
     var templateText = "";
     console.log("curBox", curBoxes);
@@ -331,25 +293,7 @@ class FollowUpElement extends Component {
       }
     }
     this.setState({ templateText: templateText, curBoxes: curBoxes });
-
-    //drawROI
-    // const curBoxes = this.state.curBoxes;
-    // const preBoxes = this.state.preBoxes;
-    // const targets = document.getElementsByClassName("viewport-element");
-    // console.log("targets", targets);
-    // const currentTarget = targets[0];
-    // // const currentTarget = this.state.newCornerstoneElement;
-    // console.log("currentTarget", currentTarget);
-    // cornerstone.enable(currentTarget);
-    // const stack = {
-    //   currentImageIdIndex: this.state.currentIdx,
-    //   imageIds: this.state.curImageIds,
-    // };
-    // console.log("stack", stack);
-    // cornerstoneTools.addStackStateManager(currentTarget, ["stack"]);
-    // cornerstoneTools.addToolState(currentTarget, "stack", stack);
-
-    // this.setState({ curBoxes: curBoxes });
+    // document.addEventListener("keydown", this.onKeydown);
   }
 
   componentWillMount() {
@@ -385,6 +329,32 @@ class FollowUpElement extends Component {
 
     this.setState({ isRegistering: true });
   }
+
+  // onKeydown(event) {
+  //   console.log(event.which);
+
+  //   if (event.which == 38) {
+  //     //切换结节list
+  //     event.preventDefault();
+  //     const curListsActiveIndex = this.state.curListsActiveIndex;
+  //     // if (curListsActiveIndex > 0) this.keyDownListSwitch(curListsActiveIndex - 1);
+  //   }
+
+  //   if (event.which == 40) {
+  //     //切换结节list
+  //     event.preventDefault();
+  //     // const listsActiveIndex = this.state.listsActiveIndex;
+  //     // // const boxes = this.state.selectBoxes
+  //     // let boxes = this.state.boxes;
+  //     // if (listsActiveIndex < boxes.length - 1) {
+  //     //   console.log("listsActiveIndex", listsActiveIndex);
+  //     //   this.keyDownListSwitch(listsActiveIndex + 1);
+  //     // } else if (listsActiveIndex === boxes.length - 1) {
+  //     //   console.log("listsActiveIndex", listsActiveIndex);
+  //     //   this.keyDownListSwitch(0);
+  //     // }
+  //   }
+  // }
 
   onLungLocationChange = (idx, status, val) => {
     if (status === "current") {
@@ -453,54 +423,300 @@ class FollowUpElement extends Component {
     console.log("measurements", e);
   }
 
-  handleListClick = (currentIdx, index, status) => {
+  handleListClick = (currentIdx, index, status, event) => {
     //点击list-item
     if (status === "current") {
       const { curListsActiveIndex } = this.state;
       const newIndex = curListsActiveIndex === index ? -1 : index;
       console.log("curidx", index, curListsActiveIndex);
-      this.setState({
-        curListsActiveIndex: newIndex,
-        curImageIdIndex: currentIdx - 1,
-        currentIdx: currentIdx,
-      });
-      const { curBoxes } = this.state;
       const targets = document.getElementsByClassName("viewport-element");
-      const currentTarget = targets[0];
-      // const stack = {
-      //   currentImageIdIndex: this.state.currentIdx,
-      //   imageIds: this.state.curImageIds,
-      // };
-      // console.log("stack", stack);
-      // cornerstoneTools.addStackStateManager(currentTarget, ["stack"]);
-      // cornerstoneTools.addToolState(currentTarget, "stack", stack);
-      const toolData = cornerstoneTools.getToolState(
-        currentTarget,
-        "RectangleRoi"
-      );
-      console.log("toolData", toolData);
-      for (let i = 0; i < curBoxes.length; i++) {
-        console.log("box", curBoxes[i]);
-        for (let j = 0; j < toolData.length; j++) {
-          if (curBoxes[i].uuid !== toolData[j].uuid) {
-            toolData[j].visible = false;
-          } else {
-            toolData[j].visible = true;
+      this.setState(
+        {
+          curListsActiveIndex: newIndex,
+          curImageIdIndex: currentIdx - 1,
+          currentIdx: currentIdx,
+        },
+        () => {
+          const { curBoxes, curImageIds } = this.state;
+          const currentTarget = targets[0];
+          var toolData = cornerstoneTools.getToolState(
+            currentTarget,
+            "RectangleRoi"
+          );
+          console.log("toolData before", toolData);
+          for (let i = 0; i < curBoxes.length; i++) {
+            if (curBoxes[i].slice_idx === currentIdx) {
+              if (curBoxes[i].uuid === undefined) {
+                cornerstone
+                  .loadImage(curImageIds[curBoxes[i].slice_idx - 1])
+                  .then(function () {
+                    cornerstone.updateImage(currentTarget);
+                    console.log(
+                      "box",
+                      curBoxes[i],
+                      curBoxes[i].slice_idx,
+                      currentIdx
+                    );
+                    const measurementData = {
+                      visible: true,
+                      active: true,
+                      color: undefined,
+                      invalidated: true,
+                      handles: {
+                        start: {
+                          x: curBoxes[i].x1,
+                          y: curBoxes[i].y1,
+                          highlight: true,
+                          active: false,
+                        },
+                        end: {
+                          x: curBoxes[i].x2,
+                          y: curBoxes[i].y2,
+                          highlight: true,
+                          active: false,
+                        },
+                        textBox: {
+                          active: false,
+                          hasMoved: false,
+                          movesIndependently: false,
+                          drawnIndependently: true,
+                          allowedOutsideImage: true,
+                          hasBoundingBox: true,
+                        },
+                      },
+                    };
+                    cornerstoneTools.addToolState(
+                      currentTarget,
+                      "RectangleRoi",
+                      measurementData
+                    );
+                    toolData = cornerstoneTools.getToolState(
+                      currentTarget,
+                      "RectangleRoi"
+                    );
+                    console.log("toolData after", toolData);
+                    curBoxes[i].uuid = toolData.data[0].uuid;
+
+                    cornerstoneTools.setToolEnabledForElement(
+                      currentTarget,
+                      "RectangleRoi"
+                    );
+                  });
+                break;
+              }
+            }
+            // }
+            this.setState({ curBoxes: curBoxes });
           }
         }
-      }
+      );
     } else if (status === "previews") {
       const { preListsActiveIndex } = this.state;
       const newIndex = preListsActiveIndex === index ? -1 : index;
+      const targets = document.getElementsByClassName("viewport-element");
       console.log("curidx", index, preListsActiveIndex);
-      this.setState({
-        preListsActiveIndex: newIndex,
-        preImageIdIndex: currentIdx - 1,
-        previewsIdx: currentIdx,
-      });
-      const { preBoxes } = this.state;
+      this.setState(
+        {
+          preListsActiveIndex: newIndex,
+          preImageIdIndex: currentIdx - 1,
+          previewsIdx: currentIdx,
+        },
+        () => {
+          const { preBoxes, preImageIds } = this.state;
+          const previewsTarget = targets[1];
+          var toolData = cornerstoneTools.getToolState(
+            previewsTarget,
+            "RectangleRoi"
+          );
+          console.log("toolData before", toolData);
+          for (let i = 0; i < preBoxes.length; i++) {
+            if (preBoxes[i].slice_idx === currentIdx) {
+              if (preBoxes[i].uuid === undefined) {
+                cornerstone
+                  .loadImage(preImageIds[preBoxes[i].slice_idx - 1])
+                  .then(function () {
+                    cornerstone.updateImage(previewsTarget);
+
+                    const measurementData = {
+                      visible: true,
+                      active: true,
+                      color: undefined,
+                      invalidated: true,
+                      handles: {
+                        start: {
+                          x: preBoxes[i].x1,
+                          y: preBoxes[i].y1,
+                          highlight: true,
+                          active: false,
+                        },
+                        end: {
+                          x: preBoxes[i].x2,
+                          y: preBoxes[i].y2,
+                          highlight: true,
+                          active: false,
+                        },
+                        textBox: {
+                          active: false,
+                          hasMoved: false,
+                          movesIndependently: false,
+                          drawnIndependently: true,
+                          allowedOutsideImage: true,
+                          hasBoundingBox: true,
+                        },
+                      },
+                    };
+                    cornerstoneTools.addToolState(
+                      previewsTarget,
+                      "RectangleRoi",
+                      measurementData
+                    );
+                    toolData = cornerstoneTools.getToolState(
+                      previewsTarget,
+                      "RectangleRoi"
+                    );
+                    console.log("toolData after", toolData);
+                    preBoxes[i].uuid = toolData.data[0].uuid;
+
+                    cornerstoneTools.setToolEnabledForElement(
+                      previewsTarget,
+                      "RectangleRoi"
+                    );
+                  });
+                break;
+              }
+            }
+            // }
+            this.setState({ preBoxes: preBoxes });
+          }
+        }
+      );
     }
   };
+
+  onMatchNoduleChange(newNodule, previewsNodule) {
+    console.log("onMatchNoduleChange", newNodule, previewsNodule);
+    this.setState(
+      {
+        curImageIdIndex: newNodule.slice_idx - 1,
+        preImageIdIndex: previewsNodule.slice_idx - 1,
+      },
+      () => {
+        const targets = document.getElementsByClassName("viewport-element");
+        const currentTarget = targets[0];
+        const previewTarget = targets[1];
+        if (newNodule.uuid === undefined) {
+          const { curImageIds, curBoxes } = this.state;
+          const curNodule_uuid = this.drawCustomRectangleRoi(
+            currentTarget,
+            newNodule,
+            curImageIds
+          );
+          const cur_nodule_idx = Number(newNodule.nodule_no);
+          curBoxes[cur_nodule_idx - 1] = curNodule_uuid;
+          this.setState({ curBoxes: curBoxes });
+        }
+        if (previewsNodule.uuid === undefined) {
+          const { preImageIds, preBoxes } = this.state;
+          const previewsNodule_uuid = this.drawCustomRectangleRoi(
+            previewTarget,
+            previewsNodule,
+            preImageIds
+          );
+          const pre_nodule_idx = Number(previewsNodule.nodule_no);
+          preBoxes[pre_nodule_idx - 1] = previewsNodule_uuid;
+          this.setState({ preBoxes: preBoxes });
+        }
+      }
+    );
+    this.setState({ activeTool: "RectangleRoi" });
+  }
+
+  onNewNoduleChange(nodule) {
+    this.setState(
+      {
+        curImageIdIndex: nodule.slice_idx - 1,
+      },
+      () => {
+        const targets = document.getElementsByClassName("viewport-element");
+        const currentTarget = targets[0];
+        if (nodule.uuid === undefined) {
+          const { curImageIds, curBoxes } = this.state;
+          const curNodule_uuid = this.drawCustomRectangleRoi(
+            currentTarget,
+            nodule,
+            curImageIds
+          );
+          const cur_nodule_idx = Number(nodule.nodule_no);
+          curBoxes[cur_nodule_idx - 1] = curNodule_uuid;
+          this.setState({ curBoxes: curBoxes });
+        }
+      }
+    );
+  }
+
+  onPreNoduleChange(nodule) {
+    this.setState(
+      {
+        preImageIdIndex: nodule.slice_idx - 1,
+      },
+      () => {
+        const targets = document.getElementsByClassName("viewport-element");
+        const previewsTarget = targets[1];
+        if (nodule.uuid === undefined) {
+          const { preImageIds, preBoxes } = this.state;
+          const preNodule_uuid = this.drawCustomRectangleRoi(
+            previewsTarget,
+            nodule,
+            preImageIds
+          );
+          const pre_nodule_idx = Number(nodule.nodule_no);
+          preBoxes[pre_nodule_idx - 1] = preNodule_uuid;
+          this.setState({ preBoxes: preBoxes });
+        }
+      }
+    );
+  }
+
+  drawCustomRectangleRoi(target, nodule, imageIds) {
+    cornerstone.loadImage(imageIds[nodule.slice_idx - 1]).then(function () {
+      cornerstone.updateImage(target);
+      const measurementData = {
+        visible: true,
+        active: true,
+        color: undefined,
+        invalidated: true,
+        handles: {
+          start: {
+            x: nodule.x1,
+            y: nodule.y1,
+            highlight: true,
+            active: false,
+          },
+          end: {
+            x: nodule.x2,
+            y: nodule.y2,
+            highlight: true,
+            active: false,
+          },
+          textBox: {
+            active: false,
+            hasMoved: false,
+            movesIndependently: false,
+            drawnIndependently: true,
+            allowedOutsideImage: true,
+            hasBoundingBox: true,
+          },
+        },
+      };
+      cornerstoneTools.addToolState(target, "RectangleRoi", measurementData);
+      const toolData = cornerstoneTools.getToolState(target, "RectangleRoi");
+      console.log("toolData after", toolData);
+      nodule.uuid = toolData.data[0].uuid;
+
+      cornerstoneTools.setToolEnabledForElement(target, "RectangleRoi");
+    });
+    return nodule;
+  }
 
   representChange = (status, e, { value, name }) => {
     console.log("status", status);
@@ -853,9 +1069,9 @@ class FollowUpElement extends Component {
                 <Text level={4}>{idx + 1}</Text>
               </Col>
               <Col span={5}>
-                位置：
+                定位：
                 <Cascader
-                  options={this.config.segmentConfig}
+                  options={this.config.segment}
                   onChange={this.onLungLocationChange.bind(
                     this,
                     idx,
@@ -867,7 +1083,7 @@ class FollowUpElement extends Component {
               </Col>
               <Col span={3}>
                 <Cascader
-                  options={this.config.dangerLevelConfig}
+                  options={this.config.dangerLevel}
                   onChange={this.onDangerLevelChange.bind(this, idx, "current")}
                 >
                   <a href="#">{dangerLevel[inside.malignancy]}</a>
@@ -993,9 +1209,9 @@ class FollowUpElement extends Component {
                 <Text level={4}>{idx + 1}</Text>
               </Col>
               <Col span={5}>
-                位置：
+                定位：
                 <Cascader
-                  options={this.config.segmentConfig}
+                  options={this.config.segment}
                   onChange={this.onLungLocationChange.bind(
                     this,
                     idx,
@@ -1007,7 +1223,7 @@ class FollowUpElement extends Component {
               </Col>
               <Col span={3}>
                 <Cascader
-                  options={this.config.dangerLevelConfig}
+                  options={this.config.dangerLevel}
                   onChange={this.onDangerLevelChange.bind(
                     this,
                     idx,
@@ -1077,7 +1293,9 @@ class FollowUpElement extends Component {
 
     if (matchNoduleLen !== 0) {
       matchNodulesTbl = registerBoxes["match"].map((value, idx) => {
-        var doublingTime = "";
+        var VDT = 0;
+        var MDT = 0;
+        var doublingType = "";
         const previewsNodule = value["earlier"];
         const newNodule = value["later"];
         var followupLoc = "";
@@ -1127,9 +1345,42 @@ class FollowUpElement extends Component {
         }
 
         if (newNodule["volume"] > previewsNodule["volume"]) {
-          doublingTime = "增加";
+          doublingType = "增加";
         } else {
-          doublingTime = "减少";
+          doublingType = "减少";
+        }
+
+        if (newNodule["volume"] !== 0 && previewsNodule["volume"] !== 0) {
+          const curDate = this.state.curCaseId.split("_")[1];
+          const preDate = this.state.preCaseId.split("_")[1];
+          var curTime = new Date();
+          var preTime = new Date();
+          curTime.setFullYear(
+            curDate.substring(0, 4),
+            curDate.substring(4, 6),
+            curDate.substring(6, 8)
+          );
+          preTime.setFullYear(
+            preDate.substring(0, 4),
+            preDate.substring(4, 6),
+            preDate.substring(6, 8)
+          );
+
+          var interval = Math.floor((curTime - preTime) / (24 * 3600 * 1000));
+          var cur_nodule_volume = newNodule["volume"];
+          var pre_nodule_volume = previewsNodule["volume"];
+          VDT = (
+            interval *
+            (Math.LN2 / Math.log(cur_nodule_volume / pre_nodule_volume))
+          ).toFixed(0);
+
+          MDT = (
+            (interval * Math.LN2) /
+            Math.log(
+              (cur_nodule_volume * (1000 + newNodule["huMean"])) /
+                (pre_nodule_volume * (1000 + previewsNodule["huMean"]))
+            )
+          ).toFixed(0);
         }
 
         if (newLoc === previewsLoc) {
@@ -1193,6 +1444,11 @@ class FollowUpElement extends Component {
             key={idx}
             justify="center"
             className="register-nodule-match-card"
+            onClick={this.onMatchNoduleChange.bind(
+              this,
+              newNodule,
+              previewsNodule
+            )}
           >
             <Col span={1}>
               <Row>{"N" + newNodule.nodule_no}</Row>
@@ -1207,10 +1463,10 @@ class FollowUpElement extends Component {
 
             <Col span={22}>
               <Row>
-                <Col span={20}>
-                  位置：
+                <Col span={16}>
+                  定位：
                   <Cascader
-                    options={this.config.segmentConfig}
+                    options={this.config.segment}
                     onChange={this.onLungLocationChange.bind(
                       this,
                       idx,
@@ -1222,7 +1478,13 @@ class FollowUpElement extends Component {
                 </Col>
                 <Col span={2}>倍增时间</Col>
                 <Col span={2}>
-                  <p className="doublingTimeText">{doublingTime}</p>
+                  <p className="doublingTypeText">{doublingType}</p>
+                </Col>
+                <Col span={2}>
+                  <p className="VDTText">{"VDT : " + VDT}</p>
+                </Col>
+                <Col span={2}>
+                  <p className="MDTText">{"MDT : " + MDT}</p>
                 </Col>
               </Row>
               <Divider className="horizontal-divider-nodule" />
@@ -1377,7 +1639,12 @@ class FollowUpElement extends Component {
           representArray.push("支气管充气");
         }
         return (
-          <Row key={idx} justify="center" className="register-nodule-new-card">
+          <Row
+            key={idx}
+            justify="center"
+            className="register-nodule-new-card"
+            onClick={this.onNewNoduleChange.bind(this, value)}
+          >
             <Col span={1}>
               <Row>{"N" + value.nodule_no}</Row>
             </Col>
@@ -1388,9 +1655,9 @@ class FollowUpElement extends Component {
             <Col span={22}>
               <Row>
                 <Col span={24}>
-                  位置：
+                  定位：
                   <Cascader
-                    options={this.config.segmentConfig}
+                    options={this.config.segment}
                     onChange={this.onLungLocationChange.bind(
                       this,
                       idx,
@@ -1492,7 +1759,12 @@ class FollowUpElement extends Component {
           representArray.push("支气管充气");
         }
         return (
-          <Row key={idx} justify="center" className="register-nodule-new-card">
+          <Row
+            key={idx}
+            onClick={this.onPreNoduleChange.bind(this, value)}
+            justify="center"
+            className="register-nodule-previews-card"
+          >
             <Col span={1}>
               <Row></Row>
               <Row>{"P" + value.nodule_no}</Row>
@@ -1504,9 +1776,9 @@ class FollowUpElement extends Component {
             <Col span={22}>
               <Row>
                 <Col span={24}>
-                  位置：
+                  定位：
                   <Cascader
-                    options={this.config.segmentConfig}
+                    options={this.config.segment}
                     onChange={this.onLungLocationChange.bind(
                       this,
                       idx,
@@ -1923,12 +2195,16 @@ class FollowUpElement extends Component {
         </Row>
         {this.state.isRegistering === false ? (
           <div>
-            <Row justify="space-around">
-              <Col span={11}>
-                <Accordion>{curBoxesAccord}</Accordion>
+            <Row justify="space-around" className="BoxesAccord-Row">
+              <Col span={12}>
+                <Accordion className="current-nodule-accordion">
+                  {curBoxesAccord}
+                </Accordion>
               </Col>
-              <Col span={11}>
-                <Accordion>{preBoxesAccord}</Accordion>
+              <Col span={12}>
+                <Accordion className="current-nodule-accordion">
+                  {preBoxesAccord}
+                </Accordion>
               </Col>
             </Row>
           </div>
@@ -1952,7 +2228,8 @@ class FollowUpElement extends Component {
                   <Col span={16}></Col>
                   <Col span={8}>
                     <Checkbox.Group
-                      style={{ width: "100%" }}
+                      // style={{ width: "100%" }}
+                      className="match-checkbox"
                       onChange={this.noduleTblCheckboxChange}
                     >
                       <Checkbox value="match">
@@ -1976,6 +2253,9 @@ class FollowUpElement extends Component {
                     ? vanishNodulesTbl
                     : null}
                 </div>
+              </Col>
+              <Col span={1}>
+                <Divider type="vertical" />
               </Col>
               <Col span={11}>
                 <Tabs defaultActiveKey="1" type="card" size="small">

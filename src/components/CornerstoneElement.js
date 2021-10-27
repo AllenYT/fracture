@@ -4473,6 +4473,13 @@ class CornerstoneElement extends Component {
                             size="large"
                           ></Icon>
                         </Button>
+                        <Button
+                          title="随访"
+                          className="funcbtn"
+                          onClick={this.toFollowUp.bind(this)}
+                        >
+                          随访
+                        </Button>
                       </Button.Group>
                     </>
                   )}
