@@ -112,7 +112,8 @@ const dictList = {
     class: 1,
     label: 'airway',
     name: '支气管',
-    color: { c1: 182, c2: 228, c3: 255 },
+    // color: { c1: 182, c2: 228, c3: 255 },
+    color: { c1: 178, c2: 212, c3: 242 },
   },
   nodule: {
     class: 2,
@@ -124,37 +125,43 @@ const dictList = {
     class: 0,
     label: 'lobe_1',
     name: '右肺中叶',
-    color: { c1: 128, c2: 174, c3: 128 },
+    // color: { c1: 128, c2: 174, c3: 128 },
+    color: { c1: 178, c2: 212, c3: 242 },
   },
   lobe2: {
     class: 0,
     label: 'lobe_2',
     name: '右肺上叶',
-    color: { c1: 241, c2: 214, c3: 145 },
+    // color: { c1: 241, c2: 214, c3: 145 },
+    color: { c1: 178, c2: 212, c3: 242 },
   },
   lobe3: {
     class: 0,
     label: 'lobe_3',
     name: '右肺下叶',
-    color: { c1: 177, c2: 122, c3: 101 },
+    // color: { c1: 177, c2: 122, c3: 101 },
+    color: { c1: 178, c2: 212, c3: 242 },
   },
   lobe4: {
     class: 0,
     label: 'lobe_4',
     name: '左肺上叶',
-    color: { c1: 111, c2: 184, c3: 210 },
+    // color: { c1: 111, c2: 184, c3: 210 },
+    color: { c1: 178, c2: 212, c3: 242 },
   },
   lobe5: {
     class: 0,
     label: 'lobe_5',
     name: '左肺下叶',
-    color: { c1: 216, c2: 101, c3: 79 },
+    // color: { c1: 216, c2: 101, c3: 79 },
+    color: { c1: 178, c2: 212, c3: 242 },
   },
   vessel: {
     class: 4,
     label: 'vessel',
     name: '血管',
-    color: { c1: 200, c2: 100, c3: 50 },
+    // color: { c1: 200, c2: 100, c3: 50 },
+    color: { c1: 178, c2: 212, c3: 242 },
   },
 }
 const lobeName = {
@@ -7573,13 +7580,18 @@ class CornerstoneElement extends Component {
     HttpDataAccessHelper.fetchBinary(cur_url.replace('#', '%23'), {
       progressCallback,
     }).then((binary) => {
-      // let opacity = 1.0
+      let opacity = 1.0
       let actor
       if (cl === 0) {
-        actor = this.createPipeline(binary, color, 0.6, cl)
+        opacity = 0.1
+      } else if (cl === 1) {
+        opacity = 0.2
+      } else if (cl === 4) {
+        opacity = 0.2
       } else {
-        actor = this.createPipeline(binary, color, 1.0, cl)
+        opacity = 1.0
       }
+      actor = this.createPipeline(binary, color, opacity, cl)
       const tmp_segments = [].concat(this.state.segments)
       tmp_segments[idx] = actor
       const listLoading = this.state.listLoading
@@ -7648,7 +7660,7 @@ class CornerstoneElement extends Component {
   }
   saveLobesData(lobesData) {
     console.log('lobesData', lobesData)
-    const lobesOpacities = new Array(lobesData.length).fill(60)
+    const lobesOpacities = new Array(lobesData.length).fill(10)
     const lobesActive = new Array(lobesData.length).fill(false)
     const lobesVisible = new Array(lobesData.length).fill(true)
     const lobesOpacityChangeable = new Array(lobesData.length).fill(false)
@@ -7671,7 +7683,7 @@ class CornerstoneElement extends Component {
   }
   saveTubularData(tubularData) {
     console.log('tubularData', tubularData)
-    const tubularOpacities = new Array(tubularData.length).fill(100)
+    const tubularOpacities = new Array(tubularData.length).fill(20)
     const tubularActive = new Array(tubularData.length).fill(false)
     const tubularVisible = new Array(tubularData.length).fill(true)
     const tubularOpacityChangeable = new Array(tubularData.length).fill(false)
@@ -8166,7 +8178,6 @@ class CornerstoneElement extends Component {
       const lobesController = this.state.lobesController
       lobesController.lobesVisible[index] = !lobesController.lobesVisible[index]
       if (lobesController.lobesVisible[index]) {
-        console.log("setVisible", lobesController.lobesOpacities[index])
         this.setSegmentOpacity(urlIndex, lobesController.lobesOpacities[index] / 100)
       } else {
         this.setSegmentOpacity(urlIndex, 0)
