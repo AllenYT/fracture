@@ -1,29 +1,68 @@
-.ui.card,
-.ui.cards > .card {
-  background: transparent !important;
-  /* margin-top: 10px !important; */
-  border-bottom: 1px solid rgb(41, 41, 41, 0.4) !important;
-  border-radius: 0rem !important;
-}
-
-.ui.card > .content > .description,
-.ui.cards > .card > .content > .description {
-  color: #66cfec !important;
-  white-space: pre;
-}
-
-.preview-canvas {
-  width: 100%;
-  height: 120px;
-}
-
 .preview {
+  width: 100%;
   height: 100%;
   overflow: auto;
   /* width: 105%; */
-  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 5px;
+  background-color: rgb(23, 28, 47);
 }
-
+.preview .accordion{
+  width:100%;
+  margin-top: 5px;
+}
+.preview .accordion:first-child{
+  margin-top: 0;
+}
+.preview .title,
+.preview .content{
+  padding: 0 !important;
+}
+.preview-title{
+  height: 40px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  background-color: rgb(39, 46, 72);
+  color: whitesmoke;
+}
+.preview-title-date{
+  color: whitesmoke;
+}
+.preview-title-number{
+  color: rgb(173, 179, 203);
+}
+.preview-item{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 10px 10px 5px 10px;
+  padding: 0 5px;
+  background-color: black;
+  border-radius: 10px;
+}
+.preview-item-selected{
+  border: 2px solid rgb(75, 121, 243);
+}
+.preview-item-canvas {
+  width: 110px;
+  height: 110px;
+  margin-top: 5px;
+  border-radius: 10px;
+}
+.preview-item-info{
+  font-size: 12px;
+  overflow: hidden;
+  white-space: nowrap;
+  display: flex;
+  flex: row;
+  align-items: center;
+  justify-content: space-around;
+  width:100%;
+}
 /* @media screen and (min-width: 2340px)  and (max-width:2660px){
     .preview{
         height:1080px;

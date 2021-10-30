@@ -3,7 +3,7 @@ import axios from 'axios'
 import qs from 'qs'
 import _ from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTimesCircle, faChevronCircleUp, faChevronCircleDown, faUser, faLock, faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons'
+import { faTimesCircle, faChevronCircleUp, faChevronCircleDown, faUser, faLock, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons'
 
 import { Form, Input, Button as AntdButton, Select, notification } from 'antd'
 import { Button, Table, Modal, Message, Pagination } from 'semantic-ui-react'
@@ -704,8 +704,8 @@ class AdminManagePanel extends Component {
                 <div className={'admin-manage-table-header-cell-order'}>
                   <span>用户名</span>
                   <span className={'admin-manage-table-header-cell-order-right'} onClick={this.orderUsersList.bind(this, 'username')}>
-                    <FontAwesomeIcon className={(usernameDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faCaretUp} />
-                    <FontAwesomeIcon className={(usernameDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faCaretDown} />
+                    <FontAwesomeIcon className={(usernameDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faSortUp} />
+                    <FontAwesomeIcon className={(usernameDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faSortDown} />
                   </span>
                 </div>
               </Table.HeaderCell>
@@ -714,8 +714,8 @@ class AdminManagePanel extends Component {
                 <div className={'admin-manage-table-header-cell-order'}>
                   <span>添加日期</span>
                   <span className={'admin-manage-table-header-cell-order-right'} onClick={this.orderUsersList.bind(this, 'createTime')}>
-                    <FontAwesomeIcon className={(createTimeDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faCaretUp} />
-                    <FontAwesomeIcon className={(createTimeDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faCaretDown} />
+                    <FontAwesomeIcon className={(createTimeDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faSortUp} />
+                    <FontAwesomeIcon className={(createTimeDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faSortDown} />
                   </span>
                 </div>
               </Table.HeaderCell>

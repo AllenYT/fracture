@@ -13,11 +13,11 @@ import * as cornerstoneTools from 'cornerstone-tools'
 import Hammer from 'hammerjs'
 import * as cornerstoneWadoImageLoader from 'cornerstone-wado-image-loader'
 import { withRouter } from 'react-router-dom'
-import { Grid, Icon, Button, Accordion, Modal, Dropdown, Tab, Image, Menu, Label, Header, List, Popup, Table, Sidebar, Loader, Divider, Form, Card, Segment } from 'semantic-ui-react'
+import { Grid, Icon, Button, Accordion, Modal, Dropdown, Menu, Label, Header, Popup, Table, Sidebar, Loader, Divider, Form, Card } from 'semantic-ui-react'
 import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
 import qs from 'qs'
 import axios from 'axios'
-import { Slider, Select, Space, Checkbox, Tabs, InputNumber } from 'antd'
+import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message} from 'antd'
 import * as echarts from 'echarts'
 import html2pdf from 'html2pdf.js'
 import copy from 'copy-to-clipboard'
@@ -29,7 +29,7 @@ import md5 from 'js-md5'
 import InputColor from 'react-input-color'
 import { vec3, vec4, mat4 } from 'gl-matrix'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
+import { faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faCaretDown, faFilter, faSortAmountDownAlt, faSortUp, faSortDown, faEye, faEyeSlash} from '@fortawesome/free-solid-svg-icons'
 import { connect } from 'react-redux'
 import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId } from '../actions'
 
@@ -371,9 +371,17 @@ class CornerstoneElement extends Component {
       canvasHeight: 0,
       //studybrowserList
       dateSeries: [],
+      previewVisible: [],
       dataValidContnt: [],
 
       //MiniReport
+      reportGuideActive: false,
+      reportImageActive: true,
+      reportGuideType: '中华共识',
+      reportImageType: '结节类型',
+      reportGuideText: '',
+      reportImageText: '',
+      reportImageTop: 0,
       patientName: '',
       patientBirth: '',
       patientSex: '',
@@ -381,13 +389,20 @@ class CornerstoneElement extends Component {
       date: '',
       age: 0,
       temp: 0,
-      templateText: '',
       dealchoose: '中华共识',
       reportType: '影像所见',
 
       /*新加变量 */
       nodules: [],
       backendNodules: [],
+      nodulesChecked: [],
+      nodulesAllChecked: false,
+      nodulesOrder: {
+        'slice_idx': 0,
+        'diameter': 0,
+        'texture': 0,
+        'malignancy': 0
+      },
       menuButtonsWidth: 1540,
       menuScrollable: false,
       menuTotalPages: 1,
@@ -462,18 +477,17 @@ class CornerstoneElement extends Component {
       CPR: false,
       nodulesController: null,
       lobesController: null,
+      lobesAllChecked: false,
+      lobesAllVisible: true,
       tubularController: null,
+      tubularAllChecked: false,
+      tubularAllVisible: true,
       airwayPicking: false,
       displayCrosshairs: false,
       editing: false,
       painting: false,
       erasing: false,
       show: false,
-
-      /*列表控制变量*/
-      segVisible: [],
-      listsActive: [],
-      listsOpacityChangeable: [],
 
       /*加载变量*/
       volumesLoading: true,
@@ -524,7 +538,6 @@ class CornerstoneElement extends Component {
     this.clearthenNew = this.clearthenNew.bind(this)
     this.clearthenFork = this.clearthenFork.bind(this)
     this.createBox = this.createBox.bind(this)
-    this.delNodule = this.delNodule.bind(this)
     this.playAnimation = this.playAnimation.bind(this)
     this.pauseAnimation = this.pauseAnimation.bind(this)
     this.Animation = this.Animation.bind(this)
@@ -532,7 +545,6 @@ class CornerstoneElement extends Component {
     this.closeModalCur = this.closeModalCur.bind(this)
     this.toMyAnno = this.toMyAnno.bind(this)
     this.onSelectMal = this.onSelectMal.bind(this)
-    this.onSelectClick = this.onSelectClick.bind(this)
     this.onSelectPlace = this.onSelectPlace.bind(this)
     this.checkHash = this.checkHash.bind(this)
     this.ZoomIn = this.ZoomIn.bind(this)
@@ -592,7 +604,6 @@ class CornerstoneElement extends Component {
     this.showImages = this.showImages.bind(this)
     this.exportPDF = this.exportPDF.bind(this)
     this.dealChoose = this.dealChoose.bind(this)
-    this.handleTextareaChange = this.handleTextareaChange.bind(this)
     this.handleCopyClick = this.handleCopyClick.bind(this)
   }
 
@@ -653,11 +664,7 @@ class CornerstoneElement extends Component {
     document.getElementById('closeVisualContent').style.display = ''
     dom.style.display = ''
     dom.style.height = (200 * this.state.windowHeight) / 1000 + 'px'
-    if (this.state.windowWidth > this.state.windowHeight) {
-      dom.style.width = (870 * this.state.windowWidth) / 1800 + 'px'
-    } else {
-      dom.style.width = (1380 * this.state.windowWidth) / 1800 + 'px'
-    }
+    dom.style.width = `${this.state.canvasWidth}px`
 
     let bins = hist_data.bins
     let ns = hist_data.n
@@ -858,7 +865,7 @@ class CornerstoneElement extends Component {
 
   Animation() {
     const imageIdsLength = this.state.imageIds.length
-    var curIdx = this.state.currentIdx
+    const curIdx = this.state.currentIdx
     if (curIdx < imageIdsLength - 1) {
       this.refreshImage(false, this.state.imageIds[curIdx + 1], curIdx + 1)
     } else {
@@ -945,10 +952,14 @@ class CornerstoneElement extends Component {
     console.log('maskStateList', this.state.maskStateList)
     this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
   }
-
-  delNodule(event) {
-    const delNoduleId = event.target.id
-    const nodule_no = delNoduleId.split('-')[1]
+  setDelNodule(idx, open){
+    const boxes = this.state.boxes
+    boxes[idx].delOpen = open
+    this.setState({
+      boxes
+    })
+  }
+  onConfirmDelNodule(idx) {
     // let selectBoxes = this.state.selectBoxes
     // let measureStateList = this.state.measureStateList
     // for (var i = 0; i < selectBoxes.length; i++) {
@@ -957,22 +968,24 @@ class CornerstoneElement extends Component {
     //         selectBoxes[i]="delete"
     //     }
     // }
-    let boxes = this.state.boxes
-    let measureStateList = this.state.measureStateList
+    const boxes = this.state.boxes
+    const measureStateList = this.state.measureStateList
+    const nodulesChecked = this.state.nodulesChecked
     // for (var i = 0; i < boxes.length; i++) {
     //     if (boxes[i].nodule_no === nodule_no) {
     //         boxes.splice(i, 1)
     //         boxes[i]="delete"
     //     }
     // }
-    boxes.splice(nodule_no, 1)
-    measureStateList.splice(nodule_no, 1)
-    for (var i = nodule_no; i < boxes.length; i++) {
-      boxes[i].nodule_no = (parseInt(boxes[i].nodule_no) - 1).toString()
-    }
+    console.log("delNodule", measureStateList, boxes, idx)
+    boxes.splice(idx, 1)
+    measureStateList.splice(idx, 1)
+    nodulesChecked.splice(idx, 1)
+    console.log("delNodule after", measureStateList, boxes)
     this.setState({
-      boxes: boxes,
-      measureStateList: measureStateList,
+      boxes,
+      measureStateList,
+      nodulesChecked,
       // random: Math.random()
     })
     this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
@@ -981,8 +994,8 @@ class CornerstoneElement extends Component {
   highlightNodule(event) {
     // console.log('in', event.target.textContent)
     // let boxes = this.state.selectBoxes
-    let boxes = this.state.boxes
-    for (var i = 0; i < boxes.length; i++) {
+    const boxes = this.state.boxes
+    for (let i = 0; i < boxes.length; i++) {
       if (parseInt(boxes[i].nodule_no) === event.target.textContent - 1) {
         boxes[i].highlight = true
       }
@@ -997,8 +1010,8 @@ class CornerstoneElement extends Component {
   dehighlightNodule(event) {
     // console.log('out', event.target.textContent)
     // let boxes = this.state.selectBoxes
-    let boxes = this.state.boxes
-    for (var i = 0; i < boxes.length; i++) {
+    const boxes = this.state.boxes
+    for (let i = 0; i < boxes.length; i++) {
       if (parseInt(boxes[i].nodule_no) === event.target.textContent - 1) {
         boxes[i].highlight = false
       }
@@ -1015,7 +1028,7 @@ class CornerstoneElement extends Component {
     this.setState({ modalOpenNew: false })
   }
 
-  sliceIdxSort(prop) {
+  arrayPropSort(prop) {
     return function (a, b) {
       var value1 = a[prop]
       var value2 = b[prop]
@@ -1030,7 +1043,7 @@ class CornerstoneElement extends Component {
   onSelectMal = (event) => {
     const value = event.currentTarget.value
     const noduleId = event.currentTarget.id.split('-')[1]
-    let boxes = this.state.boxes
+    const boxes = this.state.boxes
     for (let i = 0; i < boxes.length; i++) {
       if (boxes[i].nodule_no === noduleId) {
         boxes[i].malignancy = parseInt(value)
@@ -1043,7 +1056,10 @@ class CornerstoneElement extends Component {
       // random: Math.random()
     })
   }
-  onSelectClick(e) {
+  onSelectMalClick(e) {
+    e.stopPropagation()
+  }
+  onSelectTexClick(e){
     e.stopPropagation()
   }
   onSelectTex = (event) => {
@@ -1102,7 +1118,8 @@ class CornerstoneElement extends Component {
     })
   }
 
-  representChange = (e, { value, name }) => {
+  representChange = (idx, e, { value, name }) => {
+    console.log("representChange", value, name, idx)
     let represents = {
       lobulation: '分叶',
       spiculation: '毛刺',
@@ -1113,45 +1130,38 @@ class CornerstoneElement extends Component {
       bea: '空泡',
       bro: '支气管充气',
     }
-    console.log('测量', value, name.split('dropdown')[1])
     // let boxes = this.state.selectBoxes
-    let boxes = this.state.boxes
-    for (let count = 0; count < boxes.length; count++) {
-      if (boxes[count].nodule_no === name.split('dropdown')[1]) {
-        boxes[count].lobulation = 1
-        boxes[count].spiculation = 1
-        boxes[count].calcification = 1
-        boxes[count].pin = 1
-        boxes[count].cav = 1
-        boxes[count].vss = 1
-        boxes[count].bea = 1
-        boxes[count].bro = 1
+    const boxes = this.state.boxes
+        boxes[idx].lobulation = 1
+        boxes[idx].spiculation = 1
+        boxes[idx].calcification = 1
+        boxes[idx].pin = 1
+        boxes[idx].cav = 1
+        boxes[idx].vss = 1
+        boxes[idx].bea = 1
+        boxes[idx].bro = 1
         for (let itemValue in value) {
           for (let keyRepresents in represents) {
             if (value[itemValue] === represents[keyRepresents]) {
               if (keyRepresents === 'lobulation') {
-                boxes[count].lobulation = 2
+                boxes[idx].lobulation = 2
               } else if (keyRepresents === 'spiculation') {
-                boxes[count].spiculation = 2
+                boxes[idx].spiculation = 2
               } else if (keyRepresents === 'calcification') {
-                boxes[count].calcification = 2
+                boxes[idx].calcification = 2
               } else if (keyRepresents === 'pin') {
-                boxes[count].pin = 2
+                boxes[idx].pin = 2
               } else if (keyRepresents === 'cav') {
-                boxes[count].cav = 2
+                boxes[idx].cav = 2
               } else if (keyRepresents === 'vss') {
-                boxes[count].vss = 2
+                boxes[idx].vss = 2
               } else if (keyRepresents === 'bea') {
-                boxes[count].bea = 2
+                boxes[idx].bea = 2
               } else if (keyRepresents === 'bro') {
-                boxes[count].bro = 2
+                boxes[idx].bro = 2
               }
-              break
             }
           }
-        }
-        break
-      }
     }
     this.setState({
       // selectBoxes: boxes
@@ -1357,24 +1367,10 @@ class CornerstoneElement extends Component {
   }
   show3D() {
     clearTimeout(flipTimer)
-    // const element = document.querySelector('#origin-canvas')
     const centerPanel = document.getElementById('cor-container')
     if (centerPanel) {
       centerPanel.style.transform = 'rotateY(180deg)'
     }
-    const rightTopPanel = document.getElementById('nodule-card-container')
-    if (rightTopPanel) {
-      rightTopPanel.style.transform = 'translateY(-200px)'
-      rightTopPanel.style.opacity = 0
-    }
-    const rightDownPanel = document.getElementById('report')
-    if (rightDownPanel) {
-      rightDownPanel.style.transform = 'translateY(200px)'
-      rightDownPanel.style.opacity = 0
-    }
-    // const canvasColumn = document.getElementById("canvas-column");
-    // const cWidth = canvasColumn.clientWidth;
-    // const cHeight = canvasColumn.clientHeight;
     flipTimer = setTimeout(() => {
       cornerstone.disable(this.element)
       this.setState(
@@ -1382,27 +1378,19 @@ class CornerstoneElement extends Component {
           show3DVisualization: true,
         },
         () => {
+          centerPanel.style.transform = 'rotateY(0deg)'
           this.resizeScreen()
         }
       )
-      // clearInterval(flipTimer)
     }, 1000)
+
+
   }
   hide3D() {
     clearTimeout(flipTimer)
     const centerPanel = document.getElementById('segment-container')
     if (centerPanel) {
       centerPanel.style.transform = 'rotateY(180deg)'
-    }
-    const threeDList = document.getElementById('threed-card-tabs')
-    if (threeDList) {
-      threeDList.style.transform = 'translateY(-200px)'
-      threeDList.style.opacity = 0
-    }
-    const threeDMask = document.getElementById('threed-mask-container')
-    if (threeDMask) {
-      threeDMask.style.transform = 'translateY(200px)'
-      threeDMask.style.opacity = 0
     }
     flipTimer = setTimeout(() => {
       this.setState({
@@ -1414,11 +1402,12 @@ class CornerstoneElement extends Component {
           show3DVisualization: false,
         },
         () => {
+          centerPanel.style.transform = 'rotateY(0deg)'
           this.resizeScreen()
         }
       )
-      // clearInterval(flipTimer)
     }, 1000)
+
   }
   handleLogin() {
     this.setState({
@@ -1493,12 +1482,28 @@ class CornerstoneElement extends Component {
       measureStateList,
       maskStateList,
       dateSeries,
+      previewVisible,
       histogramHeight,
+      nodules,
+      nodulesChecked,
+      nodulesAllChecked,
+      nodulesOrder,
+      reportImageActive,
+      reportGuideActive,
+      reportImageText,
+      reportGuideText,
+      reportGuideType,
+      reportImageType,
+      reportImageTop,
 
       lobesData,
       tubularData,
       lobesController,
+      lobesAllChecked,
+      lobesAllVisible,
       tubularController,
+      tubularAllChecked,
+      tubularAllVisible,
       MPR,
       CPR,
       viewerWidth,
@@ -1540,11 +1545,14 @@ class CornerstoneElement extends Component {
       show3DVisualization,
       studyListShowed,
     } = this.state
-    let tableContent = ''
-    let noduleContent = ''
-    let lobeContent = ''
-    let tubularContent = ''
-    let visualContent = ''
+    let tableContent
+    let noduleContent
+    let lobeContent
+    let lobeCheckNumber = 0
+    let tubularContent
+    let tubularCheckNumber = 0
+    let visualContent
+    let previewContent 
     let createDraftModal
     let submitButton
     let StartReviewButton
@@ -1556,7 +1564,6 @@ class CornerstoneElement extends Component {
     // const noduleSegments = noduleSegments 引用了全局变量
 
     // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
-    let noduleNumTab = '结节(' + this.state.boxes.length + ')'
     // let inflammationTab = '炎症(有)'
     // let lymphnodeTab = '淋巴结(0)'
     const options = [
@@ -1588,365 +1595,6 @@ class CornerstoneElement extends Component {
         sliderMarks[this.state.boxes[i].slice_idx] = ''
       }
     }
-
-    let panes = [
-      {
-        menuItem: '影像所见',
-        render: () => (
-          <Tab.Pane>
-            {/* <MiniReport
-              type="影像所见"
-              caseId={this.state.caseId}
-              username={this.state.modelName}
-              imageIds={this.state.imageIds}
-              boxes={this.state.boxes}
-              activeItem={
-                this.state.doubleClick === true
-                  ? "all"
-                  : this.state.listsActiveIndex
-              }
-            /> */}
-            <Grid divided="vertically">
-              <Grid.Row verticalAlign="middle" columns={4} style={{ height: 40 }}>
-                <Grid.Column textAlign="left" width={6}>
-                  <div style={{ fontSize: 18 }}></div>
-                </Grid.Column>
-
-                <Grid.Column width={4} textAlign="right"></Grid.Column>
-                <Grid.Column textAlign="center" width={2}>
-                  <Modal trigger={<Button icon="expand arrows alternate" title="放大" className="inverted blue button" onClick={this.showImages}></Button>}>
-                    <Modal.Header>
-                      <Grid>
-                        <Grid.Row>
-                          <Grid.Column width={3} textAlign="left">
-                            影像诊断报告
-                          </Grid.Column>
-                          <Grid.Column width={6}></Grid.Column>
-                          <Grid.Column width={3} textAlign="right">
-                            {this.state.temp === 1 ? (
-                              <Button color="blue" onClick={this.exportPDF}>
-                                导出pdf
-                              </Button>
-                            ) : (
-                              <Button color="blue" loading>
-                                Loading
-                              </Button>
-                            )}
-                          </Grid.Column>
-                        </Grid.Row>
-                      </Grid>
-                    </Modal.Header>
-                    <Modal.Content image scrolling id="pdf">
-                      <Modal.Description>
-                        <table>
-                          <tbody>
-                            <tr>
-                              <td>
-                                <Header>病人编号:</Header>
-                              </td>
-                              <td>{this.state.patientId}</td>
-
-                              <td>
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                              </td>
-                              <td align="right">
-                                <Header>姓名:</Header>
-                              </td>
-                              <td>&nbsp;</td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <Header>出生日期:</Header>
-                              </td>
-                              <td>{this.state.patientBirth}</td>
-                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-
-                              <td align="right">
-                                <Header>年龄:</Header>
-                              </td>
-                              <td>{this.state.age}</td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <Header>性别:</Header>
-                              </td>
-                              <td>{this.state.patientSex}</td>
-                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                              <td align="right">
-                                <Header>检查日期:</Header>
-                              </td>
-                              <td>{this.state.date}</td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <Header>检查编号:</Header>
-                              </td>
-                              <td>12580359</td>
-                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                              <td align="right">
-                                <Header>入库编号:</Header>
-                              </td>
-                              <td>&nbsp;</td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <Header>报告撰写日期:</Header>
-                              </td>
-                              <td>&nbsp;</td>
-                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                              <td align="right">
-                                <Header>请求过程描述:</Header>
-                              </td>
-                              <td>&nbsp;</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                        <Divider />
-                        <table>
-                          <tbody>
-                            <tr>
-                              <td width="50%">
-                                <Header>体重:</Header>
-                              </td>
-                              <td></td>
-                            </tr>
-                            <tr>
-                              <td>
-                                <Header>身高:</Header>
-                              </td>
-                              <td align="right">
-                                <Header>体重系数:</Header>
-                              </td>
-                            </tr>
-                          </tbody>
-                        </table>
-
-                        <Divider />
-
-                        <div style={{ fontSize: 20, color: '#6495ED' }}>扫描参数</div>
-                        <Table celled>
-                          <Table.Header>
-                            <Table.Row>
-                              <Table.HeaderCell>检查日期</Table.HeaderCell>
-                              <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
-                              <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
-                              <Table.HeaderCell>kV</Table.HeaderCell>
-                              <Table.HeaderCell>mA</Table.HeaderCell>
-                              <Table.HeaderCell>mAs</Table.HeaderCell>
-                              {/* <Table.HeaderCell>Recon Name</Table.HeaderCell> */}
-                              <Table.HeaderCell>厂商</Table.HeaderCell>
-                            </Table.Row>
-                          </Table.Header>
-                          <Table.Body></Table.Body>
-                        </Table>
-                        <div style={{ fontSize: 20, color: '#6495ED' }}>肺部详情</div>
-                        <Table celled>
-                          <Table.Header>
-                            <Table.Row>
-                              <Table.HeaderCell>检查日期</Table.HeaderCell>
-                              <Table.HeaderCell>体积</Table.HeaderCell>
-                              <Table.HeaderCell>结节总体积</Table.HeaderCell>
-                            </Table.Row>
-                          </Table.Header>
-                          <Table.Body></Table.Body>
-                        </Table>
-                        <div style={{}}></div>
-                        {this.state.nodules.map((nodule, index) => {
-                          let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
-                          let visualId = 'visual' + index
-                          // console.log('visualId',visualId)
-                          return (
-                            <div key={index}>
-                              <Divider />
-                              <div>&nbsp;</div>
-                              <div style={{ fontSize: 20, color: '#6495ED' }} id="noduleDivide">
-                                结节 {index + 1}
-                              </div>
-                              <Table celled textAlign="center">
-                                <Table.Header>
-                                  <Table.Row>
-                                    <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
-                                    <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
-                                  </Table.Row>
-                                </Table.Header>
-                                <Table.Body>
-                                  <Table.Row>
-                                    <Table.Cell>切片号</Table.Cell>
-                                    <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>肺叶位置</Table.Cell>
-                                    <Table.Cell>{nodule['place'] === undefined || nodule['place'] === 0 ? '' : places[nodule['place']]}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>肺段位置</Table.Cell>
-                                    <Table.Cell>{nodule['segment'] === undefined ? '' : noduleSegments[nodule['segment']]}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>危险程度</Table.Cell>
-                                    <Table.Cell>{nodule['malignancy'] === 2 ? '高危' : '低危'}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>毛刺</Table.Cell>
-                                    <Table.Cell>{nodule['spiculation'] === 2 ? '毛刺' : '非毛刺'}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>分叶</Table.Cell>
-                                    <Table.Cell>{nodule['lobulation'] === 2 ? '分叶' : '非分叶'}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>钙化</Table.Cell>
-                                    <Table.Cell>{nodule['calcification'] === 2 ? '钙化' : '非钙化'}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>密度</Table.Cell>
-                                    <Table.Cell>{nodule['texture'] === 2 ? '实性' : '磨玻璃'}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>直径</Table.Cell>
-                                    <Table.Cell>
-                                      {Math.floor(nodule['diameter'] * 10) / 100}
-                                      厘米
-                                    </Table.Cell>
-                                  </Table.Row>
-
-                                  <Table.Row>
-                                    <Table.Cell>体积</Table.Cell>
-                                    <Table.Cell>{nodule['volume'] === undefined ? null : Math.floor(nodule['volume'] * 100) / 100 + 'cm³'}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>HU(最小值/均值/最大值)</Table.Cell>
-                                    <Table.Cell>{nodule['huMin'] === undefined ? null : nodule['huMin'] + ' / ' + nodule['huMean'] + ' / ' + nodule['huMax']}</Table.Cell>
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>结节部分</Table.Cell>
-                                    <Table.Cell>
-                                      <div
-                                        id={nodule_id}
-                                        style={{
-                                          width: '300px',
-                                          height: '250px',
-                                          margin: '0 auto',
-                                        }}></div>
-                                    </Table.Cell>
-                                    {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
-                                  </Table.Row>
-                                  <Table.Row>
-                                    <Table.Cell>直方图</Table.Cell>
-                                    <Table.Cell>
-                                      <div id={visualId} style={{ margin: '0 auto' }}></div>
-                                    </Table.Cell>
-                                  </Table.Row>
-                                </Table.Body>
-                              </Table>
-                            </div>
-                          )
-                        })}
-                        <Divider />
-                      </Modal.Description>
-                    </Modal.Content>
-                  </Modal>
-                </Grid.Column>
-                <Grid.Column textAlign="left" width={2}>
-                  <Button title="复制" className="inverted blue button" icon="copy outline" onClick={this.handleCopyClick}></Button>
-                </Grid.Column>
-              </Grid.Row>
-              <Divider></Divider>
-              <Grid.Row>
-                <Grid.Column textAlign="center">
-                  <Form.TextArea
-                    style={{
-                      fontSize: 'medium',
-                      overflowY: 'auto',
-                      width: '100%',
-                      background: 'transparent',
-                      border: '0rem',
-                      marginLeft: '0px',
-                    }}
-                    id="textarea"
-                    placeholder="在此填写诊断报告"
-                    onChange={this.handleTextareaChange}
-                    value={this.state.templateText}
-                    maxLength={500}>
-                    {/* {this.template().split('*').map((content,index)=>{
-                                return(
-                                    <p key={index}>
-                                        {content}
-                                    </p>
-                                )
-                                
-                            })} */}
-                  </Form.TextArea>
-                </Grid.Column>
-              </Grid.Row>
-            </Grid>
-          </Tab.Pane>
-        ),
-      },
-      {
-        menuItem: '处理建议',
-        render: () => (
-          <Tab.Pane>
-            {/* <MiniReport
-              type="处理建议"
-              imageIds={this.state.imageIds}
-              boxes={this.state.boxes}
-            /> */}
-            <Grid divided="vertically">
-              <Grid.Row verticalAlign="middle" columns={3} style={{ height: 40 }}>
-                <Grid.Column width={6}></Grid.Column>
-                <Grid.Column widescreen={5} computer={6} textAlign="right">
-                  <Dropdown style={{ background: 'none', fontSize: 16 }} text={this.state.dealchoose} id="dealchoose">
-                    <Dropdown.Menu>
-                      <Dropdown.Item onClick={this.dealChoose}>中华共识</Dropdown.Item>
-                      <Dropdown.Item onClick={this.dealChoose}>Fleischner</Dropdown.Item>
-                      <Dropdown.Item onClick={this.dealChoose}>NCCN</Dropdown.Item>
-                      <Dropdown.Item onClick={this.dealChoose}>Lung-RADS</Dropdown.Item>
-                      <Dropdown.Item onClick={this.dealChoose}>亚洲共识</Dropdown.Item>
-                    </Dropdown.Menu>
-                  </Dropdown>
-                </Grid.Column>
-                <Grid.Column textAlign="center" width={2}>
-                  <Button title="复制" className="inverted blue button" icon="copy outline" onClick={this.handleCopyClick}></Button>
-                </Grid.Column>
-              </Grid.Row>
-              <Divider></Divider>
-              <Grid.Row>
-                <Grid.Column textAlign="center">
-                  <Form.TextArea
-                    style={{
-                      fontSize: 'medium',
-                      overflowY: 'auto',
-                      width: '100%',
-                      height: document.body.clientHeight / 7,
-                      background: 'transparent',
-                      border: '0rem',
-                      marginLeft: '0px',
-                    }}
-                    id="textarea"
-                    placeholder="在此填写处理建议"
-                    value={this.state.templateText}
-                    onChange={this.handleTextareaChange}
-                    maxLength={500}></Form.TextArea>
-                </Grid.Column>
-              </Grid.Row>
-            </Grid>
-          </Tab.Pane>
-        ),
-      },
-      // {
-      //   menuItem: "留言",
-      //   render: () => (
-      //     <Tab.Pane>
-      //       <MessagePanel caseId={this.state.caseId} boxes={this.state.boxes} />
-      //     </Tab.Pane>
-      //   ),
-      // },
-    ]
 
     const dicomslice = this.state.imageIds[0]
     // console.log('dicomslice',dicomslice)
@@ -2383,6 +2031,7 @@ class CornerstoneElement extends Component {
       )
       panel = CPRPanel
     }
+
     function nodulesToTabelContent(inside, idx, that) {
       let representArray = []
       let dropdownText = ''
@@ -2594,96 +2243,21 @@ class CornerstoneElement extends Component {
         malignancyContntStyle = highRiskStyle
         probContntStyle.color = '#CC3300'
       }
-      malignancyContnt = (
-        <Grid.Column width={2} textAlign="center">
-          <select
-            id={malId}
-            style={malignancyContntStyle}
-            value={inside.malignancy}
-            onChange={that.onSelectMal}
-            onClick={that.onSelectClick}
-            disabled={that.state.listsActiveIndex !== idx ? 'disabled' : ''}>
-            <option value="-1" disabled="disabled">
-              选择性质
-            </option>
-            <option value="1">低危</option>
-            <option value="2">中危</option>
-            <option value="3">高危</option>
-          </select>
-        </Grid.Column>
-      )
-      probContnt = (
-        <Grid.Column width={4} textAlign="center">
-          <div style={probContntStyle}>{Math.floor(inside.malProb * 1000) / 10}%</div>
-        </Grid.Column>
-      )
       // if(that.state.readonly){
       return (
-        <div key={idx} className="highlightTbl">
+        <div key={idx} className={"highlightTbl" + (listsActiveIndex === idx ? ' highlightTbl-active':'')}>
           <Accordion.Title onClick={that.handleListClick.bind(that, inside.slice_idx + 1, idx)} active={listsActiveIndex === idx} index={idx}>
-            <Grid>
-              <Grid.Row>
-                <Grid.Column width={1}>
-                  {inside.modified === undefined ? (
-                    <div onMouseEnter={that.highlightNodule} onMouseLeave={that.dehighlightNodule} style={{ fontSize: 'large' }}>
-                      {idx + 1}
+            <div className="nodule-accordion-item-title">
+              <div className="nodule-accordion-item-title-start">
+                <div className="nodule-accordion-item-title-index">
+                  <div onMouseEnter={that.highlightNodule} onMouseLeave={that.dehighlightNodule} style={inside.modified === undefined ?{ fontSize: 'large' }: { fontSize: 'large', color: '#dbce12' }}>
+                      {inside.visibleIdx + 1}
                     </div>
-                  ) : (
-                    <div onMouseEnter={that.highlightNodule} onMouseLeave={that.dehighlightNodule} style={{ fontSize: 'large', color: '#dbce12' }}>
-                      {idx + 1}
-                    </div>
-                  )}
-                </Grid.Column>
-
-                <Grid.Column widescreen={6} computer={7} textAlign="center">
-                  {locationDropdown}
-                </Grid.Column>
-
-                {malignancyContnt}
-                {probContnt}
-
-                <Grid.Column width={1} textAlign="center">
-                  <Icon name="trash alternate" onClick={that.delNodule} id={delId} style={show3DVisualization ? { display: 'none' } : {}}></Icon>
-                </Grid.Column>
-              </Grid.Row>
-            </Grid>
-          </Accordion.Title>
-          <Accordion.Content active={listsActiveIndex === idx} id="highlightAccordion">
-            <Grid>
-              <Grid.Row>
-                <Grid.Column width={1}>
-                  <div style={{ fontSize: '1rem', color: '#2ECC71' }}>{parseInt(inside.slice_idx) + 1}</div>
-                </Grid.Column>
-
-                {/* <Grid.Column widescreen={6} computer={6}>
-                  {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
-                </Grid.Column> */}
-                {ll === 0 && sl === 0 ? (
-                  <Grid.Column widescreen={6} computer={6}>
-                    {'\xa0\xa0' + (diameter / 10).toFixed(2) + ' cm'}
-                  </Grid.Column>
-                ) : (
-                  <Grid.Column widescreen={6} computer={6}>
-                    {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
-                  </Grid.Column>
-                )}
-
-                <Grid.Column widescreen={3} computer={3} textAlign="center">
-                  {inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}
-                </Grid.Column>
-                <Grid.Column widescreen={4} computer={5} textAlign="center">
-                  {inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}
-                </Grid.Column>
-              </Grid.Row>
-              {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
-                                            <select id={texId} style={selectStyle} defaultValue="" disabled>
-                                            <option value="" disabled="disabled">选择亚型</option>
-                                            </select>
-                                        </Grid.Column> */}
-
-              <Grid.Row textAlign="center" verticalAlign="middle" centered>
-                <Grid.Column width={3}>
-                  <select id={texId} style={selectStyle} value={inside.texture} onChange={that.onSelectTex}>
+                </div>
+                    
+                    <Checkbox className="nodule-accordion-item-title-checkbox" checked={nodulesChecked[inside.visibleIdx]} onChange={that.onHandleNoduleCheckChange.bind(that, inside.visibleIdx)} onClick={that.onHandleNoduleCheckClick.bind(that)}>{parseInt(inside.slice_idx) + 1}</Checkbox>
+                    <div className="nodule-accordion-item-title-type">
+                    <select id={texId} style={selectStyle} value={inside.texture} onChange={that.onSelectTex} onClick={that.onSelectTexClick.bind(this)}>
                     <option value="-1" disabled="disabled">
                       选择性质
                     </option>
@@ -2691,36 +2265,122 @@ class CornerstoneElement extends Component {
                     <option value="2">实性</option>
                     <option value="3">半实性</option>
                   </select>
-                </Grid.Column>
-                <Grid.Column width={2} style={{ paddingLeft: '0px', paddingRight: '0px' }}>
+                  </div>
+
+                  </div>
+
+                  
+                    {ll === 0 && sl === 0 ? (
+                  <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">
+                    {(diameter / 10).toFixed(2) + 'cm'}
+                  </div>
+                ) : (
+                  <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">
+                    {(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + 'cm'}
+                  </div>
+                )}
+
+          <div className="nodule-accordion-item-title-end">
+                <div className="nodule-accordion-item-title-location" >
+                  {locationDropdown}
+                </div>
+
+                  <div className="nodule-accordion-item-title-mal">
+                <select
+                
+            id={malId}
+            style={malignancyContntStyle}
+            value={inside.malignancy}
+            onChange={that.onSelectMal}
+            onClick={that.onSelectMalClick.bind(this)}
+            // disabled={that.state.listsActiveIndex !== idx ? 'disabled' : ''}
+            >
+            <option value="-1" disabled="disabled">
+              选择危险度
+            </option>
+            <option value="1">低危</option>
+            <option value="2">中危</option>
+            <option value="3">高危</option>
+          </select>
+          </div>
+
+          </div>
+                {/* <div style={probContntStyle}>{Math.floor(inside.malProb * 1000) / 10}%</div> */}
+
+                {/* <div className="nodule-accordion-item-title-delete">
+                </div> */}
+            </div>
+          </Accordion.Title>
+          <Accordion.Content active={listsActiveIndex === idx} >
+            <div className="nodule-accordion-item-content">
+              <div className="nodule-accordion-item-content-info">
+                {/* <Grid.Column widescreen={6} computer={6}>
+                  {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
+                </Grid.Column> */}
+                <div className="nodule-accordion-item-content-info-diam">
+                  {inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}
+                </div>
+                <div className="nodule-accordion-item-content-info-hu">
+                  {inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}
+                </div>
+              </div>
+              {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
+                                            <select id={texId} style={selectStyle} defaultValue="" disabled>
+                                            <option value="" disabled="disabled">选择亚型</option>
+                                            </select>
+                                        </Grid.Column> */}
+
+              <div className="nodule-accordion-item-content-char">
+                <div className="nodule-accordion-item-content-char-title">
                   表征:
-                </Grid.Column>
-                <Grid.Column width={11} style={{ paddingLeft: '0px', paddingRight: '0px' }}>
-                  <Dropdown multiple selection options={options} id="dropdown" icon="add circle" name={'dropdown' + idx} value={representArray} onChange={that.representChange.bind(that)} />
-                </Grid.Column>
-              </Grid.Row>
-              <Grid.Row>
-                <Grid.Column width={12} style={{ textAlign: 'left' }}>
+                </div>
+                <div className="nodule-accordion-item-content-char-content">
+                  <Dropdown multiple selection options={options} id="dropdown" icon="add circle" name={'dropdown' + idx} value={representArray} onChange={that.representChange.bind(that, idx)} />
+                </div>
+              </div>
+
+              <div className="nodule-accordion-item-content-button">
+                <div>
                   <Button size="mini" circular inverted icon="chart bar" title="特征分析" value={idx} onClick={that.featureAnalysis.bind(that, idx)}></Button>
-                </Grid.Column>
-                <Grid.Column width={4}>
+                </div>
+                <div>
                   <Button.Group size="mini" className="measureBtnGroup" style={show3DVisualization ? { display: 'none' } : {}}>
                     <Button basic icon title="擦除测量" active color="green" onClick={that.eraseMeasures.bind(that, idx)}>
                       <Icon inverted color="green" name="eraser"></Icon>
                     </Button>
                     {showMeasure ? (
                       <Button basic icon title="隐藏测量" active color="blue" onClick={that.toHideMeasures.bind(that, idx)}>
-                        <Icon inverted color="blue" name="eye"></Icon>
+                        <Icon inverted color="blue" name="eye slash"></Icon>
                       </Button>
                     ) : (
                       <Button basic icon title="显示测量" active color="blue" onClick={that.toHideMeasures.bind(that, idx)}>
-                        <Icon inverted color="blue" name="eye slash"></Icon>
+                        <Icon inverted color="blue" name="eye"></Icon>
                       </Button>
                     )}
+                    <Popup
+                      on="click"
+                      trigger={<Button basic icon title="删除结节" active color="grey" style={show3DVisualization ? { display: 'none' } : {}}>
+                      <Icon inverted color="grey" name="trash alternate"></Icon>
+                        </Button>}
+                      onOpen={that.setDelNodule.bind(that, idx, true)}
+                      onClose={that.setDelNodule.bind(that, idx, false)}
+                      open={inside.delOpen}
+                      >
+                      <div className="general-confirm-block">
+                        <div className="general-confirm-info">
+                          是否删除该结节？
+                        </div>
+                        <div className="general-confirm-operation">
+                          <Button inverted size="mini" onClick={that.setDelNodule.bind(that, idx, false)}>取消</Button>
+                          <Button inverted color='blue' size="mini" onClick={that.onConfirmDelNodule.bind(that, idx)}>确认</Button>
+                        </div>
+                      </div>
+                    </Popup>
+                    
                   </Button.Group>
-                </Grid.Column>
-              </Grid.Row>
-            </Grid>
+                </div>
+              </div>
+            </div>
 
             {/* <div id={visualId} className='histogram'></div> */}
           </Accordion.Content>
@@ -2732,32 +2392,73 @@ class CornerstoneElement extends Component {
       tableContent = this.state.boxes // .selectBoxes
         .map((inside, idx) => nodulesToTabelContent(inside, idx, this))
       noduleContent = this.state.boxes.map((inside, idx) => nodulesToTabelContent(inside, idx, this))
+
+      const noduleOrderOption = 
+        [{
+        desc: '层面数',
+        key: 'slice_idx',
+        sortable: true
+      },{
+        desc: '半径大小',
+        key: 'diameter',
+        sortable: true
+      },{
+        desc: '结节类型',
+        key: 'texture',
+        sortable: false
+      },{
+        desc: '良恶性',
+        key: 'malignancy',
+        sortable: false
+      }]
+      const noduleOrderContent = noduleOrderOption.map((item, idx)=>{
+        return (
+          <div key={idx} className={"nodule-filter-operation-sort-type" + (nodulesOrder[item.key] !== 0 ? ' nodule-filter-operation-sort-type-active' : '')} onClick={this.onHandleOrderNodule.bind(this, item.key)}>
+          <span>
+            {item.desc}
+          </span>
+          
+            {item.sortable ? (
+              <span className={'nodule-filter-operation-sort-type-order'} onClick={this.onHandleOrderDirectionNodule.bind(this, item.key)}>
+              <FontAwesomeIcon className={(nodulesOrder[item.key] === -1 ? 'nodule-filter-operation-sort-type-order-icon-hide' : '') + ' nodule-filter-operation-sort-type-order-icon-up'} icon={faSortUp} />
+              <FontAwesomeIcon className={(nodulesOrder[item.key] === 1 ? 'nodule-filter-operation-sort-type-order-icon-hide' : '') + ' nodule-filter-operation-sort-type-order-icon-down'} icon={faSortDown} />
+              </span>
+            ):null}
+            
+        </div>
+        )
+      })
       if (lobesData && lobesData.length > 0) {
         lobeContent = lobesData.map((item, index) => {
-          const inputRangeStyle = {
-            backgroundSize: lobesController.lobesOpacities[index] * 100 + '%',
+          if(lobesController.lobesChecked[index]){
+            lobeCheckNumber += 1
           }
           return (
-            <div key={index} className="highlightTbl">
+            <div key={index} className={"highlightTbl" + (lobesController.lobesActive[index]?' highlightTbl-active':'')} >
               <Accordion.Title onClick={this.setActive.bind(this, 0, index, item.index)} active={lobesController.lobesActive[index]}>
-                <div className="accordion-title-index">{index + 1}</div>
-                <div className="accordion-title-name">{item.lobeName}</div>
-                <div className="accordion-title-volume">
-                  {item.volume}cm<sup>3</sup>
+                <div className="threed-accordion-item-title">
+                  <div className="threed-accordion-item-title-start">
+                  <div className="threed-accordion-item-title-index">{index + 1}</div>
+                  <Checkbox className="threed-accordion-item-title-checkbox" checked={lobesController.lobesChecked[index]} onChange={this.onHandleThreedCheckChange.bind(this, 0, index)} onClick={this.onHandleThreedCheckClick.bind(this)}></Checkbox>
+                  <div className="threed-accordion-item-title-name">{item.lobeName}</div>
+                  </div>
+                  <div className="threed-accordion-item-title-center">
+                <div className="threed-accordion-item-title-volume">
+                    {item.volume}cm<sup>3</sup>
                 </div>
+                </div>
+                </div>
+
               </Accordion.Title>
               <Accordion.Content active={lobesController.lobesActive[index]}>
-                <Grid>
-                  <Grid.Row>
-                    <Grid.Column width={6} textAlign="left">
-                      体积:&nbsp;{item.volume}cm<sup>3</sup>
-                    </Grid.Column>
-                    <Grid.Column width={6} textAlign="left">
+                <div className="threed-accordion-item-content">
+                  <div className="threed-accordion-item-content-info">
+                    <div>
                       {`${item.lobeName}/全肺`}:&nbsp;{item.percent}%
-                    </Grid.Column>
-                  </Grid.Row>
-                  <Grid.Row>
-                    <Grid.Column width={16} className="accordion-content-opacity">
+                    </div>
+                  </div>
+
+                    <div className="threed-accordion-item-content-opacity">
                       透明度
                       <Slider
                         style={{ width: '30%', marginLeft: '10px' }}
@@ -2775,25 +2476,25 @@ class CornerstoneElement extends Component {
                         formatter={(value) => `${value}%`}
                         style={{ marginLeft: '10px' }}
                       />
-                    </Grid.Column>
-                  </Grid.Row>
-                  <Grid.Row>
-                    <Grid.Column width={12} style={{ textAlign: 'left' }}>
+                    </div>
+
+                  <div className="threed-accordion-item-content-operation">
+                    <div className="threed-accordion-item-content-operation-hist">
                       <Button size="mini" circular inverted icon="chart bar" title="特征分析"></Button>
-                    </Grid.Column>
-                    <Grid.Column width={4}>
+                    </div>
+                    <div>
                       {lobesController.lobesVisible[index] ? (
-                        <Button size="mini" basic icon title="隐藏测量" active color="blue" onClick={this.setVisible.bind(this, 0, index, item.index)}>
-                          <Icon inverted color="blue" name="eye"></Icon>
-                        </Button>
-                      ) : (
-                        <Button size="mini" basic icon title="显示测量" active color="blue" onClick={this.setVisible.bind(this, 0, index, item.index)}>
+                        <Button size="mini" basic icon title="隐藏" active color="blue" onClick={this.setVisible.bind(this, 0, index, item.index)}>
                           <Icon inverted color="blue" name="eye slash"></Icon>
                         </Button>
+                      ) : (
+                        <Button size="mini" basic icon title="显示" active color="blue" onClick={this.setVisible.bind(this, 0, index, item.index)}>
+                          <Icon inverted color="blue" name="eye"></Icon>
+                        </Button>
                       )}
-                    </Grid.Column>
-                  </Grid.Row>
-                </Grid>
+                    </div>
+                  </div>
+                </div>
               </Accordion.Content>
             </div>
           )
@@ -2801,25 +2502,34 @@ class CornerstoneElement extends Component {
       }
       if (tubularData && tubularData.length > 0) {
         tubularContent = tubularData.map((item, index) => {
+          if(tubularController.tubularChecked[index]){
+            tubularCheckNumber += 1
+          }
           return (
-            <div key={index} className="highlightTbl">
+            <div key={index} className={"highlightTbl" + (tubularController.tubularActive[index]?' highlightTbl-active':'')}>
               <Accordion.Title onClick={this.setActive.bind(this, 1, index, item.index)} active={tubularController.tubularActive[index]}>
-                <div className="accordion-title-index">{index + 1}</div>
-                <div className="accordion-title-name">{item.name}</div>
-                <div className="accordion-title-volume">
-                  100cm<sup>3</sup>
+                <div className="threed-accordion-item-title">
+                  <div className="threed-accordion-item-title-start">
+                  <div className="threed-accordion-item-title-index">{index + 1}</div>
+                  <Checkbox className="threed-accordion-item-title-checkbox" checked={tubularController.tubularChecked[index]} onChange={this.onHandleThreedCheckChange.bind(this, 1, index)} onClick={this.onHandleThreedCheckClick.bind(this)}></Checkbox>
+                  <div className="threed-accordion-item-title-name">{item.name}</div>
+                  </div>
+                  <div className="threed-accordion-item-title-center">
+                <div className="threed-accordion-item-title-volume">
+                100cm<sup>3</sup>
+                </div>
+                </div>
                 </div>
               </Accordion.Title>
               <Accordion.Content active={tubularController.tubularActive[index]}>
-                <Grid>
-                  <Grid.Row>
-                    <Grid.Column width={6} textAlign="left">
+              <div className="threed-accordion-item-content">
+                <div className="threed-accordion-item-content-info">
+                    <div>
                       体积:&nbsp;100cm<sup>3</sup>
-                    </Grid.Column>
-                    <Grid.Column width={3} textAlign="left"></Grid.Column>
-                  </Grid.Row>
-                  <Grid.Row>
-                    <Grid.Column width={16} className="accordion-content-opacity">
+                      </div>
+                  </div>
+
+                  <div className="threed-accordion-item-content-opacity">
                       透明度
                       <Slider
                         style={{ width: '30%', marginLeft: '10px' }}
@@ -2837,25 +2547,25 @@ class CornerstoneElement extends Component {
                         formatter={(value) => `${value}%`}
                         style={{ marginLeft: '10px' }}
                       />
-                    </Grid.Column>
-                  </Grid.Row>
-                  <Grid.Row>
-                    <Grid.Column width={12} style={{ textAlign: 'left' }}>
+                    </div>
+                    <div className="threed-accordion-item-content-operation">
+                    <div className="threed-accordion-item-content-operation-hist">
                       <Button size="mini" circular inverted icon="chart bar" title="特征分析"></Button>
-                    </Grid.Column>
-                    <Grid.Column width={4}>
+                      </div>
+                    <div>
+
                       {tubularController.tubularVisible[index] ? (
-                        <Button size="mini" basic icon title="隐藏测量" active color="blue" onClick={this.setVisible.bind(this, 1, index, item.index)}>
-                          <Icon inverted color="blue" name="eye"></Icon>
-                        </Button>
-                      ) : (
-                        <Button size="mini" basic icon title="显示测量" active color="blue" onClick={this.setVisible.bind(this, 1, index, item.index)}>
+                        <Button size="mini" basic icon title="隐藏" active color="blue" onClick={this.setVisible.bind(this, 1, index, item.index)}>
                           <Icon inverted color="blue" name="eye slash"></Icon>
                         </Button>
+                      ) : (
+                        <Button size="mini" basic icon title="显示" active color="blue" onClick={this.setVisible.bind(this, 1, index, item.index)}>
+                          <Icon inverted color="blue" name="eye"></Icon>
+                        </Button>
                       )}
-                    </Grid.Column>
-                  </Grid.Row>
-                </Grid>
+                      </div>
+                    </div>
+                </div>
               </Accordion.Content>
             </div>
           )
@@ -2870,13 +2580,88 @@ class CornerstoneElement extends Component {
           </div>
         )
       })
+      if(dateSeries && dateSeries.length){
+        previewContent = dateSeries.map((item, index)=>{
+          const vSeries = item.map((serie, serieIndex)=>{
+            var validStatus = serie.validInfo.status
+            var validInfo = serie.validInfo.message
+            var statusIcon
+            if (validStatus === 'failed') {
+              if (validInfo === 'Files been manipulated') {
+                statusIcon = (
+                  <div>
+                    <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
+                    &nbsp;
+                    <p>影像发生篡改</p>
+                  </div>
+                )
+              } else if (validInfo === 'Errors occur during preprocess') {
+                statusIcon = (
+                  <div>
+                    <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
+                    &nbsp;
+                    <p>软件预处理出错</p>
+                  </div>
+                )
+              } else if (validInfo === 'caseId not found') {
+                statusIcon = (
+                  <div>
+                    <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
+                    &nbsp;
+                    <p>数据未入库</p>
+                  </div>
+                )
+              }
+            } else if (validStatus === 'ok') {
+              statusIcon = <CheckCircleOutlined style={{ color: '#52c41a' }} />
+            } else {
+              statusIcon = <SyncOutlined spin />
+            }
+            let previewId = 'preview-' + serie.caseId
+            let keyId = 'key-' + index + '-' + serieIndex
+            // console.log('render',previewId)
+            return (
+              <div className={"preview-item" + (this.state.caseId === serie.caseId ? ' preview-item-selected' : '')} onClick={(e) => this.handleClickScreen(e, serie.href, validStatus)} key={keyId}>
+                <div className="preview-item-canvas" id={previewId}></div>
+                <div className="preview-item-info">
+                  <div className="preview-item-info-icon">
+                  {statusIcon}
+
+                  </div>
+                  <div className="preview-item-info-desc">
+                  {serie.Description}
+
+                  </div>
+                </div>
+              </div>
+            )
+          }) 
+          return (
+            <Accordion key={index}>
+              <Accordion.Title active={previewVisible[index]} onClick={this.onSetPreviewActive.bind(this, index)}>
+                <div className="preview-title"> 
+                  <div className="preview-title-date">
+                    {item[0].date}
+                  </div>
+                  <div className="preview-title-number">
+                  {item.length}&nbsp;Series
+                  </div>
+                </div>
+              </Accordion.Title>
+              <Accordion.Content active={previewVisible[index]}>
+                {vSeries}
+              </Accordion.Content>
+            </Accordion>
+          )
+          
+        })
+      }
 
       return (
-        <div id="cornerstone">
           <Grid className="corner-container">
             <Grid.Row className="corner-top-row">
-              <Menu className="corner-header">
-                <Menu.Item id="menu-item-logo">
+              <div className="corner-header">
+                <div id="menu-item-logo">
                   {/* <Image src={src1} avatar size="mini" /> */}
                   <a id="sys-name" href="/searchCase">
                     肺结节CT影像辅助检测软件
@@ -2886,13 +2671,13 @@ class CornerstoneElement extends Component {
                   ) : (
                     <></>
                   )}
-                </Menu.Item>
-                <Menu.Item
+                </div>
+                <div
                   id="menu-item-buttons"
                   style={{
                     transform: `translateX(${-menuTransform}px)`,
                   }}>
-                  <Button.Group>
+                 {/* <Button.Group>
                     <Button
                       // inverted
                       // color='black'
@@ -2920,95 +2705,70 @@ class CornerstoneElement extends Component {
                       onClick={this.toMedia}
                       content="纵隔窗"
                       className="hubtn"
-                    />
-                    {/* <Button
-                                        inverted
-                                        color='blue'
-                                        onClick={this.toMedia}
-                                        className='hubtn'
-                                        >自定义</Button> */}
-                    {/* <Popup
-                                    trigger={
-                                        <Button
-                                        // inverted
-                                        // color='blue'
-                                        // onClick={this.toMedia}
-                                        className='hubtn'
-                                        >自定义</Button>
-                                    }
-                                    content={
-                                        <Form>
-                                            <Form.Input
-                                            label={`窗宽WW: ${wwDefine}`}
-                                            min={100}
-                                            max={2000}
-                                            name='wwDefine'
-                                            onChange={this.handleSliderChange}
-                                            step={100}
-                                            type='range'
-                                            value={wwDefine}
-                                            className='wwinput'
-                                            />
-                                            <Form.Input
-                                            label={`窗位WC: ${wcDefine}`}
-                                            min={-1000}
-                                            max={2000}
-                                            name='wcDefine'
-                                            onChange={this.wcSlider}
-                                            step={100}
-                                            type='range'
-                                            value={wcDefine}
-                                            />
-                                        </Form>
-                                    }
-                                    on='click'
-                                    position='bottom center'
-                                    id='defWindow'
-                                    />                                                */}
-                  </Button.Group>
-                  <span className="menu-line"></span>
+                    />                                            
+                  </Button.Group> */}
+                   <div onClick={this.onShowStudyList.bind(this)} className={"func-btn" + (studyListShowed?" func-btn-active":"")} >
+                      <Icon className="func-btn-icon" name="history" size="large"></Icon>
+                      <div className="func-btn-desc"> 历史检查</div>
+                  </div>
+                  <span className="menu-line"></span> 
                   {show3DVisualization ? (
                     <>
                       {MPR ? (
-                        <Button.Group>
-                          <Button icon className="funcbtn" hidden={!MPR} onClick={this.handleFuncButton.bind(this, 'STMPR')} title="取消MPR">
-                            <Icon className="icon-custom icon-custom-mpr-hide" size="large" />
-                          </Button>
-                          <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'RC')} title="重置相机" description="reset camera">
-                            <Icon name="redo" size="large" />
-                          </Button>
-                          {/* <Button icon className='funcbtn' active={crosshairsTool} onClick={this.handleFuncButton.bind(this, "TC")} title="十字线" description="toggle crosshairs"><Icon name='plus' size='large'/></Button> */}
-                          <Button icon className="funcbtn" hidden={!displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'HC')} title="隐藏十字线" description="hidden crosshairs">
-                            <Icon className="icon-custom icon-custom-HC" size="large" />
-                          </Button>
-                          <Button icon className="funcbtn" hidden={displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'SC')} title="显示十字线" description="show crosshairs">
-                            <Icon className="icon-custom icon-custom-SC" size="large" />
-                          </Button>
-                          <Button icon className="funcbtn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} title="停止勾画" description="end painting">
-                            <Icon name="window close outline" size="large" />
-                          </Button>
-                          <Button icon className="funcbtn" hidden={painting} onClick={this.handleFuncButton.bind(this, 'BP')} title="开始勾画" description="begin painting">
-                            <Icon name="paint brush" size="large" />
-                          </Button>
-                          <Button icon className="funcbtn" hidden={!painting} active={!erasing} onClick={this.handleFuncButton.bind(this, 'DP')} title="勾画" description="do painting">
-                            <Icon name="paint brush" size="large" />
-                          </Button>
-                          <Button icon className="funcbtn" hidden={!painting} active={erasing} onClick={this.handleFuncButton.bind(this, 'DE')} title="擦除" description="do erasing">
-                            <Icon name="eraser" size="large" />
-                          </Button>
+                        <>
+                          <div className="func-btn" hidden={!MPR} onClick={this.handleFuncButton.bind(this, 'STMPR')}>
+                            <Icon className="func-btn-icon icon-custom icon-custom-mpr-hide" size="large" />
+                            <div className="func-btn-desc"> 取消MPR</div>
+                          </div>
+                          <div className="func-btn" onClick={this.handleFuncButton.bind(this, 'RC')} description="reset camera">
+                            <Icon className="func-btn-icon" name="redo" size="large" />
+                            <div className="func-btn-desc"> 重置</div>
+
+                          </div>
+                          {/* <Button icon className='func-btn' active={crosshairsTool} onClick={this.handleFuncButton.bind(this, "TC")} title="十字线" description="toggle crosshairs"><Icon name='plus' size='large'/></Button> */}
+                          <div className="func-btn" hidden={!displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'HC')} description="hidden crosshairs">
+                            <Icon className="func-btn-icon icon-custom icon-custom-HC" size="large" />
+                            <div className="func-btn-desc"> 隐藏十字线</div>
+
+                          </div>
+                          <div className="func-btn" hidden={displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'SC')} description="show crosshairs">
+                            <Icon className="func-btn-icon icon-custom icon-custom-SC" size="large" />
+                            <div className="func-btn-desc"> 显示十字线</div>
+
+                          </div>
+                          <div className="func-btn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} description="end painting">
+                            <Icon className="func-btn-icon" name="window close outline" size="large" />
+                            <div className="func-btn-desc"> 停止勾画</div>
+                          </div>
+                          <div className="func-btn" hidden={painting} onClick={this.handleFuncButton.bind(this, 'BP')} description="begin painting">
+                            <Icon className="func-btn-icon" name="paint brush" size="large" />
+                            <div className="func-btn-desc"> 开始勾画</div>
+
+                          </div>
+                          <div className={"func-btn" + (!erasing?" func-btn-active":"")} hidden={!painting} onClick={this.handleFuncButton.bind(this, 'DP')} description="do painting">
+                            <Icon className="func-btn-icon" name="paint brush" size="large" />
+                            <div className="func-btn-desc"> 勾画</div>
+
+                          </div>
+                          <div className={"func-btn" + (erasing?" func-btn-active":"")} hidden={!painting} onClick={this.handleFuncButton.bind(this, 'DE')} description="do erasing">
+                            <Icon className="func-btn-icon" name="eraser" size="large" />
+                            <div className="func-btn-desc"> 擦除</div>
+
+                          </div>
                           <Popup
                             on="click"
                             trigger={
-                              <Button icon className="funcbtn" hidden={!painting}>
-                                <Icon name="dot circle" size="large" />
-                              </Button>
+                              <div className="func-btn" hidden={!painting}>
+                                <Icon className="func-btn-icon" name="dot circle" size="large" />
+                                <div className="func-btn-desc"> mask大小</div>
+
+                              </div>
                             }
                             position="bottom center"
                             style={{
-                              backgroundColor: '#021c38',
-                              borderColor: '#021c38',
-                              width: '200px',
-                              padding: '2px 4px 2px 4px',
+                              backgroundColor: 'rgb(39, 46, 72)',
+                              width: '230px',
+                              color: 'whitesmoke',
                             }}>
                             <div>
                               <div className="segment-widget-radius-container">
@@ -3042,16 +2802,16 @@ class CornerstoneElement extends Component {
                           <Popup
                             on="click"
                             trigger={
-                              <Button icon className="funcbtn" hidden={!painting}>
-                                <Icon name="eye dropper" size="large" />
-                              </Button>
+                              <div className="func-btn" hidden={!painting}>
+                                <Icon className="func-btn-icon" name="eye dropper" size="large" />
+                                <div className="func-btn-desc"> mask颜色</div>
+                              </div>
                             }
                             position="bottom center"
                             style={{
-                              backgroundColor: '#021c38',
-                              borderColor: '#021c38',
-                              width: '150px',
-                              padding: '2px 4px 2px 4px',
+                              backgroundColor: 'rgb(39, 46, 72)',
+                              width: '180px',
+                              color: 'whitesmoke',
                             }}>
                             <div className="segment-label-color-selector">
                               颜色选择器：
@@ -3060,78 +2820,87 @@ class CornerstoneElement extends Component {
                           </Popup>
                           {CPR ? (
                             <>
-                              <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'STCPR')} title="取消CPR" hidden={!CPR}>
-                                <Icon name="window close outline" size="large" />
-                              </Button>
-                              <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'RA')} title="重建气道" description="reconstruct airway">
-                                <Icon className="icon-custom icon-custom-RA" size="large" />
-                              </Button>
+                              <div className="func-btn" onClick={this.handleFuncButton.bind(this, 'STCPR')} hidden={!CPR}>
+                                <Icon className="func-btn-icon" name="window close outline" size="large" />
+                                <div className="func-btn-desc"> 取消CPR</div>
+                                
+                              </div>
+                              <div className="func-btn" onClick={this.handleFuncButton.bind(this, 'RA')} description="reconstuct airway">
+                                <Icon className="func-btn-icon icon-custom icon-custom-RA" size="large" />
+                              <div className="func-btn-desc"> 重建气道</div>
+
+                              </div>
                             </>
                           ) : (
-                            <Button icon className="funcbtn" onClick={this.handleFuncButton.bind(this, 'CPR')} title="CPR" hidden={CPR}>
-                              <Icon className="icon-custom icon-custom-CPR" size="large" />
-                            </Button>
+                            <div className="func-btn" onClick={this.handleFuncButton.bind(this, 'CPR')} hidden={CPR}>
+                              <Icon className="func-btn-icon icon-custom icon-custom-CPR" size="large" />
+                              <div className="func-btn-desc"> CPR</div>
+
+                            </div>
                           )}
-                        </Button.Group>
+                        </>
                       ) : (
-                        <Button icon className="funcbtn" hidden={MPR} onClick={this.handleFuncButton.bind(this, 'MPR')} title="MPR">
-                          <Icon className="icon-custom icon-custom-mpr-show" size="large" />
-                        </Button>
+                        <div className="func-btn" hidden={MPR} onClick={this.handleFuncButton.bind(this, 'MPR')}>
+                          <Icon className="func-btn-icon icon-custom icon-custom-mpr-show" size="large" />
+                          <div className="func-btn-desc"> MPR</div>
+                        </div>
                       )}
                       <span className="menu-line"></span>
-                      <Button.Group>
-                        <Button icon onClick={this.onShowStudyList.bind(this)} className="funcbtn" title="历史检查">
-                          <Icon name="history" size="large"></Icon>
-                        </Button>
-                        <Button icon title="隐藏3D" className="funcbtn" onClick={this.hide3D.bind(this)}>
-                          <Icon className="icon-custom icon-custom-hide-3d" size="large"></Icon>
-                        </Button>
-                      </Button.Group>
+                        <div className="func-btn" onClick={this.hide3D.bind(this)}>
+                          <Icon className="func-btn-icon icon-custom icon-custom-hide-3d" size="large"></Icon>
+                          <div className="func-btn-desc"> 隐藏3D</div>
+                        </div>
                     </>
                   ) : (
                     <>
-                      <Button.Group>
-                        <Button
-                          // inverted
-                          // color='blue'
-                          icon
-                          title="灰度反转"
-                          // style={{width:55,height:60,fontSize:14,fontSize:14}}
+                        <div
                           onClick={this.imagesFilp}
-                          className="funcbtn">
-                          <Icon name="adjust" size="large"></Icon>
-                        </Button>
-                        <Button
-                          // inverted
-                          // color='blue'
-                          icon
-                          title="放大"
-                          // style={{width:55,height:60,fontSize:14,fontSize:14}}
-                          onClick={this.ZoomIn}
-                          className="funcbtn">
-                          <Icon name="search plus" size="large"></Icon>
-                        </Button>
-                        <Button
-                          // inverted
-                          // color='blue'
+                          className="func-btn">
+                          <Icon className="func-btn-icon" name="adjust" size="large"></Icon>
+                          <div className="func-btn-desc">反色</div>
+                        </div>
+                        <div
+                          
+                          className="func-btn">
+                          <Icon className="func-btn-icon" name="search" size="large"></Icon>
+                          <div className="func-btn-desc">
+                            <Dropdown
+                            icon={null}
+                            trigger={(
+                              <>
+                              缩放
+                              <FontAwesomeIcon icon={faCaretDown} />
+                              </>
+                            )}
+                            >
+                              <Dropdown.Menu>
+                              <Dropdown.Item text='放大' icon="search plus" onClick={this.ZoomIn}/>
+                              <Dropdown.Item text='缩小' icon="search minus" onClick={this.ZoomOut}/>
+                              </Dropdown.Menu>
+                            </Dropdown>
+                          </div>
+                        </div>
+                        {/* <Button
                           icon
                           title="缩小"
-                          // style={{width:55,height:60,fontSize:14}}
-                          onClick={this.ZoomOut}
-                          className="funcbtn">
+                          
+                          className="func-btn">
                           <Icon name="search minus" size="large"></Icon>
-                        </Button>
-                        <Button icon onClick={this.reset} className="funcbtn" title="刷新">
-                          <Icon name="repeat" size="large"></Icon>
-                        </Button>
+                        </Button> */}
+                        <div onClick={this.reset} className="func-btn" title="刷新">
+                          <Icon className="func-btn-icon" name="repeat" size="large"></Icon>
+                          <div className="func-btn-desc">刷新</div>
+                        </div>
                         {!this.state.isPlaying ? (
-                          <Button icon onClick={this.playAnimation} className="funcbtn" title="播放动画">
-                            <Icon name="play" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.playAnimation} className="func-btn" title="播放动画">
+                            <Icon className="func-btn-icon" name="play" size="large"></Icon>
+                            <div className="func-btn-desc">播放</div>
+                          </div>
                         ) : (
-                          <Button icon onClick={this.pauseAnimation} className="funcbtn" title="暂停动画">
-                            <Icon name="pause" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.pauseAnimation} className="func-btn" title="暂停动画">
+                            <Icon className="func-btn-icon" name="pause" size="large"></Icon>
+                            <div className="func-btn-desc">暂停</div>
+                          </div>
                         )}
                         {/* <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button> */}
                         {/* <Modal
@@ -3172,13 +2941,15 @@ class CornerstoneElement extends Component {
                                         </Grid>
                                     )} */}
                         {showNodules ? (
-                          <Button icon onClick={this.toHidebox} className="funcbtn" id="hideNodule" title="隐藏结节">
-                            <Icon id="cache-button" name="eye slash" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.toHidebox} className="func-btn" id="hideNodule" title="隐藏结节">
+                            <Icon className="func-btn-icon" id="cache-button" name="eye slash" size="large"></Icon>
+                            <div className="func-btn-desc">隐藏结节</div>
+                          </div>
                         ) : (
-                          <Button icon onClick={this.toHidebox} className="funcbtn" id="showNodule" title="显示结节">
-                            <Icon id="cache-button" name="eye" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.toHidebox} className="func-btn" id="showNodule" title="显示结节">
+                            <Icon className="func-btn-icon" id="cache-button" name="eye" size="large"></Icon>
+                            <div className="func-btn-desc">显示结节</div>
+                          </div>
                         )}
                         {/* <Button icon onClick={this.toHidebox} className="funcbtn" id="showNodule" title="显示结节">
                           <Icon id="cache-button" name="eye" size="large"></Icon>
@@ -3187,21 +2958,16 @@ class CornerstoneElement extends Component {
                           <Icon id="cache-button" name="eye slash" size="large"></Icon>
                         </Button> */}
                         {showInfo ? (
-                          <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
-                            <Icon id="cache-button" name="delete calendar" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.toHideInfo} className="func-btn" id="hideInfo" title="隐藏信息">
+                            <Icon className="func-btn-icon" id="cache-button" name="delete calendar" size="large"></Icon>
+                            <div className="func-btn-desc">隐藏信息</div>
+                          </div>
                         ) : (
-                          <Button icon onClick={this.toHideInfo} className="funcbtn" id="showInfo" title="显示信息">
-                            <Icon id="cache-button" name="content" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.toHideInfo} className="func-btn" id="showInfo" title="显示信息">
+                            <Icon className="func-btn-icon" id="cache-button" name="content" size="large"></Icon>
+                            <div className="func-btn-desc">显示信息</div>
+                          </div>
                         )}
-                        {/* <Button icon onClick={this.toHideInfo} className="funcbtn" id="showInfo" title="显示信息">
-                          <Icon id="cache-button" name="content" size="large"></Icon>
-                        </Button>
-                        <Button icon onClick={this.toHideInfo} className="funcbtn" id="hideInfo" title="隐藏信息">
-                          <Icon id="cache-button" name="delete calendar" size="large"></Icon>
-                        </Button> */}
-
                         {/* <Button
                   onClick={() => {
                     this.setState({ immersive: true });
@@ -3212,82 +2978,90 @@ class CornerstoneElement extends Component {
                 >
                   <Icon name="expand arrows alternate" size="large"></Icon>
                 </Button> */}
-                      </Button.Group>
                       <span className="menu-line"></span>
-                      <Button.Group>
                         {menuTools === 'anno' ? (
-                          <Button icon onClick={this.startAnnos} title="标注" className="funcbtn" active>
-                            <Icon name="edit" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.startAnnos} title="标注" className="func-btn" active>
+                            <Icon className="func-btn-icon" name="edit" size="large"></Icon>
+                            <div className="func-btn-desc">标注</div>
+                          </div>
                         ) : (
-                          <Button icon onClick={this.startAnnos} title="标注" className="funcbtn">
-                            <Icon name="edit" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.startAnnos} title="标注" className="func-btn">
+                            <Icon className="func-btn-icon" name="edit" size="large"></Icon>
+                            <div className="func-btn-desc">标注</div>
+                          </div>
                         )}
                         {menuTools === 'bidirect' ? (
-                          <Button icon onClick={this.bidirectionalMeasure} title="测量" className="funcbtn" active>
-                            <Icon name="crosshairs" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.bidirectionalMeasure} title="测量" className="func-btn" active>
+                            <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
+                            <div className="func-btn-desc">测量</div>
+                          </div>
                         ) : (
-                          <Button icon onClick={this.bidirectionalMeasure} title="测量" className="funcbtn">
-                            <Icon name="crosshairs" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.bidirectionalMeasure} title="测量" className="func-btn">
+                            <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
+                            <div className="func-btn-desc">测量</div>
+                          </div>
                         )}
                         {menuTools === 'length' ? (
-                          <Button icon onClick={this.lengthMeasure} title="长度" className="funcbtn" active>
-                            <Icon name="arrows alternate vertical" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.lengthMeasure} title="长度" className="func-btn" active>
+                            <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
+                            <div className="func-btn-desc">长度</div>
+                          </div>
                         ) : (
-                          <Button icon onClick={this.lengthMeasure} title="长度" className="funcbtn">
-                            <Icon name="arrows alternate vertical" size="large"></Icon>
-                          </Button>
+                          <div onClick={this.lengthMeasure} title="长度" className="func-btn">
+                            <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
+                            <div className="func-btn-desc">长度</div>
+                          </div>
                         )}
                         {menuTools === 'slide' ? (
-                          <Button icon title="切换切片" onClick={this.slide} className="funcbtn" active>
-                            <Icon name="sort" size="large"></Icon>
-                          </Button>
+                          <div title="切换切片" onClick={this.slide} className="func-btn" active>
+                            <Icon className="func-btn-icon" name="sort" size="large"></Icon>
+                            <div className="func-btn-desc">切换切片</div>
+                          </div>
                         ) : (
-                          <Button icon title="切换切片" onClick={this.slide} className="funcbtn">
-                            <Icon name="sort" size="large"></Icon>
-                          </Button>
+                          <div title="切换切片" onClick={this.slide} className="func-btn">
+                            <Icon className="func-btn-icon" name="sort" size="large"></Icon>
+                            <div className="func-btn-desc">切换切片</div>
+                          </div>
                         )}
 
                         {menuTools === 'wwwc' ? (
-                          <Button icon title="窗宽窗位" onClick={this.wwwcCustom} className="funcbtn" active>
-                            <Icon name="sliders" size="large"></Icon>
-                          </Button>
+                          <div title="窗宽窗位" onClick={this.wwwcCustom} className="func-btn" active>
+                            <Icon className="func-btn-icon" name="sliders" size="large"></Icon>
+                            <div className="func-btn-desc">窗宽窗位</div>
+                          </div>
                         ) : (
-                          <Button icon title="窗宽窗位" onClick={this.wwwcCustom} className="funcbtn">
-                            <Icon name="sliders" size="large"></Icon>
-                          </Button>
+                          <div title="窗宽窗位" onClick={this.wwwcCustom} className="func-btn">
+                            <Icon className="func-btn-icon" name="sliders" size="large"></Icon>
+                            <div className="func-btn-desc">窗宽窗位</div>
+                          </div>
                         )}
                         {this.state.readonly ? (
-                          <Button icon title="提交" onClick={this.submit} className="funcbtn">
-                            <Icon name="upload" size="large"></Icon>
-                          </Button>
+                          <div title="提交" onClick={this.submit} className="func-btn">
+                            <Icon className="func-btn-icon" name="upload" size="large"></Icon>
+                            <div className="func-btn-desc">提交</div>
+                          </div>
                         ) : (
                           // <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
-                          <Button icon title="暂存" onClick={this.temporaryStorage} className="funcbtn">
-                            <Icon name="upload" size="large"></Icon>
-                          </Button>
+                          <div title="暂存" onClick={this.temporaryStorage} className="func-btn">
+                            <Icon className="func-btn-icon" name="upload" size="large"></Icon>
+                            <div className="func-btn-desc">暂存</div>
+                          </div>
                         )}
                         {this.state.readonly ? null : (
-                          <Button icon title="清空标注" onClick={this.clearUserNodule.bind(this)} className="funcbtn">
-                            <Icon name="user delete" size="large"></Icon>
-                          </Button>
+                          <div title="清空标注" onClick={this.clearUserNodule.bind(this)} className="func-btn">
+                            <Icon className="func-btn-icon" name="user delete" size="large"></Icon>
+                            <div className="func-btn-desc">清空标注</div>
+                          </div>
                         )}
-                        <Button icon onClick={this.onShowStudyList.bind(this)} className="funcbtn" title="历史检查">
-                          <Icon name="history" size="large"></Icon>
-                        </Button>
-                        <Button icon title="显示3D" className="funcbtn" onClick={this.show3D.bind(this)}>
-                          <Icon className="icon-custom icon-custom-show-3d" size="large"></Icon>
-                        </Button>
-                      </Button.Group>
+                        <div title="显示3D" className="func-btn" onClick={this.show3D.bind(this)}>
+                          <Icon className="func-btn-icon icon-custom icon-custom-show-3d" size="large"></Icon>
+                          <div className="func-btn-desc">显示3D</div>
+                        </div>
                     </>
                   )}
-                </Menu.Item>
+                </div>
 
-                <Menu.Item id="menu-item-user">
+                <div id="menu-item-user">
                   <Dropdown text={welcome}>
                     <Dropdown.Menu id="logout-menu">
                       <Dropdown.Item icon="home" text="我的主页" onClick={this.toHomepage} />
@@ -3304,61 +3078,14 @@ class CornerstoneElement extends Component {
                   ) : (
                     <></>
                   )}
-                </Menu.Item>
-              </Menu>
+                </div>
+              </div>
             </Grid.Row>
             <Grid.Row className="corner-bottom-row" columns={3} style={{ height: bottomRowHeight }}>
-              <Sidebar.Pushable style={{ overflow: 'hidden', width: '100%' }}>
-                <Sidebar visible={studyListShowed} animation={'uncover'}>
+              <Sidebar.Pushable style={{ overflow: 'hidden', width: '100%' }} >
+                <Sidebar visible={studyListShowed} animation={'uncover'} width="thin">
                   <div className="preview">
-                    {dateSeries.map((serie, index) => {
-                      var validStatus = serie.validInfo.status
-                      var validInfo = serie.validInfo.message
-                      var statusIcon = ''
-                      if (validStatus === 'failed') {
-                        if (validInfo === 'Files been manipulated') {
-                          statusIcon = (
-                            <div>
-                              <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-                              &nbsp;
-                              <p>影像发生篡改</p>
-                            </div>
-                          )
-                        } else if (validInfo === 'Errors occur during preprocess') {
-                          statusIcon = (
-                            <div>
-                              <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-                              &nbsp;
-                              <p>软件预处理出错</p>
-                            </div>
-                          )
-                        } else if (validInfo === 'caseId not found') {
-                          statusIcon = (
-                            <div>
-                              <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-                              &nbsp;
-                              <p>数据未入库</p>
-                            </div>
-                          )
-                        }
-                      } else if (validStatus === 'ok') {
-                        statusIcon = <CheckCircleOutlined style={{ color: '#52c41a' }} />
-                      } else {
-                        statusIcon = <SyncOutlined spin />
-                      }
-                      let previewId = 'preview-' + index
-                      let keyId = 'key-' + index
-                      // console.log('render',previewId)
-                      return (
-                        <Card onClick={(e) => this.handleClickScreen(e, serie.href, validStatus)} key={keyId}>
-                          <div className="preview-canvas" id={previewId}></div>
-                          <Card.Content>
-                            {statusIcon}
-                            <Card.Description>{serie.date + '\n ' + serie.Description}</Card.Description>
-                          </Card.Content>
-                        </Card>
-                      )
-                    })}
+                   {previewContent}
                   </div>
                 </Sidebar>
                 <Sidebar.Pusher style={{ height: '100%' }}>
@@ -3368,15 +3095,14 @@ class CornerstoneElement extends Component {
                         'corner-center-block' + (studyListShowed ? ' corner-center-contract-block' : '') + (verticalMode ? ' corner-center-vertical-block' : ' corner-center-horizontal-block')
                       }>
                       {show3DVisualization ? (
-                        <div className="segment-container center-viewport-panel" id="segment-container" data-aos="flip-left" data-aos-duration="1500">
+                        <div className="center-viewport-panel" id="segment-container">
                           <div style={{ width: viewerWidth, height: viewerHeight }}>{panel}</div>
                         </div>
                       ) : (
-                        <Grid celled style={{ margin: 0 }} className="center-viewport-panel" id="cor-container" data-aos="flip-left" data-aos-duration="1500">
+                        <div id="cor-container">
                           {/* <Grid.Row columns={2} id='canvas-column' style={{height:this.state.windowHeight*37/40}}> */}
-                          <Grid.Row columns={2} id="canvas-column">
-                            <Grid.Column width={15} className="canvas-style" id="canvas-border">
                               {/* <div className='canvas-style' id='canvas-border'> */}
+                              <div style={{height:"100%"}}>
                               <div
                                 id="origin-canvas"
                                 style={{
@@ -3398,12 +3124,9 @@ class CornerstoneElement extends Component {
                                 {/* {canvas} */}
                                 {dicomTagPanel}
                               </div>
-
                               {/* </div> */}
-                            </Grid.Column>
-                            <Grid.Column width={1}>
+                              <div id="cor-slice-slider" style={{height: `${canvasHeight * 0.7}px`, top: `${canvasHeight * 0.15}px`}}>
                               <Slider
-                                id="antd-slide"
                                 vertical
                                 reverse
                                 tipFormatter={null}
@@ -3414,9 +3137,9 @@ class CornerstoneElement extends Component {
                                 min={1}
                                 step={1}
                                 max={this.state.imageIds.length}></Slider>
-                            </Grid.Column>
-                          </Grid.Row>
-                        </Grid>
+                              </div>
+                              </div>
+                        </div>
                       )}
 
                       {/* <div className='antd-slider'> */}
@@ -3428,116 +3151,17 @@ class CornerstoneElement extends Component {
                       </button>
                     </div>
                     <div className={'corner-list-block' + (studyListShowed ? ' corner-list-contract-block' : '') + (verticalMode ? ' corner-list-vertical-block' : ' corner-list-horizontal-block')}>
-                      {show3DVisualization ? (
-                        <>
-                          <div id={'threed-card-container'}>
-                            <Tabs id="threed-card-tabs" type="card" defaultActiveKey={1} size="small" data-aos="fade-down" data-aos-duration="1500">
-                              <TabPane tab={noduleNumTab} key="1">
-                                <div id="elec-table">
-                                  {this.state.boxes.length === 0 ? (
-                                    <div
-                                      style={{
-                                        height: '100%',
-                                        background: '#021c38',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                      }}>
-                                      <Header as="h2" inverted>
-                                        <Icon name="low vision" />
-                                        <Header.Content>未检测出任何结节</Header.Content>
-                                      </Header>
-                                    </div>
-                                  ) : (
-                                    <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
-                                      {noduleContent}
-                                    </Accordion>
-                                  )}
-                                </div>
-                              </TabPane>
-                              <TabPane tab={'肺叶'} key="2">
-                                <div id="elec-table">
-                                  <Accordion styled id="lobe-accordion" fluid>
-                                    {lobeContent}
-                                  </Accordion>
-                                </div>
-                                {/* <div className="segment-list-block">
-                        <Table celled inverted>
-                          <Table.Header>
-                            <Table.Row>
-                              <Table.HeaderCell>肺叶</Table.HeaderCell>
-                              <Table.HeaderCell>体积</Table.HeaderCell>
-                              <Table.HeaderCell>占比</Table.HeaderCell>
-                            </Table.Row>
-                          </Table.Header>
-                          <Table.Body>{lobesInfo}</Table.Body>
-                        </Table>
-                        <div className="segment-list-operation" style={segmentListOperationStyles}>
-                          {lobesOp}
-                        </div>
-                      </div> */}
-                              </TabPane>
-                              <TabPane tab={'气管和血管'} key="3">
-                                <div id="elec-table">
-                                  <Accordion styled id="tubular-accordion" fluid>
-                                    {tubularContent}
-                                  </Accordion>
-                                </div>
-                                {/* <div className="segment-list-block">
-                        <Table celled selectable inverted>
-                          <Table.Header>
-                            <Table.Row>
-                              <Table.HeaderCell>名称</Table.HeaderCell>
-                              <Table.HeaderCell>长度</Table.HeaderCell>
-                            </Table.Row>
-                          </Table.Header>
-                          <Table.Body>{tubularInfo}</Table.Body>
-                        </Table>
-                        <div className="segment-list-operation" style={segmentListOperationStyles}>
-                          {tubularOp}
-                        </div>
-                      </div> */}
-                              </TabPane>
-                            </Tabs>
-                          </div>
-
-                          <div id="threed-mask-container" data-aos="fade-up" data-aos-duration="1500">
-                            {MPR && painting && maskVolumes && maskVolumes.length ? (
-                              <VTKMaskViewer
-                                viewerStyle={{
-                                  width: `${maskWidth}px`,
-                                  height: `${maskHeight}px`,
-                                }}
-                                volumes={maskVolumes}
-                                maskWidth={maskWidth}
-                                maskHeight={maskHeight}
-                                paintFilterBackgroundImageData={maskImageData}
-                                paintFilterLabelMapImageData={maskLabelMap}
-                                painting={painting}
-                                parallelScale={maskYLength / 2}
-                                onRef={(ref) => {
-                                  this.viewerMask = ref
-                                }}
-                              />
-                            ) : (
-                              <></>
-                            )}
-                          </div>
-                        </>
-                      ) : (
-                        <div className={'ct-list-container'}>
+                      <div className={'ct-list-container'}>
                           <div
                             id="nodule-card-container"
-                            className={verticalMode ? 'nodule-card-container-vertical' : 'nodule-card-container-horizontal'}
-                            data-aos="fade-down"
-                            data-aos-duration="1500">
-                            <Tabs type="card" animated defaultActiveKey={1} size="small">
-                              <TabPane tab={noduleNumTab} key="1">
-                                <div
+                            className={verticalMode ? 'nodule-card-container-vertical' : 'nodule-card-container-horizontal'}>
+                            <Tabs type="card" defaultActiveKey={1} size="small">
+                              <TabPane tab={"肺病灶"} key="1">
+                              <Tabs type="card" defaultActiveKey={1} size="small">
+                                  <TabPane tab={`肺结节 ${nodules.length}个`} key="1">
+                                  <div
                                   id="elec-table"
-                                  style={{
-                                    height: (this.state.windowHeight * 1) / 2,
-                                  }}>
+                                  >
                                   {this.state.boxes.length === 0 ? (
                                     <div
                                       style={{
@@ -3553,11 +3177,99 @@ class CornerstoneElement extends Component {
                                       </Header>
                                     </div>
                                   ) : (
-                                    <Accordion styled id="cornerstone-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
+                                    <div className="nodule-card-content">
+                                    <div className="nodule-filter">
+                                      <div className="nodule-filter-desc">
+                                        <div className="nodule-filter-desc-index"></div>
+                                        <Checkbox className="nodule-filter-desc-checkbox" checked={nodulesAllChecked} onChange={this.onHandleNoduleAllCheckChange.bind(this)} onClick={this.onHandleNoduleAllCheckClick.bind(this)}>全选</Checkbox>
+                                        <div className="nodule-filter-desc-text">已筛选{this.state.boxes.length}个病灶</div>
+                                        
+                                        </div>
+                                      <div className="nodule-filter-operation">
+                                      <FontAwesomeIcon className="nodule-filter-operation-icon" icon={faFilter}/>
+
+                                        <Popup
+                                          on="click"
+                                          style={{backgroundColor: "rgb(39, 46, 72)"}}
+                                          trigger={
+                                        <FontAwesomeIcon className="nodule-filter-operation-icon" icon={faSortAmountDownAlt}/>
+                                          }
+                                        >
+                                          <div className="nodule-filter-operation-sort">
+                                            <div className="nodule-filter-operation-sort-header">排序</div>
+                                            <div className="nodule-filter-operation-sort-content">
+                                            {noduleOrderContent}
+                                            </div>
+                                          </div>
+                                        </Popup>
+
+                                      </div>
+                                    </div>
+                                    <Accordion styled id="nodule-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
                                       {tableContent}
                                     </Accordion>
+                                    </div>
                                   )}
                                 </div>
+                                  </TabPane>
+                                  
+                                  {show3DVisualization ? 
+                                    (<><TabPane tab={'肺叶'} key="3">
+                                    <div id="elec-table">
+                                      <div className="threed-card-content">
+                                      <div className="threed-filter">
+                                        <div className="threed-filter-desc">
+                                        <div className="threed-filter-desc-index"></div>
+                                        <Checkbox className="threed-filter-desc-checkbox" checked={lobesAllChecked} onChange={this.onHandleThreedAllCheckChange.bind(this, 0)} onClick={this.onHandleThreedAllCheckClick.bind(this)}>全选</Checkbox>
+                                        <div className="threed-filter-desc-text">已选择{lobeCheckNumber}个肺叶</div>
+                                        </div>
+                                        <div className="threed-filter-operation">
+                                          {lobesAllVisible ? (
+                                          <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEyeSlash} onClick={this.onSetThreedAllVisible.bind(this, 0, false)}/>
+                                          ) : (
+                                          <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEye} onClick={this.onSetThreedAllVisible.bind(this, 0, true)}/>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <Accordion styled id="lobe-accordion" fluid>
+                                        {lobeContent}
+                                      </Accordion>
+                                      </div>
+                                    </div>
+                                  </TabPane>
+                                  <TabPane tab={'气管和血管'} key="4">
+                                      <div id="elec-table">
+                                      <div className="threed-card-content">
+                                      <div className="threed-filter">
+                                        <div className="threed-filter-desc">
+                                        <div className="threed-filter-desc-index"></div>
+                                        <Checkbox className="threed-filter-desc-checkbox" checked={tubularAllChecked} onChange={this.onHandleThreedAllCheckChange.bind(this, 1)} onClick={this.onHandleThreedAllCheckClick.bind(this)}>全选</Checkbox>
+                                        <div className="threed-filter-desc-text">已选择{tubularCheckNumber}个管状结构</div>
+                                        </div>
+                                        <div className="threed-filter-operation">
+                                          {tubularAllVisible ? (
+                                          <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEyeSlash} onClick={this.onSetThreedAllVisible.bind(this, 1, false)}/>
+                                          ) : (
+                                          <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEye} onClick={this.onSetThreedAllVisible.bind(this, 1, true)}/>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                        <Accordion styled id="tubular-accordion" fluid>
+                                          {tubularContent}
+                                        </Accordion>
+                                        </div>
+                                      </div>
+                                    </TabPane></>):(<><TabPane tab={"肺炎"} key="2">
+                                  </TabPane></>)}
+                                </Tabs>
+                                
+                              </TabPane>
+                              <TabPane tab={"骨病灶"} key="2">
+                                
+                              </TabPane>
+                              <TabPane tab={"其他"} key="3">
+                                
                               </TabPane>
                               {/* <TabPane tab={inflammationTab} key="2">
                                                         Content of Tab Pane 2
@@ -3568,48 +3280,366 @@ class CornerstoneElement extends Component {
                             </Tabs>
                           </div>
 
+                          {show3DVisualization ? (
+                            <div id="threed-mask-container" className={(verticalMode ? ' threed-mask-container-vertical' : ' threed-mask-container-horizontal')}>
+                              {MPR && painting && maskVolumes && maskVolumes.length ? (
+                                <VTKMaskViewer
+                                  viewerStyle={{
+                                    width: `${maskWidth}px`,
+                                    height: `${maskHeight}px`,
+                                  }}
+                                  volumes={maskVolumes}
+                                  maskWidth={maskWidth}
+                                  maskHeight={maskHeight}
+                                  paintFilterBackgroundImageData={maskImageData}
+                                  paintFilterLabelMapImageData={maskLabelMap}
+                                  painting={painting}
+                                  parallelScale={maskYLength / 2}
+                                  onRef={(ref) => {
+                                    this.viewerMask = ref
+                                  }}
+                                />):null}
+                            </div>
+                          ):(
                           <div
                             id="report"
-                            className={'report-tab-container' + (verticalMode ? ' report-tab-container-vertical' : ' report-tab-container-horizontal')}
-                            data-aos="fade-up"
-                            data-aos-duration="1500">
-                            <Tab
-                              menu={{
-                                borderless: false,
-                                inverted: false,
-                                attached: true,
-                                tabular: true,
-                                size: 'huge',
-                              }}
-                              panes={panes}
-                              onTabChange={this.onReportTabChange.bind(this)}
-                            />
+                            className={'report-tab-container' + (verticalMode ? ' report-tab-container-vertical' : ' report-tab-container-horizontal')}>
+                            <Accordion id="report-accordion-guide">
+                            <Accordion.Title  active={reportGuideActive} onClick={this.onSetReportGuideActive.bind(this)}>
+                              <div className="report-title">
+                                <div className="report-title-desc">
+                                  <Dropdown
+                                    options={
+                                      [{
+                                        key:'中华共识',
+                                        text:'中华共识',
+                                        value:'中华共识'
+                                      },{
+                                        key:'Fleischner',
+                                        text:'Fleischner',
+                                        value:'Fleischner'
+                                      },{
+                                        key:'NCCN',
+                                        text:'NCCN',
+                                        value:'NCCN'
+                                      },{
+                                        key:'Lung-RADS',
+                                        text:'Lung-RADS',
+                                        value:'Lung-RADS'
+                                      },{
+                                        key:'亚洲共识',
+                                        text:'亚洲共识',
+                                        value:'亚洲共识'
+                                      }]
+                                    }
+                                    defaultValue={reportGuideType}
+                                    icon={<FontAwesomeIcon icon={faChevronDown} />}
+                                    onChange={this.onHandleReportGuideTypeChange.bind(this)}
+                                  />
+
+                                </div>
+                              </div>
+                            </Accordion.Title>
+                            <Accordion.Content active={reportGuideActive}>
+                            <Form.TextArea
+                    id="report-guide-textarea"
+                    className="report-textarea"
+                    placeholder="在此查看指南"
+                    onChange={this.onHandleGuideTextareaChange.bind(this)}
+                    value={reportGuideText}
+                    maxLength={500}>
+                  </Form.TextArea>
+                            </Accordion.Content>
+                         </Accordion>
+
+                            <Accordion id="report-accordion-image" style={{top: `${reportImageTop}px`}}>
+                              <Accordion.Title active={reportImageActive} onClick={this.onSetReportImageActive.bind(this)}>
+                                <div className="report-title">
+                                  <div className="report-title-desc">诊断报告
+                                  <Dropdown
+                                    className="report-title-desc-type"
+                                    options={
+                                      [{
+                                        key:'结节类型',
+                                        text:'结节类型',
+                                        value:'结节类型'
+                                      },{
+                                        key:'单个结节',
+                                        text:'单个结节',
+                                        value:'单个结节'
+                                      }]
+                                    }
+                                    defaultValue={reportImageType}
+                                    icon={<FontAwesomeIcon icon={faChevronDown} />}
+                                    onChange={this.onHandleReportImageTypeChange.bind(this)}
+                                  />
+                                  </div>
+                                  <div className="report-title-operation">
+                                  <Modal trigger={<Button icon="expand arrows alternate" title="放大" className="inverted blue button" onClick={this.showImages}></Button>}>
+                    <Modal.Header>
+                      <Grid>
+                        <Grid.Row>
+                          <Grid.Column width={3} textAlign="left">
+                            影像诊断报告
+                          </Grid.Column>
+                          <Grid.Column width={6}></Grid.Column>
+                          <Grid.Column width={3} textAlign="right">
+                            {this.state.temp === 1 ? (
+                              <Button color="blue" onClick={this.exportPDF}>
+                                导出pdf
+                              </Button>
+                            ) : (
+                              <Button color="blue" loading>
+                                Loading
+                              </Button>
+                            )}
+                          </Grid.Column>
+                        </Grid.Row>
+                      </Grid>
+                    </Modal.Header>
+                    <Modal.Content image scrolling id="pdf">
+                      <Modal.Description>
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td>
+                                <Header>病人编号:</Header>
+                              </td>
+                              <td>{this.state.patientId}</td>
+
+                              <td>
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                              </td>
+                              <td align="right">
+                                <Header>姓名:</Header>
+                              </td>
+                              <td>&nbsp;</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>出生日期:</Header>
+                              </td>
+                              <td>{this.state.patientBirth}</td>
+                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+                              <td align="right">
+                                <Header>年龄:</Header>
+                              </td>
+                              <td>{this.state.age}</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>性别:</Header>
+                              </td>
+                              <td>{this.state.patientSex}</td>
+                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                              <td align="right">
+                                <Header>检查日期:</Header>
+                              </td>
+                              <td>{this.state.date}</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>检查编号:</Header>
+                              </td>
+                              <td>12580359</td>
+                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                              <td align="right">
+                                <Header>入库编号:</Header>
+                              </td>
+                              <td>&nbsp;</td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>报告撰写日期:</Header>
+                              </td>
+                              <td>&nbsp;</td>
+                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                              <td align="right">
+                                <Header>请求过程描述:</Header>
+                              </td>
+                              <td>&nbsp;</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <Divider />
+                        <table>
+                          <tbody>
+                            <tr>
+                              <td width="50%">
+                                <Header>体重:</Header>
+                              </td>
+                              <td></td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <Header>身高:</Header>
+                              </td>
+                              <td align="right">
+                                <Header>体重系数:</Header>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+
+                        <Divider />
+
+                        <div style={{ fontSize: 20, color: '#6495ED' }}>扫描参数</div>
+                        <Table celled>
+                          <Table.Header>
+                            <Table.Row>
+                              <Table.HeaderCell>检查日期</Table.HeaderCell>
+                              <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
+                              <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
+                              <Table.HeaderCell>kV</Table.HeaderCell>
+                              <Table.HeaderCell>mA</Table.HeaderCell>
+                              <Table.HeaderCell>mAs</Table.HeaderCell>
+                              {/* <Table.HeaderCell>Recon Name</Table.HeaderCell> */}
+                              <Table.HeaderCell>厂商</Table.HeaderCell>
+                            </Table.Row>
+                          </Table.Header>
+                          <Table.Body></Table.Body>
+                        </Table>
+                        <div style={{ fontSize: 20, color: '#6495ED' }}>肺部详情</div>
+                        <Table celled>
+                          <Table.Header>
+                            <Table.Row>
+                              <Table.HeaderCell>检查日期</Table.HeaderCell>
+                              <Table.HeaderCell>体积</Table.HeaderCell>
+                              <Table.HeaderCell>结节总体积</Table.HeaderCell>
+                            </Table.Row>
+                          </Table.Header>
+                          <Table.Body></Table.Body>
+                        </Table>
+                        {nodules && nodules.length ? nodules.map((nodule, index) => {
+                          let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
+                          let visualId = 'visual' + index
+                          // console.log('visualId',visualId)
+                          return (
+                            <div key={index}>
+                              <Divider />
+                              <div>&nbsp;</div>
+                              <div style={{ fontSize: 20, color: '#6495ED' }} id="noduleDivide">
+                                结节 {index + 1}
+                              </div>
+                              <Table celled textAlign="center">
+                                <Table.Header>
+                                  <Table.Row>
+                                    <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
+                                    <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
+                                  </Table.Row>
+                                </Table.Header>
+                                <Table.Body>
+                                  <Table.Row>
+                                    <Table.Cell>切片号</Table.Cell>
+                                    <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>肺叶位置</Table.Cell>
+                                    <Table.Cell>{nodule['place'] === undefined || nodule['place'] === 0 ? '' : places[nodule['place']]}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>肺段位置</Table.Cell>
+                                    <Table.Cell>{nodule['segment'] === undefined ? '' : noduleSegments[nodule['segment']]}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>危险程度</Table.Cell>
+                                    <Table.Cell>{nodule['malignancy'] === 2 ? '高危' : '低危'}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>毛刺</Table.Cell>
+                                    <Table.Cell>{nodule['spiculation'] === 2 ? '毛刺' : '非毛刺'}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>分叶</Table.Cell>
+                                    <Table.Cell>{nodule['lobulation'] === 2 ? '分叶' : '非分叶'}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>钙化</Table.Cell>
+                                    <Table.Cell>{nodule['calcification'] === 2 ? '钙化' : '非钙化'}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>密度</Table.Cell>
+                                    <Table.Cell>{nodule['texture'] === 2 ? '实性' : '磨玻璃'}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>直径</Table.Cell>
+                                    <Table.Cell>
+                                      {Math.floor(nodule['diameter'] * 10) / 100}
+                                      厘米
+                                    </Table.Cell>
+                                  </Table.Row>
+
+                                  <Table.Row>
+                                    <Table.Cell>体积</Table.Cell>
+                                    <Table.Cell>{nodule['volume'] === undefined ? null : Math.floor(nodule['volume'] * 100) / 100 + 'cm³'}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>HU(最小值/均值/最大值)</Table.Cell>
+                                    <Table.Cell>{nodule['huMin'] === undefined ? null : nodule['huMin'] + ' / ' + nodule['huMean'] + ' / ' + nodule['huMax']}</Table.Cell>
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>结节部分</Table.Cell>
+                                    <Table.Cell>
+                                      <div
+                                        id={nodule_id}
+                                        style={{
+                                          width: '300px',
+                                          height: '250px',
+                                          margin: '0 auto',
+                                        }}></div>
+                                    </Table.Cell>
+                                    {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
+                                  </Table.Row>
+                                  <Table.Row>
+                                    <Table.Cell>直方图</Table.Cell>
+                                    <Table.Cell>
+                                      <div id={visualId} style={{ margin: '0 auto' }}></div>
+                                    </Table.Cell>
+                                  </Table.Row>
+                                </Table.Body>
+                              </Table>
+                            </div>
+                          )
+                        }) : null}
+                        
+                        <Divider />
+                      </Modal.Description>
+                    </Modal.Content>
+                  </Modal>
+
+                                  <Button title="复制" className="inverted blue button" icon="copy outline" onClick={this.handleCopyClick}></Button>
+                                  </div>
+                                </div>
+                              </Accordion.Title>
+                              <Accordion.Content active={reportImageActive}>
+                  <Form.TextArea
+                    id="report-image-textarea"
+                    className="report-textarea"
+                    placeholder="在此填写诊断报告"
+                    onChange={this.onHandleImageTextareaChange.bind(this)}
+                    value={reportImageText}
+                    maxLength={500}>
+                  </Form.TextArea>
+            
+                              </Accordion.Content>
+
+                            </Accordion>
+                            
                           </div>
-                        </div>
-                      )}
+
+                          )}
+                      </div>
                     </div>
                   </div>
                 </Sidebar.Pusher>
               </Sidebar.Pushable>
-              {/* <div className="corner-preview-block">
-                <div
-                    className={'study-browser-option-block' + (enterStudyListOption ? ' study-browser-option-hover' : '')}
-                    onMouseEnter={this.enterStudyListOption.bind(this)}
-                    onMouseLeave={this.leaveStudyListOption.bind(this)}>
-                    {showStudyList ? (
-                      <FontAwesomeIcon className={'study-browser-option-icon'} icon={faChevronLeft} onClick={this.hideStudyList.bind(this)} />
-                    ) : (
-                      <FontAwesomeIcon className={'study-browser-option-icon'} icon={faChevronRight} onClick={this.showStudyList.bind(this)} />
-                    )}
-                  </div>
-                </div> */}
-              {/* <Grid.Column width={2}>
-                
-              </Grid.Column> */}
             </Grid.Row>
           </Grid>
-          {/* </div> */}
-        </div>
       )
       // }
     } else {
@@ -4133,7 +4163,7 @@ class CornerstoneElement extends Component {
   createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
     console.log('coor', x1, x2, y1, y2)
     const imageId = this.state.imageIds[slice_idx]
-    console.log('image', imageId)
+    // console.log('image', imageId)
     const nodule_hist = this.noduleHist(x1, y1, x2, y2)
     const newBox = {
       // "calcification": [], "lobulation": [],
@@ -4154,15 +4184,21 @@ class CornerstoneElement extends Component {
       place: 0,
       modified: 1,
       prevIdx: this.state.boxes.length,
+      visibleIdx: this.state.boxed.length
     }
     // let boxes = this.state.selectBoxes
     let boxes = this.state.boxes
-    console.log('newBox', newBox)
     boxes.push(newBox)
     let measureStateList = this.state.measureStateList
     measureStateList.push(false)
-    this.setState({ boxes: boxes, measureStateList: measureStateList })
-    console.log('Boxes', this.state.boxes, this.state.measureStateList)
+    let nodulesChecked = this.state.nodulesChecked
+    nodulesChecked.push(false) 
+    this.setState({ 
+      boxes, 
+      measureStateList,
+      nodulesChecked
+    })
+    console.log('Boxes', boxes, measureStateList, nodulesChecked)
 
     // })
     this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
@@ -4982,11 +5018,7 @@ class CornerstoneElement extends Component {
       x: 0,
       y: 0,
     }
-    if (document.getElementById('canvas').width > document.getElementById('canvas').height) {
-      viewport.scale = document.getElementById('canvas').width / 512
-    } else {
-      viewport.scale = document.getElementById('canvas').height / 512
-    }
+    viewport.scale = this.state.canvasHeight / 512
     // viewport.scale = document.getElementById("canvas").width / 512;
     cornerstone.setViewport(this.element, viewport)
     this.setState({ viewport })
@@ -5197,7 +5229,7 @@ class CornerstoneElement extends Component {
 
   //暂存结节
   temporaryStorage() {
-    alert('已保存当前结果!')
+    message.info('已保存当前结果!')
     this.setState({
       random: Math.random(),
       menuTools: '',
@@ -5234,6 +5266,7 @@ class CornerstoneElement extends Component {
       console.log('zancun', currentIdx, i)
       backendNodules[currentIdx] = boxes[i]
       delete backendNodules[currentIdx].prevIdx
+      delete backendNodules[currentIdx].delOpen
     }
     console.log('zancun', [].concat(backendNodules))
     const token = localStorage.getItem('token')
@@ -5286,6 +5319,7 @@ class CornerstoneElement extends Component {
       console.log('zancun', currentIdx, i)
       backendNodules[currentIdx] = boxes[i]
       delete backendNodules[currentIdx].prevIdx
+      delete backendNodules[currentIdx].delOpen
     }
     console.log('zancun', backendNodules)
     const headers = {
@@ -5488,8 +5522,8 @@ class CornerstoneElement extends Component {
       windowHeight: document.body.clientHeight,
       verticalMode,
     })
-    this.menuButtonsCalc()
-    if (document.getElementsByClassName('corner-top-row') !== null && document.getElementsByClassName('corner-top-row').length > 0) {
+    // this.menuButtonsCalc()
+    if (document.getElementsByClassName('corner-top-row')&& document.getElementsByClassName('corner-top-row').length > 0) {
       const cornerTopRow = document.getElementsByClassName('corner-top-row')[0]
 
       const cornerTopRowHeight = cornerTopRow.clientHeight
@@ -5515,15 +5549,13 @@ class CornerstoneElement extends Component {
               })
             }
           } else {
-            if (document.getElementById('canvas-border') !== null && document.getElementById('cor-container') != null) {
+            if (document.getElementById('cor-container') != null) {
               const corContainer = document.getElementById('cor-container')
+              const corContainerWidth = corContainer.clientWidth
               const corContainerHeight = corContainer.clientHeight
-              const canvasBorder = document.getElementById('canvas-border')
-              const canvasBorderWidth = canvasBorder.clientWidth
-              const canvasBorderHeight = canvasBorder.clientHeight
-              const canvasWidth = canvasBorderWidth - 20
-              const canvasHeight = canvasBorderHeight - 20
-              console.log('resizeScreen', canvasBorderWidth, canvasBorderHeight, corContainerHeight)
+
+              const canvasWidth = corContainerWidth
+              const canvasHeight = corContainerHeight
 
               // let report = document.getElementById('report')
               // let list = document.getElementsByClassName('nodule-card-container')[0]
@@ -5540,8 +5572,8 @@ class CornerstoneElement extends Component {
                     this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
                   }
                   if (this.state.initialized) {
-                    console.log('initialized', this.state.currentIdx)
-                    this.refreshImage(true, this.state.imageIds[this.state.currentIdx], undefined)
+                    console.log('initialized')
+                    this.refreshImage(true, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
                   }
                 }
               )
@@ -5550,6 +5582,8 @@ class CornerstoneElement extends Component {
         }
       )
     }
+    this.reportImageTopCalc()
+
     if (document.getElementById(`visual-${this.state.listsActiveIndex}`) && document.getElementById('closeVisualContent')) {
       // const visualPanel = document.getElementById(`visual-${this.state.listsActiveIndex}`)
       if (document.getElementById('closeVisualContent').style.display !== 'none') {
@@ -5571,17 +5605,14 @@ class CornerstoneElement extends Component {
       this.setState({ currentIdx: newIdx })
     }
 
-    // const element = this.element;
-
     // const element = document.getElementById("origin-canvas");
-    const element = document.querySelector('#origin-canvas')
+    // const element = document.querySelector('#origin-canvas')
+    const element = this.element
     const windowWidth = this.state.windowWidth
     const windowHeight = this.state.windowHeight
     // console.log('element',element)
-    // console.log('element',element)
     if (initial) {
       cornerstone.enable(element)
-      console.log('enable', cornerstone.getEnabledElements())
       if (this.state.imageIds.length !== 0) {
         const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
         this.setState({ leftBtnSpeed: leftBtnSpeed })
@@ -5590,7 +5621,7 @@ class CornerstoneElement extends Component {
         initialized: true,
       })
     } else {
-      cornerstone.getEnabledElement(element)
+      // cornerstone.getEnabledElement(element)
       // console.log(cornerstone.getEnabledElement(element))
     }
     // console.log('imageLoader',cornerstone.loadImage(imageId))
@@ -5635,13 +5666,6 @@ class CornerstoneElement extends Component {
 
       if (initial) {
         let scale = 0
-        if (document.getElementById('canvas')) {
-          if (document.getElementById('canvas').width > document.getElementById('canvas').height) {
-            scale = document.getElementById('canvas').width / 512
-          } else {
-            scale = document.getElementById('canvas').height / 512
-          }
-        }
         let viewport = {
           invert: false,
           pixelReplication: false,
@@ -5649,13 +5673,13 @@ class CornerstoneElement extends Component {
             windowWidth: 1600,
             windowCenter: -600,
           },
-          scale: scale,
+          scale: this.state.canvasHeight / 512,
           translation: {
             x: 0,
             y: 0,
           },
         }
-        cornerstone.setViewport(this.element, viewport)
+        cornerstone.setViewport(element, viewport)
         this.setState({ viewport })
         if (!this.state.immersive) {
           cornerstoneTools.addToolForElement(element, pan)
@@ -5687,9 +5711,7 @@ class CornerstoneElement extends Component {
         document.addEventListener('keydown', this.onKeydown)
       }
       // window.addEventListener("resize", this.onWindowResize) if (!initial) {
-      // this.setState({currentIdx: newIdx}) }
     })
-    // console.log('imageobject',imageobject)
   }
 
   cacheImage(imageId) {
@@ -5747,7 +5769,14 @@ class CornerstoneElement extends Component {
   }
 
   handleCopyClick(e) {
-    copy(this.state.templateText)
+    e.stopPropagation()
+    const reportImageText = this.state.reportImageText
+    if(reportImageText && reportImageText.length > 0){
+      copy(this.state.reportImageText)
+      message.success("复制成功", 20)
+    }else{
+      message.warn("复制内容为空")
+    }
   }
   onMenuPageUp() {
     const { menuButtonsWidth, menuNowPage, menuTransform } = this.state
@@ -5764,7 +5793,8 @@ class CornerstoneElement extends Component {
       menuTransform: menuTransform + menuButtonsWidth,
     })
   }
-  showImages() {
+  showImages(e) {
+    e.stopPropagation()
     const nodules = this.state.nodules
     const imageIds = this.state.imageIds
     if (nodules.length === 0) {
@@ -5875,17 +5905,270 @@ class CornerstoneElement extends Component {
       }
     }, 100)
   }
-  onReportTabChange(e, data) {
-    let type
-    if (data.activeIndex === 0) {
-      type = '影像所见'
-    } else if (data.activeIndex === 1) {
-      type = '处理建议'
-    }
+  onHandleNoduleAllCheckChange(){
+    const nodulesChecked = this.state.nodulesChecked
+    const nodulesAllChecked = !this.state.nodulesAllChecked
+    nodulesChecked.forEach((item, index)=>{
+      nodulesChecked[index] = nodulesAllChecked
+    })
     this.setState({
-      reportType: type,
+      nodulesChecked,
+      nodulesAllChecked
     })
   }
+  onHandleNoduleAllCheckClick(e){
+    e.stopPropagation()
+  }
+  onHandleNoduleCheckChange(idx){
+    const nodulesChecked = this.state.nodulesChecked
+    nodulesChecked[idx] = !nodulesChecked[idx]
+    this.setState({
+      nodulesChecked
+    })
+  }
+  onHandleNoduleCheckClick(e){
+    e.stopPropagation()
+  }
+  onHandleThreedAllCheckChange(classification){
+    if(classification === 0 && this.state.lobesController && this.state.lobesController.lobesChecked){
+      const lobesController = this.state.lobesController
+      const lobesAllChecked = !this.state.lobesAllChecked
+      lobesController.lobesChecked.forEach((item, index)=>{
+        lobesController.lobesChecked[index] = lobesAllChecked
+      })
+      this.setState({
+        lobesController,
+        lobesAllChecked
+      },()=>{
+        this.checkVisible(classification)
+      })
+    }else if(classification === 1 && this.state.tubularController && this.state.tubularController.tubularChecked){
+      const tubularController = this.state.tubularController
+      const tubularAllChecked = !this.state.tubularAllChecked
+      tubularController.tubularChecked.forEach((item, index)=>{
+        tubularController.tubularChecked[index] = tubularAllChecked
+      })
+      this.setState({
+        tubularController,
+        tubularAllChecked
+      },()=>{
+        this.checkVisible(classification)
+      })
+    }
+  }
+  onHandleThreedAllCheckClick(e){
+    e.stopPropagation()
+  }
+  onHandleThreedCheckChange(classification, idx){
+    if(classification === 0 && this.state.lobesController && this.state.lobesController.lobesChecked){
+      const lobesController = this.state.lobesController
+      lobesController.lobesChecked[idx] = !lobesController.lobesChecked[idx]
+      this.checkVisible(classification)
+      this.setState({
+        lobesController
+      },()=>{
+      this.checkVisible(classification)
+      })
+    }else if(classification === 1 && this.state.tubularController && this.state.tubularController.tubularChecked){
+      const tubularController = this.state.tubularController
+      tubularController.tubularChecked[idx] = !tubularController.tubularChecked[idx]
+      this.setState({
+        tubularController
+      },()=>{
+      this.checkVisible(classification)
+      })
+    }
+  }
+  onHandleThreedCheckClick(e){
+    e.stopPropagation()
+  }
+  checkVisible(classification){
+    if(classification === 0){
+      let notAllVisible = true
+      let notAllVisibleCount = 0
+      let allVisible = true
+      let allVisibleCount = 0
+
+      const lobesController = this.state.lobesController
+      lobesController.lobesVisible.forEach((item, index)=>{
+        if(lobesController.lobesChecked[index]){
+          if(item){
+            notAllVisible = false
+            allVisibleCount += 1
+          }else{
+            allVisible = false
+            notAllVisibleCount += 1
+          }
+        }
+      })
+      if(notAllVisible && notAllVisibleCount > 0){
+        this.setState({
+          lobesAllVisible: false
+        })
+      }
+      if(allVisible && allVisibleCount > 0){
+        this.setState({
+          lobesAllVisible: true
+        })
+      }
+    }else if(classification === 1){
+      let notAllVisible = true
+      let notAllVisibleCount = 0
+      let allVisible = true
+      let allVisibleCount = 0
+      const tubularController = this.state.tubularController
+      tubularController.tubularVisible.forEach((item, index)=>{
+        if(tubularController.tubularChecked[index]){
+          if(item){
+            notAllVisible = false
+            allVisibleCount += 1
+          }else{
+            allVisible = false
+            notAllVisibleCount += 1
+          }
+        }
+      })
+      if(notAllVisible && notAllVisibleCount>0){
+        this.setState({
+          tubularAllVisible: false
+        })
+      }
+      if(allVisible && allVisibleCount>0){
+        this.setState({
+          tubularAllVisible: true
+        })
+      }
+    }
+  }
+  onSetThreedAllVisible(classification, visibile){
+    if(classification === 0){
+      const lobesAllVisible = visibile
+      const lobesData = this.state.lobesData
+      const lobesController = this.state.lobesController
+      lobesController.lobesVisible.forEach((item, index)=>{
+        if(lobesController.lobesChecked[index]){
+          lobesController.lobesVisible[index] = lobesAllVisible
+          if (lobesController.lobesVisible[index]) {
+            this.setSegmentOpacity(lobesData[index].index, lobesController.lobesOpacities[index] / 100)
+          } else {
+            this.setSegmentOpacity(lobesData[index].index, 0)
+          }
+        }
+      })
+      this.setState({
+        lobesAllVisible,
+        lobesController
+      })
+    }else if(classification === 1){
+      const tubularAllVisible = visibile
+      const tubularData = this.state.tubularData
+      const tubularController = this.state.tubularController
+      tubularController.tubularVisible.forEach((item, index)=>{
+        if(tubularController.tubularChecked[index]){
+          tubularController.tubularVisible[index] = tubularAllVisible
+          if (tubularController.tubularVisible[index]) {
+            this.setSegmentOpacity(tubularData[index].index, tubularController.tubularOpacities[index] / 100)
+          } else {
+            this.setSegmentOpacity(tubularData[index].index, 0)
+          }
+        }
+      })
+      this.setState({
+        tubularAllVisible,
+        tubularController
+      })
+    }
+  }
+  onHandleOrderNodule(type){
+    const nodulesOrder = this.state.nodulesOrder
+    const keys = Object.keys(nodulesOrder)
+    if(nodulesOrder[type] === 0){
+      keys.forEach(item => {
+        nodulesOrder[item] = 0
+      })
+      nodulesOrder[type] = 1
+    }else{
+      nodulesOrder[type] = 1
+    }
+    this.setState({
+      nodulesOrder
+    },()=>{
+      this.sortBoxes()
+    })
+  }
+  onHandleOrderDirectionNodule(type){
+    const nodulesOrder = this.state.nodulesOrder
+    const keys = Object.keys(nodulesOrder)
+    if(nodulesOrder[type] === 0){
+      keys.forEach(item => {
+        nodulesOrder[item] = 0
+      })
+      nodulesOrder[type] = 1
+    }else{
+      if(type === 'slice' || type === 'diam'){
+        nodulesOrder[type] = -nodulesOrder[type]
+      }
+    }
+    this.setState({
+      nodulesOrder
+    },()=>{
+      this.sortBoxes()
+    })
+  }
+  sortBoxes(){
+    const boxes = this.state.boxes
+    const nodulesOrder = this.state.nodulesOrder
+    const keys = Object.keys(nodulesOrder)
+    keys.forEach(item => {
+      if(nodulesOrder[item] !== 0){
+        boxes.sort(this.arrayPropSort(item))
+        this.setState({
+          boxes
+        })
+      }
+    })
+
+  }
+
+  onSetPreviewActive(idx){
+    const previewVisible = this.state.previewVisible
+    previewVisible[idx] = !previewVisible[idx]
+    this.setState({
+      previewVisible
+    })
+  }
+  onSetReportImageActive(){
+    this.setState(prevState => ({
+      reportImageActive: !prevState.reportImageActive
+    }))
+  }
+  onSetReportGuideActive(){
+    this.setState(prevState => ({
+      reportGuideActive: !prevState.reportGuideActive
+    }), ()=>{
+      this.reportImageTopCalc()
+    })
+  }
+  onHandleReportGuideTypeChange(e, { name, value }){
+    this.setState({
+      reportGuideType: value
+    })
+  }
+  onHandleReportImageTypeChange(e, {name, value}){
+    this.setState({
+      reportImageType: value
+    })
+  }
+  reportImageTopCalc(){
+    if (document.getElementById("report-accordion-guide")){
+      const reportGuide = document.getElementById("report-accordion-guide")
+      const reportGuideHeight = reportGuide.clientHeight
+      this.setState({
+        reportImageTop: reportGuideHeight
+      })
+    }
+  }
+
   template(type, activeItem, dealchoose) {
     let places = {
       0: '选择位置',
@@ -5917,10 +6200,10 @@ class CornerstoneElement extends Component {
     }
     const boxes = this.state.nodules
     console.log('template', boxes)
-    if (type === '影像所见') {
+    if (type === '结节类型') {
       let texts = ''
       if (activeItem === -1) {
-        this.setState({ templateText: '' })
+        this.setState({ reportImageText: '' })
       } else if (activeItem === 'all') {
         // console.log('length',boxes.length)
         for (let i = 0; i < boxes.length; i++) {
@@ -5958,8 +6241,8 @@ class CornerstoneElement extends Component {
               sl = 0
             }
             if (ll === 0 && sl === 0) {
-              if (this.props.boxes[i]['diameter'] !== undefined && this.props.boxes[i]['diameter'] !== 0) {
-                diameter = '\xa0\xa0' + (this.props.boxes[i]['diameter'] / 10).toFixed(2) + ' 厘米'
+              if (boxes[i]['diameter'] !== undefined && boxes[i]['diameter'] !== 0) {
+                diameter = '\xa0\xa0' + (boxes[i]['diameter'] / 10).toFixed(2) + ' 厘米'
               } else {
                 diameter = '未知'
               }
@@ -6031,7 +6314,7 @@ class CornerstoneElement extends Component {
             malignancy +
             '\n\n'
         }
-        this.setState({ templateText: texts })
+        this.setState({ reportImageText: texts })
       } else {
         let place = ''
         let diameter = ''
@@ -6064,8 +6347,8 @@ class CornerstoneElement extends Component {
             sl = 0
           }
           if (ll === 0 && sl === 0) {
-            if (this.props.boxes[activeItem]['diameter'] !== undefined && this.props.boxes[activeItem]['diameter'] !== 0) {
-              diameter = '\xa0\xa0' + (this.props.boxes[activeItem]['diameter'] / 10).toFixed(2) + ' 厘米'
+            if (boxes[activeItem]['diameter'] !== undefined && boxes[activeItem]['diameter'] !== 0) {
+              diameter = '\xa0\xa0' + (boxes[activeItem]['diameter'] / 10).toFixed(2) + ' 厘米'
             } else {
               diameter = '未知'
             }
@@ -6135,9 +6418,10 @@ class CornerstoneElement extends Component {
           ', ' +
           malignancy
 
-        this.setState({ templateText: texts })
+        this.setState({ reportImageText: texts })
       }
-    } else {
+    } 
+
       if (dealchoose === '中华共识') {
         let weight = 0
 
@@ -6170,30 +6454,30 @@ class CornerstoneElement extends Component {
         switch (weight) {
           case 20:
             this.setState({
-              templateText: '根据PET评估结节结果判断手术切除或非手术活检',
+              reportGuideText: '根据PET评估结节结果判断手术切除或非手术活检',
             })
             break
           case 15:
             this.setState({
-              templateText: '3~6、9~12及24个月，如稳定，年度随访',
+              reportGuideText: '3~6、9~12及24个月，如稳定，年度随访',
             })
             break
           case 10:
             this.setState({
-              templateText: '6~12、18~24个月，如稳定，年度随访',
+              reportGuideText: '6~12、18~24个月，如稳定，年度随访',
             })
             break
           case 5:
-            this.setState({ templateText: '12个月，如稳定，年度随访' })
+            this.setState({ reportGuideText: '12个月，如稳定，年度随访' })
             break
           case 0:
-            this.setState({ templateText: '选择性随访' })
+            this.setState({ reportGuideText: '选择性随访' })
             break
         }
       } else if (dealchoose === 'Fleischner') {
         let weight = 0
 
-        for (let i = 0; i < this.state.boxes.length; i++) {
+        for (let i = 0; i < boxes.length; i++) {
           if (boxes[i]['texture'] === 2) {
             if (boxes[i]['diameter'] > 8) {
               weight = 25
@@ -6226,28 +6510,28 @@ class CornerstoneElement extends Component {
         }
         switch (weight) {
           case 25:
-            this.setState({ templateText: '3个月考虑CT、PET/CT，或组织样本' })
+            this.setState({ reportGuideText: '3个月考虑CT、PET/CT，或组织样本' })
             break
           case 20:
             this.setState({
-              templateText: '3-6月行CT确定稳定性。若未改变，并且实性成分<6mm，应每年行CT至5年',
+              reportGuideText: '3-6月行CT确定稳定性。若未改变，并且实性成分<6mm，应每年行CT至5年',
             })
             break
           case 15:
             this.setState({
-              templateText: '6-12个月行CT，之后18-24个月考虑CT',
+              reportGuideText: '6-12个月行CT，之后18-24个月考虑CT',
             })
             break
           case 10:
             this.setState({
-              templateText: '6-12月行CT确定稳定性，之后每2年行CT至5年',
+              reportGuideText: '6-12月行CT确定稳定性，之后每2年行CT至5年',
             })
             break
           case 5:
-            this.setState({ templateText: '最好在12个月行CT' })
+            this.setState({ reportGuideText: '最好在12个月行CT' })
             break
           case 0:
-            this.setState({ templateText: '无常规随访' })
+            this.setState({ reportGuideText: '无常规随访' })
             break
         }
       } else if (dealchoose === 'NCCN') {
@@ -6289,17 +6573,17 @@ class CornerstoneElement extends Component {
         }
         switch (weight) {
           case 15:
-            this.setState({ templateText: '胸部增强CT和/或PET/CT' })
+            this.setState({ reportGuideText: '胸部增强CT和/或PET/CT' })
             break
           case 10:
-            this.setState({ templateText: '3个月后复查LDCT或考虑PET/CT' })
+            this.setState({ reportGuideText: '3个月后复查LDCT或考虑PET/CT' })
             break
           case 5:
-            this.setState({ templateText: '6个月后复查LDCT' })
+            this.setState({ reportGuideText: '6个月后复查LDCT' })
             break
           case 0:
             this.setState({
-              templateText: '每年复查LDCT，直至患者不再是肺癌潜在治疗对象',
+              reportGuideText: '每年复查LDCT，直至患者不再是肺癌潜在治疗对象',
             })
             break
         }
@@ -6350,19 +6634,19 @@ class CornerstoneElement extends Component {
         switch (weight) {
           case 15:
             this.setState({
-              templateText: '胸部CT增强或平扫；根据恶性的概率和并发症，选择性进行PET/CT和/或组织活检；存在≥8mm的实性成分时，需进行PET/CT检查',
+              reportGuideText: '胸部CT增强或平扫；根据恶性的概率和并发症，选择性进行PET/CT和/或组织活检；存在≥8mm的实性成分时，需进行PET/CT检查',
             })
             break
           case 10:
             this.setState({
-              templateText: '3个月低剂量胸部CT筛查；存在≥8mm的实性成分时需PET/CT检查',
+              reportGuideText: '3个月低剂量胸部CT筛查；存在≥8mm的实性成分时需PET/CT检查',
             })
             break
           case 5:
-            this.setState({ templateText: '6个月内低剂量胸部CT筛查' })
+            this.setState({ reportGuideText: '6个月内低剂量胸部CT筛查' })
             break
           case 0:
-            this.setState({ templateText: '12个月内继续年度低剂量胸部CT筛查' })
+            this.setState({ reportGuideText: '12个月内继续年度低剂量胸部CT筛查' })
             break
         }
       } else if (dealchoose === '亚洲共识') {
@@ -6405,40 +6689,46 @@ class CornerstoneElement extends Component {
         switch (weight) {
           case 25:
             this.setState({
-              templateText: '应转介多学科团队到中心进行管理。该中心的诊断能力应包括CT/PET扫描、良性疾病检测和活检',
+              reportGuideText: '应转介多学科团队到中心进行管理。该中心的诊断能力应包括CT/PET扫描、良性疾病检测和活检',
             })
             break
           case 20:
             this.setState({
-              templateText: '3个月后复查CT，如果检测时认为临床合适，考虑经验性抗菌治疗',
+              reportGuideText: '3个月后复查CT，如果检测时认为临床合适，考虑经验性抗菌治疗',
             })
             break
           case 10:
             this.setState({
-              templateText: '在大约6个月-12个月和18个月-24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测',
+              reportGuideText: '在大约6个月-12个月和18个月-24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测',
             })
             break
           case 15:
             this.setState({
-              templateText: '在大约3个月、12个月和24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测',
+              reportGuideText: '在大约3个月、12个月和24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测',
             })
             break
           case 5:
             this.setState({
-              templateText: '每年进行CT监测，持续3年;然后根据临床判断，考虑每年进行CT监测',
+              reportGuideText: '每年进行CT监测，持续3年;然后根据临床判断，考虑每年进行CT监测',
             })
             break
           case 0:
-            this.setState({ templateText: '根据临床判断，考虑每年进行CT监测' })
+            this.setState({ reportGuideText: '根据临床判断，考虑每年进行CT监测' })
             break
         }
       }
-    }
+    
   }
-  handleTextareaChange(e) {
-    this.setState({ templateText: e.target.value })
+  onHandleImageTextareaChange(e){
+    this.setState({
+      reportImageText: e.target.value
+    })
   }
-
+  onHandleGuideTextareaChange(e){
+    this.setState({
+      reportGuideText: e.target.value
+    })
+  }
   updateStudyBrowser(prevProps, prevState) {}
 
   loadStudyBrowser() {
@@ -6459,12 +6749,22 @@ class CornerstoneElement extends Component {
         // window.location.href = '/'
       } else {
         const subList = data.subList
-        let theList = []
+        const theList = []
+        const previewVisible = []
+        let count = 0
+        let total = 0
+        const dates = Object.keys(subList)
+        dates.sort((a,b)=> (a-b))
+        dates.forEach((key, idx)=>{
+          console.log('leftkey',key, idx)
+          total += subList[key].length
+          theList[idx] = []
+          previewVisible[idx] = true
+        })
         // const params={caseId:this.state.caseId}
-        Object.keys(subList).map((key, value) => {
-          // console.log('leftkey',key)
+        dates.forEach((key, idx) => {
           const seriesLst = subList[key]
-          seriesLst.map((serie, index) => {
+          seriesLst.forEach((serie) => {
             Promise.all([
               axios.post(this.config.draft.getDataPath, qs.stringify({ caseId: serie.caseId }), { headers }),
               axios.post(this.config.data.getDataListForCaseId, qs.stringify({ caseId: serie.caseId })),
@@ -6475,7 +6775,8 @@ class CornerstoneElement extends Component {
                 })
               ),
             ]).then(([annotype, dicom, dataValidRes]) => {
-              theList.push({
+              count += 1
+              theList[idx].push({
                 date: key,
                 caseId: serie.caseId,
                 Description: serie.description,
@@ -6483,38 +6784,42 @@ class CornerstoneElement extends Component {
                 image: dicom.data[parseInt(dicom.data.length / 3)],
                 validInfo: dataValidRes.data,
               })
-              for (let j = 0; j < theList.length; j++) {
-                for (let i = 0; i < theList.length - j - 1; i++) {
-                  if (parseInt(theList[i].date) < parseInt(theList[i + 1].date)) {
-                    let temp = theList[i]
-                    theList[i] = theList[i + 1]
-                    theList[i + 1] = temp
-                  }
-                }
-              }
-
-              this.setState({ dateSeries: theList }, () => {
-                this.state.dateSeries.map((serie, index) => {
-                  const previewId = 'preview-' + index
-
-                  const element = document.getElementById(previewId)
-                  let imageId = serie.image
-                  // console.log('preview',element)
-                  cornerstone.enable(element)
-                  cornerstone.loadAndCacheImage(imageId).then(function (image) {
-                    // console.log('cache')
-                    var viewport = cornerstone.getDefaultViewportForImage(element, image)
-                    viewport.voi.windowWidth = 1600
-                    viewport.voi.windowCenter = -600
-                    viewport.scale = 0.3
-                    cornerstone.setViewport(element, viewport)
-                    cornerstone.displayImage(element, image)
+              if(count === total){
+                console.log("theList", theList)
+                this.setState({ dateSeries: theList, previewVisible}, () => {
+                  this.state.dateSeries.forEach(item => {
+                    item.forEach(serie => {
+                      const previewId = 'preview-' + serie.caseId
+                      const element = document.getElementById(previewId)
+                      // console.log('preview',element)
+                      cornerstone.enable(element)
+                      cornerstone.loadAndCacheImage(serie.image).then(function (image) {
+                        // console.log('cache')
+                        var viewport = cornerstone.getDefaultViewportForImage(element, image)
+                        viewport.voi.windowWidth = 1600
+                        viewport.voi.windowCenter = -600
+                        viewport.scale = 110 / 512
+                        cornerstone.setViewport(element, viewport)
+                        cornerstone.displayImage(element, image)
+                      })
+                    })
                   })
                 })
-              })
+              }
+              
               // resolve(theList)
             })
           })
+          for (let j = 0; j < theList.length; j++) {
+            for (let i = 0; i < theList.length - j - 1; i++) {
+              if (parseInt(theList[i].date) < parseInt(theList[i + 1].date)) {
+                let temp = theList[i]
+                theList[i] = theList[i + 1]
+                theList[i + 1] = temp
+              }
+            }
+          }
+
         })
       }
     })
@@ -6611,7 +6916,7 @@ class CornerstoneElement extends Component {
                 console.log(err)
               })
 
-            var stateListLength = this.state.boxes.length
+            var stateListLength = boxes.length
             var measureArr = new Array(stateListLength).fill(false)
 
             var maskArr = new Array(stateListLength).fill(true)
@@ -6633,12 +6938,12 @@ class CornerstoneElement extends Component {
     if (
       prevState.doubleClick !== this.state.doubleClick ||
       prevState.listsActiveIndex !== this.state.listsActiveIndex ||
-      prevState.reportType !== this.state.reportType ||
-      prevState.dealchoose !== this.state.dealchoose
+      // prevState.reportImageType !== this.state.reportImageType ||
+      prevState.reportGuideType !== this.state.reportGuideType
     ) {
       const activeItem = this.state.doubleClick === true ? 'all' : this.state.listsActiveIndex
-      console.log('enter update report', this.state.reportType, activeItem)
-      this.template(this.state.reportType, activeItem, this.state.dealchoose)
+      console.log('update report', this.state.reportType, activeItem)
+      this.template(this.state.reportImageType, activeItem, this.state.reportGuideType)
     }
     if (prevState.boxes !== this.state.boxes) {
       const params = {
@@ -6713,6 +7018,9 @@ class CornerstoneElement extends Component {
     })
   }
   async componentDidMount() {
+    if(document.getElementById("footer")){
+      document.getElementById("footer").style.display = 'none'
+    }
     console.log('componentDidMount', this.state.caseId)
     if (localStorage.getItem('username') === null && window.location.pathname !== '/') {
       const ipPromise = new Promise((resolve, reject) => {
@@ -6817,6 +7125,7 @@ class CornerstoneElement extends Component {
     let currentIdx = 0
     let listsActiveIndex = -1
     let backendNodules = []
+    let nodulesChecked = []
     if (nodules && nodules.length) {
       //save nodules from deep learning model
       backendNodules = [].concat(nodules)
@@ -6825,8 +7134,14 @@ class CornerstoneElement extends Component {
       //sort and save previous index
       nodules.forEach((item, index) => {
         item.prevIdx = index
+        item.delOpen = false
+        nodulesChecked[index] = false
       })
-      nodules.sort(this.sliceIdxSort('slice_idx'))
+
+      nodules.sort(this.arrayPropSort('slice_idx'))
+      nodules.forEach((item, index) => {
+        item.visibleIdx = index
+      })
       console.log('createNoduleMask', nodules)
       //if this page is directed by nodule searching
       if (noduleNo !== -1) {
@@ -6842,6 +7157,7 @@ class CornerstoneElement extends Component {
       imageIds,
       nodules,
       backendNodules,
+      nodulesChecked,
       currentIdx,
       listsActiveIndex,
     })
@@ -6849,6 +7165,7 @@ class CornerstoneElement extends Component {
     executeTask()
     this.loadDisplay(currentIdx)
     const boxes = nodules
+    console.log("boxes", boxes)
     const annoImageIds = []
 
     for (let i = 0; i < boxes.length; i++) {
@@ -7070,34 +7387,6 @@ class CornerstoneElement extends Component {
     // })
     // this.saveLobesData(lobesData)
 
-    // const nodulesData = []
-    // if (this.state.nodules && this.state.modelNodules.length !== 0) {
-    //   const modelNodules = this.state.modelNodules
-    //   modelNodules.forEach((item, index) => {
-    //     let position = nodulePlaces[item.place]
-    //     let malignancyName = noduleMalignancyName[item.malignancy]
-    //     if (!position) {
-    //       position = '待定'
-    //     }
-    //     if (!malignancyName) {
-    //       malignancyName = '待定'
-    //     }
-    //     const { lobesLength, airwayLength } = this.state
-    //     const urlIndex = index + lobesLength + airwayLength
-    //     if (urlIndex <= this.state.urls.length - 1 && item.probability < 1) {
-    //       nodulesData.push({
-    //         index: urlIndex,
-    //         order: this.state.urls[urlIndex].order,
-    //         name: this.state.urls[urlIndex].name,
-    //         position,
-    //         malignancy: item.malignancy,
-    //         malignancyName,
-    //       })
-    //     }
-    //   })
-    // }
-    // this.saveNodulesData(nodulesData)
-
     //local test
     // const fileList = []
     // for (let i = 0; i < 282; i++) {
@@ -7271,7 +7560,6 @@ class CornerstoneElement extends Component {
       console.log('random change', this.state.boxes)
       this.saveToDB()
     }
-
     if (prevState.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
       const visId = 'visual-' + prevState.listsActiveIndex
       if (document.getElementById(visId) !== undefined && document.getElementById(visId) !== null) {
@@ -7664,11 +7952,13 @@ class CornerstoneElement extends Component {
     const lobesActive = new Array(lobesData.length).fill(false)
     const lobesVisible = new Array(lobesData.length).fill(true)
     const lobesOpacityChangeable = new Array(lobesData.length).fill(false)
+    const lobesChecked = new Array(lobesData.length).fill(false)
     const lobesController = {
       lobesOpacities,
       lobesActive,
       lobesVisible,
       lobesOpacityChangeable,
+      lobesChecked
     }
     // lobesData.forEach((item, index) => {
     //   lobesData[index].volume = item.volumn;
@@ -7687,11 +7977,14 @@ class CornerstoneElement extends Component {
     const tubularActive = new Array(tubularData.length).fill(false)
     const tubularVisible = new Array(tubularData.length).fill(true)
     const tubularOpacityChangeable = new Array(tubularData.length).fill(false)
+    const tubularChecked = new Array(tubularData.length).fill(false)
+
     const tubularController = {
       tubularOpacities,
       tubularActive,
       tubularVisible,
       tubularOpacityChangeable,
+      tubularChecked
     }
     this.setState({
       tubularData,
@@ -8091,7 +8384,10 @@ class CornerstoneElement extends Component {
   }
   updateLabelDataByColor() {
     const labelColor = this.state.labelColor
-    this.viewerMask.setSegmentRGB(1, labelColor)
+    if(this.viewerMask){
+      this.viewerMask.setSegmentRGB(1, labelColor)
+
+    }
   }
   changeRadius(e) {
     const radius = e
@@ -8111,7 +8407,9 @@ class CornerstoneElement extends Component {
     )
   }
   changePaintRadius(radius) {
-    this.viewerMask.setPaintFilterRadius(radius)
+    if(this.viewerMask){
+      this.viewerMask.setPaintFilterRadius(radius)
+    }
   }
   changeThreshold(e) {
     const threshold = e
@@ -8149,22 +8447,22 @@ class CornerstoneElement extends Component {
     }
     this.setState({ segments: tmp_segments })
   }
-  setActive(classfication, index, urlIndex, e) {
+  setActive(classification, index, urlIndex, e) {
     // if(e.target.nodeName !== 'INPUT')
     e.stopPropagation()
-    if (classfication === 0) {
+    if (classification === 0) {
       const lobesController = this.state.lobesController
       lobesController.lobesActive[index] = !lobesController.lobesActive[index]
       this.setState({
         lobesController,
       })
-    } else if (classfication === 1) {
+    } else if (classification === 1) {
       const tubularController = this.state.tubularController
       tubularController.tubularActive[index] = !tubularController.tubularActive[index]
       this.setState({
         tubularController,
       })
-    } else if (classfication === 2) {
+    } else if (classification === 2) {
       const nodulesController = this.state.nodulesController
       nodulesController.nodulesActive[index] = !nodulesController.nodulesActive[index]
       this.setState({
@@ -8172,9 +8470,9 @@ class CornerstoneElement extends Component {
       })
     }
   }
-  setVisible(classfication, index, urlIndex, e) {
+  setVisible(classification, index, urlIndex, e) {
     e.stopPropagation()
-    if (classfication === 0) {
+    if (classification === 0) {
       const lobesController = this.state.lobesController
       lobesController.lobesVisible[index] = !lobesController.lobesVisible[index]
       if (lobesController.lobesVisible[index]) {
@@ -8182,11 +8480,12 @@ class CornerstoneElement extends Component {
       } else {
         this.setSegmentOpacity(urlIndex, 0)
       }
-
       this.setState({
         lobesController,
+      },()=>{
+        this.checkVisible(classification)
       })
-    } else if (classfication === 1) {
+    } else if (classification === 1) {
       const tubularController = this.state.tubularController
       tubularController.tubularVisible[index] = !tubularController.tubularVisible[index]
       if (tubularController.tubularVisible[index]) {
@@ -8197,8 +8496,10 @@ class CornerstoneElement extends Component {
 
       this.setState({
         tubularController,
+      },()=>{
+        this.checkVisible(classification)
       })
-    } else if (classfication === 2) {
+    } else if (classification === 2) {
       const nodulesController = this.state.nodulesController
       nodulesController.nodulesVisible[index] = !nodulesController.nodulesVisible[index]
       if (nodulesController.nodulesVisible[index]) {
@@ -8209,24 +8510,26 @@ class CornerstoneElement extends Component {
 
       this.setState({
         nodulesController,
+      },()=>{
+        this.checkVisible(classification)
       })
     }
   }
-  setOpacityChangeable(classfication, index, e) {
+  setOpacityChangeable(classification, index, e) {
     e.stopPropagation()
-    if (classfication === 0) {
+    if (classification === 0) {
       const lobesController = this.state.lobesController
       lobesController.lobesOpacityChangeable[index] = !lobesController.lobesOpacityChangeable[index]
       this.setState({
         lobesController,
       })
-    } else if (classfication === 1) {
+    } else if (classification === 1) {
       const tubularController = this.state.tubularController
       tubularController.tubularOpacityChangeable[index] = !tubularController.tubularOpacityChangeable[index]
       this.setState({
         tubularController,
       })
-    } else if (classfication === 2) {
+    } else if (classification === 2) {
       const nodulesController = this.state.nodulesController
       nodulesController.nodulesOpacityChangeable[index] = !nodulesController.nodulesOpacityChangeable[index]
       this.setState({
@@ -8234,9 +8537,9 @@ class CornerstoneElement extends Component {
       })
     }
   }
-  changeOpacity(classfication, index, urlIndex, value) {
+  changeOpacity(classification, index, urlIndex, value) {
     const opacity = value
-    if (classfication === 0) {
+    if (classification === 0) {
       const lobesController = this.state.lobesController
       lobesController.lobesOpacities[index] = opacity
       this.setSegmentOpacity(urlIndex, opacity / 100)
@@ -8244,7 +8547,7 @@ class CornerstoneElement extends Component {
       this.setState({
         lobesController,
       })
-    } else if (classfication === 1) {
+    } else if (classification === 1) {
       const tubularController = this.state.tubularController
       tubularController.tubularOpacities[index] = opacity
       this.setSegmentOpacity(urlIndex, opacity / 100)
@@ -8252,7 +8555,7 @@ class CornerstoneElement extends Component {
       this.setState({
         tubularController,
       })
-    } else if (classfication === 2) {
+    } else if (classification === 2) {
       const nodulesController = this.state.nodulesController
       nodulesController.nodulesOpacities[index] = opacity
       this.setSegmentOpacity(urlIndex, opacity / 100)
@@ -8464,13 +8767,17 @@ class CornerstoneElement extends Component {
     this.setState({
       erasing: false,
     })
-    this.viewerMask.setPaintFilterLabel(1)
+    if(this.viewerMask){
+      this.viewerMask.setPaintFilterLabel(1)
+    }
   }
   doErase() {
     this.setState({
       erasing: true,
     })
-    this.viewerMask.setPaintFilterLabel(0)
+    if(this.viewerMask){
+      this.viewerMask.setPaintFilterLabel(0)
+    }
   }
   endPaint() {
     this.setState({
@@ -8544,7 +8851,7 @@ class CornerstoneElement extends Component {
         order: parseInt(this.state.nodules[idx].nodule_no) + 1,
       })
       if (segmentIndex === -1) {
-        alert('用户新增结节，没有分割结果')
+        message.error('用户新增结节，没有分割结果')
         return
       }
       const segment = this.state.segments[segmentIndex]
@@ -8874,7 +9181,7 @@ class CornerstoneElement extends Component {
       })
       console.log('seleted points', points)
       if (!points.length) {
-        alert('没有选中')
+        message.error('没有选中')
       }
       this.setState(
         {
@@ -8886,7 +9193,7 @@ class CornerstoneElement extends Component {
         }
       )
     } else {
-      alert('没有中心线坐标')
+      message.error('没有中心线坐标')
     }
   }
   selectAirwayRangeByWidget(pickedPoints) {
