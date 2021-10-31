@@ -1028,11 +1028,11 @@ class CornerstoneElement extends Component {
     this.setState({ modalOpenNew: false })
   }
 
-  arrayPropSort(prop) {
+  arrayPropSort(prop, factor) {
     return function (a, b) {
       var value1 = a[prop]
       var value2 = b[prop]
-      return value1 - value2
+      return (value1 - value2) * factor
     }
   }
 
@@ -1119,7 +1119,7 @@ class CornerstoneElement extends Component {
   }
 
   representChange = (idx, e, { value, name }) => {
-    console.log("representChange", value, name, idx)
+    // console.log("representChange", value, name, idx)
     let represents = {
       lobulation: '分叶',
       spiculation: '毛刺',
@@ -6096,7 +6096,8 @@ class CornerstoneElement extends Component {
       this.sortBoxes()
     })
   }
-  onHandleOrderDirectionNodule(type){
+  onHandleOrderDirectionNodule(type, e){
+    e.stopPropagation()
     const nodulesOrder = this.state.nodulesOrder
     const keys = Object.keys(nodulesOrder)
     if(nodulesOrder[type] === 0){
@@ -6105,7 +6106,7 @@ class CornerstoneElement extends Component {
       })
       nodulesOrder[type] = 1
     }else{
-      if(type === 'slice' || type === 'diam'){
+      if(type === 'slice_idx' || type === 'diameter'){
         nodulesOrder[type] = -nodulesOrder[type]
       }
     }
@@ -6121,7 +6122,7 @@ class CornerstoneElement extends Component {
     const keys = Object.keys(nodulesOrder)
     keys.forEach(item => {
       if(nodulesOrder[item] !== 0){
-        boxes.sort(this.arrayPropSort(item))
+        boxes.sort(this.arrayPropSort(item, nodulesOrder[item]))
         this.setState({
           boxes
         })
@@ -7138,7 +7139,7 @@ class CornerstoneElement extends Component {
         nodulesChecked[index] = false
       })
 
-      nodules.sort(this.arrayPropSort('slice_idx'))
+      nodules.sort(this.arrayPropSort('slice_idx', 1))
       nodules.forEach((item, index) => {
         item.visibleIdx = index
       })
