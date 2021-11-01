@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, PureComponent } from "react";
 import StudyBrowserList from "../components/StudyBrowserList";
 import ReactHtmlParser from "react-html-parser";
 import dicomParser from "dicom-parser";
@@ -13,6 +13,9 @@ import { withRouter } from "react-router-dom";
 import "../css/FollowUpElement.css";
 import qs from "qs";
 import axios from "axios";
+import PropTypes from "prop-types";
+import { helpers } from "../vtk/helpers/index.js";
+
 import {
   Dropdown,
   Menu,
@@ -35,9 +38,8 @@ import {
   Input,
 } from "antd";
 import src1 from "../images/scu-logo.jpg";
-
+import "../vtk/ViewportOverlay/ViewportOverlay.css";
 import * as echarts from "echarts/lib/echarts";
-import { convertLegacyProps } from "_antd@4.16.8@antd/lib/button/button";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -90,29 +92,203 @@ const densityList = {
   3: "实性",
 };
 
+const { formatPN, formatDA, formatNumberPrecision, formatTM, isValidNumber } =
+  helpers;
+
+class CustomOverlay extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      imageData: null,
+    };
+  }
+  static propTypes = {
+    scale: PropTypes.number.isRequired,
+    windowWidth: PropTypes.number.isRequired,
+    windowCenter: PropTypes.number.isRequired,
+    imageId: PropTypes.string.isRequired,
+    imageIndex: PropTypes.number.isRequired,
+    stackSize: PropTypes.number.isRequired,
+    // state: PropTypes.object,
+  };
+
+  getCompression(imageId) {
+    const generalImageModule =
+      cornerstone.metaData.get("generalImageModule", imageId) || {};
+    const {
+      lossyImageCompression,
+      lossyImageCompressionRatio,
+      lossyImageCompressionMethod,
+    } = generalImageModule;
+
+    if (lossyImageCompression === "01" && lossyImageCompressionRatio !== "") {
+      const compressionMethod = lossyImageCompressionMethod || "Lossy: ";
+      const compressionRatio = formatNumberPrecision(
+        lossyImageCompressionRatio,
+        2
+      );
+      return compressionMethod + compressionRatio + " : 1";
+    }
+
+    return "Lossless / Uncompressed";
+  }
+
+  async componentDidMount() {
+    console.log("this.props", this.props);
+    const imagePromise = new Promise((resolve, reject) => {
+      cornerstone.loadImage(this.props.imageId).then((image) => {
+        resolve(image.data);
+      }, reject);
+    });
+
+    const imageData = await imagePromise;
+    this.setState({ imageData, imageData });
+  }
+
+  render() {
+    const { imageId, scale, windowWidth, windowCenter } = this.props;
+    const { imageData } = this.state;
+
+    if (!imageId) {
+      return null;
+    }
+
+    if (!imageData) {
+      return null;
+    }
+
+    const zoomPercentage = formatNumberPrecision(scale * 100, 0);
+    const seriesMetadata =
+      cornerstone.metaData.get("generalSeriesModule", imageId) || {};
+    const imagePlaneModule =
+      cornerstone.metaData.get("imagePlaneModule", imageId) || {};
+    const { rows, columns, sliceThickness, sliceLocation } = imagePlaneModule;
+    const { seriesNumber, seriesDescription } = seriesMetadata;
+
+    // const generalStudyModule =
+    //   cornerstone.metaData.get("generalStudyModule", imageId) || {};
+    // const { studyDate, studyTime, studyDescription } = generalStudyModule;
+
+    var studyDate = imageData.string("x00080020");
+    const studyTime = imageData.string("x00080030");
+    const studyDescription = imageData.string("x00081030");
+    const institutionName = imageData.string("x00080080");
+    const AccessionNumber = imageData.string("x00080050");
+    const MachineName = imageData.string("x00090010");
+
+    var imageState = "";
+
+    if (!studyDate) {
+      studyDate = imageId.split("/")[4].split("_")[1];
+    }
+
+    if (
+      imageId.split("/")[4] === window.location.href.split("/")[4].split("&")[0]
+    ) {
+      imageState = "New";
+    } else {
+      imageState = "Previews";
+    }
+    // const patientModule =
+    //   cornerstone.metaData.get("patientModule", imageId) || {};
+    // const { patientId, patientName } = patientModule;
+
+    const patientId = imageData.string("x00100020");
+    const patientName = imageData.string("x00100010");
+    const patientAge = imageData.string("x00101010");
+    const patientGender = imageData.string("x00100040");
+    const patientPosition = imageData.string("x00185100");
+
+    const generalImageModule =
+      cornerstone.metaData.get("generalImageModule", imageId) || {};
+    const { instanceNumber } = generalImageModule;
+
+    const cineModule = cornerstone.metaData.get("cineModule", imageId) || {};
+    const { frameTime } = cineModule;
+
+    // const frameTime = imageData.float("x00181063");
+    // console.log("frameTime", frameTime);
+
+    const frameRate = formatNumberPrecision(1000 / frameTime, 1);
+    const compression = this.getCompression(imageId);
+    const wwwc = `W: ${
+      windowWidth.toFixed ? windowWidth.toFixed(0) : windowWidth
+    } L: ${windowWidth.toFixed ? windowCenter.toFixed(0) : windowCenter}`;
+    const imageDimensions = `${columns} x ${rows}`;
+
+    const { imageIndex, stackSize } = this.props;
+
+    const normal = (
+      <React.Fragment>
+        <div className="top-left overlay-element">
+          <div className="follow-state">{imageState}</div>
+          <div>{formatPN(patientName)}</div>
+          <div>
+            {patientAge} {patientGender}
+          </div>
+          <div>{patientPosition}</div>
+          <div>{patientId}</div>
+        </div>
+        {/* <div className="top-center overlay-element">
+          <div>{"后片"}</div>
+        </div> */}
+        <div className="top-right overlay-element">
+          <div>{institutionName}</div>
+          <div>{studyDescription}</div>
+          <div>
+            {formatDA(studyDate)} {formatTM(studyTime)}
+          </div>
+          <div>{"ACC No. " + AccessionNumber}</div>
+          <div>{MachineName}</div>
+        </div>
+        <div className="bottom-right overlay-element">
+          <div>Zoom: {zoomPercentage}%</div>
+          <div>{wwwc}</div>
+          <div className="compressionIndicator">{compression}</div>
+        </div>
+        <div className="bottom-left overlay-element">
+          <div>{seriesNumber >= 0 ? `Ser: ${seriesNumber}` : ""}</div>
+          <div>
+            {stackSize > 1
+              ? `Img: ${instanceNumber} ${imageIndex}/${stackSize}`
+              : ""}
+          </div>
+          <div>
+            {frameRate >= 0 ? `${formatNumberPrecision(frameRate, 2)} FPS` : ""}
+            <div>{imageDimensions}</div>
+            <div>
+              {isValidNumber(sliceLocation)
+                ? `Loc: ${formatNumberPrecision(sliceLocation, 2)} mm `
+                : ""}
+              {sliceThickness
+                ? `Thick: ${formatNumberPrecision(sliceThickness, 2)} mm`
+                : ""}
+            </div>
+            <div>{seriesDescription}</div>
+          </div>
+        </div>
+      </React.Fragment>
+    );
+
+    return <div className="ViewportOverlay">{normal}</div>;
+  }
+}
+
 class FollowUpElement extends Component {
   constructor(props) {
     super(props);
     this.state = {
       username: props.username,
       stack: props.stack,
-      viewport:
-        props.stack.viewport === ""
-          ? cornerstone.getDefaultViewport(null, undefined)
-          : props.stack.viewport,
       curImageIds:
         props.stack.curImageIds === "" ? [] : props.stack.curImageIds,
       curCaseId: props.stack.curCaseId,
       curBoxes: props.stack.curBoxes === "" ? [] : props.stack.curBoxes,
-      curDicomTag:
-        props.stack.curDicomTag === "" ? [] : props.stack.curDicomTag,
       currentIdx: 0,
       preImageIds:
         props.stack.preImageIds === "" ? [] : props.stack.preImageIds,
       preCaseId: props.stack.preCaseId,
       preBoxes: props.stack.preBoxes === "" ? [] : props.stack.preBoxes,
-      preDicomTag:
-        props.stack.preDicomTag === "" ? [] : props.stack.preDicomTag,
       isOverlayVisible: true,
       isAnnoVisible: true,
       previewsIdx: 0,
@@ -173,9 +349,18 @@ class FollowUpElement extends Component {
         { name: "Length", mode: "active", mouseButtonMask: 1 },
         //erase
         { name: "Eraser", mode: "active", mouseButtonMask: 1 },
+        // {
+        //   name: "ScaleOverlay",
+        //   mode: "enabled",
+        //   mouseButtonMask: 1,
+        //   // toolColors: "white",
+        // },
       ],
-      activeTool: "RectangleRoi",
-
+      activeTool: "Wwwc",
+      initialViewport:
+        props.stack.initialViewport === ""
+          ? cornerstone.getDefaultViewport(null, undefined)
+          : props.stack.initialViewport,
       random: Math.random(),
     };
     this.config = JSON.parse(localStorage.getItem("config"));
@@ -187,6 +372,27 @@ class FollowUpElement extends Component {
   }
 
   componentDidMount() {
+    // const { initialViewport } = this.props;
+    // console.log("initialViewport", initialViewport);
+    // if (initialViewport === undefined) {
+    //   let initialViewport = cornerstone.getDefaultViewport(null, undefined);
+    //   if (
+    //     initialViewport.voi.windowWidth === undefined ||
+    //     initialViewport.voi.windowCenter === undefined
+    //   ) {
+    //     initialViewport.voi.windowCenter = -600;
+    //     initialViewport.voi.windowWidth = 1600;
+    //   }
+    //   console.log("initialViewport", initialViewport);
+    //   this.setState({ initialViewport: initialViewport });
+    // } else {
+    //   console.log(
+    //     "viewport",
+    //     initialViewport.voi.windowCenter,
+    //     initialViewport.voi.windowWidth
+    //   );
+    // }
+
     const curImageIds = this.state.curImageIds;
     const preImageIds = this.state.preImageIds;
     const { curBoxes, preBoxes } = this.state;
@@ -879,6 +1085,20 @@ class FollowUpElement extends Component {
     }));
   }
 
+  // toHidebox(){
+  //   this.setState(({showNodules}) => ({showNodules:!showNodules}),()=>{
+  //     if(showNodules){
+  //       const newBoxes = this.state.newBoxes
+  //       for(var i=0;i<curBoxes.length;i++){
+
+  //       }
+
+  //     }else{
+
+  //     }
+  //   })
+  // }
+
   toPulmonary() {
     let newCornerstoneElement = this.state.newCornerstoneElement;
     let newViewport = cornerstone.getViewport(newCornerstoneElement);
@@ -931,6 +1151,44 @@ class FollowUpElement extends Component {
     cornerstone.setViewport(preCornerstoneElement, preViewport);
   }
 
+  ZoomIn() {
+    let newCornerstoneElement = this.state.newCornerstoneElement;
+    let newViewport = cornerstone.getViewport(newCornerstoneElement);
+    if (newViewport.scale <= 5) {
+      newViewport.scale = 1 + newViewport.scale;
+    } else {
+      newViewport.scale = 6;
+    }
+    cornerstone.setViewport(newCornerstoneElement, newViewport);
+    let preCornerstoneElement = this.state.preCornerstoneElement;
+    let preViewport = cornerstone.getViewport(preCornerstoneElement);
+    if (preViewport.scale <= 5) {
+      preViewport.scale = 1 + preViewport.scale;
+    } else {
+      preViewport.scale = 6;
+    }
+    cornerstone.setViewport(preCornerstoneElement, preViewport);
+  }
+
+  ZoomOut() {
+    let newCornerstoneElement = this.state.newCornerstoneElement;
+    let newViewport = cornerstone.getViewport(newCornerstoneElement);
+    if (newViewport.scale >= 2) {
+      newViewport.scale = newViewport.scale - 1;
+    } else {
+      newViewport.scale = 1;
+    }
+    cornerstone.setViewport(newCornerstoneElement, newViewport);
+    let preCornerstoneElement = this.state.preCornerstoneElement;
+    let preViewport = cornerstone.getViewport(preCornerstoneElement);
+    if (preViewport.scale >= 2) {
+      preViewport.scale = preViewport.scale - 1;
+    } else {
+      preViewport.scale = 1;
+    }
+    cornerstone.setViewport(preCornerstoneElement, preViewport);
+  }
+
   imagesFlip() {
     let newCornerstoneElement = this.state.newCornerstoneElement;
     let newViewport = cornerstone.getViewport(newCornerstoneElement);
@@ -939,6 +1197,27 @@ class FollowUpElement extends Component {
     let preCornerstoneElement = this.state.preCornerstoneElement;
     let preViewport = cornerstone.getViewport(preCornerstoneElement);
     preViewport.invert = !preViewport.invert;
+    cornerstone.setViewport(preCornerstoneElement, preViewport);
+  }
+
+  reset() {
+    let newCornerstoneElement = this.state.newCornerstoneElement;
+    let newViewport = cornerstone.getViewport(newCornerstoneElement);
+    newViewport.translation = {
+      x: 0,
+      y: 0,
+    };
+    newViewport.scale = 1.2;
+
+    cornerstone.setViewport(newCornerstoneElement, newViewport);
+    let preCornerstoneElement = this.state.preCornerstoneElement;
+    let preViewport = cornerstone.getViewport(preCornerstoneElement);
+    preViewport.translation = {
+      x: 0,
+      y: 0,
+    };
+    preViewport.scale = 1.2;
+
     cornerstone.setViewport(preCornerstoneElement, preViewport);
   }
 
@@ -1888,7 +2167,7 @@ class FollowUpElement extends Component {
               <Button
                 icon
                 title="放大"
-                onClick={this.ZoomIn}
+                onClick={this.ZoomIn.bind(this)}
                 className="funcbtn"
               >
                 <Icon name="search plus" size="large"></Icon>
@@ -1896,14 +2175,14 @@ class FollowUpElement extends Component {
               <Button
                 icon
                 title="缩小"
-                onClick={this.ZoomOut}
+                onClick={this.ZoomOut.bind(this)}
                 className="funcbtn"
               >
                 <Icon name="search minus" size="large"></Icon>
               </Button>
               <Button
                 icon
-                onClick={this.reset}
+                onClick={this.reset.bind(this)}
                 className="funcbtn"
                 title="刷新"
               >
@@ -1931,7 +2210,7 @@ class FollowUpElement extends Component {
               {this.state.isAnnoVisible ? (
                 <Button
                   icon
-                  onClick={this.toHidebox}
+                  // onClick={this.toHidebox.bind(this)}
                   className="funcbtn"
                   id="showNodule"
                   title="显示结节"
@@ -1941,7 +2220,7 @@ class FollowUpElement extends Component {
               ) : (
                 <Button
                   icon
-                  onClick={this.toHidebox}
+                  // onClick={this.toHidebox.bind(this)}
                   className="funcbtn"
                   id="hideNodule"
                   title="隐藏结节"
@@ -2136,11 +2415,12 @@ class FollowUpElement extends Component {
               key={this.state.curViewportIndex}
               tools={this.state.tools}
               imageIds={this.state.curImageIds}
-              style={{ minWidth: "90%", height: "614px", flex: "1" }}
+              style={{ minWidth: "50%", height: "614px", flex: "1" }}
               imageIdIndex={this.state.curImageIdIndex}
               isPlaying={this.state.isPlaying}
               frameRate={this.state.frameRate}
               activeTool={this.state.activeTool}
+              viewportOverlayComponent={CustomOverlay}
               isOverlayVisible={this.state.isOverlayVisible}
               onElementEnabled={(elementEnabledEvt) => {
                 const newCornerstoneElement = elementEnabledEvt.detail.element;
@@ -2148,7 +2428,7 @@ class FollowUpElement extends Component {
                   newCornerstoneElement,
                 });
               }}
-              // initialViewport={this.state.viewport}
+              // initialViewport={this.state.initialViewport}
               className={
                 this.state.activeViewportIndex === this.state.curViewportIndex
                   ? "active"
@@ -2173,6 +2453,7 @@ class FollowUpElement extends Component {
               frameRate={this.state.frameRate}
               activeTool={this.state.activeTool}
               isOverlayVisible={this.state.isOverlayVisible}
+              viewportOverlayComponent={CustomOverlay}
               onElementEnabled={(elementEnabledEvt) => {
                 const preCornerstoneElement = elementEnabledEvt.detail.element;
                 this.setState({

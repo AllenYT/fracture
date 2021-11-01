@@ -93,14 +93,6 @@ class FollowUpDisplayPanel extends Component {
       });
       const curData = await getCurDataPromise;
 
-      const getCurDicomTagPromise = new Promise((resolve) => {
-        cornerstone.loadAndCacheImage(curData[0]).then((image) => {
-          const curDicomTag = image.data;
-          resolve(curDicomTag);
-        });
-      });
-      const curDicomTag = await getCurDicomTagPromise;
-
       const getPreDataPromise = new Promise((resolve, reject) => {
         axios
           .post(
@@ -113,14 +105,6 @@ class FollowUpDisplayPanel extends Component {
           }, reject);
       });
       const preData = await getPreDataPromise;
-
-      const getPreDicomTagPromise = new Promise((resolve) => {
-        cornerstone.loadAndCacheImage(preData[0]).then((image) => {
-          const preDicomTag = image.data;
-          resolve(preDicomTag);
-        });
-      });
-      const preDicomTag = await getPreDicomTagPromise;
 
       const getCurBoxPromise = new Promise((resolve) => {
         axios
@@ -175,18 +159,18 @@ class FollowUpDisplayPanel extends Component {
             }
           }
 
-          let viewport = cornerstone.getDefaultViewport(null, undefined);
+          let initialViewport = cornerstone.getDefaultViewport(null, undefined);
           if (
-            viewport.voi.windowWidth === undefined ||
-            viewport.voi.windowCenter === undefined
+            initialViewport.voi.windowWidth === undefined ||
+            initialViewport.voi.windowCenter === undefined
           ) {
-            viewport.voi.windowCenter = -600;
-            viewport.voi.windowWidth = 1600;
+            initialViewport.voi.windowCenter = -600;
+            initialViewport.voi.windowWidth = 1600;
           } else {
             console.log(
               "viewport",
-              viewport.voi.windowCenter,
-              viewport.voi.windowWidth
+              initialViewport.voi.windowCenter,
+              initialViewport.voi.windowWidth
             );
           }
 
@@ -194,12 +178,10 @@ class FollowUpDisplayPanel extends Component {
             curImageIds: curData,
             curCaseId: this.state.curCaseId,
             curBoxes: curBox,
-            curDicomTag: curDicomTag,
             preImageIds: preData,
             preCaseId: this.state.preCaseId,
             preBoxes: preBox,
-            preDicomTag: preDicomTag,
-            viewport: viewport,
+            initialViewport: initialViewport,
           };
 
           console.log(stack);

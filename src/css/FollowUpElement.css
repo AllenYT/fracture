@@ -120,3 +120,11 @@ h3.ant-typography,
   overflow: auto;
   height: 200px;
 }
+
+.viewport-wrapper.active{
+  border: 1px solid dodgerblue;
+}
+
+.viewport-wrapper{
+  border: 1px solid black;
+}
