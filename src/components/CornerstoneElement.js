@@ -361,7 +361,7 @@ class CornerstoneElement extends Component {
       windowWidth: document.body.clientWidth,
       windowHeight: document.body.clientHeight,
       histogramHeight: 0,
-      verticalMode: false,
+      verticalMode: document.body.clientWidth < document.body.clientHeight ? true : false,
       slideSpan: 0,
       preListActiveIdx: -1,
       currentImage: null,
@@ -382,6 +382,8 @@ class CornerstoneElement extends Component {
       reportGuideText: '',
       reportImageText: '',
       reportImageTop: 0,
+      reportImageHeight: 0,
+      reportImageContentHeight: 0,
       patientName: '',
       patientBirth: '',
       patientSex: '',
@@ -1495,6 +1497,8 @@ class CornerstoneElement extends Component {
       reportGuideType,
       reportImageType,
       reportImageTop,
+      reportImageHeight,
+      reportImageContentHeight,
 
       lobesData,
       tubularData,
@@ -2335,7 +2339,7 @@ class CornerstoneElement extends Component {
                   表征:
                 </div>
                 <div className="nodule-accordion-item-content-char-content">
-                  <Dropdown multiple selection options={options} id="dropdown" icon="add circle" name={'dropdown' + idx} value={representArray} onChange={that.representChange.bind(that, idx)} />
+                  <Dropdown multiple options={options} id="dropdown" icon="add circle" name={'dropdown' + idx} value={representArray} onChange={that.representChange.bind(that, idx)} />
                 </div>
               </div>
 
@@ -3166,7 +3170,7 @@ class CornerstoneElement extends Component {
                                     <div
                                       style={{
                                         height: '100%',
-                                        background: '#021c38',
+                                        background: 'rgb(23, 28, 47)',
                                         display: 'flex',
                                         justifyContent: 'center',
                                         alignItems: 'center',
@@ -3352,8 +3356,8 @@ class CornerstoneElement extends Component {
                             </Accordion.Content>
                          </Accordion>
 
-                            <Accordion id="report-accordion-image" style={{top: `${reportImageTop}px`}}>
-                              <Accordion.Title active={reportImageActive} onClick={this.onSetReportImageActive.bind(this)}>
+                            <Accordion id="report-accordion-image" style={{top: `${reportImageTop}px`, height: `${reportImageHeight}px`}}>
+                              <Accordion.Title id="report-accordion-image-header" active={reportImageActive} onClick={this.onSetReportImageActive.bind(this)}>
                                 <div className="report-title">
                                   <div className="report-title-desc">诊断报告
                                   <Dropdown
@@ -3616,7 +3620,7 @@ class CornerstoneElement extends Component {
                                   </div>
                                 </div>
                               </Accordion.Title>
-                              <Accordion.Content active={reportImageActive}>
+                              <Accordion.Content active={reportImageActive} style={{height: `${reportImageContentHeight}px`}}>
                   <Form.TextArea
                     id="report-image-textarea"
                     className="report-textarea"
@@ -5527,12 +5531,13 @@ class CornerstoneElement extends Component {
       const cornerTopRow = document.getElementsByClassName('corner-top-row')[0]
 
       const cornerTopRowHeight = cornerTopRow.clientHeight
-      const cornerBottomRowHeight = document.body.clientHeight - cornerTopRowHeight
+      const cornerBottomRowHeight = document.body.clientHeight - cornerTopRowHeight - 5
       this.setState(
         {
           bottomRowHeight: cornerBottomRowHeight,
         },
         () => {
+          this.reportImageTopCalc()
           if (this.state.show3DVisualization) {
             if (document.getElementById('segment-container') !== null) {
               const segmentContainer = document.getElementById('segment-container')
@@ -5582,7 +5587,6 @@ class CornerstoneElement extends Component {
         }
       )
     }
-    this.reportImageTopCalc()
 
     if (document.getElementById(`visual-${this.state.listsActiveIndex}`) && document.getElementById('closeVisualContent')) {
       // const visualPanel = document.getElementById(`visual-${this.state.listsActiveIndex}`)
@@ -6161,11 +6165,19 @@ class CornerstoneElement extends Component {
     })
   }
   reportImageTopCalc(){
-    if (document.getElementById("report-accordion-guide")){
+    if (document.getElementById("report") && document.getElementById("report-accordion-guide") && document.getElementById("report-accordion-image-header")){
+      const report = document.getElementById("report")
+      const reportHeight = report.clientHeight
       const reportGuide = document.getElementById("report-accordion-guide")
       const reportGuideHeight = reportGuide.clientHeight
+      const reportImageHeader = document.getElementById("report-accordion-image-header")
+      const reportImageHeaderHeight = reportImageHeader.clientHeight
+      console.log("reportImageTopCalc", reportHeight, reportGuideHeight, reportHeight - reportGuideHeight, reportHeight - reportGuideHeight - reportImageHeaderHeight)
+
       this.setState({
-        reportImageTop: reportGuideHeight
+        reportImageTop: reportGuideHeight,
+        reportImageHeight: reportHeight - reportGuideHeight - 3,
+        reportImageContentHeight: reportHeight - reportGuideHeight - 3 - reportImageHeaderHeight
       })
     }
   }
@@ -6929,6 +6941,8 @@ class CornerstoneElement extends Component {
               measureStateList: measureArr,
               maskStateList: maskArr,
               imageCaching: true,
+            },()=>{
+              this.reportImageTopCalc()
             })
           })
         })
