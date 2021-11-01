@@ -7,7 +7,7 @@
         "uploadMutiply": "http://192.168.7.198:8085/data/uploadMutiply",
         "preprocess": "http://192.168.7.198:8085/preprocess/exec",
         "getMhaListForCaseId": "http://192.168.7.198:8085/data/getMhaListForCaseId",
-        "getDiskInfo": "http://192.168.7.198:8075/data/getDiskInfo",
+        "getDiskInfo": "http://192.168.7.198:8085/data/getDiskInfo",
         "download": "http://192.168.7.198:8085/data/zip"
     },
     "user": {

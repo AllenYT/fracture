@@ -14,8 +14,7 @@ html {
   /* background-size: 100% 100%; */
 }
 #main {
-  /* height: 100%; */
-  padding-bottom: 20px;
+  height: 100%;
 }
 #logout-menu {
   min-width: 100px;
@@ -79,3 +78,26 @@ html {
         min-height: 1400px;
     }
 } */
+.popup{
+  background-color: rgb(39, 46, 72) !important;
+}
+.general-confirm-block{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgb(39, 46, 72);
+}
+.general-confirm-info{
+  color: whitesmoke;
+  font-size: 14px;
+}
+.general-confirm-operation{
+  margin-top: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+.ant-message-notice-content{
+  background-color: rgb(29, 36, 62) !important;
+  color: whitesmoke !important;
+}

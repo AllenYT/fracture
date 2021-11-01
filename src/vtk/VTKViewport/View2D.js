@@ -73,6 +73,7 @@ export default class View2D extends Component {
       voi: { windowWidth: 1600, windowCenter: -600 + 1024 }, //this.getVOI(props.volumes[0])
       rotation: { theta: 0, phi: 0 },
       sliderValue: 0,
+      initialized: false,
     }
 
     this.apiProperties = {}
@@ -94,40 +95,14 @@ export default class View2D extends Component {
       sliderValue: value,
     })
   }
-
-  componentDidMount() {
-    // console.log('mount!')
-    // Tracking ID to tie emitted events to this component
-    const uid = uuidv4()
-
-    this.genericRenderWindow = vtkGenericRenderWindow.newInstance({
-      background: [0, 0, 0],
-    })
-
-    this.genericRenderWindow.setContainer(this.container.current)
+  initVolumes() {
+    this.props.volumes.forEach(this.renderer.addVolume)
+    this.renderWindow.render()
 
     let widgets = []
     let filters = []
     let actors = []
     let volumes = []
-
-    const radius = 5
-    const label = 1
-
-    this.renderer = this.genericRenderWindow.getRenderer()
-    this.renderWindow = this.genericRenderWindow.getRenderWindow()
-    const oglrw = this.genericRenderWindow.getOpenGLRenderWindow()
-
-    // add paint renderer
-    this.paintRenderer = vtkRenderer.newInstance()
-    this.renderWindow.addRenderer(this.paintRenderer)
-    this.renderWindow.setNumberOfLayers(2)
-    this.paintRenderer.setLayer(1)
-    this.paintRenderer.setInteractive(false)
-
-    // update view node tree so that vtkOpenGLHardwareSelector can access
-    // the vtkOpenGLRenderer instance.
-    oglrw.buildPass(true)
     const istyle = vtkInteractorStyleMPRSlice.newInstance()
     this.renderWindow.getInteractor().setInteractorStyle(istyle)
 
@@ -151,18 +126,6 @@ export default class View2D extends Component {
     // TODO unsubscribe from this before component unmounts.
     inter.onAnimation(updateCameras)
     updateCameras()
-
-    this.widgetManager.disablePicking()
-    this.widgetManager.setRenderer(this.paintRenderer)
-    this.paintWidget = vtkPaintWidget.newInstance()
-    this.paintWidget.setRadius(radius)
-    this.paintFilter = vtkPaintFilter.newInstance()
-    this.paintFilter.setLabel(label)
-    this.paintFilter.setRadius(radius)
-
-    // trigger pipeline update
-    this.componentDidUpdate({})
-
     // must be added AFTER the data volume is added so that this can be rendered in front
     if (this.labelmap && this.labelmap.actor) {
       // this.renderer.addVolume(this.labelmap.actor);
@@ -217,13 +180,6 @@ export default class View2D extends Component {
     })
     this.updatePaintbrush()
 
-    const svgWidgetManager = vtkSVGWidgetManager.newInstance()
-
-    svgWidgetManager.setRenderer(this.renderer)
-    svgWidgetManager.setScale(1)
-
-    this.svgWidgetManager = svgWidgetManager
-
     // TODO: Not sure why this is necessary to force the initial draw
     this.genericRenderWindow.resize()
 
@@ -262,7 +218,7 @@ export default class View2D extends Component {
        * we make with consumers of this component.
        */
       const api = {
-        uid, // Tracking id available on `api`
+        uid: this.uid, // Tracking id available on `api`
         genericRenderWindow: this.genericRenderWindow,
         widgetManager: this.widgetManager,
         svgWidgetManager: this.svgWidgetManager,
@@ -300,10 +256,69 @@ export default class View2D extends Component {
         set: boundSetApiProperty,
         type: 'VIEW2D',
       }
-
       this.props.onCreated(api)
       // this.updateSlider()
     }
+  }
+  setContainerSize(width, height) {
+    const oglrw = this.genericRenderWindow.getOpenGLRenderWindow()
+    oglrw.setSize(width, height)
+    this.renderWindow.render()
+  }
+
+  componentDidMount() {
+    this.props.onRef(this)
+    console.time('mount!')
+    // Tracking ID to tie emitted events to this component
+    this.uid = uuidv4()
+
+    this.genericRenderWindow = vtkGenericRenderWindow.newInstance({
+      background: [0, 0, 0],
+    })
+
+    this.genericRenderWindow.setContainer(this.container.current)
+
+    const radius = 5
+    const label = 1
+
+    this.renderer = this.genericRenderWindow.getRenderer()
+    this.renderWindow = this.genericRenderWindow.getRenderWindow()
+    const oglrw = this.genericRenderWindow.getOpenGLRenderWindow()
+
+    // add paint renderer
+    this.paintRenderer = vtkRenderer.newInstance()
+    this.renderWindow.addRenderer(this.paintRenderer)
+    this.renderWindow.setNumberOfLayers(2)
+    this.paintRenderer.setLayer(1)
+    this.paintRenderer.setInteractive(false)
+
+    // update view node tree so that vtkOpenGLHardwareSelector can access
+    // the vtkOpenGLRenderer instance.
+    oglrw.buildPass(true)
+
+    this.widgetManager.disablePicking()
+    this.widgetManager.setRenderer(this.paintRenderer)
+    this.paintWidget = vtkPaintWidget.newInstance()
+    this.paintWidget.setRadius(radius)
+    this.paintFilter = vtkPaintFilter.newInstance()
+    this.paintFilter.setLabel(label)
+    this.paintFilter.setRadius(radius)
+
+    const svgWidgetManager = vtkSVGWidgetManager.newInstance()
+
+    svgWidgetManager.setRenderer(this.renderer)
+    svgWidgetManager.setScale(1)
+
+    this.svgWidgetManager = svgWidgetManager
+    // trigger pipeline update
+    // this.componentDidUpdate({})
+    this.renderWindow.render()
+    setTimeout(() => {
+      this.setState({
+        initialized: true,
+      })
+    }, 200)
+    console.timeEnd('mount!')
   }
 
   getViewUp() {
@@ -579,29 +594,36 @@ export default class View2D extends Component {
     this.props.onChangeSlice(e, this.props.viewerType)
   }
   afterChangeSlice(e) {}
-  componentDidUpdate(prevProps) {
-    if (prevProps.volumes !== this.props.volumes) {
-      // this.props.volumes.forEach((volume) => {
-      //   if (!volume.isA('vtkVolume')) {
-      //     console.warn('Data to <Vtk2D> is not vtkVolume data')
-      //   }
-      // })
 
-      if (this.props.volumes.length) {
-        // this.renderer.removeAllVolumes()
-        this.props.volumes.forEach(this.renderer.addVolume)
-        console.log('volumes length', this.renderer.getVolumes().length)
-      } else {
-        // TODO: Remove all volumes
-        // this.renderer.removeAllVolumes()
-        // if(prevProps.volumes && prevProps.volumes.length){
-        //   prevProps.volumes.forEach(this.renderer.removeVolume)
-        // }
-      }
-      // this.renderer.resetCamera();
-
-      this.renderWindow.render()
+  componentDidUpdate(prevProps, prevState) {
+    if (!prevState.initialized && this.state.initialized) {
+      console.time('volumes init')
+      this.initVolumes()
+      console.timeEnd('volumes init')
     }
+    // if (prevProps.volumes !== this.props.volumes) {
+    //   // this.props.volumes.forEach((volume) => {
+    //   //   if (!volume.isA('vtkVolume')) {
+    //   //     console.warn('Data to <Vtk2D> is not vtkVolume data')
+    //   //   }
+    //   // })
+
+    //   if (this.props.volumes.length) {
+    //     // this.renderer.removeAllVolumes()
+    //     this.props.volumes.forEach(this.renderer.addVolume)
+    //     // console.log('volumes length', this.renderer.getVolumes().length)
+    //     console.time('volumes add')
+    //     this.renderWindow.render()
+    //     console.timeEnd('volumes add')
+    //   } else {
+    //     // TODO: Remove all volumes
+    //     // this.renderer.removeAllVolumes()
+    //     // if(prevProps.volumes && prevProps.volumes.length){
+    //     //   prevProps.volumes.forEach(this.renderer.removeVolume)
+    //     // }
+    //   }
+    //   // this.renderer.resetCamera();
+    // }
 
     if (!prevProps.paintFilterBackgroundImageData && this.props.paintFilterBackgroundImageData) {
       // re-render if data has updated
@@ -762,7 +784,7 @@ export default class View2D extends Component {
     if (!this.props.volumes || !this.props.volumes.length) {
       return null
     }
-
+    const viewerStyle = this.props.viewerStyle
     const style = { width: '100%', height: '100%', position: 'relative' }
     const sliderStyle = { marginTop: '15%', height: '50%', position: 'absolute', top: 0, right: 0, zIndex: 1 }
     const sliderValue = this.state.sliderValue
@@ -790,7 +812,7 @@ export default class View2D extends Component {
       <></>
     )
     return (
-      <div style={style}>
+      <div style={viewerStyle}>
         {slider}
         <div ref={this.container} style={style} />
         <ViewportOverlay {...this.props.dataDetails} voi={voi} rotation={rotation} />
