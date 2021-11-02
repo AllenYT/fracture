@@ -177,6 +177,11 @@ const noduleMalignancyName = {
   2: '中危',
   3: '高危',
 }
+const noduleTextureName = {
+  1: '磨玻璃',
+  2: '实性',
+  3: '半实性',
+}
 const immersiveStyle = {
   width: '1280px',
   height: '1280px',
@@ -356,7 +361,7 @@ class CornerstoneElement extends Component {
       prePosition: 0,
       curPosition: 0,
       doubleClick: false,
-      menuTools: '',
+      menuTools: 'slide',
       isPlaying: false,
       windowWidth: document.body.clientWidth,
       windowHeight: document.body.clientHeight,
@@ -375,7 +380,7 @@ class CornerstoneElement extends Component {
       dataValidContnt: [],
 
       //MiniReport
-      reportGuideActive: false,
+      reportGuideActive: true,
       reportImageActive: true,
       reportGuideType: '中华共识',
       reportImageType: '结节类型',
@@ -405,6 +410,7 @@ class CornerstoneElement extends Component {
         texture: 0,
         malignancy: 0,
       },
+      ctInfoPadding: 0,
       menuButtonsWidth: 1540,
       menuScrollable: false,
       menuTotalPages: 1,
@@ -546,7 +552,6 @@ class CornerstoneElement extends Component {
     this.closeModalNew = this.closeModalNew.bind(this)
     this.closeModalCur = this.closeModalCur.bind(this)
     this.toMyAnno = this.toMyAnno.bind(this)
-    this.onSelectMal = this.onSelectMal.bind(this)
     this.onSelectPlace = this.onSelectPlace.bind(this)
     this.checkHash = this.checkHash.bind(this)
     this.ZoomIn = this.ZoomIn.bind(this)
@@ -932,7 +937,17 @@ class CornerstoneElement extends Component {
         studyListShowed,
       },
       () => {
-        this.resizeScreen()
+        clearTimeout(leftSlideTimer)
+        leftSlideTimer = setTimeout(() => {
+          this.setState(
+            {
+              ctInfoPadding: studyListShowed ? 150 : 0,
+            },
+            () => {
+              this.resizeScreen()
+            }
+          )
+        }, 500)
       }
     )
   }
@@ -1042,16 +1057,11 @@ class CornerstoneElement extends Component {
     this.setState({ modalOpenCur: false })
   }
 
-  onSelectMal = (event) => {
-    const value = event.currentTarget.value
-    const noduleId = event.currentTarget.id.split('-')[1]
+  onSelectMal(event, data) {
+    const value = data.value
+    const index = data.index
     const boxes = this.state.boxes
-    for (let i = 0; i < boxes.length; i++) {
-      if (boxes[i].nodule_no === noduleId) {
-        boxes[i].malignancy = parseInt(value)
-      }
-    }
-    console.log('boxes', boxes, noduleId)
+    boxes[index].malignancy = parseInt(value)
     this.setState({
       // selectBoxes: boxes,
       boxes: boxes,
@@ -1064,16 +1074,14 @@ class CornerstoneElement extends Component {
   onSelectTexClick(e) {
     e.stopPropagation()
   }
-  onSelectTex = (event) => {
-    const value = event.currentTarget.value
-    const noduleId = event.currentTarget.id.split('-')[1]
+  onSelectTex(event, data) {
+    console.log('onSelectTex', data)
+
+    const value = data.value
+    const index = data.index
     // let boxes = this.state.selectBoxes
-    let boxes = this.state.boxes
-    for (let i = 0; i < boxes.length; i++) {
-      if (boxes[i].nodule_no === noduleId) {
-        boxes[i].texture = parseInt(value)
-      }
-    }
+    const boxes = this.state.boxes
+    boxes[index].texture = parseInt(value)
     this.setState({
       selectBoxes: boxes,
       boxes: boxes,
@@ -1089,7 +1097,7 @@ class CornerstoneElement extends Component {
     const noduleId = event.currentTarget.id.split('-')[1]
     console.log('id', segment, place, noduleId)
     // let boxes = this.state.selectBoxes
-    let boxes = this.state.boxes
+    const boxes = this.state.boxes
     // console.log('onselectplace',boxes)
     for (let i = 0; i < boxes.length; i++) {
       // console.log('onselectplace',boxes[i].nodule_no,boxes[i],noduleId,boxes[i].nodule_no===noduleId)
@@ -1458,6 +1466,7 @@ class CornerstoneElement extends Component {
       reportImageTop,
       reportImageHeight,
       reportImageContentHeight,
+      ctInfoPadding,
 
       lobesData,
       tubularData,
@@ -2229,14 +2238,28 @@ class CornerstoneElement extends Component {
                   {parseInt(inside.slice_idx) + 1}
                 </Checkbox>
                 <div className="nodule-accordion-item-title-type">
-                  <select id={texId} style={selectStyle} value={inside.texture} onChange={that.onSelectTex} onClick={that.onSelectTexClick.bind(this)}>
+                  <Dropdown
+                    id={texId}
+                    style={selectStyle}
+                    text={noduleTextureName[inside.texture]}
+                    icon={null}
+                    //onClick={that.handleDropdownClick.bind(that, inside.slice_idx + 1, idx)}
+                    //open={that.state.dropDownOpen === idx}
+                  >
+                    <Dropdown.Menu>
+                      <Dropdown.Item text="磨玻璃" value={1} index={idx} onClick={that.onSelectTex.bind(that)} />
+                      <Dropdown.Item text="实性" value={2} index={idx} onClick={that.onSelectTex.bind(that)} />
+                      <Dropdown.Item text="半实性" value={3} index={idx} onClick={that.onSelectTex.bind(that)} />
+                    </Dropdown.Menu>
+                  </Dropdown>
+                  {/* <select id={texId} style={selectStyle} value={inside.texture} onChange={that.onSelectTex} onClick={that.onSelectTexClick.bind(this)}>
                     <option value="-1" disabled="disabled">
                       选择性质
                     </option>
                     <option value="1">磨玻璃</option>
                     <option value="2">实性</option>
                     <option value="3">半实性</option>
-                  </select>
+                  </select> */}
                 </div>
               </div>
 
@@ -2250,13 +2273,26 @@ class CornerstoneElement extends Component {
                 <div className="nodule-accordion-item-title-location">{locationDropdown}</div>
 
                 <div className="nodule-accordion-item-title-mal">
-                  <select
+                  <Dropdown
                     id={malId}
+                    style={malignancyContntStyle}
+                    text={noduleMalignancyName[inside.malignancy]}
+                    icon={null}
+                    //onClick={that.handleDropdownClick.bind(that, inside.slice_idx + 1, idx)}
+                    //open={that.state.dropDownOpen === idx}
+                  >
+                    <Dropdown.Menu>
+                      <Dropdown.Item text="低危" value={1} index={idx} onClick={that.onSelectMal.bind(that)} />
+                      <Dropdown.Item text="中危" value={2} index={idx} onClick={that.onSelectMal.bind(that)} />
+                      <Dropdown.Item text="高危" value={3} index={idx} onClick={that.onSelectMal.bind(that)} />
+                    </Dropdown.Menu>
+                  </Dropdown>
+                  {/* <select
+                    id={}
                     style={malignancyContntStyle}
                     value={inside.malignancy}
                     onChange={that.onSelectMal}
                     onClick={that.onSelectMalClick.bind(this)}
-                    // disabled={that.state.listsActiveIndex !== idx ? 'disabled' : ''}
                   >
                     <option value="-1" disabled="disabled">
                       选择危险度
@@ -2264,7 +2300,7 @@ class CornerstoneElement extends Component {
                     <option value="1">低危</option>
                     <option value="2">中危</option>
                     <option value="3">高危</option>
-                  </select>
+                  </select> */}
                 </div>
               </div>
               {/* <div style={probContntStyle}>{Math.floor(inside.malProb * 1000) / 10}%</div> */}
@@ -2645,14 +2681,14 @@ class CornerstoneElement extends Component {
                     <Button
                       // inverted
                       // color='blue'
-                      onClick={this.toBoneWindow} //骨窗窗宽窗位函数
+                      onClick={this.toBoneWindow} 
                       content="骨窗"
                       className="hubtn"
                     />
                     <Button
                       // inverted
                       // color='blue'
-                      onClick={this.toVentralWindow} //腹窗窗宽窗位函数
+                      onClick={this.toVentralWindow} 
                       content="腹窗"
                       className="hubtn"
                     />
@@ -2665,8 +2701,8 @@ class CornerstoneElement extends Component {
                     />                                            
                   </Button.Group> */}
                 <div onClick={this.onShowStudyList.bind(this)} className={'func-btn' + (studyListShowed ? ' func-btn-active' : '')}>
-                  <Icon className="func-btn-icon" name="history" size="large"></Icon>
-                  <div className="func-btn-desc"> 历史检查</div>
+                  <Icon className="func-btn-icon" name="list" size="large"></Icon>
+                  <div className="func-btn-desc"> 序列</div>
                 </div>
                 <span className="menu-line"></span>
                 {show3DVisualization ? (
@@ -2800,10 +2836,10 @@ class CornerstoneElement extends Component {
                   </>
                 ) : (
                   <>
-                    <div onClick={this.imagesFilp} className="func-btn">
+                    {/* <div onClick={this.imagesFilp} className="func-btn">
                       <Icon className="func-btn-icon" name="adjust" size="large"></Icon>
                       <div className="func-btn-desc">反色</div>
-                    </div>
+                    </div> */}
                     <div className="func-btn">
                       <Icon className="func-btn-icon" name="search" size="large"></Icon>
                       <div className="func-btn-desc">
@@ -2921,62 +2957,44 @@ class CornerstoneElement extends Component {
                   <Icon name="expand arrows alternate" size="large"></Icon>
                 </Button> */}
                     <span className="menu-line"></span>
-                    {menuTools === 'anno' ? (
-                      <div onClick={this.startAnnos} title="标注" className="func-btn" active>
-                        <Icon className="func-btn-icon" name="edit" size="large"></Icon>
-                        <div className="func-btn-desc">标注</div>
+                    <div title="窗宽窗位" onClick={this.wwwcCustom} className={'func-btn' + (menuTools === 'wwwc' ? ' func-btn-active' : '')}>
+                      <Icon className="func-btn-icon icon-custom icon-custom-wwwc" size="large"></Icon>
+                      <div className="func-btn-desc">
+                        <Dropdown
+                          icon={null}
+                          trigger={
+                            <>
+                              窗宽窗位
+                              <FontAwesomeIcon icon={faCaretDown} />
+                            </>
+                          }>
+                          <Dropdown.Menu>
+                            <Dropdown.Item text="肺窗" onClick={this.toPulmonary} />
+                            <Dropdown.Item text="骨窗" onClick={this.toBoneWindow} />
+                            <Dropdown.Item text="腹窗" onClick={this.toVentralWindow} />
+                            <Dropdown.Item text="纵隔窗" onClick={this.toMedia} />
+                          </Dropdown.Menu>
+                        </Dropdown>
                       </div>
-                    ) : (
-                      <div onClick={this.startAnnos} title="标注" className="func-btn">
-                        <Icon className="func-btn-icon" name="edit" size="large"></Icon>
-                        <div className="func-btn-desc">标注</div>
-                      </div>
-                    )}
-                    {menuTools === 'bidirect' ? (
-                      <div onClick={this.bidirectionalMeasure} title="测量" className="func-btn" active>
-                        <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
-                        <div className="func-btn-desc">测量</div>
-                      </div>
-                    ) : (
-                      <div onClick={this.bidirectionalMeasure} title="测量" className="func-btn">
-                        <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
-                        <div className="func-btn-desc">测量</div>
-                      </div>
-                    )}
-                    {menuTools === 'length' ? (
-                      <div onClick={this.lengthMeasure} title="长度" className="func-btn" active>
-                        <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
-                        <div className="func-btn-desc">长度</div>
-                      </div>
-                    ) : (
-                      <div onClick={this.lengthMeasure} title="长度" className="func-btn">
-                        <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
-                        <div className="func-btn-desc">长度</div>
-                      </div>
-                    )}
-                    {menuTools === 'slide' ? (
-                      <div title="切换切片" onClick={this.slide} className="func-btn" active>
-                        <Icon className="func-btn-icon" name="sort" size="large"></Icon>
-                        <div className="func-btn-desc">切换切片</div>
-                      </div>
-                    ) : (
-                      <div title="切换切片" onClick={this.slide} className="func-btn">
-                        <Icon className="func-btn-icon" name="sort" size="large"></Icon>
-                        <div className="func-btn-desc">切换切片</div>
-                      </div>
-                    )}
+                    </div>
+                    <div title="切换切片" onClick={this.slide} className={'func-btn' + (menuTools === 'slide' ? ' func-btn-active' : '')}>
+                      <Icon className="func-btn-icon" name="sort" size="large"></Icon>
+                      <div className="func-btn-desc">滚动</div>
+                    </div>
+                    <div onClick={this.startAnnos} title="标注" className={'func-btn' + (menuTools === 'anno' ? ' func-btn-active' : '')}>
+                      <Icon className="func-btn-icon" name="edit" size="large"></Icon>
+                      <div className="func-btn-desc">标注</div>
+                    </div>
 
-                    {menuTools === 'wwwc' ? (
-                      <div title="窗宽窗位" onClick={this.wwwcCustom} className="func-btn" active>
-                        <Icon className="func-btn-icon" name="sliders" size="large"></Icon>
-                        <div className="func-btn-desc">窗宽窗位</div>
-                      </div>
-                    ) : (
-                      <div title="窗宽窗位" onClick={this.wwwcCustom} className="func-btn">
-                        <Icon className="func-btn-icon" name="sliders" size="large"></Icon>
-                        <div className="func-btn-desc">窗宽窗位</div>
-                      </div>
-                    )}
+                    <div onClick={this.bidirectionalMeasure} title="测量" className={'func-btn' + (menuTools === 'bidirect' ? ' func-btn-active' : '')}>
+                      <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
+                      <div className="func-btn-desc">测量</div>
+                    </div>
+                    <div onClick={this.lengthMeasure} title="长度" className={'func-btn' + (menuTools === 'length' ? ' func-btn-active' : '')}>
+                      <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
+                      <div className="func-btn-desc">长度</div>
+                    </div>
+
                     {this.state.readonly ? (
                       <div title="提交" onClick={this.submit} className="func-btn">
                         <Icon className="func-btn-icon" name="upload" size="large"></Icon>
@@ -3000,7 +3018,7 @@ class CornerstoneElement extends Component {
                       <div className="func-btn-desc">显示3D</div>
                     </div>
                     <div title="随访" className="func-btn" onClick={this.toFollowUp.bind(this)}>
-                      <Icon className="func-btn-icon icon-custom icon-custom-show-3d" size="large"></Icon>
+                      <Icon className="func-btn-icon" name="history" size="large"></Icon>
                       <div className="func-btn-desc">随访</div>
                     </div>
                   </>
@@ -3035,7 +3053,8 @@ class CornerstoneElement extends Component {
               <Sidebar.Pusher style={{ height: '100%' }}>
                 <div className={'ct-info' + (studyListShowed ? ' ct-info-contract' : '') + (verticalMode ? ' ct-info-vertical' : ' ct-info-horizontal')}>
                   <div
-                    className={'corner-center-block' + (studyListShowed ? ' corner-center-contract-block' : '') + (verticalMode ? ' corner-center-vertical-block' : ' corner-center-horizontal-block')}>
+                    className={'corner-center-block' + (studyListShowed ? ' corner-center-contract-block' : '') + (verticalMode ? ' corner-center-vertical-block' : ' corner-center-horizontal-block')}
+                    style={verticalMode ? { paddingRight: `${ctInfoPadding}px` } : {}}>
                     {show3DVisualization ? (
                       <div className="center-viewport-panel" id="segment-container">
                         <div style={{ width: viewerWidth, height: viewerHeight }}>{panel}</div>
@@ -3067,12 +3086,7 @@ class CornerstoneElement extends Component {
                             {dicomTagPanel}
                           </div>
                           {/* </div> */}
-                          <div
-                            id="cor-slice-slider"
-                            style={{
-                              height: `${canvasHeight * 0.7}px`,
-                              top: `${canvasHeight * 0.15}px`,
-                            }}>
+                          <div id="cor-slice-slider" style={{ height: `${canvasHeight * 0.7}px`, top: `${canvasHeight * 0.15}px` }}>
                             <Slider
                               vertical
                               reverse
@@ -3097,7 +3111,9 @@ class CornerstoneElement extends Component {
                       ×
                     </button>
                   </div>
-                  <div className={'corner-list-block' + (studyListShowed ? ' corner-list-contract-block' : '') + (verticalMode ? ' corner-list-vertical-block' : ' corner-list-horizontal-block')}>
+                  <div
+                    className={'corner-list-block' + (studyListShowed ? ' corner-list-contract-block' : '') + (verticalMode ? ' corner-list-vertical-block' : ' corner-list-horizontal-block')}
+                    style={studyListShowed ? { paddingRight: `${ctInfoPadding}px` } : {}}>
                     <div className={'ct-list-container'}>
                       <div id="nodule-card-container" className={verticalMode ? 'nodule-card-container-vertical' : 'nodule-card-container-horizontal'}>
                         <Tabs type="card" defaultActiveKey={1} size="small">
@@ -3131,19 +3147,14 @@ class CornerstoneElement extends Component {
                                             onClick={this.onHandleNoduleAllCheckClick.bind(this)}>
                                             全选
                                           </Checkbox>
-                                          <div className="nodule-filter-desc-text">
-                                            已筛选{this.state.boxes.length}
-                                            个病灶
-                                          </div>
+                                          <div className="nodule-filter-desc-text">已筛选{this.state.boxes.length}个病灶</div>
                                         </div>
                                         <div className="nodule-filter-operation">
                                           <FontAwesomeIcon className="nodule-filter-operation-icon" icon={faFilter} />
 
                                           <Popup
                                             on="click"
-                                            style={{
-                                              backgroundColor: 'rgb(39, 46, 72)',
-                                            }}
+                                            style={{ backgroundColor: 'rgb(39, 46, 72)' }}
                                             trigger={<FontAwesomeIcon className="nodule-filter-operation-icon" icon={faSortAmountDownAlt} />}>
                                             <div className="nodule-filter-operation-sort">
                                               <div className="nodule-filter-operation-sort-header">排序</div>
@@ -3204,10 +3215,7 @@ class CornerstoneElement extends Component {
                                               onClick={this.onHandleThreedAllCheckClick.bind(this)}>
                                               全选
                                             </Checkbox>
-                                            <div className="threed-filter-desc-text">
-                                              已选择{tubularCheckNumber}
-                                              个管状结构
-                                            </div>
+                                            <div className="threed-filter-desc-text">已选择{tubularCheckNumber}个管状结构</div>
                                           </div>
                                           <div className="threed-filter-operation">
                                             {tubularAllVisible ? (
@@ -3316,12 +3324,7 @@ class CornerstoneElement extends Component {
                             </Accordion.Content>
                           </Accordion>
 
-                          <Accordion
-                            id="report-accordion-image"
-                            style={{
-                              top: `${reportImageTop}px`,
-                              height: `${reportImageHeight}px`,
-                            }}>
+                          <Accordion id="report-accordion-image" style={{ top: `${reportImageTop}px`, height: `${reportImageHeight}px` }}>
                             <Accordion.Title id="report-accordion-image-header" active={reportImageActive} onClick={this.onSetReportImageActive.bind(this)}>
                               <div className="report-title">
                                 <div className="report-title-desc">
@@ -3459,13 +3462,7 @@ class CornerstoneElement extends Component {
 
                                         <Divider />
 
-                                        <div
-                                          style={{
-                                            fontSize: 20,
-                                            color: '#6495ED',
-                                          }}>
-                                          扫描参数
-                                        </div>
+                                        <div style={{ fontSize: 20, color: '#6495ED' }}>扫描参数</div>
                                         <Table celled>
                                           <Table.Header>
                                             <Table.Row>
@@ -3481,13 +3478,7 @@ class CornerstoneElement extends Component {
                                           </Table.Header>
                                           <Table.Body></Table.Body>
                                         </Table>
-                                        <div
-                                          style={{
-                                            fontSize: 20,
-                                            color: '#6495ED',
-                                          }}>
-                                          肺部详情
-                                        </div>
+                                        <div style={{ fontSize: 20, color: '#6495ED' }}>肺部详情</div>
                                         <Table celled>
                                           <Table.Header>
                                             <Table.Row>
@@ -3507,12 +3498,7 @@ class CornerstoneElement extends Component {
                                                 <div key={index}>
                                                   <Divider />
                                                   <div>&nbsp;</div>
-                                                  <div
-                                                    style={{
-                                                      fontSize: 20,
-                                                      color: '#6495ED',
-                                                    }}
-                                                    id="noduleDivide">
+                                                  <div style={{ fontSize: 20, color: '#6495ED' }} id="noduleDivide">
                                                     结节 {index + 1}
                                                   </div>
                                                   <Table celled textAlign="center">
@@ -3587,11 +3573,7 @@ class CornerstoneElement extends Component {
                                                       <Table.Row>
                                                         <Table.Cell>直方图</Table.Cell>
                                                         <Table.Cell>
-                                                          <div
-                                                            id={visualId}
-                                                            style={{
-                                                              margin: '0 auto',
-                                                            }}></div>
+                                                          <div id={visualId} style={{ margin: '0 auto' }}></div>
                                                         </Table.Cell>
                                                       </Table.Row>
                                                     </Table.Body>
@@ -3610,11 +3592,7 @@ class CornerstoneElement extends Component {
                                 </div>
                               </div>
                             </Accordion.Title>
-                            <Accordion.Content
-                              active={reportImageActive}
-                              style={{
-                                height: `${reportImageContentHeight}px`,
-                              }}>
+                            <Accordion.Content active={reportImageActive} style={{ height: `${reportImageContentHeight}px` }}>
                               <Form.TextArea
                                 id="report-image-textarea"
                                 className="report-textarea"
@@ -3810,8 +3788,9 @@ class CornerstoneElement extends Component {
     context.rect(box.x1, box.y1, width, height)
     context.lineWidth = 1
     context.stroke()
-    if (box.nodule_no != undefined) {
-      context.fillText(parseInt(box.nodule_no) + 1, xCenter - 3, new_y1 - 15)
+
+    if (box.visibleIdx || box.visibleIdx === 0) {
+      context.fillText(box.visibleIdx + 1, xCenter - 3, new_y1 - 15)
     }
     context.closePath()
   }
@@ -4153,21 +4132,18 @@ class CornerstoneElement extends Component {
     return obj
   }
 
-  createBox(x1, x2, y1, y2, slice_idx, nodule_idx) {
+  createBox(x1, x2, y1, y2, slice_idx, newIdx) {
     console.log('coor', x1, x2, y1, y2)
     const imageId = this.state.imageIds[slice_idx]
     // console.log('image', imageId)
     const nodule_hist = this.noduleHist(x1, y1, x2, y2)
     const newBox = {
-      // "calcification": [], "lobulation": [],
       malignancy: -1,
-      nodule_no: nodule_idx,
       patho: '',
       place: '',
       probability: 1,
       slice_idx: slice_idx,
       nodule_hist: nodule_hist,
-      // "spiculation": [], "texture": [],
       x1: x1,
       x2: x2,
       y1: y1,
@@ -4176,8 +4152,9 @@ class CornerstoneElement extends Component {
       diameter: 0.0,
       place: 0,
       modified: 1,
-      prevIdx: this.state.boxes.length,
-      visibleIdx: this.state.boxed.length,
+      nodule_no: newIdx,
+      prevIdx: newIdx,
+      visibleIdx: newIdx,
     }
     // let boxes = this.state.selectBoxes
     let boxes = this.state.boxes
@@ -4924,16 +4901,9 @@ class CornerstoneElement extends Component {
       const y1 = this.state.tmpBox.y1
       const x2 = this.state.tmpBox.x2
       const y2 = this.state.tmpBox.y2
-      let newNodule_no = -1
       // const boxes = this.state.selectBoxes
       let boxes = this.state.boxes
-      for (var i = 0; i < boxes.length; i++) {
-        const current_nodule_no = parseInt(boxes[i].nodule_no)
-        if (current_nodule_no > newNodule_no) {
-          newNodule_no = current_nodule_no
-        }
-      }
-      this.createBox(x1, x2, y1, y2, this.state.currentIdx, (1 + newNodule_no).toString())
+      this.createBox(x1, x2, y1, y2, this.state.currentIdx, boxes.length)
       // this.createBox(this.state.tmpBox, this.state.currentIdx, (1+newNodule_no).toString())
     }
     if (this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3 && event.button === 0 && this.state.clickedArea.m_pos === 'om') {
@@ -6706,9 +6676,7 @@ class CornerstoneElement extends Component {
           this.setState({ reportGuideText: '6个月内低剂量胸部CT筛查' })
           break
         case 0:
-          this.setState({
-            reportGuideText: '12个月内继续年度低剂量胸部CT筛查',
-          })
+          this.setState({ reportGuideText: '12个月内继续年度低剂量胸部CT筛查' })
           break
       }
     } else if (dealchoose === '亚洲共识') {
@@ -6775,9 +6743,7 @@ class CornerstoneElement extends Component {
           })
           break
         case 0:
-          this.setState({
-            reportGuideText: '根据临床判断，考虑每年进行CT监测',
-          })
+          this.setState({ reportGuideText: '根据临床判断，考虑每年进行CT监测' })
           break
       }
     }
@@ -7009,7 +6975,6 @@ class CornerstoneElement extends Component {
       prevState.reportGuideType !== this.state.reportGuideType
     ) {
       const activeItem = this.state.doubleClick === true ? 'all' : this.state.listsActiveIndex
-      console.log('update report', this.state.reportType, activeItem)
       this.template(this.state.reportImageType, activeItem, this.state.reportGuideType)
     }
     if (prevState.boxes !== this.state.boxes) {
@@ -7047,14 +7012,20 @@ class CornerstoneElement extends Component {
       .then((response) => {
         console.log('report_nodule request', response)
         const data = response.data
-        this.setState({
-          age: data.age,
-          date: data.date,
-          // nodules: data.nodules === undefined ? [] : data.nodules,
-          patientBirth: data.patientBirth,
-          patientId: data.patientID,
-          patientSex: data.patientSex === 'M' ? '男' : '女',
-        })
+        this.setState(
+          {
+            age: data.age,
+            date: data.date,
+            // nodules: data.nodules === undefined ? [] : data.nodules,
+            patientBirth: data.patientBirth,
+            patientId: data.patientID,
+            patientSex: data.patientSex === 'M' ? '男' : '女',
+          },
+          () => {
+            const activeItem = this.state.doubleClick === true ? 'all' : this.state.listsActiveIndex
+            this.template(this.state.reportImageType, activeItem, this.state.reportGuideType)
+          }
+        )
       })
       .catch((error) => console.log(error))
   }
@@ -7087,6 +7058,9 @@ class CornerstoneElement extends Component {
   async componentDidMount() {
     if (document.getElementById('footer')) {
       document.getElementById('footer').style.display = 'none'
+    }
+    if(document.getElementById("main")){
+      document.getElementById('main').setAttribute('style', 'height:100%;padding-bottom:0px')
     }
     console.log('componentDidMount', this.state.caseId)
     if (localStorage.getItem('username') === null && window.location.pathname !== '/') {
@@ -7612,6 +7586,9 @@ class CornerstoneElement extends Component {
     document.removeEventListener('keydown', this.onKeydown)
     window.removeEventListener('resize', this.resizeScreen.bind(this))
     // cornerstone.disable(element)
+    if(document.getElementById("main")){
+      document.getElementById('main').setAttribute('style', '')
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {

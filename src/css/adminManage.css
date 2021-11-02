@@ -6,15 +6,15 @@
   padding: 30px;
   background-image: url(../images/sidebar.png);
 }
-.admin-manage-out-container:hover{
+.admin-manage-out-container:hover {
   /* box-shadow: 0px 0px 50px black; */
 }
-.admin-manage-out-container .table{
+.admin-manage-out-container .table {
   color: #66cfec !important;
   background-color: transparent !important;
 }
-.admin-manage-out-container .table th{
-  background-color: rgba(0,0,0,.15);
+.admin-manage-out-container .table th {
+  background-color: rgba(0, 0, 0, 0.15);
 }
 .admin-manage-container-bottom {
   display: flex;
