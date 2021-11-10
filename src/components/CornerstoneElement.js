@@ -17,7 +17,7 @@ import { Grid, Icon, Button, Accordion, Modal, Dropdown, Menu, Label, Header, Po
 import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
 import qs from 'qs'
 import axios from 'axios'
-import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Radio } from 'antd'
+import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Cascader } from 'antd'
 import * as echarts from 'echarts'
 import html2pdf from 'html2pdf.js'
 import copy from 'copy-to-clipboard'
@@ -31,7 +31,8 @@ import { vec3, vec4, mat4 } from 'gl-matrix'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faCaretDown, faFilter, faSortAmountDownAlt, faSortUp, faSortDown, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import { connect } from 'react-redux'
-import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId } from '../actions'
+import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId, dropCaseId } from '../actions'
+import { DropTarget } from 'react-dnd'
 
 import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor'
 import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper'
@@ -56,6 +57,9 @@ import vtkInteractorStyleMPRWindowLevel from '../vtk/VTKViewport/vtkInteractorSt
 import VTK2DViewer from './VTK2DViewer'
 import VTK3DViewer from './VTK3DViewer'
 import VTKMaskViewer from './VTKMaskViewer'
+import PreviewElement from './PreviewElement'
+import FollowUpDisplayElement from './FollowUpDisplayElement'
+
 import { frenet } from '../lib/frenet'
 import { loadAndCacheImagePlus } from '../lib/cornerstoneImageRequest'
 import { executeTask } from '../lib/taskHelper'
@@ -99,7 +103,6 @@ const cacheSize = 5
 let playTimer = undefined
 let flipTimer = undefined
 let leftSlideTimer = undefined
-let imageLoadTimer = undefined
 
 const dictList = {
   lung: {
@@ -171,17 +174,6 @@ const lobeName = {
   4: '左肺上叶',
   5: '左肺下叶',
 }
-const noduleMalignancyName = {
-  0: '待定',
-  1: '低危',
-  2: '中危',
-  3: '高危',
-}
-const noduleTextureName = {
-  1: '磨玻璃',
-  2: '实性',
-  3: '半实性',
-}
 const immersiveStyle = {
   width: '1280px',
   height: '1280px',
@@ -217,33 +209,6 @@ const noduleSegments = {
   S17: '左肺下叶-外基底段',
   S18: '左肺下叶-后基底段',
 }
-let bottomLeftStyle = {
-  bottom: '5px',
-  left: '-95px',
-  position: 'absolute',
-  color: 'white',
-}
-
-let bottomRightStyle = {
-  bottom: '5px',
-  right: '-95px',
-  position: 'absolute',
-  color: 'white',
-}
-
-let topLeftStyle = {
-  top: '5px',
-  // left: "-95px", // 5px
-  position: 'absolute',
-  color: 'white',
-}
-
-let topRightStyle = {
-  top: '5px',
-  right: '5px', //5px
-  position: 'absolute',
-  color: 'white',
-}
 
 let modalBtnStyle = {
   width: '200px',
@@ -253,56 +218,6 @@ let modalBtnStyle = {
   marginLeft: 'auto',
   marginRight: 'auto',
 }
-
-let users = []
-
-const selectStyle = {
-  background: 'none',
-  border: 'none',
-  // 'fontFamily': 'SimHei',
-  WebkitAppearance: 'none',
-  // 'fontSize':'medium',
-  MozAppearance: 'none',
-  apperance: 'none',
-}
-
-const lowRiskStyle = {
-  background: 'none',
-  border: 'none',
-  // 'fontFamily': 'SimHei',
-  WebkitAppearance: 'none',
-  fontSize: 'small',
-  MozAppearance: 'none',
-  apperance: 'none',
-  color: 'green',
-}
-
-const highRiskStyle = {
-  background: 'none',
-  border: 'none',
-  // 'fontFamily': 'SimHei',
-  WebkitAppearance: 'none',
-  fontSize: 'small',
-  MozAppearance: 'none',
-  apperance: 'none',
-  color: '#CC3300',
-}
-const middleRiskStyle = {
-  background: 'none',
-  border: 'none',
-  // 'fontFamily': 'SimHei',
-  WebkitAppearance: 'none',
-  fontSize: 'small',
-  MozAppearance: 'none',
-  apperance: 'none',
-  color: '#fcaf17',
-}
-
-const toolstrigger = (
-  <span>
-    <Icon name="user" />
-  </span>
-)
 
 const { Option } = Select
 
@@ -316,6 +231,7 @@ class CornerstoneElement extends Component {
       caseId: window.location.pathname.split('/case/')[1].split('/')[0].replace('%23', '#'),
       username: localStorage.getItem('username'),
       modelName: window.location.pathname.split('/')[3],
+      realname: localStorage.realname ? localStorage.realname : '',
 
       //cornerstoneElement
       initialized: false,
@@ -402,7 +318,6 @@ class CornerstoneElement extends Component {
       /*新加变量 */
       nodules: [],
       backendNodules: [],
-      nodulesChecked: [],
       nodulesAllChecked: false,
       nodulesOrder: {
         slice_idx: 0,
@@ -410,6 +325,17 @@ class CornerstoneElement extends Component {
         texture: 0,
         malignancy: 0,
       },
+      nodulesSelect: [
+        {
+          key: 0,
+          desc: '结节类型',
+          options: ['实性', '半实性', '磨玻璃', '毛刺征', '分叶征', '钙化征', '胸膜凹陷征', '空洞征', '血管集束征', '空泡征', '支气管充气征', '未知'],
+          checked: new Array(12).fill(true),
+        },
+        { key: 1, desc: '直径大小', options: ['<=0.3cm', '0.3cm-0.5cm', '0.5cm-1cm', '1cm-1.3cm', '1.3cm-3cm', '>=3cm'], checked: new Array(6).fill(true) },
+        { key: 2, desc: '良恶性', options: ['高危', '中危', '低危', '未知'], checked: new Array(6).fill(true) },
+      ],
+      nodulesAllSelected: true,
       ctInfoPadding: 0,
       menuButtonsWidth: 1540,
       menuScrollable: false,
@@ -418,6 +344,9 @@ class CornerstoneElement extends Component {
       menuTransform: 0,
       show3DVisualization: false,
       studyListShowed: false,
+      renderLoading: false,
+      showFollowUp: false,
+      registering: false,
 
       /*显示变量*/
       windowWidth: window.screen.width,
@@ -501,10 +430,6 @@ class CornerstoneElement extends Component {
       volumesLoading: true,
       percent: [],
       listLoading: [],
-
-      /*直方图变量*/
-      HUSliderRange: [-100, 100],
-      chartType: 'line',
     }
     this.config = JSON.parse(localStorage.getItem('config'))
     this.nextPath = this.nextPath.bind(this)
@@ -522,10 +447,6 @@ class CornerstoneElement extends Component {
     this.handleRangeChange = this.handleRangeChange.bind(this)
     this.refreshImage = this.refreshImage.bind(this)
 
-    this.toPulmonary = this.toPulmonary.bind(this)
-    this.toMedia = this.toMedia.bind(this)
-    this.toBoneWindow = this.toBoneWindow.bind(this)
-    this.toVentralWindow = this.toVentralWindow.bind(this)
     this.reset = this.reset.bind(this)
 
     this.findCurrentArea = this.findCurrentArea.bind(this)
@@ -540,7 +461,6 @@ class CornerstoneElement extends Component {
     this.dehighlightNodule = this.dehighlightNodule.bind(this)
     this.toCurrentModel = this.toCurrentModel.bind(this)
     this.toNewModel = this.toNewModel.bind(this)
-    this.toHidebox = this.toHidebox.bind(this)
     // this.handleClick = this
     //     .handleClick
     //     .bind(this)
@@ -550,29 +470,17 @@ class CornerstoneElement extends Component {
     this.clearthenNew = this.clearthenNew.bind(this)
     this.clearthenFork = this.clearthenFork.bind(this)
     this.createBox = this.createBox.bind(this)
-    this.playAnimation = this.playAnimation.bind(this)
-    this.pauseAnimation = this.pauseAnimation.bind(this)
     this.Animation = this.Animation.bind(this)
     this.closeModalNew = this.closeModalNew.bind(this)
     this.closeModalCur = this.closeModalCur.bind(this)
     this.toMyAnno = this.toMyAnno.bind(this)
-    this.onSelectPlace = this.onSelectPlace.bind(this)
     this.checkHash = this.checkHash.bind(this)
-    this.ZoomIn = this.ZoomIn.bind(this)
-    this.ZoomOut = this.ZoomOut.bind(this)
-    this.imagesFilp = this.imagesFilp.bind(this)
     this.handleLogout = this.handleLogout.bind(this)
     this.handleLogin = this.handleLogin.bind(this)
-    this.toHideInfo = this.toHideInfo.bind(this)
     this.disableAllTools = this.disableAllTools.bind(this)
-    this.bidirectionalMeasure = this.bidirectionalMeasure.bind(this)
-    this.lengthMeasure = this.lengthMeasure.bind(this)
     this.featureAnalysis = this.featureAnalysis.bind(this)
     this.eraseLabel = this.eraseLabel.bind(this)
-    this.startAnnos = this.startAnnos.bind(this)
     this.saveTest = this.saveTest.bind(this)
-    this.slide = this.slide.bind(this)
-    this.wwwcCustom = this.wwwcCustom.bind(this)
     this.onWheel = this.onWheel.bind(this)
     this.wheelHandle = this.wheelHandle.bind(this)
     this.onMouseOver = this.onMouseOver.bind(this)
@@ -606,18 +514,11 @@ class CornerstoneElement extends Component {
     //DisplayPanel
     this.updateDisplay = this.updateDisplay.bind(this)
     //StudyBrowser
-    this.loadStudyBrowser = this.loadStudyBrowser.bind(this)
-    this.updateStudyBrowser = this.updateStudyBrowser.bind(this)
     //MiniReport
-    this.loadReport = this.loadReport.bind(this)
-    this.updateReport = this.updateReport.bind(this)
 
     this.showImages = this.showImages.bind(this)
     this.exportPDF = this.exportPDF.bind(this)
     this.dealChoose = this.dealChoose.bind(this)
-    this.handleCopyClick = this.handleCopyClick.bind(this)
-
-    this.plotHistogram = this.plotHistogram.bind(this)
   }
 
   handleSliderChange = (e, { name, value }) => {
@@ -842,38 +743,44 @@ class CornerstoneElement extends Component {
     }
   }
 
-  keyDownListSwitch(ActiveIdx) {
+  keyDownListSwitch(activeIdx) {
     // const boxes = this.state.selectBoxes
     const boxes = this.state.boxes
-    let currentIdx = parseInt(boxes[ActiveIdx].nodule_no)
-    let sliceIdx = boxes[ActiveIdx].slice_idx
-    if (this.state.preListActiveIdx !== -1) {
-      currentIdx = parseInt(boxes[this.state.preListActiveIdx].nodule_no)
-      sliceIdx = boxes[this.state.preListActiveIdx].slice_idx
-    }
-    console.log('cur', currentIdx, sliceIdx)
+    let sliceIdx = boxes[activeIdx].slice_idx
+    // console.log('cur', sliceIdx)
     this.setState({
-      listsActiveIndex: currentIdx,
+      listsActiveIndex: activeIdx,
       currentIdx: sliceIdx,
       autoRefresh: true,
       doubleClick: false,
-      preListActiveIdx: -1,
     })
   }
 
   playAnimation() {
     //coffee button
-    this.setState(({ isPlaying }) => ({
-      isPlaying: !isPlaying,
-    }))
-    playTimer = setInterval(() => this.Animation(), 1)
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.playAnimation()
+      }
+    } else {
+      this.setState(({ isPlaying }) => ({
+        isPlaying: !isPlaying,
+      }))
+      playTimer = setInterval(() => this.Animation(), 1)
+    }
   }
 
   pauseAnimation() {
-    this.setState(({ isPlaying }) => ({
-      isPlaying: !isPlaying,
-    }))
-    clearInterval(playTimer)
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.playAnimation()
+      }
+    } else {
+      this.setState(({ isPlaying }) => ({
+        isPlaying: !isPlaying,
+      }))
+      clearInterval(playTimer)
+    }
   }
 
   Animation() {
@@ -887,20 +794,32 @@ class CornerstoneElement extends Component {
   }
 
   toHidebox() {
-    this.setState(({ showNodules }) => ({
-      showNodules: !showNodules,
-    }))
-    this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.toHidebox()
+      }
+    } else {
+      this.setState(({ showNodules }) => ({
+        showNodules: !showNodules,
+      }))
+      this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+    }
   }
 
   toHideInfo() {
-    this.setState(({ showInfo }) => {
-      return {
-        showInfo: !showInfo,
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.toHideInfo()
       }
-    })
+    } else {
+      this.setState(({ showInfo }) => {
+        return {
+          showInfo: !showInfo,
+        }
+      })
+    }
   }
-  onShowStudyList() {
+  onSetStudyList(studyListShowed) {
     // const apiTool = cornerstoneTools[`RectangleRoiTool`]
     // cornerstoneTools.addTool(apiTool)
     // cornerstoneTools.setToolActive('RectangleRoi', {
@@ -937,7 +856,6 @@ class CornerstoneElement extends Component {
     // })
     // console.log('tool data', cornerstoneTools.getToolState(this.element, 'RectangleRoi'))
     // cornerstoneTools.setToolEnabled('RectangleRoi')
-    const studyListShowed = !this.state.studyListShowed
     this.setState(
       {
         studyListShowed,
@@ -993,7 +911,6 @@ class CornerstoneElement extends Component {
     // }
     const boxes = this.state.boxes
     const measureStateList = this.state.measureStateList
-    const nodulesChecked = this.state.nodulesChecked
     // for (var i = 0; i < boxes.length; i++) {
     //     if (boxes[i].nodule_no === nodule_no) {
     //         boxes.splice(i, 1)
@@ -1003,15 +920,14 @@ class CornerstoneElement extends Component {
     console.log('delNodule', measureStateList, boxes, idx)
     boxes.splice(idx, 1)
     measureStateList.splice(idx, 1)
-    nodulesChecked.splice(idx, 1)
     console.log('delNodule after', measureStateList, boxes)
     this.setState({
       boxes,
       measureStateList,
-      nodulesChecked,
       // random: Math.random()
     })
     this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
+    message.success('结节删除成功')
   }
 
   highlightNodule(event) {
@@ -1053,9 +969,14 @@ class CornerstoneElement extends Component {
 
   arrayPropSort(prop, factor) {
     return function (a, b) {
-      var value1 = a[prop]
-      var value2 = b[prop]
-      return (value1 - value2) * factor
+      let value1 = a[prop]
+      let value2 = b[prop]
+      let result = value1 - value2
+      if (result === 0) {
+        return factor
+      } else {
+        return result * factor
+      }
     }
   }
 
@@ -1063,9 +984,7 @@ class CornerstoneElement extends Component {
     this.setState({ modalOpenCur: false })
   }
 
-  onSelectMal(event, data) {
-    const value = data.value
-    const index = data.index
+  onSelectMal(index, value) {
     const boxes = this.state.boxes
     boxes[index].malignancy = parseInt(value)
     this.setState({
@@ -1080,12 +999,7 @@ class CornerstoneElement extends Component {
   onSelectTexClick(e) {
     e.stopPropagation()
   }
-  onSelectTex(event, data) {
-    console.log('onSelectTex', data)
-
-    const value = data.value
-    const index = data.index
-    // let boxes = this.state.selectBoxes
+  onSelectTex(index, value) {
     const boxes = this.state.boxes
     boxes[index].texture = parseInt(value)
     this.setState({
@@ -1094,48 +1008,38 @@ class CornerstoneElement extends Component {
       // random: Math.random()
     })
   }
-
-  onSelectPlace = (event) => {
+  onSelectPlaceClick(e) {
+    e.stopPropagation()
+  }
+  onSelectPlace(index, value) {
+    // console.log('onSelectPlace', index, value)
     const places = nodulePlaces
     const segments = noduleSegments
-    const segment = event.currentTarget.innerHTML
-    const place = event.currentTarget.id.split('-')[2]
-    const noduleId = event.currentTarget.id.split('-')[1]
-    console.log('id', segment, place, noduleId)
-    // let boxes = this.state.selectBoxes
     const boxes = this.state.boxes
-    // console.log('onselectplace',boxes)
-    for (let i = 0; i < boxes.length; i++) {
-      // console.log('onselectplace',boxes[i].nodule_no,boxes[i],noduleId,boxes[i].nodule_no===noduleId)
-      if (boxes[i].nodule_no === noduleId) {
-        for (let item in places) {
-          if (places[item] === place) {
-            boxes[i].place = item
-            console.log('place', place)
-          }
-        }
-        if (segment === '无法定位') {
-          boxes[i].segment = ''
-          console.log('segment', '')
-        } else {
-          for (let item in segments) {
-            if (segments[item] === place + '-' + segment) {
-              boxes[i].segment = item
-              console.log('segment', segment)
-            }
-          }
+    const place = value[0]
+    const segment = value[0] + '-' + value[1]
+    for (let item in places) {
+      if (places[item] === place) {
+        boxes[index].place = item
+      }
+    }
+    if (value[1] === '无法定位') {
+      boxes[index].segment = 'None'
+    } else {
+      for (let item in segments) {
+        if (segments[item] === segment) {
+          boxes[index].segment = item
         }
       }
     }
     this.setState({
-      // selectBoxes: boxes,
       boxes: boxes,
       // random: Math.random()
     })
   }
 
-  representChange = (idx, e, { value, name }) => {
-    // console.log("representChange", value, name, idx)
+  representChange(idx, value) {
+    // console.log("representChange", idx, value)
     let represents = {
       lobulation: '分叶',
       spiculation: '毛刺',
@@ -1224,20 +1128,40 @@ class CornerstoneElement extends Component {
     // this.disableAllTools(element)
     // cornerstoneTools.addToolForElement(element,ellipticalRoi)
     // cornerstoneTools.setToolActiveForElement(element, 'EllipticalRoi',{mouseButtonMask:1},['Mouse'])
-    const element = document.querySelector('#origin-canvas')
-    this.disableAllTools(element)
-    this.setState({ leftButtonTools: 0, menuTools: 'anno' })
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.startAnnos()
+      }
+    } else {
+      const element = document.querySelector('#origin-canvas')
+      this.disableAllTools(element)
+      this.setState({ leftButtonTools: 0, menuTools: 'anno' })
+    }
   }
-
+  eraseAnno() {
+    if (this.followUpComponent) {
+      this.followUpComponent.eraseAnno()
+    }
+  }
   slide() {
-    const element = document.querySelector('#origin-canvas')
-    this.disableAllTools(element)
-    this.setState({ leftButtonTools: 1, menuTools: 'slide' })
-    const newCurrentIdx = this.state.currentIdx
     //切换切片
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.ScrollStack()
+      }
+    } else {
+      const element = document.querySelector('#origin-canvas')
+      this.disableAllTools(element)
+      this.setState({ leftButtonTools: 1, menuTools: 'slide' })
+    }
   }
 
   wwwcCustom() {
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.wwwcCustom()
+      }
+    }
     this.setState({ leftButtonTools: 2, menuTools: 'wwwc' })
     const element = document.querySelector('#origin-canvas')
     this.disableAllTools(element)
@@ -1271,9 +1195,15 @@ class CornerstoneElement extends Component {
   }
 
   bidirectionalMeasure() {
-    this.setState({ leftButtonTools: 3, menuTools: 'bidirect' })
-    const element = document.querySelector('#origin-canvas')
-    this.disableAllTools(element)
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.bidirectionalMeasure()
+      }
+    } else {
+      const element = document.querySelector('#origin-canvas')
+      this.setState({ leftButtonTools: 3, menuTools: 'bidirect' })
+      this.disableAllTools(element)
+    }
     // console.log('测量')
     // const element = document.querySelector('#origin-canvas')
     // this.disableAllTools(element)
@@ -1283,222 +1213,29 @@ class CornerstoneElement extends Component {
   }
 
   lengthMeasure() {
-    this.setState({ leftButtonTools: 4, menuTools: 'length' })
-    const element = document.querySelector('#origin-canvas')
-    this.disableAllTools(element)
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.lengthMeasure()
+      }
+    } else {
+      this.setState({ leftButtonTools: 4, menuTools: 'length' })
+      const element = document.querySelector('#origin-canvas')
+      this.disableAllTools(element)
+    }
   }
 
   featureAnalysis(idx, e) {
     console.log('特征分析')
     // const boxes = this.state.selectBoxes
-    var { boxes } = this.state
-    let HUSliderRange = [boxes[idx].nodule_hist.bins[0], boxes[idx].nodule_hist.bins[boxes[idx].nodule_hist.bins.length - 1]]
-    console.log('HUSliderRange', HUSliderRange)
-    var histogram_float = document.getElementsByClassName('histogram-float')
-    if (histogram_float[0] !== undefined) {
-      histogram_float[0].className = 'histogram-float-active'
-      var initX,
-        initY,
-        dragable = false,
-        element_float = document.getElementsByClassName('histogram-float-active')[0],
-        element_drag = document.getElementById('histogram-header'),
-        wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
-        wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
-      console.log('element_drag', element_drag)
-      element_drag.addEventListener(
-        'mousedown',
-        function (e) {
-          dragable = true
-          initX = e.clientX
-          initY = e.clientY
-        },
-        false
-      )
-      element_drag.addEventListener('mousemove', function (e) {
-        if (dragable === true) {
-          var nowX = e.clientX,
-            nowY = e.clientY,
-            disX = nowX - initX,
-            disY = nowY - initY
-          element_float.style.left = wrapLeft + disX + 'px'
-          element_float.style.top = wrapRight + disY + 'px'
-        }
-      })
-      element_drag.addEventListener(
-        'mouseup',
-        function (e) {
-          dragable = false
-          wrapLeft = parseInt(window.getComputedStyle(element_float)['left'])
-          wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
-        },
-        false
-      )
-
-      this.setState({ HUSliderRange: HUSliderRange }, () => {
-        this.plotHistogram(idx)
-      })
-    }
-
-    // console.log('histogram_float', histogram_float)
+    const boxes = this.state.boxes
     // console.log('boxes', boxes, e.target.value)
-    // if (boxes[idx] !== undefined) {
-    //   console.log('boxes', boxes[idx])
-    //   var hist = boxes[idx].nodule_hist
-    //   if (hist !== undefined) {
-    //     this.visualize(hist, idx)
-    //   }
-    // }
-  }
-
-  plotHistogram(idx) {
-    var { boxes, chartType, HUSliderRange } = this.state
-    var bins = boxes[idx].nodule_hist.bins
-    var ns = boxes[idx].nodule_hist.n
-    var max = bins[bins.length - 1]
-    var min = bins[0]
-    var abs = Math.ceil((max - min) / 150) * 150
-    let searchBetween = function (arr, arr_n, min, max) {
-      var flag = 0
-      for (let i = 0; i < arr.length; i++) {
-        if (arr[i] < max && arr[i] >= min) {
-          if (i === arr.length - 1) {
-            flag = flag + 0
-          } else {
-            flag = flag + arr_n[i]
-          }
-        } else if (arr[i] >= max) {
-          return flag
-        }
+    if (boxes[idx] !== undefined) {
+      console.log('boxes', boxes[idx])
+      var hist = boxes[idx].nodule_hist
+      if (hist !== undefined) {
+        this.visualize(hist, idx)
       }
-      return flag
     }
-    max = Math.ceil(max / 50) * 50
-    min = max - abs
-    let axis_data = []
-    let series_data = []
-    for (let i = 0; i <= abs / 150; i++) {
-      // console.log('abs', min + 150 * i)
-      let series = searchBetween(bins, ns, min + 150 * i, min + 150 * (i + 1))
-      series_data.push(series)
-      axis_data.push(min + 150 * i)
-    }
-
-    if (chartType === 'line') {
-      var chartDom = document.getElementById('chart-line-active')
-      if (echarts.getInstanceByDom(chartDom)) {
-        console.log('dispose')
-        echarts.dispose(chartDom)
-      }
-      var myChart = echarts.init(chartDom)
-      var option
-
-      option = {
-        visualMap: {
-          show: false,
-          type: 'continuous',
-          min: axis_data[0],
-          max: axis_data[axis_data.length - 1],
-          range: HUSliderRange,
-          inRange: {
-            color: ['rgba(89, 162, 230)'],
-          },
-          outOfRange: {
-            color: ['rgba(70, 230, 254)', 'rgba(68, 125, 241)'],
-          },
-        },
-        xAxis: {
-          type: 'category',
-          data: axis_data,
-          axisTick: {
-            alignWithLabel: true,
-          },
-        },
-        yAxis: {
-          type: 'value',
-        },
-        series: [
-          {
-            data: series_data,
-            type: 'line',
-            smooth: true,
-          },
-        ],
-      }
-
-      myChart.setOption(option)
-    } else {
-      var barDom = document.getElementById('chart-bar-active')
-
-      if (echarts.getInstanceByDom(barDom)) {
-        echarts.dispose(barDom)
-      }
-      var barChart = echarts.init(barDom)
-      var minValue = bins[0] - 50
-      var maxValue = bins[bins.length - 1] + 50
-      console.log(bins, bins[0] - 50, bins[bins.length - 1] + 50)
-      var histogram = []
-      var line = []
-      for (var i = 0; i < bins.length - 1; i++) {
-        var obj = {}
-        if (bins[i] >= HUSliderRange[0] && bins[i] < HUSliderRange[1]) {
-          // obj.value = [bins[i], bins[i + 1]]
-          // obj.count = ns[i]
-          // histogram.push(obj)
-          histogram.push(bins[i])
-          line.push(ns[i])
-        }
-      }
-      barChart.setOption({
-        // color: ['#00FFFF'],
-        tooltip: {
-          trigger: 'axis',
-          axisPointer: {
-            // 坐标轴指示器，坐标轴触发有效
-            type: 'line', // 默认为直线，可选为：'line' | 'shadow'
-          },
-        },
-        toolbox: {
-          feature: {
-            saveAsImage: {},
-          },
-        },
-        grid: {
-          bottom: '3%',
-          top: '10%',
-          containLabel: true,
-        },
-        xAxis: [
-          {
-            type: 'category',
-            scale: 'true',
-            data: histogram,
-            axisTick: {
-              alignWithLabel: true,
-            },
-            // axisLabel: {
-            //   color: 'rgb(191,192,195)',
-            // },
-          },
-        ],
-        yAxis: [
-          {
-            type: 'value',
-            minInterval: 1,
-          },
-        ],
-        series: [
-          {
-            name: 'count',
-            type: 'bar',
-            data: line,
-          },
-        ],
-      })
-    }
-  }
-
-  onChartTypeChange(type) {
-    this.setState({ chartType: type })
   }
 
   closeVisualContent() {
@@ -1544,30 +1281,27 @@ class CornerstoneElement extends Component {
   }
   show3D() {
     clearTimeout(flipTimer)
-    const centerPanel = document.getElementById('cor-container')
-    if (centerPanel) {
-      centerPanel.style.transform = 'rotateY(180deg)'
-    }
+    // cornerstone.disable(this.element)
+    this.setState({
+      renderLoading: true,
+    })
     flipTimer = setTimeout(() => {
-      cornerstone.disable(this.element)
       this.setState(
         {
+          renderLoading: false,
           show3DVisualization: true,
         },
         () => {
-          centerPanel.style.transform = 'rotateY(0deg)'
           this.resizeScreen()
         }
       )
-    }, 1000)
+    }, 500)
   }
-
   hide3D() {
     clearTimeout(flipTimer)
-    const centerPanel = document.getElementById('segment-container')
-    if (centerPanel) {
-      centerPanel.style.transform = 'rotateY(180deg)'
-    }
+    this.setState({
+      renderLoading: true,
+    })
     flipTimer = setTimeout(() => {
       this.setState({
         MPR: false,
@@ -1575,14 +1309,14 @@ class CornerstoneElement extends Component {
       this.changeMode(1)
       this.setState(
         {
+          renderLoading: false,
           show3DVisualization: false,
         },
         () => {
-          centerPanel.style.transform = 'rotateY(0deg)'
           this.resizeScreen()
         }
       )
-    }, 1000)
+    }, 500)
   }
   handleLogin() {
     this.setState({
@@ -1635,16 +1369,13 @@ class CornerstoneElement extends Component {
     }
   }
 
-  onHUValueChange(value) {
-    this.setState({ HUSliderRange: value })
-    console.log('onHUValueChange', value)
-  }
-
   render() {
     const {
+      realname,
+      username,
       showNodules,
       showInfo,
-      boxes,
+      activeIndex,
       modalOpenNew,
       modalOpenCur,
       listsActiveIndex,
@@ -1665,9 +1396,10 @@ class CornerstoneElement extends Component {
       previewVisible,
       histogramHeight,
       nodules,
-      nodulesChecked,
       nodulesAllChecked,
       nodulesOrder,
+      nodulesSelect,
+      nodulesAllSelected,
       reportImageActive,
       reportGuideActive,
       reportImageText,
@@ -1719,7 +1451,8 @@ class CornerstoneElement extends Component {
       maskImageData,
       maskLabelMap,
       lineActors,
-      HUSliderRange,
+
+      registering,
       menuButtonsWidth,
       menuScrollable,
       menuTotalPages,
@@ -1727,21 +1460,21 @@ class CornerstoneElement extends Component {
       menuTransform,
       show3DVisualization,
       studyListShowed,
-      chartType,
+      renderLoading,
+      showFollowUp,
     } = this.state
+    const { curCaseId, preCaseId, followUpActiveTool } = this.props
     let tableContent
-    let noduleContent
+    let noduleNumber = 0
     let lobeContent
     let lobeCheckNumber = 0
     let tubularContent
     let tubularCheckNumber = 0
     let visualContent
-    let histogramFloatWindow
     let previewContent
     let createDraftModal
     let submitButton
     let StartReviewButton
-    let calCount = 0
     let canvas
     let slideLabel
     let dicomTagPanel
@@ -1751,7 +1484,7 @@ class CornerstoneElement extends Component {
     // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
     // let inflammationTab = '炎症(有)'
     // let lymphnodeTab = '淋巴结(0)'
-    const options = [
+    const repretationOptions = [
       { key: '分叶', text: '分叶', value: '分叶' },
       { key: '毛刺', text: '毛刺', value: '毛刺' },
       { key: '钙化', text: '钙化', value: '钙化' },
@@ -1761,14 +1494,7 @@ class CornerstoneElement extends Component {
       { key: '空洞', text: '空洞', value: '空洞' },
       { key: '支气管充气', text: '支气管充气', value: '支气管充气' },
     ]
-
-    const locationOptions = [
-      { key: '分叶', text: '分叶', value: '分叶' },
-      { key: '分叶', text: '分叶', value: '分叶' },
-      { key: '分叶', text: '分叶', value: '分叶' },
-      { key: '分叶', text: '分叶', value: '分叶' },
-    ]
-    const welcome = '欢迎您，' + localStorage.realname
+    const welcome = '欢迎您，' + realname
 
     let sliderMarks = {}
     if (this.state.imageIds.length <= 100) {
@@ -1820,7 +1546,15 @@ class CornerstoneElement extends Component {
       !showInfo || dicomTag === null ? null : (
         <div>
           <div id="dicomTag">
-            <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+            <div
+              style={{
+                top: '5px',
+                // left: "-95px", // 5px
+                position: 'absolute',
+                color: 'white',
+              }}>
+              {dicomTag.string('x00100010')}
+            </div>
             <div style={{ position: 'absolute', color: 'white', top: '20px' }}>
               {dicomTag.string('x00101010')} {dicomTag.string('x00100040')}
             </div>
@@ -1830,7 +1564,15 @@ class CornerstoneElement extends Component {
               IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}
             </div>
             {slideLabel}
-            <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+            <div
+              style={{
+                top: '5px',
+                right: '5px', //5px
+                position: 'absolute',
+                color: 'white',
+              }}>
+              {dicomTag.string('x00080080')}
+            </div>
             <div
               style={{
                 position: 'absolute',
@@ -2010,13 +1752,15 @@ class CornerstoneElement extends Component {
       })
     }
     const loadingPanel = (
-      <div className="sk-chase">
-        <div className="sk-chase-dot"></div>
-        <div className="sk-chase-dot"></div>
-        <div className="sk-chase-dot"></div>
-        <div className="sk-chase-dot"></div>
-        <div className="sk-chase-dot"></div>
-        <div className="sk-chase-dot"></div>
+      <div id="loading-panel">
+        <div className="sk-chase">
+          <div className="sk-chase-dot"></div>
+          <div className="sk-chase-dot"></div>
+          <div className="sk-chase-dot"></div>
+          <div className="sk-chase-dot"></div>
+          <div className="sk-chase-dot"></div>
+          <div className="sk-chase-dot"></div>
+        </div>
       </div>
     )
     const threeDPanel = (
@@ -2217,388 +1961,281 @@ class CornerstoneElement extends Component {
       panel = CPRPanel
     }
 
-    function nodulesToTabelContent(inside, idx, that) {
-      let representArray = []
-      let dropdownText = ''
-      let malignancyContnt = ''
-      let probContnt = ''
-      let locationDropdown = ''
-      const delId = 'del-' + inside.nodule_no
-      const malId = 'malSel-' + inside.nodule_no
-      const texId = 'texSel-' + inside.nodule_no
-      const placeId = 'place-' + inside.nodule_no
-      const visualId = 'visual-' + idx
-      let ll = 0
-      let sl = 0
-      if (inside.measure !== undefined && inside.measure !== null) {
-        ll = Math.sqrt(Math.pow(inside.measure.x1 - inside.measure.x2, 2) + Math.pow(inside.measure.y1 - inside.measure.y2, 2))
-        sl = Math.sqrt(Math.pow(inside.measure.x3 - inside.measure.x4, 2) + Math.pow(inside.measure.y3 - inside.measure.y4, 2))
-        if (isNaN(ll)) {
-          ll = 0
-        }
-        if (isNaN(sl)) {
-          sl = 0
-        }
-        if (
-          inside.measure.x1 === 0 &&
-          inside.measure.y1 === 0 &&
-          inside.measure.x2 === 0 &&
-          inside.measure.y2 === 0 &&
-          inside.measure.x3 === 0 &&
-          inside.measure.y3 === 0 &&
-          inside.measure.x4 === 0 &&
-          inside.measure.y4 === 0
-        ) {
-          ll = 0
-          sl = 0
-        }
-      }
-      let diameter = inside.diameter
-
-      let showMeasure = measureStateList[idx]
-      let showMask = maskStateList[idx]
-      if (inside.lobulation === 2) {
-        representArray.push('分叶')
-      }
-      if (inside.spiculation === 2) {
-        representArray.push('毛刺')
-      }
-      if (inside.calcification === 2) {
-        representArray.push('钙化')
-      }
-      if (inside.calcification === 2) {
-        calCount += 1
-      }
-      if (inside.pin === 2) {
-        representArray.push('胸膜凹陷')
-      }
-      if (inside.cav === 2) {
-        representArray.push('空洞')
-      }
-      if (inside.vss === 2) {
-        representArray.push('血管集束')
-      }
-      if (inside.bea === 2) {
-        representArray.push('空泡')
-      }
-      if (inside.bro === 2) {
-        representArray.push('支气管充气')
-      }
-      if (inside.segment !== undefined && inside.segment !== null && inside.segment !== 'None' && inside.segment !== '') {
-        dropdownText = noduleSegments[inside.segment]
-      } else {
-        if (inside.place !== undefined && inside.place !== null && inside.place !== 'None' && inside.place !== '') {
-          dropdownText = places[inside.place]
-        } else {
-          dropdownText = '选择位置'
-        }
-      }
-
-      locationDropdown = (
-        <Dropdown
-          id={placeId}
-          style={selectStyle}
-          text={dropdownText}
-          icon={null}
-          disabled={listsActiveIndex !== idx}
-          //onClick={that.handleDropdownClick.bind(that, inside.slice_idx + 1, idx)}
-          //open={that.state.dropDownOpen === idx}
-        >
-          <Dropdown.Menu>
-            <Dropdown.Header>肺叶</Dropdown.Header>
-            <Dropdown.Item>
-              <Dropdown text="右肺中叶">
-                <Dropdown.Menu>
-                  <Dropdown.Header>肺段</Dropdown.Header>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺中叶'}>
-                    外侧段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺中叶'}>
-                    内侧段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺中叶'}>
-                    无法定位
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </Dropdown.Item>
-            <Dropdown.Item>
-              <Dropdown text="右肺上叶">
-                <Dropdown.Menu>
-                  <Dropdown.Header>肺段</Dropdown.Header>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺上叶'}>
-                    尖段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺上叶'}>
-                    后段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺上叶'}>
-                    前段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺中叶'}>
-                    无法定位
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </Dropdown.Item>
-            <Dropdown.Item>
-              <Dropdown text="右肺下叶">
-                <Dropdown.Menu>
-                  <Dropdown.Header>肺段</Dropdown.Header>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺下叶'}>
-                    背段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺下叶'}>
-                    内基底段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺下叶'}>
-                    前基底段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺下叶'}>
-                    外基底段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺下叶'}>
-                    后基底段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺中叶'}>
-                    无法定位
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </Dropdown.Item>
-            <Dropdown.Item>
-              <Dropdown text="左肺上叶">
-                <Dropdown.Menu>
-                  <Dropdown.Header>肺段</Dropdown.Header>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-左肺上叶'}>
-                    尖后段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-左肺上叶'}>
-                    前段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-左肺上叶'}>
-                    上舌段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-左肺上叶'}>
-                    下舌段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺中叶'}>
-                    无法定位
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </Dropdown.Item>
-            <Dropdown.Item>
-              <Dropdown text="左肺下叶">
-                <Dropdown.Menu>
-                  <Dropdown.Header>肺段</Dropdown.Header>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-左肺下叶'}>
-                    背段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-左肺下叶'}>
-                    内前基底段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-左肺下叶'}>
-                    外基底段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-左肺下叶'}>
-                    后基底段
-                  </Dropdown.Item>
-                  <Dropdown.Item onClick={that.onSelectPlace} id={placeId + '-右肺中叶'}>
-                    无法定位
-                  </Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown>
-      )
-
-      let probContntStyle = {}
-      let malignancyContntStyle = {}
-      if (inside.malignancy === -1) {
-        malignancyContntStyle = selectStyle
-      } else if (inside.malignancy === 1) {
-        malignancyContntStyle = lowRiskStyle
-        probContntStyle.color = 'green'
-      } else if (inside.malignancy === 2) {
-        malignancyContntStyle = middleRiskStyle
-        probContntStyle.color = '#fcaf17'
-      } else if (inside.malignancy === 3) {
-        malignancyContntStyle = highRiskStyle
-        probContntStyle.color = '#CC3300'
-      }
-      // if(that.state.readonly){
-      return (
-        <div key={idx} className={'highlightTbl' + (listsActiveIndex === idx ? ' highlightTbl-active' : '')}>
-          <Accordion.Title onClick={that.handleListClick.bind(that, inside.slice_idx + 1, idx)} active={listsActiveIndex === idx} index={idx}>
-            <div className="nodule-accordion-item-title">
-              <div className="nodule-accordion-item-title-start">
-                <div className="nodule-accordion-item-title-index">
-                  <div
-                    onMouseEnter={that.highlightNodule}
-                    onMouseLeave={that.dehighlightNodule}
-                    style={inside.modified === undefined ? { fontSize: 'large' } : { fontSize: 'large', color: '#dbce12' }}>
-                    {inside.visibleIdx + 1}
-                  </div>
-                </div>
-
-                <Checkbox
-                  className="nodule-accordion-item-title-checkbox"
-                  checked={nodulesChecked[inside.visibleIdx]}
-                  onChange={that.onHandleNoduleCheckChange.bind(that, inside.visibleIdx)}
-                  onClick={that.onHandleNoduleCheckClick.bind(that)}>
-                  {parseInt(inside.slice_idx) + 1}
-                </Checkbox>
-                <div className="nodule-accordion-item-title-type">
-                  <Dropdown
-                    id={texId}
-                    style={selectStyle}
-                    text={noduleTextureName[inside.texture]}
-                    icon={null}
-                    //onClick={that.handleDropdownClick.bind(that, inside.slice_idx + 1, idx)}
-                    //open={that.state.dropDownOpen === idx}
-                  >
-                    <Dropdown.Menu>
-                      <Dropdown.Item text="磨玻璃" value={1} index={idx} onClick={that.onSelectTex.bind(that)} />
-                      <Dropdown.Item text="实性" value={2} index={idx} onClick={that.onSelectTex.bind(that)} />
-                      <Dropdown.Item text="半实性" value={3} index={idx} onClick={that.onSelectTex.bind(that)} />
-                    </Dropdown.Menu>
-                  </Dropdown>
-                  {/* <select id={texId} style={selectStyle} value={inside.texture} onChange={that.onSelectTex} onClick={that.onSelectTexClick.bind(this)}>
-                    <option value="-1" disabled="disabled">
-                      选择性质
-                    </option>
-                    <option value="1">磨玻璃</option>
-                    <option value="2">实性</option>
-                    <option value="3">半实性</option>
-                  </select> */}
-                </div>
-              </div>
-
-              {ll === 0 && sl === 0 ? (
-                <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + 'cm'}</div>
-              ) : (
-                <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + 'cm'}</div>
-              )}
-
-              <div className="nodule-accordion-item-title-end">
-                <div className="nodule-accordion-item-title-location">{locationDropdown}</div>
-
-                <div className="nodule-accordion-item-title-mal">
-                  <Dropdown
-                    id={malId}
-                    style={malignancyContntStyle}
-                    text={noduleMalignancyName[inside.malignancy]}
-                    icon={null}
-                    //onClick={that.handleDropdownClick.bind(that, inside.slice_idx + 1, idx)}
-                    //open={that.state.dropDownOpen === idx}
-                  >
-                    <Dropdown.Menu>
-                      <Dropdown.Item text="低危" value={1} index={idx} onClick={that.onSelectMal.bind(that)} />
-                      <Dropdown.Item text="中危" value={2} index={idx} onClick={that.onSelectMal.bind(that)} />
-                      <Dropdown.Item text="高危" value={3} index={idx} onClick={that.onSelectMal.bind(that)} />
-                    </Dropdown.Menu>
-                  </Dropdown>
-                  {/* <select
-                    id={}
-                    style={malignancyContntStyle}
-                    value={inside.malignancy}
-                    onChange={that.onSelectMal}
-                    onClick={that.onSelectMalClick.bind(this)}
-                  >
-                    <option value="-1" disabled="disabled">
-                      选择危险度
-                    </option>
-                    <option value="1">低危</option>
-                    <option value="2">中危</option>
-                    <option value="3">高危</option>
-                  </select> */}
-                </div>
-              </div>
-              {/* <div style={probContntStyle}>{Math.floor(inside.malProb * 1000) / 10}%</div> */}
-
-              {/* <div className="nodule-accordion-item-title-delete">
-                </div> */}
-            </div>
-          </Accordion.Title>
-          <Accordion.Content active={listsActiveIndex === idx}>
-            <div className="nodule-accordion-item-content">
-              <div className="nodule-accordion-item-content-info">
-                {/* <Grid.Column widescreen={6} computer={6}>
-                  {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
-                </Grid.Column> */}
-                <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}</div>
-                <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
-              </div>
-              {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
-                                            <select id={texId} style={selectStyle} defaultValue="" disabled>
-                                            <option value="" disabled="disabled">选择亚型</option>
-                                            </select>
-                                        </Grid.Column> */}
-
-              <div className="nodule-accordion-item-content-char">
-                <div className="nodule-accordion-item-content-char-title">表征:</div>
-                <div className="nodule-accordion-item-content-char-content">
-                  <Dropdown multiple options={options} id="dropdown" icon="add circle" name={'dropdown' + idx} value={representArray} onChange={that.representChange.bind(that, idx)} />
-                </div>
-              </div>
-
-              <div className="nodule-accordion-item-content-button">
-                <div>
-                  <Button size="mini" circular inverted icon="chart bar" title="特征分析" value={idx} onClick={that.featureAnalysis.bind(that, idx)}></Button>
-                </div>
-                <div>
-                  <Button.Group size="mini" className="measureBtnGroup" style={show3DVisualization ? { display: 'none' } : {}}>
-                    <Button basic icon title="擦除测量" active color="green" onClick={that.eraseMeasures.bind(that, idx)}>
-                      <Icon inverted color="green" name="eraser"></Icon>
-                    </Button>
-                    {showMeasure ? (
-                      <Button basic icon title="隐藏测量" active color="blue" onClick={that.toHideMeasures.bind(that, idx)}>
-                        <Icon inverted color="blue" name="eye slash"></Icon>
-                      </Button>
-                    ) : (
-                      <Button basic icon title="显示测量" active color="blue" onClick={that.toHideMeasures.bind(that, idx)}>
-                        <Icon inverted color="blue" name="eye"></Icon>
-                      </Button>
-                    )}
-                    <Popup
-                      on="click"
-                      trigger={
-                        <Button basic icon title="删除结节" active color="grey" style={show3DVisualization ? { display: 'none' } : {}}>
-                          <Icon inverted color="grey" name="trash alternate"></Icon>
-                        </Button>
-                      }
-                      onOpen={that.setDelNodule.bind(that, idx, true)}
-                      onClose={that.setDelNodule.bind(that, idx, false)}
-                      open={inside.delOpen}>
-                      <div className="general-confirm-block">
-                        <div className="general-confirm-info">是否删除该结节？</div>
-                        <div className="general-confirm-operation">
-                          <Button inverted size="mini" onClick={that.setDelNodule.bind(that, idx, false)}>
-                            取消
-                          </Button>
-                          <Button inverted color="blue" size="mini" onClick={that.onConfirmDelNodule.bind(that, idx)}>
-                            确认
-                          </Button>
-                        </div>
-                      </div>
-                    </Popup>
-                  </Button.Group>
-                </div>
-              </div>
-            </div>
-
-            {/* <div id={visualId} className='histogram'></div> */}
-          </Accordion.Content>
-        </div>
-      )
-      // }
-    }
     if (!this.state.immersive) {
       tableContent = this.state.boxes // .selectBoxes
-        .map((inside, idx) => nodulesToTabelContent(inside, idx, this))
-      noduleContent = this.state.boxes.map((inside, idx) => nodulesToTabelContent(inside, idx, this))
+        .map((inside, idx) => {
+          if (inside.visible) {
+            noduleNumber += 1
+          }
+          let representArray = []
+          let locationValues = ''
+          const visualId = 'visual-' + idx
+          let ll = 0
+          let sl = 0
+          if (inside.measure !== undefined && inside.measure !== null) {
+            ll = Math.sqrt(Math.pow(inside.measure.x1 - inside.measure.x2, 2) + Math.pow(inside.measure.y1 - inside.measure.y2, 2))
+            sl = Math.sqrt(Math.pow(inside.measure.x3 - inside.measure.x4, 2) + Math.pow(inside.measure.y3 - inside.measure.y4, 2))
+            if (isNaN(ll)) {
+              ll = 0
+            }
+            if (isNaN(sl)) {
+              sl = 0
+            }
+            if (
+              inside.measure.x1 === 0 &&
+              inside.measure.y1 === 0 &&
+              inside.measure.x2 === 0 &&
+              inside.measure.y2 === 0 &&
+              inside.measure.x3 === 0 &&
+              inside.measure.y3 === 0 &&
+              inside.measure.x4 === 0 &&
+              inside.measure.y4 === 0
+            ) {
+              ll = 0
+              sl = 0
+            }
+          }
+          let diameter = inside.diameter
+
+          let showMeasure = measureStateList[idx]
+          let showMask = maskStateList[idx]
+          if (inside.lobulation === 2) {
+            representArray.push('分叶')
+          }
+          if (inside.spiculation === 2) {
+            representArray.push('毛刺')
+          }
+          if (inside.calcification === 2) {
+            representArray.push('钙化')
+          }
+          if (inside.pin === 2) {
+            representArray.push('胸膜凹陷')
+          }
+          if (inside.cav === 2) {
+            representArray.push('空洞')
+          }
+          if (inside.vss === 2) {
+            representArray.push('血管集束')
+          }
+          if (inside.bea === 2) {
+            representArray.push('空泡')
+          }
+          if (inside.bro === 2) {
+            representArray.push('支气管充气')
+          }
+          if (inside.segment && inside.segment !== 'None') {
+            locationValues = noduleSegments[inside.segment].split('-')
+          } else {
+            if (inside.place) {
+              locationValues = [places[inside.place]]
+            } else {
+              locationValues = '选择位置'
+            }
+          }
+
+          // if(this.state.readonly){
+          if (inside.visible) {
+            return (
+              <div key={idx} className={'highlightTbl' + (listsActiveIndex === idx ? ' highlightTbl-active' : '')}>
+                <Accordion.Title onClick={this.handleListClick.bind(this, inside.slice_idx + 1, idx)} active={listsActiveIndex === idx} index={idx}>
+                  <div className="nodule-accordion-item-title">
+                    <div className="nodule-accordion-item-title-start">
+                      <div className="nodule-accordion-item-title-index">
+                        <div
+                          // onMouseEnter={this.highlightNodule}
+                          // onMouseLeave={this.dehighlightNodule}
+                          style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>
+                          {inside.visibleIdx + 1}
+                        </div>
+                      </div>
+
+                      <Checkbox
+                        className="nodule-accordion-item-title-checkbox"
+                        checked={inside.checked}
+                        onChange={this.onHandleNoduleCheckChange.bind(this, idx)}
+                        onClick={this.onHandleNoduleCheckClick.bind(this)}>
+                        {parseInt(inside.slice_idx) + 1}
+                      </Checkbox>
+                      <div className="nodule-accordion-item-title-type">
+                        <Select
+                          className="nodule-accordion-item-title-select"
+                          dropdownMatchSelectWidth={true}
+                          defaultValue={inside.texture}
+                          value={inside.texture}
+                          bordered={false}
+                          showArrow={false}
+                          dropdownClassName={'corner-select-dropdown'}
+                          onChange={this.onSelectTex.bind(this, idx)}
+                          onClick={this.onSelectTexClick.bind(this)}>
+                          <Option className="nodule-accordion-item-title-select-option" value={1}>
+                            磨玻璃
+                          </Option>
+                          <Option className="nodule-accordion-item-title-select-option" value={2}>
+                            实性
+                          </Option>
+                          <Option className="nodule-accordion-item-title-select-option" value={3}>
+                            半实性
+                          </Option>
+                        </Select>
+                      </div>
+                    </div>
+
+                    {ll === 0 && sl === 0 ? (
+                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + 'cm'}</div>
+                    ) : (
+                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + 'cm'}</div>
+                    )}
+
+                    <div className="nodule-accordion-item-title-end">
+                      <div className="nodule-accordion-item-title-location">
+                        <Cascader
+                          className="nodule-accordion-item-title-cascader"
+                          bordered={false}
+                          suffixIcon={null}
+                          allowClear={false}
+                          value={locationValues}
+                          options={this.config.segment}
+                          dropdownRender={(menus) => {
+                            return <div onClick={this.onSelectPlaceClick.bind(this)}>{menus}</div>
+                          }}
+                          onChange={this.onSelectPlace.bind(this, idx)}
+                          onClick={this.onSelectPlaceClick.bind(this)}
+                        />
+                      </div>
+
+                      <div className="nodule-accordion-item-title-mal">
+                        <Select
+                          className={'nodule-accordion-item-title-select ' + ` nodule-accordion-item-title-select-${inside.malignancy}`}
+                          defaultValue={inside.malignancy}
+                          value={inside.malignancy}
+                          bordered={false}
+                          showArrow={false}
+                          dropdownClassName={'corner-select-dropdown'}
+                          onChange={this.onSelectMal.bind(this, idx)}
+                          onClick={this.onSelectMalClick.bind(this)}>
+                          <Option className={'nodule-accordion-item-title-select-option'} value={1}>
+                            低危
+                          </Option>
+                          <Option className={'nodule-accordion-item-title-select-option'} value={2}>
+                            中危
+                          </Option>
+                          <Option className={'nodule-accordion-item-title-select-option'} value={3}>
+                            高危
+                          </Option>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </Accordion.Title>
+                <Accordion.Content active={listsActiveIndex === idx}>
+                  <div className="nodule-accordion-item-content">
+                    <div className="nodule-accordion-item-content-info">
+                      {/* <Grid.Column widescreen={6} computer={6}>
+                {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
+              </Grid.Column> */}
+                      <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}</div>
+                      <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
+                    </div>
+                    {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
+                                          <select id={texId} style={selectStyle} defaultValue="" disabled>
+                                          <option value="" disabled="disabled">选择亚型</option>
+                                          </select>
+                                      </Grid.Column> */}
+
+                    <div className="nodule-accordion-item-content-char">
+                      <div className="nodule-accordion-item-content-char-title">表征:</div>
+                      <div className="nodule-accordion-item-content-char-content">
+                        <Select
+                          className={'nodule-accordion-item-content-select'}
+                          mode="multiple"
+                          defaultValue={inside.malignancy}
+                          value={representArray}
+                          bordered={false}
+                          showArrow={false}
+                          dropdownClassName={'corner-select-dropdown'}
+                          onChange={this.representChange.bind(this, idx)}>
+                          <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
+                            分叶
+                          </Option>
+                          <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
+                            毛刺
+                          </Option>
+                          <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
+                            钙化
+                          </Option>
+                          <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
+                            胸膜凹陷
+                          </Option>
+                          <Option className={'nodule-accordion-item-content-select-option'} value={'血管集束'}>
+                            血管集束
+                          </Option>
+                          <Option className={'nodule-accordion-item-content-select-option'} value={'空泡'}>
+                            空泡
+                          </Option>
+                          <Option className={'nodule-accordion-item-content-select-option'} value={'空洞'}>
+                            空洞
+                          </Option>
+                          <Option className={'nodule-accordion-item-content-select-option'} value={'支气管充气'}>
+                            支气管充气
+                          </Option>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="nodule-accordion-item-content-button">
+                      <div>
+                        <Button size="mini" circular inverted icon="chart bar" title="特征分析" value={idx} onClick={this.featureAnalysis.bind(this, idx)}></Button>
+                      </div>
+                      <div>
+                        <Button.Group size="mini" className="measureBtnGroup" style={show3DVisualization ? { display: 'none' } : {}}>
+                          <Button basic icon title="擦除测量" active color="green" onClick={this.eraseMeasures.bind(this, idx)}>
+                            <Icon inverted color="green" name="eraser"></Icon>
+                          </Button>
+                          {showMeasure ? (
+                            <Button basic icon title="隐藏测量" active color="blue" onClick={this.toHideMeasures.bind(this, idx)}>
+                              <Icon inverted color="blue" name="eye slash"></Icon>
+                            </Button>
+                          ) : (
+                            <Button basic icon title="显示测量" active color="blue" onClick={this.toHideMeasures.bind(this, idx)}>
+                              <Icon inverted color="blue" name="eye"></Icon>
+                            </Button>
+                          )}
+                          <Popup
+                            on="click"
+                            trigger={
+                              <Button basic icon title="删除结节" active color="grey" style={show3DVisualization ? { display: 'none' } : {}}>
+                                <Icon inverted color="grey" name="trash alternate"></Icon>
+                              </Button>
+                            }
+                            onOpen={this.setDelNodule.bind(this, idx, true)}
+                            onClose={this.setDelNodule.bind(this, idx, false)}
+                            open={inside.delOpen}>
+                            <div className="general-confirm-block">
+                              <div className="general-confirm-info">是否删除该结节？</div>
+                              <div className="general-confirm-operation">
+                                <Button inverted size="mini" onClick={this.setDelNodule.bind(this, idx, false)}>
+                                  取消
+                                </Button>
+                                <Button inverted size="mini" onClick={this.onConfirmDelNodule.bind(this, idx)}>
+                                  确认
+                                </Button>
+                              </div>
+                            </div>
+                          </Popup>
+                        </Button.Group>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* <div id={visualId} className='histogram'></div> */}
+                </Accordion.Content>
+              </div>
+            )
+          } else {
+            return null
+          }
+          // }
+        })
 
       const noduleOrderOption = [
         {
@@ -2642,6 +2279,22 @@ class CornerstoneElement extends Component {
                 />
               </span>
             ) : null}
+          </div>
+        )
+      })
+      const noduleSelectContent = nodulesSelect.map((item, idx) => {
+        const checked = item.checked
+        const visibleOptions = item.options.map((opItem, opIdx) => {
+          return (
+            <div key={opIdx} className="nodule-filter-option-select-content-item">
+              <Checkbox className="nodule-filter-option-select-content-item-check" checked={checked[opIdx]} onChange={this.onHandleSelectNoduleCheck.bind(this, idx, opIdx)}></Checkbox>
+              {opItem}
+            </div>
+          )
+        })
+        return (
+          <div key={idx} className="nodule-filter-option-select-content-list">
+            {visibleOptions}
           </div>
         )
       })
@@ -2803,204 +2456,6 @@ class CornerstoneElement extends Component {
           </div>
         )
       })
-      // console.log('boxes[listsActiveIndex]', listsActiveIndex)
-      var range1 = 0,
-        range1_volume = 0,
-        range2 = 0,
-        range2_volume = 0,
-        range3 = 0,
-        range3_volume = 0,
-        overall_volume = 0,
-        quality1 = 0,
-        quality1_percent = 0,
-        quality2 = 0,
-        quality2_percent = 0,
-        quality3 = 0,
-        quality3_percent = 0,
-        overall_quality = 0
-
-      var CT_max = 0,
-        CT_min = 0,
-        CT_mean = 0,
-        CT_std = 0,
-        slice_idx = 0,
-        apsidal_mean = 0
-      var marks
-      let searchLE = function (arr, x) {
-        var flag = 0
-        for (let i = 0; i < arr.length; i++) {
-          if (arr[i] < x) {
-            flag = flag + 1
-          } else {
-            break
-          }
-        }
-        return flag
-      }
-      let calculateAvgCT = function (arr, min, max) {
-        var flag = 0
-        var overall_CT = 0
-        for (let i = 0; i < arr.length; i++) {
-          if (arr[i] >= min && arr[i] < max) {
-            flag = flag + 1
-            overall_CT = overall_CT + arr[i]
-          } else if (arr[i] >= max) {
-            break
-          }
-        }
-        if (flag !== 0) {
-          return Number(overall_CT / flag)
-        } else {
-          return Number(-1000)
-        }
-      }
-      let overall_CT = (arr) => {
-        let CT = 0
-        for (let i = 0; i < arr.length; i++) {
-          CT = CT + arr[i]
-        }
-        return Number((CT / arr.length).toFixed(0))
-      }
-      if (listsActiveIndex === -1) {
-        var minHU = 0
-        var maxHU = 100
-      } else {
-        // console.log('.bins', boxes[listsActiveIndex].nodule_hist.bins[0])
-        var nodule_hist = boxes[listsActiveIndex].nodule_hist.bins
-        if (nodule_hist[nodule_hist.length - 1] > 0) {
-          var maxHU = Math.ceil(nodule_hist[nodule_hist.length - 1] / 50) * 50
-        } else {
-          var maxHU = Math.floor(nodule_hist[nodule_hist.length - 1] / 50) * 50
-        }
-        if (nodule_hist[0] > 0) {
-          var minHU = Math.floor(nodule_hist[0] / 50) * 50
-        } else {
-          var minHU = Math.ceil(nodule_hist[0] / 50) * 50
-        }
-        overall_volume = (boxes[listsActiveIndex].volume * Math.pow(10, 3)).toFixed(2)
-        range1 = (searchLE(nodule_hist, HUSliderRange[0]) / nodule_hist.length).toFixed(3)
-        range1_volume = (range1 * overall_volume).toFixed(2)
-        range2 = ((searchLE(nodule_hist, HUSliderRange[1]) - searchLE(nodule_hist, HUSliderRange[0])) / nodule_hist.length).toFixed(3)
-        range2_volume = (range2 * overall_volume).toFixed(2)
-        range3 = (1 - searchLE(nodule_hist, HUSliderRange[1]) / nodule_hist.length).toFixed(3)
-        range3_volume = (range3 * overall_volume).toFixed(2)
-        // 质量
-        overall_quality = (((overall_CT(nodule_hist) + 1000) * overall_volume) / 103).toFixed(1)
-        quality1 = (((calculateAvgCT(nodule_hist, nodule_hist[0], HUSliderRange[0]) + 1000) * range1_volume) / 103).toFixed(1)
-        quality1_percent = ((((calculateAvgCT(nodule_hist, nodule_hist[0], HUSliderRange[0]) + 1000) * range1) / (overall_CT(nodule_hist) + 1000)) * 100).toFixed(1)
-        quality2 = (((calculateAvgCT(nodule_hist, HUSliderRange[0], HUSliderRange[1]) + 1000) * range2_volume) / 103).toFixed(1)
-        quality2_percent = ((((calculateAvgCT(nodule_hist, HUSliderRange[0], HUSliderRange[1]) + 1000) * range2) / (overall_CT(nodule_hist) + 1000)) * 100).toFixed(1)
-        quality3 = (((calculateAvgCT(nodule_hist, HUSliderRange[1], nodule_hist[nodule_hist.length - 1]) + 1000) * range3_volume) / 103).toFixed(1)
-        quality3_percent = ((((calculateAvgCT(nodule_hist, HUSliderRange[1], nodule_hist[nodule_hist.length - 1]) + 1000) * range3) / (overall_CT(nodule_hist) + 1000)) * 100).toFixed(1)
-        /* marks */
-        let slider_range1 = HUSliderRange[0]
-        let slider_range2 = HUSliderRange[1]
-        marks = {}
-        /**结节特征 */
-        CT_max = boxes[listsActiveIndex].huMax
-        CT_min = boxes[listsActiveIndex].huMin
-        CT_mean = boxes[listsActiveIndex].huMean
-        slice_idx = boxes[listsActiveIndex].slice_idx + 1
-        if (boxes[listsActiveIndex].measure !== null && boxes[listsActiveIndex].measure !== undefined) {
-          let measureCoord = boxes[listsActiveIndex].measure
-          let ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2))
-          let sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2))
-          apsidal_mean = ((ll + sl) / 2).toFixed(2)
-        }
-      }
-
-      histogramFloatWindow = (
-        <div className="histogram-float">
-          <div id="histogram-header">
-            <div id="title-1">
-              <p>病灶特征分析</p>
-            </div>
-            <div id="title-2">
-              <p>结节{listsActiveIndex + 1}</p>
-            </div>
-            <div id="icon">
-              <Icon
-                size="mini"
-                name="close"
-                onClick={() => {
-                  var histogram_float_active_header = document.getElementById('histogram-header')
-                  if (histogram_float_active_header !== undefined) {
-                    histogram_float_active_header.removeEventListener('mousedown', () => {})
-                    histogram_float_active_header.removeEventListener('mousemove', () => {})
-                    histogram_float_active_header.removeEventListener('mouseup', () => {})
-                    document.getElementsByClassName('histogram-float-active')[0].className = 'histogram-float'
-                  }
-                }}></Icon>
-            </div>
-          </div>
-          <div className="content">
-            <Button.Group id="chart-type">
-              <Button onClick={this.onChartTypeChange.bind(this, 'line')} id="chart-line-id">
-                折线图
-              </Button>
-              <Button onClick={this.onChartTypeChange.bind(this, 'bar')} id="chart-bar-id">
-                柱状图
-              </Button>
-            </Button.Group>
-            {chartType === 'line' ? <div id="chart-line-active"></div> : <div id="chart-line"></div>}
-            {chartType === 'bar' ? <div id="chart-bar-active"></div> : <div id="chart-bar"></div>}
-            <div id="range-slider">
-              <Slider range marks={marks} onChange={this.onHUValueChange.bind(this)} value={HUSliderRange} step={50} max={maxHU} min={minHU} />
-            </div>
-
-            <table id="analysis-table">
-              <tr>
-                <td className="title">分析项</td>
-                <td className="range1">{'<' + HUSliderRange[0] + 'HU'}</td>
-                <td className="range2">{HUSliderRange[0] + '~' + HUSliderRange[1] + 'HU'}</td>
-                <td className="range3">{'≥' + HUSliderRange[1] + 'HU'}</td>
-                <td className="title">总体</td>
-              </tr>
-              <tr>
-                <td className="title">体积mm³(占比)</td>
-                <td className="range1">{range1_volume + '(' + (range1 * 100).toFixed(2) + '%)'}</td>
-                <td className="range2">{range2_volume + '(' + (range2 * 100).toFixed(2) + '%)'}</td>
-                <td className="range3">{range3_volume + '(' + (range3 * 100).toFixed(2) + '%)'}</td>
-                <td className="title">{overall_volume}</td>
-              </tr>
-              <tr>
-                <td className="title">质量mg(占比)</td>
-                <td className="range1">{quality1 + '(' + quality1_percent + '%)'}</td>
-                <td className="range2">{quality2 + '(' + quality2_percent + '%)'}</td>
-                <td className="range3">{quality3 + '(' + quality3_percent + '%)'}</td>
-                <td className="title">{overall_quality}</td>
-              </tr>
-            </table>
-            <table id="feature-table">
-              <tr>
-                <td>{'CT最大值：' + CT_max.toFixed(1) + 'HU'}</td>
-                <td>{'最大层位置：' + 'IM ' + slice_idx}</td>
-                <td>{'峰度：'}</td>
-              </tr>
-              <tr>
-                <td>{'CT最小值：' + CT_min.toFixed(1) + 'HU'}</td>
-                <td>{'最大面面积：'}</td>
-                <td>{'偏度：'}</td>
-              </tr>
-              <tr>
-                <td>{'CT平均值：' + CT_mean.toFixed(1) + 'HU'}</td>
-                <td>{'表面积：'}</td>
-                <td>{'能量：'}</td>
-              </tr>{' '}
-              <tr>
-                <td>{'CT值方差：'}</td>
-                <td>{'3D长径：'}</td>
-                <td>{'紧凑度：'}</td>
-              </tr>{' '}
-              <tr>
-                <td>{'球型度：'}</td>
-                <td>{'长短径平均值：' + apsidal_mean + 'mm'}</td>
-                <td>{'熵：'}</td>
-              </tr>
-            </table>
-          </div>
-        </div>
-      )
       if (dateSeries && dateSeries.length) {
         previewContent = dateSeries.map((item, index) => {
           const vSeries = item.map((serie, serieIndex) => {
@@ -3042,13 +2497,23 @@ class CornerstoneElement extends Component {
             let keyId = 'key-' + index + '-' + serieIndex
             // console.log('render',previewId)
             return (
-              <div className={'preview-item' + (this.state.caseId === serie.caseId ? ' preview-item-selected' : '')} onClick={(e) => this.handleClickScreen(e, serie.href, validStatus)} key={keyId}>
-                <div className="preview-item-canvas" id={previewId}></div>
-                <div className="preview-item-info">
-                  <div className="preview-item-info-icon">{statusIcon}</div>
-                  <div className="preview-item-info-desc">{serie.Description}</div>
-                </div>
-              </div>
+              <PreviewElement
+                key={keyId}
+                caseId={serie.caseId}
+                date={serie.date}
+                image={serie.image}
+                statusIcon={statusIcon}
+                description={serie.Description}
+                isReady={true}
+                isSelected={this.state.caseId === serie.caseId}
+              />
+              // <div className={'preview-item' + (this.state.caseId === serie.caseId ? ' preview-item-selected' : '')} onClick={(e) => this.handleClickScreen(e, serie.href, validStatus)} key={keyId}>
+              //   <div className="preview-item-canvas" id={previewId}></div>
+              //   <div className="preview-item-info">
+              //     <div className="preview-item-info-icon">{statusIcon}</div>
+              //     <div className="preview-item-info-desc">{serie.Description}</div>
+              //   </div>
+              // </div>
             )
           })
           return (
@@ -3064,10 +2529,346 @@ class CornerstoneElement extends Component {
           )
         })
       }
+      const twodMenus = (
+        <>
+          {showNodules ? (
+            <div onClick={this.toHidebox.bind(this)} className="func-btn" id="hideNodule" title="隐藏结节">
+              <Icon className="func-btn-icon" id="cache-button" name="eye slash" size="large"></Icon>
+              <div className="func-btn-desc">隐藏结节</div>
+            </div>
+          ) : (
+            <div onClick={this.toHidebox.bind(this)} className="func-btn" id="showNodule" title="显示结节">
+              <Icon className="func-btn-icon" id="cache-button" name="eye" size="large"></Icon>
+              <div className="func-btn-desc">显示结节</div>
+            </div>
+          )}
+          {showInfo ? (
+            <div onClick={this.toHideInfo.bind(this)} className="func-btn" id="hideInfo" title="隐藏信息">
+              <Icon className="func-btn-icon" id="cache-button" name="delete calendar" size="large"></Icon>
+              <div className="func-btn-desc">隐藏信息</div>
+            </div>
+          ) : (
+            <div onClick={this.toHideInfo.bind(this)} className="func-btn" id="showInfo" title="显示信息">
+              <Icon className="func-btn-icon" id="cache-button" name="content" size="large"></Icon>
+              <div className="func-btn-desc">显示信息</div>
+            </div>
+          )}
+          <div title="切换切片" onClick={this.slide.bind(this)} className={'func-btn' + (menuTools === 'slide' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="sort" size="large"></Icon>
+            <div className="func-btn-desc">滚动</div>
+          </div>
+          <div onClick={this.startAnnos.bind(this)} title="标注" className={'func-btn' + (menuTools === 'anno' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="edit" size="large"></Icon>
+            <div className="func-btn-desc">标注</div>
+          </div>
+
+          <div onClick={this.bidirectionalMeasure.bind(this)} title="测量" className={'func-btn' + (menuTools === 'bidirect' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
+            <div className="func-btn-desc">测量</div>
+          </div>
+          <div onClick={this.lengthMeasure.bind(this)} title="长度" className={'func-btn' + (menuTools === 'length' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
+            <div className="func-btn-desc">长度</div>
+          </div>
+
+          {/* <Button
+            onClick={() => {
+              this.setState({ immersive: true });
+            }}
+            icon
+            title="沉浸模式"
+            className="funcbtn"
+          >
+            <Icon name="expand arrows alternate" size="large"></Icon>
+          </Button> */}
+          {this.state.readonly ? (
+            <div title="提交" onClick={this.submit} className="func-btn">
+              <Icon className="func-btn-icon" name="upload" size="large"></Icon>
+              <div className="func-btn-desc">提交</div>
+            </div>
+          ) : (
+            // <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
+            <div title="暂存" onClick={this.temporaryStorage} className="func-btn">
+              <Icon className="func-btn-icon" name="upload" size="large"></Icon>
+              <div className="func-btn-desc">暂存</div>
+            </div>
+          )}
+          {this.state.readonly ? null : (
+            <div title="清空标注" onClick={this.clearUserNodule.bind(this)} className="func-btn">
+              <Icon className="func-btn-icon" name="user delete" size="large"></Icon>
+              <div className="func-btn-desc">清空标注</div>
+            </div>
+          )}
+        </>
+      )
+      const threedMenus = (
+        <>
+          {MPR ? (
+            <>
+              <div className="func-btn" onClick={this.setMPR.bind(this)}>
+                <Icon className="func-btn-icon icon-custom icon-custom-mpr-hide" size="large" />
+                <div className="func-btn-desc"> 取消MPR</div>
+              </div>
+              <div className="func-btn" hidden={!displayCrosshairs} onClick={this.toggleCrosshairs.bind(this, false)} description="hidden crosshairs">
+                <Icon className="func-btn-icon icon-custom icon-custom-HC" size="large" />
+                <div className="func-btn-desc"> 隐藏十字线</div>
+              </div>
+              <div className="func-btn" hidden={displayCrosshairs} onClick={this.toggleCrosshairs.bind(this, true)} description="show crosshairs">
+                <Icon className="func-btn-icon icon-custom icon-custom-SC" size="large" />
+                <div className="func-btn-desc"> 显示十字线</div>
+              </div>
+              <div className="func-btn" hidden={!painting} onClick={this.endPaint.bind(this)} description="end painting">
+                <Icon className="func-btn-icon" name="window close outline" size="large" />
+                <div className="func-btn-desc"> 停止勾画</div>
+              </div>
+              <div className="func-btn" hidden={painting} onClick={this.beginPaint.bind(this)} description="begin painting">
+                <Icon className="func-btn-icon" name="paint brush" size="large" />
+                <div className="func-btn-desc"> 开始勾画</div>
+              </div>
+              <div className={'func-btn' + (!erasing ? ' func-btn-active' : '')} hidden={!painting} onClick={this.doPaint.bind(this)} description="do painting">
+                <Icon className="func-btn-icon" name="paint brush" size="large" />
+                <div className="func-btn-desc"> 勾画</div>
+              </div>
+              <div className={'func-btn' + (erasing ? ' func-btn-active' : '')} hidden={!painting} onClick={this.doErase.bind(this)} description="do erasing">
+                <Icon className="func-btn-icon" name="eraser" size="large" />
+                <div className="func-btn-desc"> 擦除</div>
+              </div>
+              <Popup
+                on="click"
+                trigger={
+                  <div className="func-btn" hidden={!painting}>
+                    <Icon className="func-btn-icon" name="dot circle" size="large" />
+                    <div className="func-btn-desc"> mask大小</div>
+                  </div>
+                }
+                position="bottom center"
+                style={{
+                  backgroundColor: 'rgb(39, 46, 72)',
+                  width: '230px',
+                  color: 'whitesmoke',
+                }}>
+                <div>
+                  <div className="segment-widget-radius-container">
+                    画笔半径:
+                    <Slider
+                      className="segment-widget-radius-slider"
+                      value={paintRadius}
+                      min={1}
+                      step={1}
+                      max={10}
+                      tooltipVisible={false}
+                      onChange={this.changeRadius.bind(this)}
+                      onAfterChange={this.afterChangeRadius.bind(this)}
+                    />
+                  </div>
+                  <div className="segment-label-threshold-container">
+                    标记阈值:
+                    <Slider
+                      className="segment-label-threshold-slider"
+                      value={labelThreshold}
+                      min={100}
+                      step={100}
+                      max={1000}
+                      tooltipVisible={false}
+                      onChange={this.changeThreshold.bind(this)}
+                      onAfterChange={this.afterChangeThreshold.bind(this)}
+                    />
+                  </div>
+                </div>
+              </Popup>
+              <Popup
+                on="click"
+                trigger={
+                  <div className="func-btn" hidden={!painting}>
+                    <Icon className="func-btn-icon" name="eye dropper" size="large" />
+                    <div className="func-btn-desc"> mask颜色</div>
+                  </div>
+                }
+                position="bottom center"
+                style={{
+                  backgroundColor: 'rgb(39, 46, 72)',
+                  width: '180px',
+                  color: 'whitesmoke',
+                }}>
+                <div className="segment-label-color-selector">
+                  颜色选择器：
+                  <InputColor initialValue="#FF0000" onChange={this.setPaintColor.bind(this)} placement="right" />
+                </div>
+              </Popup>
+              {CPR ? (
+                <>
+                  <div className="func-btn" onClick={this.setCPR.bind(this)}>
+                    <Icon className="func-btn-icon" name="window close outline" size="large" />
+                    <div className="func-btn-desc"> 取消CPR</div>
+                  </div>
+                  <div className="func-btn" onClick={this.pickAirway.bind(this)} description="reconstuct airway">
+                    <Icon className="func-btn-icon icon-custom icon-custom-RA" size="large" />
+                    <div className="func-btn-desc"> 重建气道</div>
+                  </div>
+                </>
+              ) : (
+                <div className="func-btn" onClick={this.setCPR.bind(this)}>
+                  <Icon className="func-btn-icon icon-custom icon-custom-CPR" size="large" />
+                  <div className="func-btn-desc"> CPR</div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="func-btn" hidden={MPR} onClick={this.setMPR.bind(this)}>
+              <Icon className="func-btn-icon icon-custom icon-custom-mpr-show" size="large" />
+              <div className="func-btn-desc"> MPR</div>
+            </div>
+          )}
+          <span className="menu-line"></span>
+        </>
+      )
+      const followUpMenus = (
+        <>
+          {registering ? (
+            <div title="配准" className={'func-btn'} onClick={this.setRegistering.bind(this)}>
+              <Icon className="func-btn-icon" name="window restore outline" size="large"></Icon>
+              <div className="func-btn-desc">取消配准</div>
+            </div>
+          ) : (
+            <div title="配准" className={'func-btn'} onClick={this.setRegistering.bind(this)}>
+              <Icon className="func-btn-icon" name="window restore outline" size="large"></Icon>
+              <div className="func-btn-desc">开始配准</div>
+            </div>
+          )}
+          {showNodules ? (
+            <div onClick={this.toHidebox.bind(this)} className="func-btn" id="hideNodule" title="隐藏结节">
+              <Icon className="func-btn-icon" id="cache-button" name="eye slash" size="large"></Icon>
+              <div className="func-btn-desc">隐藏结节</div>
+            </div>
+          ) : (
+            <div onClick={this.toHidebox.bind(this)} className="func-btn" id="showNodule" title="显示结节">
+              <Icon className="func-btn-icon" id="cache-button" name="eye" size="large"></Icon>
+              <div className="func-btn-desc">显示结节</div>
+            </div>
+          )}
+          {showInfo ? (
+            <div onClick={this.toHideInfo.bind(this)} className="func-btn" id="hideInfo" title="隐藏信息">
+              <Icon className="func-btn-icon" id="cache-button" name="delete calendar" size="large"></Icon>
+              <div className="func-btn-desc">隐藏信息</div>
+            </div>
+          ) : (
+            <div onClick={this.toHideInfo.bind(this)} className="func-btn" id="showInfo" title="显示信息">
+              <Icon className="func-btn-icon" id="cache-button" name="content" size="large"></Icon>
+              <div className="func-btn-desc">显示信息</div>
+            </div>
+          )}
+          <div title="切换切片" onClick={this.slide.bind(this)} className={'func-btn' + (followUpActiveTool === 'StackScroll' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="sort" size="large"></Icon>
+            <div className="func-btn-desc">滚动</div>
+          </div>
+          <div onClick={this.startAnnos.bind(this)} title="标注" className={'func-btn' + (followUpActiveTool === 'RectangleRoi' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="edit" size="large"></Icon>
+            <div className="func-btn-desc">标注</div>
+          </div>
+
+          <div onClick={this.bidirectionalMeasure.bind(this)} title="测量" className={'func-btn' + (followUpActiveTool === 'Bidirectional' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
+            <div className="func-btn-desc">测量</div>
+          </div>
+          <div onClick={this.lengthMeasure.bind(this)} title="长度" className={'func-btn' + (followUpActiveTool === 'Length' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
+            <div className="func-btn-desc">长度</div>
+          </div>
+          <div onClick={this.eraseAnno.bind(this)} title="擦除" className={'func-btn' + (followUpActiveTool === 'Eraser' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="eraser" size="large"></Icon>
+            <div className="func-btn-desc">擦除</div>
+          </div>
+        </>
+      )
+      const originMenus = (
+        <>
+          <div className="func-btn">
+            <Dropdown
+              icon={null}
+              trigger={
+                <>
+                  <Icon className="func-btn-icon" name="search" size="large"></Icon>
+                  <div className="func-btn-desc">
+                    缩放
+                    <FontAwesomeIcon icon={faCaretDown} />
+                  </div>
+                </>
+              }>
+              <Dropdown.Menu>
+                <Dropdown.Item text="放大" icon="search plus" onClick={this.ZoomIn.bind(this)} />
+                <Dropdown.Item text="缩小" icon="search minus" onClick={this.ZoomOut.bind(this)} />
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
+          <div onClick={this.reset} className="func-btn" title="刷新">
+            <Icon className="func-btn-icon" name="repeat" size="large"></Icon>
+            <div className="func-btn-desc">刷新</div>
+          </div>
+          <div title="窗宽窗位" onClick={this.wwwcCustom.bind(this)} className={'func-btn' + (menuTools === 'wwwc' || followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon icon-custom icon-custom-wwwc" size="large"></Icon>
+            <div className="func-btn-desc">
+              <Dropdown
+                icon={null}
+                trigger={
+                  <>
+                    窗宽窗位
+                    <FontAwesomeIcon icon={faCaretDown} />
+                  </>
+                }>
+                <Dropdown.Menu>
+                  <Dropdown.Item text="反色" onClick={this.imagesFlip.bind(this)} />
+                  <Dropdown.Item text="肺窗" onClick={this.toPulmonary.bind(this)} />
+                  <Dropdown.Item text="骨窗" onClick={this.toBoneWindow.bind(this)} />
+                  <Dropdown.Item text="腹窗" onClick={this.toVentralWindow.bind(this)} />
+                  <Dropdown.Item text="纵隔窗" onClick={this.toMedia.bind(this)} />
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+          </div>
+          {!this.state.isPlaying ? (
+            <div onClick={this.playAnimation.bind(this)} className="func-btn" title="播放动画">
+              <Icon className="func-btn-icon" name="play" size="large"></Icon>
+              <div className="func-btn-desc">播放</div>
+            </div>
+          ) : (
+            <div onClick={this.pauseAnimation.bind(this)} className="func-btn" title="暂停动画">
+              <Icon className="func-btn-icon" name="pause" size="large"></Icon>
+              <div className="func-btn-desc">暂停</div>
+            </div>
+          )}
+          {!(show3DVisualization || showFollowUp) ? twodMenus : null}
+          {show3DVisualization ? threedMenus : null}
+          {showFollowUp ? followUpMenus : null}
+
+          {show3DVisualization ? (
+            <div className="func-btn" onClick={this.hide3D.bind(this)} hidden={showFollowUp}>
+              <Icon className="func-btn-icon icon-custom icon-custom-hide-3d" size="large"></Icon>
+              <div className="func-btn-desc"> 隐藏3D</div>
+            </div>
+          ) : (
+            <div title="显示3D" className="func-btn" onClick={this.show3D.bind(this)} hidden={showFollowUp}>
+              <Icon className="func-btn-icon icon-custom icon-custom-show-3d" size="large"></Icon>
+              <div className="func-btn-desc">显示3D</div>
+            </div>
+          )}
+
+          {showFollowUp ? (
+            <div title="随访" className={'func-btn'} onClick={this.hideFollowUp.bind(this)}>
+              <Icon className="func-btn-icon" name="history" size="large"></Icon>
+              <div className="func-btn-desc">关闭随访</div>
+            </div>
+          ) : (
+            <div title="随访" className={'func-btn'} onClick={this.showFollowUp.bind(this)}>
+              <Icon className="func-btn-icon" name="history" size="large"></Icon>
+              <div className="func-btn-desc">进入随访</div>
+            </div>
+          )}
+        </>
+      )
 
       return (
-        <Grid className="corner-container">
-          <Grid.Row className="corner-top-row">
+        <div className="corner-container">
+          <div className="corner-top-row">
             <div className="corner-header">
               <div id="menu-item-logo">
                 {/* <Image src={src1} avatar size="mini" /> */}
@@ -3076,364 +2877,13 @@ class CornerstoneElement extends Component {
                 </a>
                 {menuScrollable && menuNowPage > 1 ? <FontAwesomeIcon icon={faChevronLeft} onClick={this.onMenuPageUp.bind(this)} className="menu-item-buttons-direction direction-page-up" /> : <></>}
               </div>
-              <div
-                id="menu-item-buttons"
-                style={{
-                  transform: `translateX(${-menuTransform}px)`,
-                }}>
-                {/* <Button.Group>
-                    <Button
-                      // inverted
-                      // color='black'
-                      onClick={this.toPulmonary}
-                      content="肺窗"
-                      className="hubtn"
-                    />
-                    <Button
-                      // inverted
-                      // color='blue'
-                      onClick={this.toBoneWindow} 
-                      content="骨窗"
-                      className="hubtn"
-                    />
-                    <Button
-                      // inverted
-                      // color='blue'
-                      onClick={this.toVentralWindow} 
-                      content="腹窗"
-                      className="hubtn"
-                    />
-                    <Button
-                      // inverted
-                      // color='blue'
-                      onClick={this.toMedia}
-                      content="纵隔窗"
-                      className="hubtn"
-                    />                                            
-                  </Button.Group> */}
-                <div onClick={this.onShowStudyList.bind(this)} className={'func-btn' + (studyListShowed ? ' func-btn-active' : '')}>
+              <div id="menu-item-buttons" style={{ transform: `translateX(${-menuTransform}px)` }}>
+                <div onClick={this.onSetStudyList.bind(this, !studyListShowed)} className={'func-btn' + (studyListShowed ? ' func-btn-active' : '')}>
                   <Icon className="func-btn-icon" name="list" size="large"></Icon>
                   <div className="func-btn-desc"> 序列</div>
                 </div>
                 <span className="menu-line"></span>
-                {show3DVisualization ? (
-                  <>
-                    {MPR ? (
-                      <>
-                        <div className="func-btn" hidden={!MPR} onClick={this.handleFuncButton.bind(this, 'STMPR')}>
-                          <Icon className="func-btn-icon icon-custom icon-custom-mpr-hide" size="large" />
-                          <div className="func-btn-desc"> 取消MPR</div>
-                        </div>
-                        <div className="func-btn" onClick={this.handleFuncButton.bind(this, 'RC')} description="reset camera">
-                          <Icon className="func-btn-icon" name="redo" size="large" />
-                          <div className="func-btn-desc"> 重置</div>
-                        </div>
-                        {/* <Button icon className='func-btn' active={crosshairsTool} onClick={this.handleFuncButton.bind(this, "TC")} title="十字线" description="toggle crosshairs"><Icon name='plus' size='large'/></Button> */}
-                        <div className="func-btn" hidden={!displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'HC')} description="hidden crosshairs">
-                          <Icon className="func-btn-icon icon-custom icon-custom-HC" size="large" />
-                          <div className="func-btn-desc"> 隐藏十字线</div>
-                        </div>
-                        <div className="func-btn" hidden={displayCrosshairs} onClick={this.handleFuncButton.bind(this, 'SC')} description="show crosshairs">
-                          <Icon className="func-btn-icon icon-custom icon-custom-SC" size="large" />
-                          <div className="func-btn-desc"> 显示十字线</div>
-                        </div>
-                        <div className="func-btn" hidden={!painting} onClick={this.handleFuncButton.bind(this, 'EP')} description="end painting">
-                          <Icon className="func-btn-icon" name="window close outline" size="large" />
-                          <div className="func-btn-desc"> 停止勾画</div>
-                        </div>
-                        <div className="func-btn" hidden={painting} onClick={this.handleFuncButton.bind(this, 'BP')} description="begin painting">
-                          <Icon className="func-btn-icon" name="paint brush" size="large" />
-                          <div className="func-btn-desc"> 开始勾画</div>
-                        </div>
-                        <div className={'func-btn' + (!erasing ? ' func-btn-active' : '')} hidden={!painting} onClick={this.handleFuncButton.bind(this, 'DP')} description="do painting">
-                          <Icon className="func-btn-icon" name="paint brush" size="large" />
-                          <div className="func-btn-desc"> 勾画</div>
-                        </div>
-                        <div className={'func-btn' + (erasing ? ' func-btn-active' : '')} hidden={!painting} onClick={this.handleFuncButton.bind(this, 'DE')} description="do erasing">
-                          <Icon className="func-btn-icon" name="eraser" size="large" />
-                          <div className="func-btn-desc"> 擦除</div>
-                        </div>
-                        <Popup
-                          on="click"
-                          trigger={
-                            <div className="func-btn" hidden={!painting}>
-                              <Icon className="func-btn-icon" name="dot circle" size="large" />
-                              <div className="func-btn-desc"> mask大小</div>
-                            </div>
-                          }
-                          position="bottom center"
-                          style={{
-                            backgroundColor: 'rgb(39, 46, 72)',
-                            width: '230px',
-                            color: 'whitesmoke',
-                          }}>
-                          <div>
-                            <div className="segment-widget-radius-container">
-                              画笔半径:
-                              <Slider
-                                className="segment-widget-radius-slider"
-                                value={paintRadius}
-                                min={1}
-                                step={1}
-                                max={10}
-                                tooltipVisible={false}
-                                onChange={this.changeRadius.bind(this)}
-                                onAfterChange={this.afterChangeRadius.bind(this)}
-                              />
-                            </div>
-                            <div className="segment-label-threshold-container">
-                              标记阈值:
-                              <Slider
-                                className="segment-label-threshold-slider"
-                                value={labelThreshold}
-                                min={100}
-                                step={100}
-                                max={1000}
-                                tooltipVisible={false}
-                                onChange={this.changeThreshold.bind(this)}
-                                onAfterChange={this.afterChangeThreshold.bind(this)}
-                              />
-                            </div>
-                          </div>
-                        </Popup>
-                        <Popup
-                          on="click"
-                          trigger={
-                            <div className="func-btn" hidden={!painting}>
-                              <Icon className="func-btn-icon" name="eye dropper" size="large" />
-                              <div className="func-btn-desc"> mask颜色</div>
-                            </div>
-                          }
-                          position="bottom center"
-                          style={{
-                            backgroundColor: 'rgb(39, 46, 72)',
-                            width: '180px',
-                            color: 'whitesmoke',
-                          }}>
-                          <div className="segment-label-color-selector">
-                            颜色选择器：
-                            <InputColor initialValue="#FF0000" onChange={this.setPaintColor.bind(this)} placement="right" />
-                          </div>
-                        </Popup>
-                        {CPR ? (
-                          <>
-                            <div className="func-btn" onClick={this.handleFuncButton.bind(this, 'STCPR')} hidden={!CPR}>
-                              <Icon className="func-btn-icon" name="window close outline" size="large" />
-                              <div className="func-btn-desc"> 取消CPR</div>
-                            </div>
-                            <div className="func-btn" onClick={this.handleFuncButton.bind(this, 'RA')} description="reconstuct airway">
-                              <Icon className="func-btn-icon icon-custom icon-custom-RA" size="large" />
-                              <div className="func-btn-desc"> 重建气道</div>
-                            </div>
-                          </>
-                        ) : (
-                          <div className="func-btn" onClick={this.handleFuncButton.bind(this, 'CPR')} hidden={CPR}>
-                            <Icon className="func-btn-icon icon-custom icon-custom-CPR" size="large" />
-                            <div className="func-btn-desc"> CPR</div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="func-btn" hidden={MPR} onClick={this.handleFuncButton.bind(this, 'MPR')}>
-                        <Icon className="func-btn-icon icon-custom icon-custom-mpr-show" size="large" />
-                        <div className="func-btn-desc"> MPR</div>
-                      </div>
-                    )}
-                    <span className="menu-line"></span>
-                    <div className="func-btn" onClick={this.hide3D.bind(this)}>
-                      <Icon className="func-btn-icon icon-custom icon-custom-hide-3d" size="large"></Icon>
-                      <div className="func-btn-desc"> 隐藏3D</div>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    {/* <div onClick={this.imagesFilp} className="func-btn">
-                      <Icon className="func-btn-icon" name="adjust" size="large"></Icon>
-                      <div className="func-btn-desc">反色</div>
-                    </div> */}
-                    <div className="func-btn">
-                      <Icon className="func-btn-icon" name="search" size="large"></Icon>
-                      <div className="func-btn-desc">
-                        <Dropdown
-                          icon={null}
-                          trigger={
-                            <>
-                              缩放
-                              <FontAwesomeIcon icon={faCaretDown} />
-                            </>
-                          }>
-                          <Dropdown.Menu>
-                            <Dropdown.Item text="放大" icon="search plus" onClick={this.ZoomIn} />
-                            <Dropdown.Item text="缩小" icon="search minus" onClick={this.ZoomOut} />
-                          </Dropdown.Menu>
-                        </Dropdown>
-                      </div>
-                    </div>
-                    {/* <Button
-                          icon
-                          title="缩小"
-                          
-                          className="func-btn">
-                          <Icon name="search minus" size="large"></Icon>
-                        </Button> */}
-                    <div onClick={this.reset} className="func-btn" title="刷新">
-                      <Icon className="func-btn-icon" name="repeat" size="large"></Icon>
-                      <div className="func-btn-desc">刷新</div>
-                    </div>
-                    {!this.state.isPlaying ? (
-                      <div onClick={this.playAnimation} className="func-btn" title="播放动画">
-                        <Icon className="func-btn-icon" name="play" size="large"></Icon>
-                        <div className="func-btn-desc">播放</div>
-                      </div>
-                    ) : (
-                      <div onClick={this.pauseAnimation} className="func-btn" title="暂停动画">
-                        <Icon className="func-btn-icon" name="pause" size="large"></Icon>
-                        <div className="func-btn-desc">暂停</div>
-                      </div>
-                    )}
-                    {/* <Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button> */}
-                    {/* <Modal
-                                        basic
-                                        open={cacheModal}
-                                        size='small'
-                                        trigger={<Button icon onClick={this.cache} className='funcbtn' title='缓存'><Icon id="cache-button" name='coffee' size='large'></Icon></Button>}
-                                        >
-                                        <Header icon>
-                                            <Icon name='archive' />
-                                            影像缓存中...
-                                        </Header>
-                                        <Modal.Content>
-                                            <Progress value={this.state.currentIdx+1} total={this.state.imageIds.length} progress='ratio'/>
-                                        </Modal.Content>
-                                        </Modal> */}
-                    {/* {({ state, setState }) => (
-                                        <Grid>
-                                        <div>
-                                            <pre>{JSON.stringify(state, null, 2)}</pre>
-                                        </div>
-                                        <div style={{ maxWidth: '300px', margin: '0 auto' }}>
-                                            <CineDialog
-                                            {...state}
-                                            onClickSkipToStart={() =>
-                                                setState({ lastChange: 'Clicked SkipToStart' })
-                                            }
-                                            onClickSkipToEnd={() =>
-                                                setState({ lastChange: 'Clicked SkipToEnd' })
-                                            }
-                                            onClickNextButton={() => setState({ lastChange: 'Clicked Next' })}
-                                            onClickBackButton={() => setState({ lastChange: 'Clicked Back' })}
-                                            onLoopChanged={value => setState({ isLoopEnabled: value })}
-                                            onFrameRateChanged={value => setState({ cineFrameRate: value })}
-                                            onPlayPauseChanged={() => setState({ isPlaying: !state.isPlaying })}
-                                            />
-                                        </div>
-                                        </Grid>
-                                    )} */}
-                    {showNodules ? (
-                      <div onClick={this.toHidebox} className="func-btn" id="hideNodule" title="隐藏结节">
-                        <Icon className="func-btn-icon" id="cache-button" name="eye slash" size="large"></Icon>
-                        <div className="func-btn-desc">隐藏结节</div>
-                      </div>
-                    ) : (
-                      <div onClick={this.toHidebox} className="func-btn" id="showNodule" title="显示结节">
-                        <Icon className="func-btn-icon" id="cache-button" name="eye" size="large"></Icon>
-                        <div className="func-btn-desc">显示结节</div>
-                      </div>
-                    )}
-                    {/* <Button icon onClick={this.toHidebox} className="funcbtn" id="showNodule" title="显示结节">
-                          <Icon id="cache-button" name="eye" size="large"></Icon>
-                        </Button>
-                        <Button icon onClick={this.toHidebox} className="funcbtn" id="hideNodule" title="隐藏结节">
-                          <Icon id="cache-button" name="eye slash" size="large"></Icon>
-                        </Button> */}
-                    {showInfo ? (
-                      <div onClick={this.toHideInfo} className="func-btn" id="hideInfo" title="隐藏信息">
-                        <Icon className="func-btn-icon" id="cache-button" name="delete calendar" size="large"></Icon>
-                        <div className="func-btn-desc">隐藏信息</div>
-                      </div>
-                    ) : (
-                      <div onClick={this.toHideInfo} className="func-btn" id="showInfo" title="显示信息">
-                        <Icon className="func-btn-icon" id="cache-button" name="content" size="large"></Icon>
-                        <div className="func-btn-desc">显示信息</div>
-                      </div>
-                    )}
-                    {/* <Button
-                  onClick={() => {
-                    this.setState({ immersive: true });
-                  }}
-                  icon
-                  title="沉浸模式"
-                  className="funcbtn"
-                >
-                  <Icon name="expand arrows alternate" size="large"></Icon>
-                </Button> */}
-                    <span className="menu-line"></span>
-                    <div title="窗宽窗位" onClick={this.wwwcCustom} className={'func-btn' + (menuTools === 'wwwc' ? ' func-btn-active' : '')}>
-                      <Icon className="func-btn-icon icon-custom icon-custom-wwwc" size="large"></Icon>
-                      <div className="func-btn-desc">
-                        <Dropdown
-                          icon={null}
-                          trigger={
-                            <>
-                              窗宽窗位
-                              <FontAwesomeIcon icon={faCaretDown} />
-                            </>
-                          }>
-                          <Dropdown.Menu>
-                            <Dropdown.Item text="肺窗" onClick={this.toPulmonary} />
-                            <Dropdown.Item text="骨窗" onClick={this.toBoneWindow} />
-                            <Dropdown.Item text="腹窗" onClick={this.toVentralWindow} />
-                            <Dropdown.Item text="纵隔窗" onClick={this.toMedia} />
-                          </Dropdown.Menu>
-                        </Dropdown>
-                      </div>
-                    </div>
-                    <div title="切换切片" onClick={this.slide} className={'func-btn' + (menuTools === 'slide' ? ' func-btn-active' : '')}>
-                      <Icon className="func-btn-icon" name="sort" size="large"></Icon>
-                      <div className="func-btn-desc">滚动</div>
-                    </div>
-                    <div onClick={this.startAnnos} title="标注" className={'func-btn' + (menuTools === 'anno' ? ' func-btn-active' : '')}>
-                      <Icon className="func-btn-icon" name="edit" size="large"></Icon>
-                      <div className="func-btn-desc">标注</div>
-                    </div>
-
-                    <div onClick={this.bidirectionalMeasure} title="测量" className={'func-btn' + (menuTools === 'bidirect' ? ' func-btn-active' : '')}>
-                      <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
-                      <div className="func-btn-desc">测量</div>
-                    </div>
-                    <div onClick={this.lengthMeasure} title="长度" className={'func-btn' + (menuTools === 'length' ? ' func-btn-active' : '')}>
-                      <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
-                      <div className="func-btn-desc">长度</div>
-                    </div>
-
-                    {this.state.readonly ? (
-                      <div title="提交" onClick={this.submit} className="func-btn">
-                        <Icon className="func-btn-icon" name="upload" size="large"></Icon>
-                        <div className="func-btn-desc">提交</div>
-                      </div>
-                    ) : (
-                      // <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
-                      <div title="暂存" onClick={this.temporaryStorage} className="func-btn">
-                        <Icon className="func-btn-icon" name="upload" size="large"></Icon>
-                        <div className="func-btn-desc">暂存</div>
-                      </div>
-                    )}
-                    {this.state.readonly ? null : (
-                      <div title="清空标注" onClick={this.clearUserNodule.bind(this)} className="func-btn">
-                        <Icon className="func-btn-icon" name="user delete" size="large"></Icon>
-                        <div className="func-btn-desc">清空标注</div>
-                      </div>
-                    )}
-                    <div title="显示3D" className="func-btn" onClick={this.show3D.bind(this)}>
-                      <Icon className="func-btn-icon icon-custom icon-custom-show-3d" size="large"></Icon>
-                      <div className="func-btn-desc">显示3D</div>
-                    </div>
-                    <div title="随访" className="func-btn" onClick={this.toFollowUp.bind(this)}>
-                      <Icon className="func-btn-icon" name="history" size="large"></Icon>
-                      <div className="func-btn-desc">随访</div>
-                    </div>
-                  </>
-                )}
+                {originMenus}
               </div>
 
               <div id="menu-item-user">
@@ -3455,574 +2905,637 @@ class CornerstoneElement extends Component {
                 )}
               </div>
             </div>
-          </Grid.Row>
-          <Grid.Row className="corner-bottom-row" columns={3} style={{ height: bottomRowHeight }}>
+          </div>
+          <div className="corner-bottom-row" style={{ height: bottomRowHeight }}>
             <Sidebar.Pushable style={{ overflow: 'hidden', width: '100%' }}>
               <Sidebar visible={studyListShowed} animation={'uncover'} width="thin">
                 <div className="preview">{previewContent}</div>
               </Sidebar>
               <Sidebar.Pusher style={{ height: '100%' }}>
-                <div className={'ct-info' + (studyListShowed ? ' ct-info-contract' : '') + (verticalMode ? ' ct-info-vertical' : ' ct-info-horizontal')}>
+                {showFollowUp ? (
                   <div
-                    className={'corner-center-block' + (studyListShowed ? ' corner-center-contract-block' : '') + (verticalMode ? ' corner-center-vertical-block' : ' corner-center-horizontal-block')}
-                    style={verticalMode ? { paddingRight: `${ctInfoPadding}px` } : {}}>
-                    {show3DVisualization ? (
-                      <div className="center-viewport-panel" id="segment-container">
-                        <div style={{ width: viewerWidth, height: viewerHeight }}>{panel}</div>
-                      </div>
-                    ) : (
-                      <div id="cor-container">
-                        {/* <Grid.Row columns={2} id='canvas-column' style={{height:this.state.windowHeight*37/40}}> */}
-                        {/* <div className='canvas-style' id='canvas-border'> */}
-                        <div style={{ height: '100%' }}>
-                          <div
-                            id="origin-canvas"
-                            style={{
-                              width: canvasWidth,
-                              height: canvasHeight,
-                            }}
-                            ref={(input) => {
-                              this.element = input
-                            }}>
-                            <canvas
-                              className="cornerstone-canvas"
-                              id="canvas"
-                              style={{
-                                width: canvasWidth,
-                                height: canvasHeight,
-                              }}
-                            />
-                            {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-                            {/* {canvas} */}
-                            {dicomTagPanel}
-                          </div>
-                          {/* </div> */}
-                          <div id="cor-slice-slider" style={{ height: `${canvasHeight * 0.7}px`, top: `${canvasHeight * 0.15}px` }}>
-                            <Slider
-                              vertical
-                              reverse
-                              tipFormatter={null}
-                              marks={sliderMarks}
-                              value={this.state.currentIdx + 1}
-                              onChange={this.handleRangeChange}
-                              // onAfterChange={this.handleRangeChange.bind(this)}
-                              min={1}
-                              step={1}
-                              max={this.state.imageIds.length}></Slider>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* <div className='antd-slider'> */}
-
-                    {/* </div> */}
-                    {visualContent}
-                    <button id="closeVisualContent" className="closeVisualContent-cross" style={{ bottom: `${histogramHeight}px` }} onClick={this.closeVisualContent}>
-                      ×
-                    </button>
-                  </div>
-                  <div
-                    className={'corner-list-block' + (studyListShowed ? ' corner-list-contract-block' : '') + (verticalMode ? ' corner-list-vertical-block' : ' corner-list-horizontal-block')}
+                    className={'ct-follow-up' + (studyListShowed ? ' ct-follow-up-contract' : '') + (verticalMode ? ' ct-follow-up-vertical' : ' ct-follow-up-horizontal')}
                     style={studyListShowed ? { paddingRight: `${ctInfoPadding}px` } : {}}>
-                    <div className={'ct-list-container'}>
-                      <div id="nodule-card-container" className={verticalMode ? 'nodule-card-container-vertical' : 'nodule-card-container-horizontal'}>
-                        <Tabs type="card" defaultActiveKey={1} size="small">
-                          <TabPane tab={'肺病灶'} key="1">
-                            <Tabs type="card" defaultActiveKey={1} size="small">
-                              <TabPane tab={`肺结节 ${nodules.length}个`} key="1">
-                                <div id="elec-table">
-                                  {this.state.boxes.length === 0 ? (
-                                    <div
-                                      style={{
-                                        height: '100%',
-                                        background: 'rgb(23, 28, 47)',
-                                        display: 'flex',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                      }}>
-                                      <Header as="h2" inverted>
-                                        <Icon name="low vision" />
-                                        <Header.Content>未检测出任何结节</Header.Content>
-                                      </Header>
-                                    </div>
-                                  ) : (
-                                    <div className="nodule-card-content">
-                                      <div className="nodule-filter">
-                                        <div className="nodule-filter-desc">
-                                          <div className="nodule-filter-desc-index"></div>
-                                          <Checkbox
-                                            className="nodule-filter-desc-checkbox"
-                                            checked={nodulesAllChecked}
-                                            onChange={this.onHandleNoduleAllCheckChange.bind(this)}
-                                            onClick={this.onHandleNoduleAllCheckClick.bind(this)}>
-                                            全选
-                                          </Checkbox>
-                                          <div className="nodule-filter-desc-text">已筛选{this.state.boxes.length}个病灶</div>
-                                        </div>
-                                        <div className="nodule-filter-operation">
-                                          <FontAwesomeIcon className="nodule-filter-operation-icon" icon={faFilter} />
-
-                                          <Popup
-                                            on="click"
-                                            style={{ backgroundColor: 'rgb(39, 46, 72)' }}
-                                            trigger={<FontAwesomeIcon className="nodule-filter-operation-icon" icon={faSortAmountDownAlt} />}>
-                                            <div className="nodule-filter-operation-sort">
-                                              <div className="nodule-filter-operation-sort-header">排序</div>
-                                              <div className="nodule-filter-operation-sort-content">{noduleOrderContent}</div>
-                                            </div>
-                                          </Popup>
-                                        </div>
-                                      </div>
-                                      <Accordion styled id="nodule-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
-                                        {tableContent}
-                                      </Accordion>
-                                    </div>
-                                  )}
-                                </div>
-                              </TabPane>
-
-                              {show3DVisualization ? (
-                                <>
-                                  <TabPane tab={'肺叶'} key="3">
-                                    <div id="elec-table">
-                                      <div className="threed-card-content">
-                                        <div className="threed-filter">
-                                          <div className="threed-filter-desc">
-                                            <div className="threed-filter-desc-index"></div>
-                                            <Checkbox
-                                              className="threed-filter-desc-checkbox"
-                                              checked={lobesAllChecked}
-                                              onChange={this.onHandleThreedAllCheckChange.bind(this, 0)}
-                                              onClick={this.onHandleThreedAllCheckClick.bind(this)}>
-                                              全选
-                                            </Checkbox>
-                                            <div className="threed-filter-desc-text">已选择{lobeCheckNumber}个肺叶</div>
-                                          </div>
-                                          <div className="threed-filter-operation">
-                                            {lobesAllVisible ? (
-                                              <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEyeSlash} onClick={this.onSetThreedAllVisible.bind(this, 0, false)} />
-                                            ) : (
-                                              <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEye} onClick={this.onSetThreedAllVisible.bind(this, 0, true)} />
-                                            )}
-                                          </div>
-                                        </div>
-                                        <Accordion styled id="lobe-accordion" fluid>
-                                          {lobeContent}
-                                        </Accordion>
-                                      </div>
-                                    </div>
-                                  </TabPane>
-                                  <TabPane tab={'气管和血管'} key="4">
-                                    <div id="elec-table">
-                                      <div className="threed-card-content">
-                                        <div className="threed-filter">
-                                          <div className="threed-filter-desc">
-                                            <div className="threed-filter-desc-index"></div>
-                                            <Checkbox
-                                              className="threed-filter-desc-checkbox"
-                                              checked={tubularAllChecked}
-                                              onChange={this.onHandleThreedAllCheckChange.bind(this, 1)}
-                                              onClick={this.onHandleThreedAllCheckClick.bind(this)}>
-                                              全选
-                                            </Checkbox>
-                                            <div className="threed-filter-desc-text">已选择{tubularCheckNumber}个管状结构</div>
-                                          </div>
-                                          <div className="threed-filter-operation">
-                                            {tubularAllVisible ? (
-                                              <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEyeSlash} onClick={this.onSetThreedAllVisible.bind(this, 1, false)} />
-                                            ) : (
-                                              <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEye} onClick={this.onSetThreedAllVisible.bind(this, 1, true)} />
-                                            )}
-                                          </div>
-                                        </div>
-
-                                        <Accordion styled id="tubular-accordion" fluid>
-                                          {tubularContent}
-                                        </Accordion>
-                                      </div>
-                                    </div>
-                                  </TabPane>
-                                </>
-                              ) : (
-                                <>
-                                  <TabPane tab={'肺炎'} key="2"></TabPane>
-                                </>
-                              )}
-                            </Tabs>
-                          </TabPane>
-                          <TabPane tab={'骨病灶'} key="2"></TabPane>
-                          <TabPane tab={'其他'} key="3"></TabPane>
-                          {/* <TabPane tab={inflammationTab} key="2">
-                                                        Content of Tab Pane 2
-                                                        </TabPane>
-                                                        <TabPane tab={lymphnodeTab} key="3">
-                                                        Content of Tab Pane 3
-                                                        </TabPane> */}
-                        </Tabs>
-                      </div>
-
+                    <FollowUpDisplayElement
+                      curCaseId={curCaseId}
+                      preCaseId={preCaseId}
+                      username={username}
+                      onRef={(input) => {
+                        this.followUpComponent = input
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className={'ct-info' + (studyListShowed ? ' ct-info-contract' : '') + (verticalMode ? ' ct-info-vertical' : ' ct-info-horizontal')}>
+                    <div
+                      className={
+                        'corner-center-block' + (studyListShowed ? ' corner-center-contract-block' : '') + (verticalMode ? ' corner-center-vertical-block' : ' corner-center-horizontal-block')
+                      }
+                      style={verticalMode ? { paddingRight: `${ctInfoPadding}px` } : {}}>
                       {show3DVisualization ? (
-                        <div id="threed-mask-container" className={verticalMode ? ' threed-mask-container-vertical' : ' threed-mask-container-horizontal'}>
-                          {MPR && painting && maskVolumes && maskVolumes.length ? (
-                            <VTKMaskViewer
-                              viewerStyle={{
-                                width: `${maskWidth}px`,
-                                height: `${maskHeight}px`,
-                              }}
-                              volumes={maskVolumes}
-                              maskWidth={maskWidth}
-                              maskHeight={maskHeight}
-                              paintFilterBackgroundImageData={maskImageData}
-                              paintFilterLabelMapImageData={maskLabelMap}
-                              painting={painting}
-                              parallelScale={maskYLength / 2}
-                              onRef={(ref) => {
-                                this.viewerMask = ref
-                              }}
-                            />
-                          ) : null}
+                        <div className="center-viewport-panel" id="segment-container">
+                          {renderLoading ? loadingPanel : <div style={{ width: viewerWidth, height: viewerHeight }}>{panel}</div>}
                         </div>
                       ) : (
-                        <div id="report" className={'report-tab-container' + (verticalMode ? ' report-tab-container-vertical' : ' report-tab-container-horizontal')}>
-                          <Accordion id="report-accordion-guide">
-                            <Accordion.Title active={reportGuideActive} onClick={this.onSetReportGuideActive.bind(this)}>
-                              <div className="report-title">
-                                <div className="report-title-desc">
-                                  <Dropdown
-                                    options={[
-                                      {
-                                        key: '中华共识',
-                                        text: '中华共识',
-                                        value: '中华共识',
-                                      },
-                                      {
-                                        key: 'Fleischner',
-                                        text: 'Fleischner',
-                                        value: 'Fleischner',
-                                      },
-                                      {
-                                        key: 'NCCN',
-                                        text: 'NCCN',
-                                        value: 'NCCN',
-                                      },
-                                      {
-                                        key: 'Lung-RADS',
-                                        text: 'Lung-RADS',
-                                        value: 'Lung-RADS',
-                                      },
-                                      {
-                                        key: '亚洲共识',
-                                        text: '亚洲共识',
-                                        value: '亚洲共识',
-                                      },
-                                    ]}
-                                    defaultValue={reportGuideType}
-                                    icon={<FontAwesomeIcon icon={faChevronDown} />}
-                                    onChange={this.onHandleReportGuideTypeChange.bind(this)}
-                                  />
-                                </div>
+                        <div id="cor-container">
+                          {/* <Grid.Row columns={2} id='canvas-column' style={{height:this.state.windowHeight*37/40}}> */}
+                          {/* <div className='canvas-style' id='canvas-border'> */}
+                          {renderLoading ? (
+                            loadingPanel
+                          ) : (
+                            <div style={{ height: '100%' }}>
+                              <div
+                                id="origin-canvas"
+                                style={{
+                                  width: canvasWidth,
+                                  height: canvasHeight,
+                                }}
+                                ref={(input) => {
+                                  this.element = input
+                                }}>
+                                <canvas
+                                  className="cornerstone-canvas"
+                                  id="canvas"
+                                  style={{
+                                    width: canvasWidth,
+                                    height: canvasHeight,
+                                  }}
+                                />
+                                {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
+                                {/* {canvas} */}
+                                {dicomTagPanel}
                               </div>
-                            </Accordion.Title>
-                            <Accordion.Content active={reportGuideActive}>
-                              <Form.TextArea
-                                id="report-guide-textarea"
-                                className="report-textarea"
-                                placeholder="在此查看指南"
-                                onChange={this.onHandleGuideTextareaChange.bind(this)}
-                                value={reportGuideText}
-                                maxLength={500}></Form.TextArea>
-                            </Accordion.Content>
-                          </Accordion>
-
-                          <Accordion id="report-accordion-image" style={{ top: `${reportImageTop}px`, height: `${reportImageHeight}px` }}>
-                            <Accordion.Title id="report-accordion-image-header" active={reportImageActive} onClick={this.onSetReportImageActive.bind(this)}>
-                              <div className="report-title">
-                                <div className="report-title-desc">
-                                  诊断报告
-                                  <Dropdown
-                                    className="report-title-desc-type"
-                                    options={[
-                                      {
-                                        key: '结节类型',
-                                        text: '结节类型',
-                                        value: '结节类型',
-                                      },
-                                      {
-                                        key: '单个结节',
-                                        text: '单个结节',
-                                        value: '单个结节',
-                                      },
-                                    ]}
-                                    defaultValue={reportImageType}
-                                    icon={<FontAwesomeIcon icon={faChevronDown} />}
-                                    onChange={this.onHandleReportImageTypeChange.bind(this)}
-                                  />
-                                </div>
-                                <div className="report-title-operation">
-                                  <Modal trigger={<Button icon="expand arrows alternate" title="放大" className="inverted blue button" onClick={this.showImages}></Button>}>
-                                    <Modal.Header>
-                                      <Grid>
-                                        <Grid.Row>
-                                          <Grid.Column width={3} textAlign="left">
-                                            影像诊断报告
-                                          </Grid.Column>
-                                          <Grid.Column width={6}></Grid.Column>
-                                          <Grid.Column width={3} textAlign="right">
-                                            {this.state.temp === 1 ? (
-                                              <Button color="blue" onClick={this.exportPDF}>
-                                                导出pdf
-                                              </Button>
-                                            ) : (
-                                              <Button color="blue" loading>
-                                                Loading
-                                              </Button>
-                                            )}
-                                          </Grid.Column>
-                                        </Grid.Row>
-                                      </Grid>
-                                    </Modal.Header>
-                                    <Modal.Content image scrolling id="pdf">
-                                      <Modal.Description>
-                                        <table>
-                                          <tbody>
-                                            <tr>
-                                              <td>
-                                                <Header>病人编号:</Header>
-                                              </td>
-                                              <td>{this.state.patientId}</td>
-
-                                              <td>
-                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-                                              </td>
-                                              <td align="right">
-                                                <Header>姓名:</Header>
-                                              </td>
-                                              <td>&nbsp;</td>
-                                            </tr>
-                                            <tr>
-                                              <td>
-                                                <Header>出生日期:</Header>
-                                              </td>
-                                              <td>{this.state.patientBirth}</td>
-                                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-
-                                              <td align="right">
-                                                <Header>年龄:</Header>
-                                              </td>
-                                              <td>{this.state.age}</td>
-                                            </tr>
-                                            <tr>
-                                              <td>
-                                                <Header>性别:</Header>
-                                              </td>
-                                              <td>{this.state.patientSex}</td>
-                                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                                              <td align="right">
-                                                <Header>检查日期:</Header>
-                                              </td>
-                                              <td>{this.state.date}</td>
-                                            </tr>
-                                            <tr>
-                                              <td>
-                                                <Header>检查编号:</Header>
-                                              </td>
-                                              <td>12580359</td>
-                                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                                              <td align="right">
-                                                <Header>入库编号:</Header>
-                                              </td>
-                                              <td>&nbsp;</td>
-                                            </tr>
-                                            <tr>
-                                              <td>
-                                                <Header>报告撰写日期:</Header>
-                                              </td>
-                                              <td>&nbsp;</td>
-                                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-                                              <td align="right">
-                                                <Header>请求过程描述:</Header>
-                                              </td>
-                                              <td>&nbsp;</td>
-                                            </tr>
-                                          </tbody>
-                                        </table>
-                                        <Divider />
-                                        <table>
-                                          <tbody>
-                                            <tr>
-                                              <td width="50%">
-                                                <Header>体重:</Header>
-                                              </td>
-                                              <td></td>
-                                            </tr>
-                                            <tr>
-                                              <td>
-                                                <Header>身高:</Header>
-                                              </td>
-                                              <td align="right">
-                                                <Header>体重系数:</Header>
-                                              </td>
-                                            </tr>
-                                          </tbody>
-                                        </table>
-
-                                        <Divider />
-
-                                        <div style={{ fontSize: 20, color: '#6495ED' }}>扫描参数</div>
-                                        <Table celled>
-                                          <Table.Header>
-                                            <Table.Row>
-                                              <Table.HeaderCell>检查日期</Table.HeaderCell>
-                                              <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
-                                              <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
-                                              <Table.HeaderCell>kV</Table.HeaderCell>
-                                              <Table.HeaderCell>mA</Table.HeaderCell>
-                                              <Table.HeaderCell>mAs</Table.HeaderCell>
-                                              {/* <Table.HeaderCell>Recon Name</Table.HeaderCell> */}
-                                              <Table.HeaderCell>厂商</Table.HeaderCell>
-                                            </Table.Row>
-                                          </Table.Header>
-                                          <Table.Body></Table.Body>
-                                        </Table>
-                                        <div style={{ fontSize: 20, color: '#6495ED' }}>肺部详情</div>
-                                        <Table celled>
-                                          <Table.Header>
-                                            <Table.Row>
-                                              <Table.HeaderCell>检查日期</Table.HeaderCell>
-                                              <Table.HeaderCell>体积</Table.HeaderCell>
-                                              <Table.HeaderCell>结节总体积</Table.HeaderCell>
-                                            </Table.Row>
-                                          </Table.Header>
-                                          <Table.Body></Table.Body>
-                                        </Table>
-                                        {nodules && nodules.length
-                                          ? nodules.map((nodule, index) => {
-                                              let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
-                                              let visualId = 'visual' + index
-                                              // console.log('visualId',visualId)
-                                              return (
-                                                <div key={index}>
-                                                  <Divider />
-                                                  <div>&nbsp;</div>
-                                                  <div style={{ fontSize: 20, color: '#6495ED' }} id="noduleDivide">
-                                                    结节 {index + 1}
-                                                  </div>
-                                                  <Table celled textAlign="center">
-                                                    <Table.Header>
-                                                      <Table.Row>
-                                                        <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
-                                                        <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
-                                                      </Table.Row>
-                                                    </Table.Header>
-                                                    <Table.Body>
-                                                      <Table.Row>
-                                                        <Table.Cell>切片号</Table.Cell>
-                                                        <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>肺叶位置</Table.Cell>
-                                                        <Table.Cell>{nodule['place'] === undefined || nodule['place'] === 0 ? '' : places[nodule['place']]}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>肺段位置</Table.Cell>
-                                                        <Table.Cell>{nodule['segment'] === undefined ? '' : noduleSegments[nodule['segment']]}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>危险程度</Table.Cell>
-                                                        <Table.Cell>{nodule['malignancy'] === 2 ? '高危' : '低危'}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>毛刺</Table.Cell>
-                                                        <Table.Cell>{nodule['spiculation'] === 2 ? '毛刺' : '非毛刺'}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>分叶</Table.Cell>
-                                                        <Table.Cell>{nodule['lobulation'] === 2 ? '分叶' : '非分叶'}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>钙化</Table.Cell>
-                                                        <Table.Cell>{nodule['calcification'] === 2 ? '钙化' : '非钙化'}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>密度</Table.Cell>
-                                                        <Table.Cell>{nodule['texture'] === 2 ? '实性' : '磨玻璃'}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>直径</Table.Cell>
-                                                        <Table.Cell>
-                                                          {Math.floor(nodule['diameter'] * 10) / 100}
-                                                          厘米
-                                                        </Table.Cell>
-                                                      </Table.Row>
-
-                                                      <Table.Row>
-                                                        <Table.Cell>体积</Table.Cell>
-                                                        <Table.Cell>{nodule['volume'] === undefined ? null : Math.floor(nodule['volume'] * 100) / 100 + 'cm³'}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>HU(最小值/均值/最大值)</Table.Cell>
-                                                        <Table.Cell>{nodule['huMin'] === undefined ? null : nodule['huMin'] + ' / ' + nodule['huMean'] + ' / ' + nodule['huMax']}</Table.Cell>
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>结节部分</Table.Cell>
-                                                        <Table.Cell>
-                                                          <div
-                                                            id={nodule_id}
-                                                            style={{
-                                                              width: '300px',
-                                                              height: '250px',
-                                                              margin: '0 auto',
-                                                            }}></div>
-                                                        </Table.Cell>
-                                                        {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
-                                                      </Table.Row>
-                                                      <Table.Row>
-                                                        <Table.Cell>直方图</Table.Cell>
-                                                        <Table.Cell>
-                                                          <div id={visualId} style={{ margin: '0 auto' }}></div>
-                                                        </Table.Cell>
-                                                      </Table.Row>
-                                                    </Table.Body>
-                                                  </Table>
-                                                </div>
-                                              )
-                                            })
-                                          : null}
-
-                                        <Divider />
-                                      </Modal.Description>
-                                    </Modal.Content>
-                                  </Modal>
-
-                                  <Button title="复制" className="inverted blue button" icon="copy outline" onClick={this.handleCopyClick}></Button>
-                                </div>
+                              {/* </div> */}
+                              <div id="cor-slice-slider" style={{ height: `${canvasHeight * 0.7}px`, top: `${canvasHeight * 0.15}px` }}>
+                                <Slider
+                                  vertical
+                                  reverse
+                                  tipFormatter={null}
+                                  marks={sliderMarks}
+                                  value={this.state.currentIdx + 1}
+                                  onChange={this.handleRangeChange}
+                                  // onAfterChange={this.handleRangeChange.bind(this)}
+                                  min={1}
+                                  step={1}
+                                  max={this.state.imageIds.length}></Slider>
                               </div>
-                            </Accordion.Title>
-                            <Accordion.Content active={reportImageActive} style={{ height: `${reportImageContentHeight}px` }}>
-                              <Form.TextArea
-                                id="report-image-textarea"
-                                className="report-textarea"
-                                placeholder="在此填写诊断报告"
-                                onChange={this.onHandleImageTextareaChange.bind(this)}
-                                value={reportImageText}
-                                maxLength={500}></Form.TextArea>
-                            </Accordion.Content>
-                          </Accordion>
+                            </div>
+                          )}
                         </div>
                       )}
+
+                      {/* <div className='antd-slider'> */}
+
+                      {/* </div> */}
+                      {visualContent}
+                      <button id="closeVisualContent" className="closeVisualContent-cross" style={{ bottom: `${histogramHeight}px` }} onClick={this.closeVisualContent}>
+                        ×
+                      </button>
+                    </div>
+                    <div
+                      className={'corner-list-block' + (studyListShowed ? ' corner-list-contract-block' : '') + (verticalMode ? ' corner-list-vertical-block' : ' corner-list-horizontal-block')}
+                      style={studyListShowed ? { paddingRight: `${ctInfoPadding}px` } : {}}>
+                      <div className={'ct-list-container'}>
+                        <div id="nodule-card-container" className={verticalMode ? 'nodule-card-container-vertical' : 'nodule-card-container-horizontal'}>
+                          <Tabs type="card" defaultActiveKey={1} size="small">
+                            <TabPane tab={'肺病灶'} key="1">
+                              <Tabs type="card" defaultActiveKey={1} size="small">
+                                <TabPane tab={`肺结节 ${nodules.length}个`} key="1">
+                                  <div id="elec-table">
+                                    {this.state.boxes.length === 0 ? (
+                                      <div
+                                        style={{
+                                          height: '100%',
+                                          background: 'rgb(23, 28, 47)',
+                                          display: 'flex',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                        }}>
+                                        <Header as="h2" inverted>
+                                          <Icon name="low vision" />
+                                          <Header.Content>未检测出任何结节</Header.Content>
+                                        </Header>
+                                      </div>
+                                    ) : (
+                                      <div className="nodule-card-content">
+                                        <div className="nodule-filter">
+                                          <div className="nodule-filter-desc">
+                                            <div className="nodule-filter-desc-index"></div>
+                                            <Checkbox
+                                              className="nodule-filter-desc-checkbox"
+                                              checked={nodulesAllChecked}
+                                              onChange={this.onHandleNoduleAllCheckChange.bind(this)}
+                                              onClick={this.onHandleNoduleAllCheckClick.bind(this)}>
+                                              全选
+                                            </Checkbox>
+                                            <div className="nodule-filter-desc-text">已筛选{noduleNumber}个病灶</div>
+                                          </div>
+                                          <div className="nodule-filter-operation">
+                                            <Popup on="click" style={{ backgroundColor: 'rgb(39, 46, 72)' }} trigger={<FontAwesomeIcon className="nodule-filter-operation-icon" icon={faFilter} />}>
+                                              <div className="nodule-filter-operation-select">
+                                                <div className="nodule-filter-operation-select-header">
+                                                  已筛选<span>{noduleNumber}</span>个病灶
+                                                </div>
+                                                <div className="nodule-filter-operation-select-content">
+                                                  <div className="nodule-filter-operation-select-content-block">
+                                                    <div className="nodule-filter-operation-select-content-header">结节类型</div>
+                                                    {noduleSelectContent[0]}
+                                                  </div>
+                                                  <div className="nodule-filter-operation-select-content-block">
+                                                    <div className="nodule-filter-operation-select-content-header">直径大小</div>
+                                                    {noduleSelectContent[1]}
+                                                  </div>
+                                                  <div className="nodule-filter-operation-select-content-block">
+                                                    <div className="nodule-filter-operation-select-content-header">良恶性</div>
+                                                    {noduleSelectContent[2]}
+                                                  </div>
+                                                  <div className="nodule-filter-operation-select-content-bottom">
+                                                    <div className="nodule-filter-operation-select-content-bottom-left">
+                                                      <Checkbox
+                                                        className="nodule-filter-operation-select-content-bottom-check"
+                                                        checked={nodulesAllSelected}
+                                                        onChange={this.onHandleSelectAllNodules.bind(this)}></Checkbox>
+                                                      全选
+                                                    </div>
+                                                    <div className="nodule-filter-operation-select-content-bottom-right">
+                                                      <Button className="nodule-filter-operation-select-content-bottom-button" onClick={this.onHandleSelectNoduleComplete.bind(this)}>
+                                                        确定
+                                                      </Button>
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </Popup>
+
+                                            <Popup
+                                              on="click"
+                                              style={{ backgroundColor: 'rgb(39, 46, 72)' }}
+                                              trigger={<FontAwesomeIcon className="nodule-filter-operation-icon" icon={faSortAmountDownAlt} />}>
+                                              <div className="nodule-filter-operation-sort">
+                                                <div className="nodule-filter-operation-sort-header">排序</div>
+                                                <div className="nodule-filter-operation-sort-content">{noduleOrderContent}</div>
+                                              </div>
+                                            </Popup>
+                                          </div>
+                                        </div>
+                                        <Accordion styled id="nodule-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
+                                          {tableContent}
+                                        </Accordion>
+                                      </div>
+                                    )}
+                                  </div>
+                                </TabPane>
+
+                                {show3DVisualization ? (
+                                  <>
+                                    <TabPane tab={'肺叶'} key="3">
+                                      <div id="elec-table">
+                                        <div className="threed-card-content">
+                                          <div className="threed-filter">
+                                            <div className="threed-filter-desc">
+                                              <div className="threed-filter-desc-index"></div>
+                                              <Checkbox
+                                                className="threed-filter-desc-checkbox"
+                                                checked={lobesAllChecked}
+                                                onChange={this.onHandleThreedAllCheckChange.bind(this, 0)}
+                                                onClick={this.onHandleThreedAllCheckClick.bind(this)}>
+                                                全选
+                                              </Checkbox>
+                                              <div className="threed-filter-desc-text">已选择{lobeCheckNumber}个肺叶</div>
+                                            </div>
+                                            <div className="threed-filter-operation">
+                                              {lobesAllVisible ? (
+                                                <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEyeSlash} onClick={this.onSetThreedAllVisible.bind(this, 0, false)} />
+                                              ) : (
+                                                <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEye} onClick={this.onSetThreedAllVisible.bind(this, 0, true)} />
+                                              )}
+                                            </div>
+                                          </div>
+                                          <Accordion styled id="lobe-accordion" fluid>
+                                            {lobeContent}
+                                          </Accordion>
+                                        </div>
+                                      </div>
+                                    </TabPane>
+                                    <TabPane tab={'气管和血管'} key="4">
+                                      <div id="elec-table">
+                                        <div className="threed-card-content">
+                                          <div className="threed-filter">
+                                            <div className="threed-filter-desc">
+                                              <div className="threed-filter-desc-index"></div>
+                                              <Checkbox
+                                                className="threed-filter-desc-checkbox"
+                                                checked={tubularAllChecked}
+                                                onChange={this.onHandleThreedAllCheckChange.bind(this, 1)}
+                                                onClick={this.onHandleThreedAllCheckClick.bind(this)}>
+                                                全选
+                                              </Checkbox>
+                                              <div className="threed-filter-desc-text">已选择{tubularCheckNumber}个管状结构</div>
+                                            </div>
+                                            <div className="threed-filter-operation">
+                                              {tubularAllVisible ? (
+                                                <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEyeSlash} onClick={this.onSetThreedAllVisible.bind(this, 1, false)} />
+                                              ) : (
+                                                <FontAwesomeIcon className="threed-filter-operation-icon" icon={faEye} onClick={this.onSetThreedAllVisible.bind(this, 1, true)} />
+                                              )}
+                                            </div>
+                                          </div>
+
+                                          <Accordion styled id="tubular-accordion" fluid>
+                                            {tubularContent}
+                                          </Accordion>
+                                        </div>
+                                      </div>
+                                    </TabPane>
+                                  </>
+                                ) : (
+                                  <>{/* <TabPane tab={'肺炎'} key="2"></TabPane> */}</>
+                                )}
+                              </Tabs>
+                            </TabPane>
+                            <TabPane tab={'淋巴结'} key="2"></TabPane>
+                            <TabPane tab={'其他'} key="3"></TabPane>
+                            {/* <TabPane tab={inflammationTab} key="2">
+                                                      Content of Tab Pane 2
+                                                      </TabPane>
+                                                      <TabPane tab={lymphnodeTab} key="3">
+                                                      Content of Tab Pane 3
+                                                      </TabPane> */}
+                          </Tabs>
+                        </div>
+
+                        {show3DVisualization ? (
+                          <div id="threed-mask-container" className={verticalMode ? ' threed-mask-container-vertical' : ' threed-mask-container-horizontal'}>
+                            {MPR && painting && maskVolumes && maskVolumes.length ? (
+                              <VTKMaskViewer
+                                viewerStyle={{
+                                  width: `${maskWidth}px`,
+                                  height: `${maskHeight}px`,
+                                }}
+                                volumes={maskVolumes}
+                                maskWidth={maskWidth}
+                                maskHeight={maskHeight}
+                                paintFilterBackgroundImageData={maskImageData}
+                                paintFilterLabelMapImageData={maskLabelMap}
+                                painting={painting}
+                                parallelScale={maskYLength / 2}
+                                onRef={(ref) => {
+                                  this.viewerMask = ref
+                                }}
+                              />
+                            ) : (
+                              <div id="lobe-func-container">
+                                <div className="lobe-func-header">肺功能</div>
+                                <div className="lobe-func-content">
+                                  <div className="lobe-func-item">第1秒用力呼气容积(fev1)：2.24</div>
+                                  <div className="lobe-func-item">第1秒用力呼气的容积占预计值的百分比(fev1%pred)：95%</div>
+                                  <div className="lobe-func-item">用力肺活量(fvc)：3.38</div>
+                                  <div className="lobe-func-item">用力肺活量占预测值的百分比（fvc%pred)：115%</div>
+                                  <div className="lobe-func-item">第一秒用力呼气量占所有呼气量的比例(fev1/fvc%)：66.7%</div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <div id="report" className={'report-tab-container' + (verticalMode ? ' report-tab-container-vertical' : ' report-tab-container-horizontal')}>
+                            <Accordion id="report-accordion-guide">
+                              <Accordion.Title active={reportGuideActive} onClick={this.onSetReportGuideActive.bind(this)}>
+                                <div className="report-title">
+                                  <div className="report-title-desc">
+                                    <Dropdown
+                                      options={[
+                                        {
+                                          key: '中华共识',
+                                          text: '中华共识',
+                                          value: '中华共识',
+                                        },
+                                        {
+                                          key: 'Fleischner',
+                                          text: 'Fleischner',
+                                          value: 'Fleischner',
+                                        },
+                                        {
+                                          key: 'NCCN',
+                                          text: 'NCCN',
+                                          value: 'NCCN',
+                                        },
+                                        {
+                                          key: 'Lung-RADS',
+                                          text: 'Lung-RADS',
+                                          value: 'Lung-RADS',
+                                        },
+                                        {
+                                          key: '亚洲共识',
+                                          text: '亚洲共识',
+                                          value: '亚洲共识',
+                                        },
+                                      ]}
+                                      defaultValue={reportGuideType}
+                                      icon={<FontAwesomeIcon icon={faChevronDown} />}
+                                      onChange={this.onHandleReportGuideTypeChange.bind(this)}
+                                    />
+                                  </div>
+                                </div>
+                              </Accordion.Title>
+                              <Accordion.Content active={reportGuideActive}>
+                                <Form.TextArea
+                                  id="report-guide-textarea"
+                                  className="report-textarea"
+                                  placeholder="在此查看指南"
+                                  onChange={this.onHandleGuideTextareaChange.bind(this)}
+                                  value={reportGuideText}
+                                  maxLength={500}></Form.TextArea>
+                              </Accordion.Content>
+                            </Accordion>
+
+                            <Accordion id="report-accordion-image" style={{ top: `${reportImageTop}px`, height: `${reportImageHeight}px` }}>
+                              <Accordion.Title id="report-accordion-image-header" active={reportImageActive} onClick={this.onSetReportImageActive.bind(this)}>
+                                <div className="report-title">
+                                  <div className="report-title-desc">
+                                    诊断报告
+                                    <Dropdown
+                                      className="report-title-desc-type"
+                                      options={[
+                                        {
+                                          key: '结节类型',
+                                          text: '结节类型',
+                                          value: '结节类型',
+                                        },
+                                        {
+                                          key: '单个结节',
+                                          text: '单个结节',
+                                          value: '单个结节',
+                                        },
+                                      ]}
+                                      defaultValue={reportImageType}
+                                      icon={<FontAwesomeIcon icon={faChevronDown} />}
+                                      onChange={this.onHandleReportImageTypeChange.bind(this)}
+                                    />
+                                  </div>
+                                  <div className="report-title-operation">
+                                    <Modal trigger={<Button icon="expand arrows alternate" title="放大" className="inverted blue button" onClick={this.showImages}></Button>}>
+                                      <Modal.Header>
+                                        <Grid>
+                                          <Grid.Row>
+                                            <Grid.Column width={3} textAlign="left">
+                                              影像诊断报告
+                                            </Grid.Column>
+                                            <Grid.Column width={6}></Grid.Column>
+                                            <Grid.Column width={3} textAlign="right">
+                                              {this.state.temp === 1 ? (
+                                                <Button color="blue" onClick={this.exportPDF}>
+                                                  导出pdf
+                                                </Button>
+                                              ) : (
+                                                <Button color="blue" loading>
+                                                  Loading
+                                                </Button>
+                                              )}
+                                            </Grid.Column>
+                                          </Grid.Row>
+                                        </Grid>
+                                      </Modal.Header>
+                                      <Modal.Content image scrolling id="pdf">
+                                        <Modal.Description>
+                                          <table>
+                                            <tbody>
+                                              <tr>
+                                                <td>
+                                                  <Header>病人编号:</Header>
+                                                </td>
+                                                <td>{this.state.patientId}</td>
+
+                                                <td>
+                                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                                </td>
+                                                <td align="right">
+                                                  <Header>姓名:</Header>
+                                                </td>
+                                                <td>&nbsp;</td>
+                                              </tr>
+                                              <tr>
+                                                <td>
+                                                  <Header>出生日期:</Header>
+                                                </td>
+                                                <td>{this.state.patientBirth}</td>
+                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+
+                                                <td align="right">
+                                                  <Header>年龄:</Header>
+                                                </td>
+                                                <td>{this.state.age}</td>
+                                              </tr>
+                                              <tr>
+                                                <td>
+                                                  <Header>性别:</Header>
+                                                </td>
+                                                <td>{this.state.patientSex}</td>
+                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                                <td align="right">
+                                                  <Header>检查日期:</Header>
+                                                </td>
+                                                <td>{this.state.date}</td>
+                                              </tr>
+                                              <tr>
+                                                <td>
+                                                  <Header>检查编号:</Header>
+                                                </td>
+                                                <td>12580359</td>
+                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                                <td align="right">
+                                                  <Header>入库编号:</Header>
+                                                </td>
+                                                <td>&nbsp;</td>
+                                              </tr>
+                                              <tr>
+                                                <td>
+                                                  <Header>报告撰写日期:</Header>
+                                                </td>
+                                                <td>&nbsp;</td>
+                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+                                                <td align="right">
+                                                  <Header>请求过程描述:</Header>
+                                                </td>
+                                                <td>&nbsp;</td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+                                          <Divider />
+                                          <table>
+                                            <tbody>
+                                              <tr>
+                                                <td width="50%">
+                                                  <Header>体重:</Header>
+                                                </td>
+                                                <td></td>
+                                              </tr>
+                                              <tr>
+                                                <td>
+                                                  <Header>身高:</Header>
+                                                </td>
+                                                <td align="right">
+                                                  <Header>体重系数:</Header>
+                                                </td>
+                                              </tr>
+                                            </tbody>
+                                          </table>
+
+                                          <Divider />
+
+                                          <div style={{ fontSize: 20, color: '#6495ED' }}>扫描参数</div>
+                                          <Table celled>
+                                            <Table.Header>
+                                              <Table.Row>
+                                                <Table.HeaderCell>检查日期</Table.HeaderCell>
+                                                <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
+                                                <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
+                                                <Table.HeaderCell>kV</Table.HeaderCell>
+                                                <Table.HeaderCell>mA</Table.HeaderCell>
+                                                <Table.HeaderCell>mAs</Table.HeaderCell>
+                                                {/* <Table.HeaderCell>Recon Name</Table.HeaderCell> */}
+                                                <Table.HeaderCell>厂商</Table.HeaderCell>
+                                              </Table.Row>
+                                            </Table.Header>
+                                            <Table.Body></Table.Body>
+                                          </Table>
+                                          <div style={{ fontSize: 20, color: '#6495ED' }}>肺部详情</div>
+                                          <Table celled>
+                                            <Table.Header>
+                                              <Table.Row>
+                                                <Table.HeaderCell>检查日期</Table.HeaderCell>
+                                                <Table.HeaderCell>体积</Table.HeaderCell>
+                                                <Table.HeaderCell>结节总体积</Table.HeaderCell>
+                                              </Table.Row>
+                                            </Table.Header>
+                                            <Table.Body></Table.Body>
+                                          </Table>
+                                          {nodules && nodules.length
+                                            ? nodules.map((nodule, index) => {
+                                                let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
+                                                let visualId = 'visual' + index
+                                                // console.log('visualId',visualId)
+                                                return (
+                                                  <div key={index}>
+                                                    <Divider />
+                                                    <div>&nbsp;</div>
+                                                    <div style={{ fontSize: 20, color: '#6495ED' }} id="noduleDivide">
+                                                      结节 {index + 1}
+                                                    </div>
+                                                    <Table celled textAlign="center">
+                                                      <Table.Header>
+                                                        <Table.Row>
+                                                          <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
+                                                          <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
+                                                        </Table.Row>
+                                                      </Table.Header>
+                                                      <Table.Body>
+                                                        <Table.Row>
+                                                          <Table.Cell>切片号</Table.Cell>
+                                                          <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>肺叶位置</Table.Cell>
+                                                          <Table.Cell>{nodule['place'] === undefined || nodule['place'] === 0 ? '' : places[nodule['place']]}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>肺段位置</Table.Cell>
+                                                          <Table.Cell>{nodule['segment'] === undefined ? '' : noduleSegments[nodule['segment']]}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>危险程度</Table.Cell>
+                                                          <Table.Cell>{nodule['malignancy'] === 2 ? '高危' : '低危'}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>毛刺</Table.Cell>
+                                                          <Table.Cell>{nodule['spiculation'] === 2 ? '毛刺' : '非毛刺'}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>分叶</Table.Cell>
+                                                          <Table.Cell>{nodule['lobulation'] === 2 ? '分叶' : '非分叶'}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>钙化</Table.Cell>
+                                                          <Table.Cell>{nodule['calcification'] === 2 ? '钙化' : '非钙化'}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>密度</Table.Cell>
+                                                          <Table.Cell>{nodule['texture'] === 2 ? '实性' : '磨玻璃'}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>直径</Table.Cell>
+                                                          <Table.Cell>
+                                                            {Math.floor(nodule['diameter'] * 10) / 100}
+                                                            厘米
+                                                          </Table.Cell>
+                                                        </Table.Row>
+
+                                                        <Table.Row>
+                                                          <Table.Cell>体积</Table.Cell>
+                                                          <Table.Cell>{nodule['volume'] === undefined ? null : Math.floor(nodule['volume'] * 100) / 100 + 'cm³'}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>HU(最小值/均值/最大值)</Table.Cell>
+                                                          <Table.Cell>{nodule['huMin'] === undefined ? null : nodule['huMin'] + ' / ' + nodule['huMean'] + ' / ' + nodule['huMax']}</Table.Cell>
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>结节部分</Table.Cell>
+                                                          <Table.Cell>
+                                                            <div
+                                                              id={nodule_id}
+                                                              style={{
+                                                                width: '300px',
+                                                                height: '250px',
+                                                                margin: '0 auto',
+                                                              }}></div>
+                                                          </Table.Cell>
+                                                          {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
+                                                        </Table.Row>
+                                                        <Table.Row>
+                                                          <Table.Cell>直方图</Table.Cell>
+                                                          <Table.Cell>
+                                                            <div id={visualId} style={{ margin: '0 auto' }}></div>
+                                                          </Table.Cell>
+                                                        </Table.Row>
+                                                      </Table.Body>
+                                                    </Table>
+                                                  </div>
+                                                )
+                                              })
+                                            : null}
+
+                                          <Divider />
+                                        </Modal.Description>
+                                      </Modal.Content>
+                                    </Modal>
+
+                                    <Button title="复制" className="inverted blue button" icon="copy outline" onClick={this.handleCopyClick.bind(this)}></Button>
+                                  </div>
+                                </div>
+                              </Accordion.Title>
+                              <Accordion.Content active={reportImageActive} style={{ height: `${reportImageContentHeight}px` }}>
+                                <Form.TextArea
+                                  id="report-image-textarea"
+                                  className="report-textarea"
+                                  placeholder="在此填写诊断报告"
+                                  onChange={this.onHandleImageTextareaChange.bind(this)}
+                                  value={reportImageText}
+                                  maxLength={500}></Form.TextArea>
+                              </Accordion.Content>
+                            </Accordion>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
+                )}
               </Sidebar.Pusher>
             </Sidebar.Pushable>
-          </Grid.Row>
-          {histogramFloatWindow}
-        </Grid>
+          </div>
+        </div>
       )
       // }
     } else {
@@ -4051,7 +3564,15 @@ class CornerstoneElement extends Component {
               }}>
               <canvas className="cornerstone-canvas" id="canvas" />
               {/* <canvas className="cornerstone-canvas" id="length-canvas"/> */}
-              <div style={topLeftStyle}>{dicomTag.string('x00100010')}</div>
+              <div
+                style={{
+                  top: '5px',
+                  // left: "-95px", // 5px
+                  position: 'absolute',
+                  color: 'white',
+                }}>
+                {dicomTag.string('x00100010')}
+              </div>
               <div
                 style={{
                   position: 'absolute',
@@ -4088,7 +3609,15 @@ class CornerstoneElement extends Component {
                 }}>
                 IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}
               </div>
-              <div style={topRightStyle}>{dicomTag.string('x00080080')}</div>
+              <div
+                style={{
+                  top: '5px',
+                  right: '5px', //5px
+                  position: 'absolute',
+                  color: 'white',
+                }}>
+                {dicomTag.string('x00080080')}
+              </div>
               <div
                 style={{
                   position: 'absolute',
@@ -4143,8 +3672,22 @@ class CornerstoneElement extends Component {
                 }}>
                 Offset: {this.state.viewport.translation['x'].toFixed(3)}, {this.state.viewport.translation['y'].toFixed(3)}
               </div>
-              <div style={bottomLeftStyle}>Zoom: {Math.round(this.state.viewport.scale * 100)} %</div>
-              <div style={bottomRightStyle}>
+              <div
+                style={{
+                  bottom: '5px',
+                  left: '-95px',
+                  position: 'absolute',
+                  color: 'white',
+                }}>
+                Zoom: {Math.round(this.state.viewport.scale * 100)} %
+              </div>
+              <div
+                style={{
+                  bottom: '5px',
+                  right: '-95px',
+                  position: 'absolute',
+                  color: 'white',
+                }}>
                 WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}/ {Math.round(this.state.viewport.voi.windowCenter)}
               </div>
             </div>
@@ -4567,20 +4110,19 @@ class CornerstoneElement extends Component {
       nodule_no: newIdx,
       prevIdx: newIdx,
       visibleIdx: newIdx,
+      visible: true,
+      checked: false,
     }
     // let boxes = this.state.selectBoxes
     let boxes = this.state.boxes
     boxes.push(newBox)
     let measureStateList = this.state.measureStateList
     measureStateList.push(false)
-    let nodulesChecked = this.state.nodulesChecked
-    nodulesChecked.push(false)
     this.setState({
       boxes,
       measureStateList,
-      nodulesChecked,
     })
-    console.log('Boxes', boxes, measureStateList, nodulesChecked)
+    console.log('Boxes', boxes, measureStateList)
 
     // })
     this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
@@ -5143,7 +4685,6 @@ class CornerstoneElement extends Component {
     // if (this.state.show3DVisualization) {
     //   return
     // }
-    console.log(event.which)
     if (document.getElementById('slice-slider') !== null) document.getElementById('slice-slider').blur()
     if (event.which == 77) {
       // m, magnify to immersive mode
@@ -5167,8 +4708,17 @@ class CornerstoneElement extends Component {
     if (event.which == 38) {
       //切换结节list
       event.preventDefault()
+      const boxes = this.state.boxes
       const listsActiveIndex = this.state.listsActiveIndex
-      if (listsActiveIndex > 0) this.keyDownListSwitch(listsActiveIndex - 1)
+      if (listsActiveIndex === -1) {
+        this.keyDownListSwitch(0)
+      } else {
+        if (listsActiveIndex === 0) {
+          this.keyDownListSwitch(boxes.length - 1)
+        } else {
+          this.keyDownListSwitch(listsActiveIndex - 1)
+        }
+      }
     }
     if (event.which == 39) {
       if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
@@ -5183,15 +4733,17 @@ class CornerstoneElement extends Component {
     if (event.which == 40) {
       //切换结节list
       event.preventDefault()
+      const boxes = this.state.boxes
       const listsActiveIndex = this.state.listsActiveIndex
       // const boxes = this.state.selectBoxes
-      let boxes = this.state.boxes
-      if (listsActiveIndex < boxes.length - 1) {
-        console.log('listsActiveIndex', listsActiveIndex)
-        this.keyDownListSwitch(listsActiveIndex + 1)
-      } else if (listsActiveIndex === boxes.length - 1) {
-        console.log('listsActiveIndex', listsActiveIndex)
+      if (listsActiveIndex === -1) {
         this.keyDownListSwitch(0)
+      } else {
+        if (listsActiveIndex === boxes.length - 1) {
+          this.keyDownListSwitch(0)
+        } else {
+          this.keyDownListSwitch(listsActiveIndex + 1)
+        }
       }
     }
     if (event.which == 72) {
@@ -5386,106 +4938,147 @@ class CornerstoneElement extends Component {
     this.setState({ doubleClick: true })
   }
 
-  async toFollowUp() {
-    console.log('followup')
-    const dataListParams = {
-      type: 'pid',
-      mainItem: this.state.caseId.split('_')[0],
-      otherKeyword: '',
-    }
-    const allListPromise = new Promise((resolve, reject) => {
-      axios.post(this.config.record.getSubListForMainItem_front, qs.stringify(dataListParams)).then((sublistResponse) => {
-        const sublistData = sublistResponse.data.subList
-        resolve(sublistData)
-      }, reject)
+  showFollowUp() {
+    this.onSetStudyList(true)
+    this.setState({
+      showFollowUp: true,
     })
 
-    const sublistData = await allListPromise
-    console.log('subl', sublistData)
-    const currentDate = this.state.caseId.split('_')[1]
-    var i = 0
-    for (var key in sublistData) {
-      i += 1
-      if (key === currentDate) break
-    }
-    var preCaseId = ''
-    for (var key in sublistData) {
-      i -= 1
-      if (i === 1) {
-        preCaseId = sublistData[key][0].caseId
-        break
-      }
-    }
-    if (preCaseId === '') {
-      preCaseId = this.state.caseId
-    }
+    // const dataListParams = {
+    //   type: 'pid',
+    //   mainItem: this.state.caseId.split('_')[0],
+    //   otherKeyword: '',
+    // }
+    // const allListPromise = new Promise((resolve, reject) => {
+    //   axios.post(this.config.record.getSubListForMainItem_front, qs.stringify(dataListParams)).then((sublistResponse) => {
+    //     const sublistData = sublistResponse.data.subList
+    //     resolve(sublistData)
+    //   }, reject)
+    // })
 
-    console.log('preCaseId', preCaseId)
-    window.location.href = '/followup/' + this.state.caseId + '&' + preCaseId + '/' + this.state.username
+    // const sublistData = await allListPromise
+    // console.log('subl', sublistData)
+    // const currentDate = this.state.caseId.split('_')[1]
+    // var i = 0
+    // for (var key in sublistData) {
+    //   i += 1
+    //   if (key === currentDate) break
+    // }
+    // var preCaseId = ''
+    // for (var key in sublistData) {
+    //   i -= 1
+    //   if (i === 1) {
+    //     preCaseId = sublistData[key][0].caseId
+    //     break
+    //   }
+    // }
+    // if (preCaseId === '') {
+    //   preCaseId = this.state.caseId
+    // }
+
+    // console.log('preCaseId', preCaseId)
+    // window.location.href = '/followup/' + this.state.caseId + '&' + preCaseId + '/' + this.state.username
   }
-
+  hideFollowUp() {
+    this.setState(
+      {
+        showFollowUp: false,
+      },
+      () => {
+        this.resizeScreen()
+      }
+    )
+  }
   reset() {
     //重置
-    let viewport = cornerstone.getViewport(this.element)
-    viewport.translation = {
-      x: 0,
-      y: 0,
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.reset()
+      }
+    } else if (this.state.show3DVisualization) {
+      this.resetAllView()
+    } else {
+      let viewport = cornerstone.getViewport(this.element)
+      viewport.translation = {
+        x: 0,
+        y: 0,
+      }
+      viewport.scale = this.state.canvasHeight / 512
+      // viewport.scale = document.getElementById("canvas").width / 512;
+      cornerstone.setViewport(this.element, viewport)
+      this.setState({ viewport })
+      console.log('to pulmonary', viewport)
     }
-    viewport.scale = this.state.canvasHeight / 512
-    // viewport.scale = document.getElementById("canvas").width / 512;
-    cornerstone.setViewport(this.element, viewport)
-    this.setState({ viewport })
-    console.log('to pulmonary', viewport)
   }
 
-  imagesFilp() {
-    let viewport = cornerstone.getViewport(this.element)
-    if (viewport.invert === true) {
-      viewport.invert = false
+  imagesFlip() {
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.imagesFlip()
+      }
     } else {
-      viewport.invert = true
+      let viewport = cornerstone.getViewport(this.element)
+      if (viewport.invert === true) {
+        viewport.invert = false
+      } else {
+        viewport.invert = true
+      }
+      cornerstone.setViewport(this.element, viewport)
+      this.setState({ viewport })
     }
-    cornerstone.setViewport(this.element, viewport)
-    this.setState({ viewport, menuTools: '' })
   }
 
   ZoomIn() {
     //放大
-    let viewport = cornerstone.getViewport(this.element)
-    // viewport.translation = {
-    //     x: 0,
-    //     y: 0
-    // }
-    if (viewport.scale <= 5) {
-      viewport.scale = 1 + viewport.scale
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.ZoomIn()
+      }
     } else {
-      viewport.scale = 6
+      let viewport = cornerstone.getViewport(this.element)
+      // viewport.translation = {
+      //     x: 0,
+      //     y: 0
+      // }
+      if (viewport.scale <= 5) {
+        viewport.scale = 1 + viewport.scale
+      } else {
+        viewport.scale = 6
+      }
+      cornerstone.setViewport(this.element, viewport)
+      this.setState({ viewport })
     }
-    cornerstone.setViewport(this.element, viewport)
-    this.setState({ viewport })
-    console.log('to ZoomIn', viewport)
   }
 
   ZoomOut() {
     //缩小
-    let viewport = cornerstone.getViewport(this.element)
-    // viewport.translation = {
-    //     x: 0,
-    //     y: 0
-    // }
-    if (viewport.scale >= 2) {
-      viewport.scale = viewport.scale - 1
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.ZoomOut()
+      }
     } else {
-      viewport.scale = 1
+      let viewport = cornerstone.getViewport(this.element)
+      // viewport.translation = {
+      //     x: 0,
+      //     y: 0
+      // }
+      if (viewport.scale >= 2) {
+        viewport.scale = viewport.scale - 1
+      } else {
+        viewport.scale = 1
+      }
+      cornerstone.setViewport(this.element, viewport)
+      this.setState({ viewport })
     }
-    cornerstone.setViewport(this.element, viewport)
-    this.setState({ viewport })
-    console.log('to ZoomOut', viewport)
   }
 
   toPulmonary() {
     //肺窗
-    if (this.state.show3DVisualization) {
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.toPulmonary()
+      }
+    } else if (this.state.show3DVisualization) {
       if (this.state.MPR) {
         this.setWL(1)
       }
@@ -5494,14 +5087,18 @@ class CornerstoneElement extends Component {
       viewport.voi.windowWidth = 1600
       viewport.voi.windowCenter = -600
       cornerstone.setViewport(this.element, viewport)
-      this.setState({ viewport, menuTools: '' })
+      this.setState({ viewport })
       console.log('to pulmonary', viewport)
     }
   }
 
   toMedia() {
     //纵隔窗
-    if (this.state.show3DVisualization) {
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.toMedia()
+      }
+    } else if (this.state.show3DVisualization) {
       if (this.state.MPR) {
         this.setWL(4)
       }
@@ -5510,14 +5107,18 @@ class CornerstoneElement extends Component {
       viewport.voi.windowWidth = 500
       viewport.voi.windowCenter = 50
       cornerstone.setViewport(this.element, viewport)
-      this.setState({ viewport, menuTools: '' })
+      this.setState({ viewport })
       console.log('to media', viewport)
     }
   }
 
   toBoneWindow() {
     //骨窗
-    if (this.state.show3DVisualization) {
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.toBoneWindow()
+      }
+    } else if (this.state.show3DVisualization) {
       if (this.state.MPR) {
         this.setWL(2)
       }
@@ -5526,14 +5127,18 @@ class CornerstoneElement extends Component {
       viewport.voi.windowWidth = 1000
       viewport.voi.windowCenter = 300
       cornerstone.setViewport(this.element, viewport)
-      this.setState({ viewport, menuTools: '' })
+      this.setState({ viewport })
       console.log('to media', viewport)
     }
   }
 
   toVentralWindow() {
     //腹窗
-    if (this.state.show3DVisualization) {
+    if (this.state.showFollowUp) {
+      if (this.followUpComponent) {
+        this.followUpComponent.toVentralWindow()
+      }
+    } else if (this.state.show3DVisualization) {
       if (this.state.MPR) {
         this.setWL(3)
       }
@@ -5542,7 +5147,7 @@ class CornerstoneElement extends Component {
       viewport.voi.windowWidth = 400
       viewport.voi.windowCenter = 40
       cornerstone.setViewport(this.element, viewport)
-      this.setState({ viewport, menuTools: '' })
+      this.setState({ viewport })
       console.log('to media', viewport)
     }
   }
@@ -5676,10 +5281,11 @@ class CornerstoneElement extends Component {
     const backendNodules = this.state.backendNodules
     for (let i = 0; i < boxes.length; i++) {
       const currentIdx = boxes[i].prevIdx
-      console.log('zancun', currentIdx, i)
       backendNodules[currentIdx] = boxes[i]
       delete backendNodules[currentIdx].prevIdx
       delete backendNodules[currentIdx].delOpen
+      delete backendNodules[currentIdx].visible
+      delete backendNodules[currentIdx].checked
     }
     console.log('zancun', [].concat(backendNodules))
     const token = localStorage.getItem('token')
@@ -5729,10 +5335,11 @@ class CornerstoneElement extends Component {
     const backendNodules = this.state.backendNodules
     for (let i = 0; i < boxes.length; i++) {
       const currentIdx = boxes[i].prevIdx
-      console.log('zancun', currentIdx, i)
       backendNodules[currentIdx] = boxes[i]
       delete backendNodules[currentIdx].prevIdx
       delete backendNodules[currentIdx].delOpen
+      delete backendNodules[currentIdx].visible
+      delete backendNodules[currentIdx].checked
     }
     console.log('zancun', backendNodules)
     const headers = {
@@ -5887,6 +5494,9 @@ class CornerstoneElement extends Component {
 
   onImageRendered() {
     const element = document.getElementById('origin-canvas')
+    if (!element) {
+      return
+    }
     const viewport = cornerstone.getViewport(element)
     if (this.state.showNodules === true && this.state.caseId.replace('#', '%23') === window.location.pathname.split('/')[2]) {
       for (let i = 0; i < this.state.boxes.length; i++) {
@@ -5929,6 +5539,7 @@ class CornerstoneElement extends Component {
 
   resizeScreen(e) {
     // console.log("resizeScreen enter", document.body.clientWidth, document.body.clientHeight)
+    console.log('resizeScreen', cornerstone.getEnabledElements())
     const verticalMode = document.body.clientWidth < document.body.clientHeight ? true : false
     this.setState({
       windowWidth: document.body.clientWidth,
@@ -6026,6 +5637,7 @@ class CornerstoneElement extends Component {
     // console.log('element',element)
     if (initial) {
       cornerstone.enable(element)
+
       if (this.state.imageIds.length !== 0) {
         const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
         this.setState({ leftBtnSpeed: leftBtnSpeed })
@@ -6186,7 +5798,7 @@ class CornerstoneElement extends Component {
     const reportImageText = this.state.reportImageText
     if (reportImageText && reportImageText.length > 0) {
       copy(this.state.reportImageText)
-      message.success('复制成功', 20)
+      message.success('复制成功')
     } else {
       message.warn('复制内容为空')
     }
@@ -6319,25 +5931,36 @@ class CornerstoneElement extends Component {
     }, 100)
   }
   onHandleNoduleAllCheckChange() {
-    const nodulesChecked = this.state.nodulesChecked
+    const boxes = this.state.boxes
     const nodulesAllChecked = !this.state.nodulesAllChecked
-    nodulesChecked.forEach((item, index) => {
-      nodulesChecked[index] = nodulesAllChecked
+    boxes.forEach((item, index) => {
+      item.checked = nodulesAllChecked
     })
-    this.setState({
-      nodulesChecked,
-      nodulesAllChecked,
-    })
+    this.setState(
+      {
+        boxes,
+        nodulesAllChecked,
+      },
+      () => {
+        this.template()
+      }
+    )
   }
   onHandleNoduleAllCheckClick(e) {
     e.stopPropagation()
   }
   onHandleNoduleCheckChange(idx) {
-    const nodulesChecked = this.state.nodulesChecked
-    nodulesChecked[idx] = !nodulesChecked[idx]
-    this.setState({
-      nodulesChecked,
-    })
+    const boxes = this.state.boxes
+    boxes[idx].checked = !boxes[idx].checked
+    this.setState(
+      {
+        boxes,
+      },
+      () => {
+        this.isAllCheck(2)
+        this.template()
+      }
+    )
   }
   onHandleNoduleCheckClick(e) {
     e.stopPropagation()
@@ -6388,6 +6011,7 @@ class CornerstoneElement extends Component {
           lobesController,
         },
         () => {
+          this.isAllCheck(classification)
           this.checkVisible(classification)
         }
       )
@@ -6399,6 +6023,7 @@ class CornerstoneElement extends Component {
           tubularController,
         },
         () => {
+          this.isAllCheck(classification)
           this.checkVisible(classification)
         }
       )
@@ -6406,6 +6031,72 @@ class CornerstoneElement extends Component {
   }
   onHandleThreedCheckClick(e) {
     e.stopPropagation()
+  }
+  isAllCheck(classification) {
+    if (classification === 0) {
+      let allChecked = true
+      let notAllChecked = true
+      const lobesController = this.state.lobesController
+      lobesController.lobesChecked.forEach((item, index) => {
+        if (item) {
+          notAllChecked = false
+        } else {
+          allChecked = false
+        }
+      })
+      if (allChecked) {
+        this.setState({
+          lobesAllChecked: true,
+        })
+      }
+      if (notAllChecked) {
+        this.setState({
+          lobesAllChecked: false,
+        })
+      }
+    } else if (classification === 1) {
+      let allChecked = true
+      let notAllChecked = true
+      const tubularController = this.state.tubularController
+      tubularController.tubularChecked.forEach((item, index) => {
+        if (item) {
+          notAllChecked = false
+        } else {
+          allChecked = false
+        }
+      })
+      if (allChecked) {
+        this.setState({
+          tubularAllChecked: true,
+        })
+      }
+      if (notAllChecked) {
+        this.setState({
+          tubularAllChecked: false,
+        })
+      }
+    } else if (classification === 2) {
+      let allChecked = true
+      let notAllChecked = true
+      const boxes = this.state.boxes
+      boxes.forEach((item, index) => {
+        if (item.checked) {
+          notAllChecked = false
+        } else {
+          allChecked = false
+        }
+      })
+      if (allChecked) {
+        this.setState({
+          nodulesAllChecked: true,
+        })
+      }
+      if (notAllChecked) {
+        this.setState({
+          nodulesAllChecked: false,
+        })
+      }
+    }
   }
   checkVisible(classification) {
     if (classification === 0) {
@@ -6463,6 +6154,7 @@ class CornerstoneElement extends Component {
           tubularAllVisible: true,
         })
       }
+    } else if (classification === 2) {
     }
   }
   onSetThreedAllVisible(classification, visibile) {
@@ -6513,7 +6205,11 @@ class CornerstoneElement extends Component {
       })
       nodulesOrder[type] = 1
     } else {
-      nodulesOrder[type] = 1
+      if (type === 'slice_idx' || type === 'diameter') {
+        nodulesOrder[type] = -nodulesOrder[type]
+      } else {
+        nodulesOrder[type] = 1
+      }
     }
     this.setState(
       {
@@ -6553,14 +6249,245 @@ class CornerstoneElement extends Component {
     const keys = Object.keys(nodulesOrder)
     keys.forEach((item) => {
       if (nodulesOrder[item] !== 0) {
-        boxes.sort(this.arrayPropSort(item, nodulesOrder[item]))
-        this.setState({
+        const newBoxes = _.sortBy(
           boxes,
+          function (o) {
+            return nodulesOrder[item] * o[item]
+          },
+          function (o) {
+            return nodulesOrder[item] * o.visibleIdx
+          }
+        )
+        // boxes.sort(this.arrayPropSort(item, nodulesOrder[item]))
+        this.setState({
+          boxes: newBoxes,
         })
       }
     })
   }
+  onHandleSelectNoduleCheck(key, opIdx) {
+    const nodulesSelect = this.state.nodulesSelect
+    const nodulesSelectIndex = _.findIndex(nodulesSelect, { key: key })
+    if (nodulesSelect !== -1) {
+      nodulesSelect[nodulesSelectIndex].checked[opIdx] = !nodulesSelect[nodulesSelectIndex].checked[opIdx]
+    }
+    this.setState({
+      nodulesSelect,
+    })
+  }
+  onHandleSelectAllNodules() {
+    const nodulesAllSelected = !this.state.nodulesAllSelected
+    const nodulesSelect = this.state.nodulesSelect
+    nodulesSelect.forEach((item, index) => {
+      item.checked.forEach((chItem, chIndex) => {
+        item.checked[chIndex] = nodulesAllSelected
+      })
+    })
+    this.setState({
+      nodulesAllSelected,
+      nodulesSelect,
+    })
+  }
+  onHandleSelectNoduleComplete() {
+    const boxes = this.state.boxes
+    console.log('onHandleSelectNoduleComplete', boxes)
+    const selectedPro = []
+    const selectedDiam = []
+    const selectedMal = []
+    const nodulesSelect = this.state.nodulesSelect
+    nodulesSelect.forEach((item, index) => {
+      const nodulesSelectChecked = item.checked
+      if (item.key === 0) {
+        nodulesSelectChecked.forEach((chItem, chIndex) => {
+          if (chItem) {
+            switch (chIndex) {
+              case 0:
+                selectedPro.push({
+                  key: 'texture',
+                  val: 2,
+                })
+                break
+              case 1:
+                selectedPro.push({
+                  key: 'texture',
+                  val: 3,
+                })
+                break
+              case 2:
+                selectedPro.push({
+                  key: 'texture',
+                  val: 1,
+                })
+                break
+              case 3:
+                selectedPro.push({
+                  key: 'spiculation',
+                  val: 2,
+                })
+                break
+              case 4:
+                selectedPro.push({
+                  key: 'lobulation',
+                  val: 2,
+                })
+                break
+              case 5:
+                selectedPro.push({
+                  key: 'calcification',
+                  val: 2,
+                })
+                break
+              case 6:
+                selectedPro.push({
+                  key: 'pin',
+                  val: 2,
+                })
+                break
+              case 7:
+                selectedPro.push({
+                  key: 'cav',
+                  val: 2,
+                })
 
+                break
+              case 8:
+                selectedPro.push({
+                  key: 'vss',
+                  val: 2,
+                })
+
+                break
+              case 9:
+                selectedPro.push({
+                  key: 'bea',
+                  val: 2,
+                })
+
+                break
+              case 10:
+                selectedPro.push({
+                  key: 'bro',
+                  val: 2,
+                })
+                break
+            }
+          }
+        })
+      } else if (item.key === 1) {
+        nodulesSelectChecked.forEach((chItem, chIndex) => {
+          if (chItem) {
+            switch (chIndex) {
+              case 0:
+                selectedDiam.push({
+                  min: 0,
+                  max: 0.3,
+                })
+                break
+              case 1:
+                selectedDiam.push({
+                  min: 0.3,
+                  max: 0.5,
+                })
+                break
+              case 2:
+                selectedDiam.push({
+                  min: 0.5,
+                  max: 1,
+                })
+                break
+              case 3:
+                selectedDiam.push({
+                  min: 1,
+                  max: 1.3,
+                })
+                break
+              case 4:
+                selectedDiam.push({
+                  min: 1.3,
+                  max: 3,
+                })
+                break
+              case 5:
+                selectedDiam.push({
+                  min: 3,
+                  max: Infinity,
+                })
+                break
+            }
+          }
+        })
+      } else if (item.key === 2) {
+        nodulesSelectChecked.forEach((chItem, chIndex) => {
+          if (chItem) {
+            switch (chIndex) {
+              case 0:
+                selectedMal.push({
+                  key: 'malignancy',
+                  val: 3,
+                })
+                break
+              case 1:
+                selectedMal.push({
+                  key: 'malignancy',
+                  val: 2,
+                })
+                break
+              case 2:
+                selectedMal.push({
+                  key: 'malignancy',
+                  val: 1,
+                })
+                break
+            }
+          }
+        })
+      }
+    })
+    boxes.forEach((boItem, boIndex) => {
+      let boProSelected = false
+      let boDiamSelected = false
+      let boMalSelected = false
+
+      if (selectedPro.length) {
+        selectedPro.forEach((proItem, proIndex) => {
+          if (boItem[proItem.key] === proItem.val) {
+            boProSelected = true
+          }
+        })
+      } else {
+        boProSelected = true
+      }
+
+      if (selectedDiam.length) {
+        selectedDiam.forEach((diaItem, diaIndex) => {
+          if (boItem.diameter / 10 <= diaItem.max && boItem.diameter / 10 >= diaItem.min) {
+            boDiamSelected = true
+          }
+        })
+      } else {
+        boDiamSelected = true
+      }
+
+      if (selectedMal.length) {
+        selectedMal.forEach((proItem, proIndex) => {
+          if (boItem[proItem.key] === proItem.val) {
+            boMalSelected = true
+          }
+        })
+      } else {
+        boMalSelected = true
+      }
+
+      if (boProSelected && boDiamSelected && boMalSelected) {
+        boxes[boIndex].visible = true
+      } else {
+        boxes[boIndex].visible = false
+      }
+    })
+    this.setState({
+      boxes,
+    })
+  }
   onSetPreviewActive(idx) {
     const previewVisible = this.state.previewVisible
     previewVisible[idx] = !previewVisible[idx]
@@ -6584,6 +6511,7 @@ class CornerstoneElement extends Component {
     )
   }
   onHandleReportGuideTypeChange(e, { name, value }) {
+    this.templateReportGuide(value)
     this.setState({
       reportGuideType: value,
     })
@@ -6611,259 +6539,134 @@ class CornerstoneElement extends Component {
     }
   }
 
-  template(type, activeItem, dealchoose) {
-    let places = {
-      0: '选择位置',
-      1: '右肺中叶',
-      2: '右肺上叶',
-      3: '右肺下叶',
-      4: '左肺上叶',
-      5: '左肺下叶',
-    }
-    let segments = {
-      S1: '右肺上叶尖段',
-      S2: '右肺上叶后段',
-      S3: '右肺上叶前段',
-      S4: '右肺中叶外侧段',
-      S5: '右肺中叶内侧段',
-      S6: '右肺下叶背段',
-      S7: '右肺下叶内基底段',
-      S8: '右肺下叶前基底段',
-      S9: '右肺下叶外基底段',
-      S10: '右肺下叶后基底段',
-      S11: '左肺上叶尖后段',
-      S12: '左肺上叶前段',
-      S13: '左肺上叶上舌段',
-      S14: '左肺上叶下舌段',
-      S15: '左肺下叶背段',
-      S16: '左肺下叶内前基底段',
-      S17: '左肺下叶外基底段',
-      S18: '左肺下叶后基底段',
-    }
-    const boxes = this.state.nodules
-    console.log('template', boxes)
-    if (type === '结节类型') {
-      let texts = ''
-      if (activeItem === -1) {
-        this.setState({ reportImageText: '' })
-      } else if (activeItem === 'all') {
-        // console.log('length',boxes.length)
-        for (let i = 0; i < boxes.length; i++) {
-          let place = ''
-          let diameter = ''
-          let texture = ''
-          let representArray = []
-          let represent = ''
-          let malignancy = ''
-          if (boxes[i]['place'] === 0 || boxes[i]['place'] === undefined || boxes[i]['place'] === '') {
-            if (boxes[i]['segment'] === undefined || boxes[i]['segment'] === '' || boxes[i]['segment'] === 'None') {
-              place = '未知位置'
-            } else {
-              place = segments[boxes[i]['segment']]
-            }
-          } else {
-            if (boxes[i]['segment'] === undefined || boxes[i]['segment'] === '' || boxes[i]['segment'] === 'None') {
-              place = places[boxes[i]['place']]
-            } else {
-              place = segments[boxes[i]['segment']]
-            }
-          }
-          // if (boxes[i]["diameter"] !== undefined) {
-          //   diameter =
-          //     Math.floor(boxes[i]["diameter"] * 10) / 100 + "cm";
-          let ll = 0
-          let sl = 0
-          if (boxes[i]['measure'] !== undefined) {
-            ll = Math.sqrt(Math.pow(boxes[i].measure.x1 - boxes[i].measure.x2, 2) + Math.pow(boxes[i].measure.y1 - boxes[i].measure.y2, 2))
-            sl = Math.sqrt(Math.pow(boxes[i].measure.x3 - boxes[i].measure.x4, 2) + Math.pow(boxes[i].measure.y3 - boxes[i].measure.y4, 2))
-            if (isNaN(ll)) {
-              ll = 0
-            }
-            if (isNaN(sl)) {
-              sl = 0
-            }
-            if (ll === 0 && sl === 0) {
-              if (boxes[i]['diameter'] !== undefined && boxes[i]['diameter'] !== 0) {
-                diameter = '\xa0\xa0' + (boxes[i]['diameter'] / 10).toFixed(2) + ' 厘米'
-              } else {
-                diameter = '未知'
-              }
-            } else {
-              diameter = '\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0' + '×' + '\xa0' + (sl / 10).toFixed(2) + ' 厘米'
-            }
-          }
-
-          if (boxes[i]['texture'] === 2) {
-            texture = '实性'
-          } else if (boxes[i]['texture'] === 3) {
-            texture = '混合磨玻璃'
-          } else {
-            texture = '磨玻璃'
-          }
-
-          if (boxes[i]['lobulation'] === 2) {
-            representArray.push('分叶')
-          }
-          if (boxes[i]['spiculation'] === 2) {
-            representArray.push('毛刺')
-          }
-          if (boxes[i]['calcification'] === 2) {
-            representArray.push('钙化')
-          }
-          if (boxes[i]['pin'] === 2) {
-            representArray.push('胸膜凹陷')
-          }
-          if (boxes[i]['cav'] === 2) {
-            representArray.push('空洞')
-          }
-          if (boxes[i]['vss'] === 2) {
-            representArray.push('血管集束')
-          }
-          if (boxes[i]['bea'] === 2) {
-            representArray.push('空泡')
-          }
-          if (boxes[i]['bro'] === 2) {
-            representArray.push('支气管充气')
-          }
-          for (let index = 0; index < representArray.length; index++) {
-            if (index === 0) {
-              represent = representArray[index]
-            } else {
-              represent = represent + '、' + representArray[index]
-            }
-          }
-          if (boxes[i]['malignancy'] === 3) {
-            malignancy = '风险较高。'
-          } else if (boxes[i]['malignancy'] === 2) {
-            malignancy = '风险中等。'
-          } else {
-            malignancy = '风险较低。'
-          }
-          texts =
-            texts +
-            place +
-            ' ( Im ' +
-            (parseInt(boxes[i]['slice_idx']) + 1) +
-            '/' +
-            this.state.imageIds.length +
-            ') 见' +
-            texture +
-            '结节, 大小为' +
-            diameter +
-            ', 可见' +
-            represent +
-            ', ' +
-            malignancy +
-            '\n\n'
-        }
-        this.setState({ reportImageText: texts })
-      } else {
-        let place = ''
-        let diameter = ''
-        let texture = ''
-        let representArray = []
-        let represent = ''
-        let malignancy = ''
-        if (boxes[activeItem]['place'] === 0 || boxes[activeItem]['place'] === undefined || boxes[activeItem]['place'] === '') {
-          if (boxes[activeItem]['segment'] === undefined || boxes[activeItem]['segment'] === '' || boxes[activeItem]['segment'] === 'None') {
-            place = '未知位置'
-          } else {
-            place = segments[boxes[activeItem]['segment']]
-          }
-        } else {
-          if (boxes[activeItem]['segment'] === undefined || boxes[activeItem]['segment'] === '' || boxes[activeItem]['segment'] === 'None') {
-            place = places[boxes[activeItem]['place']]
-          } else {
-            place = segments[boxes[activeItem]['segment']]
-          }
-        }
-        let ll = 0
-        let sl = 0
-        if (boxes[activeItem]['measure'] !== undefined) {
-          ll = Math.sqrt(Math.pow(boxes[activeItem].measure.x1 - boxes[activeItem].measure.x2, 2) + Math.pow(boxes[activeItem].measure.y1 - boxes[activeItem].measure.y2, 2))
-          sl = Math.sqrt(Math.pow(boxes[activeItem].measure.x3 - boxes[activeItem].measure.x4, 2) + Math.pow(boxes[activeItem].measure.y3 - boxes[activeItem].measure.y4, 2))
-          if (isNaN(ll)) {
-            ll = 0
-          }
-          if (isNaN(sl)) {
-            sl = 0
-          }
-          if (ll === 0 && sl === 0) {
-            if (boxes[activeItem]['diameter'] !== undefined && boxes[activeItem]['diameter'] !== 0) {
-              diameter = '\xa0\xa0' + (boxes[activeItem]['diameter'] / 10).toFixed(2) + ' 厘米'
-            } else {
-              diameter = '未知'
-            }
-          } else {
-            diameter = '\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0' + '×' + '\xa0' + (sl / 10).toFixed(2) + ' 厘米'
-          }
-        }
-
-        if (boxes[activeItem]['texture'] === 2) {
-          texture = '实性'
-        } else if (boxes[activeItem]['texture'] === 3) {
-          texture = '混合磨玻璃'
-        } else {
-          texture = '磨玻璃'
-        }
-        if (boxes[activeItem]['lobulation'] === 2) {
-          representArray.push('分叶')
-        }
-        if (boxes[activeItem]['spiculation'] === 2) {
-          representArray.push('毛刺')
-        }
-        if (boxes[activeItem]['calcification'] === 2) {
-          representArray.push('钙化')
-        }
-        if (boxes[activeItem]['pin'] === 2) {
-          representArray.push('胸膜凹陷')
-        }
-        if (boxes[activeItem]['cav'] === 2) {
-          representArray.push('空洞')
-        }
-        if (boxes[activeItem]['vss'] === 2) {
-          representArray.push('血管集束')
-        }
-        if (boxes[activeItem]['bea'] === 2) {
-          representArray.push('空泡')
-        }
-        if (boxes[activeItem]['bro'] === 2) {
-          representArray.push('支气管充气')
-        }
-        for (let index = 0; index < representArray.length; index++) {
-          if (index === 0) {
-            represent = representArray[index]
-          } else {
-            represent = represent + '、' + representArray[index]
-          }
-        }
-        if (boxes[activeItem]['malignancy'] === 3) {
-          malignancy = '风险较高。'
-        } else if (boxes[activeItem]['malignancy'] === 2) {
-          malignancy = '风险中等。'
-        } else {
-          malignancy = '风险较低。'
-        }
-        texts =
-          texts +
-          place +
-          ' ( Im ' +
-          (parseInt(boxes[activeItem]['slice_idx']) + 1) +
-          '/' +
-          this.state.imageIds.length +
-          ') 见' +
-          texture +
-          '结节, 大小为' +
-          diameter +
-          ', 可见' +
-          represent +
-          ', ' +
-          malignancy
-
-        this.setState({ reportImageText: texts })
+  template() {
+    const boxes = this.state.boxes
+    const reportImageType = this.state.reportImageType
+    const reportGuideType = this.state.reportGuideType
+    let reportImageText = ''
+    boxes.forEach((item, index) => {
+      if (item.checked) {
+        reportImageText += this.templateReportImage(reportImageType, index) + '\n'
       }
-    }
+    })
+    this.setState({
+      reportImageText,
+    })
+    this.templateReportGuide(reportGuideType)
+  }
+  templateReportImage(type, boxIndex) {
+    const places = nodulePlaces
+    const segments = noduleSegments
+    const boxes = this.state.boxes
+    let texts = ''
 
+    if (type === '结节类型') {
+      let place = ''
+      let diameter = ''
+      let texture = ''
+      let representArray = []
+      let represent = ''
+      let malignancy = ''
+      if (boxes[boxIndex]['place'] === 0 || boxes[boxIndex]['place'] === undefined || boxes[boxIndex]['place'] === '') {
+        if (boxes[boxIndex]['segment'] === undefined || boxes[boxIndex]['segment'] === '' || boxes[boxIndex]['segment'] === 'None') {
+          place = '未知位置'
+        } else {
+          place = segments[boxes[boxIndex]['segment']]
+        }
+      } else {
+        if (boxes[boxIndex]['segment'] === undefined || boxes[boxIndex]['segment'] === '' || boxes[boxIndex]['segment'] === 'None') {
+          place = places[boxes[boxIndex]['place']]
+        } else {
+          place = segments[boxes[boxIndex]['segment']]
+        }
+      }
+      let ll = 0
+      let sl = 0
+      if (boxes[boxIndex]['measure'] !== undefined) {
+        ll = Math.sqrt(Math.pow(boxes[boxIndex].measure.x1 - boxes[boxIndex].measure.x2, 2) + Math.pow(boxes[boxIndex].measure.y1 - boxes[boxIndex].measure.y2, 2))
+        sl = Math.sqrt(Math.pow(boxes[boxIndex].measure.x3 - boxes[boxIndex].measure.x4, 2) + Math.pow(boxes[boxIndex].measure.y3 - boxes[boxIndex].measure.y4, 2))
+        if (isNaN(ll)) {
+          ll = 0
+        }
+        if (isNaN(sl)) {
+          sl = 0
+        }
+        if (ll === 0 && sl === 0) {
+          if (boxes[boxIndex]['diameter'] !== undefined && boxes[boxIndex]['diameter'] !== 0) {
+            diameter = '\xa0\xa0' + (boxes[boxIndex]['diameter'] / 10).toFixed(2) + ' 厘米'
+          } else {
+            diameter = '未知'
+          }
+        } else {
+          diameter = '\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0' + '×' + '\xa0' + (sl / 10).toFixed(2) + ' 厘米'
+        }
+      }
+
+      if (boxes[boxIndex]['texture'] === 2) {
+        texture = '实性'
+      } else if (boxes[boxIndex]['texture'] === 3) {
+        texture = '混合磨玻璃'
+      } else {
+        texture = '磨玻璃'
+      }
+      if (boxes[boxIndex]['lobulation'] === 2) {
+        representArray.push('分叶')
+      }
+      if (boxes[boxIndex]['spiculation'] === 2) {
+        representArray.push('毛刺')
+      }
+      if (boxes[boxIndex]['calcification'] === 2) {
+        representArray.push('钙化')
+      }
+      if (boxes[boxIndex]['pin'] === 2) {
+        representArray.push('胸膜凹陷')
+      }
+      if (boxes[boxIndex]['cav'] === 2) {
+        representArray.push('空洞')
+      }
+      if (boxes[boxIndex]['vss'] === 2) {
+        representArray.push('血管集束')
+      }
+      if (boxes[boxIndex]['bea'] === 2) {
+        representArray.push('空泡')
+      }
+      if (boxes[boxIndex]['bro'] === 2) {
+        representArray.push('支气管充气')
+      }
+      for (let index = 0; index < representArray.length; index++) {
+        if (index === 0) {
+          represent = representArray[index]
+        } else {
+          represent = represent + '、' + representArray[index]
+        }
+      }
+      if (boxes[boxIndex]['malignancy'] === 3) {
+        malignancy = '风险较高。'
+      } else if (boxes[boxIndex]['malignancy'] === 2) {
+        malignancy = '风险中等。'
+      } else {
+        malignancy = '风险较低。'
+      }
+      texts =
+        texts +
+        place +
+        ' ( Im ' +
+        (parseInt(boxes[boxIndex]['slice_idx']) + 1) +
+        '/' +
+        this.state.imageIds.length +
+        ') 见' +
+        texture +
+        '结节, 大小为' +
+        diameter +
+        ', 可见' +
+        represent +
+        ', ' +
+        malignancy
+    }
+    return texts
+  }
+  templateReportGuide(dealchoose) {
+    const boxes = this.state.boxes
     if (dealchoose === '中华共识') {
       let weight = 0
 
@@ -7194,10 +6997,12 @@ class CornerstoneElement extends Component {
         const previewVisible = []
         let count = 0
         let total = 0
+        let nowDate
+        let nowCaseId = this.state.caseId
+
         const dates = Object.keys(subList)
         dates.sort((a, b) => a - b)
         dates.forEach((key, idx) => {
-          console.log('leftkey', key, idx)
           total += subList[key].length
           theList[idx] = []
           previewVisible[idx] = true
@@ -7206,6 +7011,9 @@ class CornerstoneElement extends Component {
         dates.forEach((key, idx) => {
           const seriesLst = subList[key]
           seriesLst.forEach((serie) => {
+            if (serie.caseId === nowCaseId) {
+              nowDate = key
+            }
             Promise.all([
               axios.post(this.config.draft.getDataPath, qs.stringify({ caseId: serie.caseId }), { headers }),
               axios.post(this.config.data.getDataListForCaseId, qs.stringify({ caseId: serie.caseId })),
@@ -7227,24 +7035,13 @@ class CornerstoneElement extends Component {
               })
               if (count === total) {
                 console.log('theList', theList)
-                this.setState({ dateSeries: theList, previewVisible }, () => {
-                  this.state.dateSeries.forEach((item) => {
-                    item.forEach((serie) => {
-                      const previewId = 'preview-' + serie.caseId
-                      const element = document.getElementById(previewId)
-                      // console.log('preview',element)
-                      cornerstone.enable(element)
-                      cornerstone.loadAndCacheImage(serie.image).then(function (image) {
-                        // console.log('cache')
-                        var viewport = cornerstone.getDefaultViewportForImage(element, image)
-                        viewport.voi.windowWidth = 1600
-                        viewport.voi.windowCenter = -600
-                        viewport.scale = 110 / 512
-                        cornerstone.setViewport(element, viewport)
-                        cornerstone.displayImage(element, image)
-                      })
-                    })
-                  })
+                let preCaseId = theList[0][0].caseId
+                let preDate = theList[0][0].date
+                this.props.dispatch(dropCaseId(nowCaseId, nowDate, 0))
+                this.props.dispatch(dropCaseId(preCaseId, preDate, 1))
+                this.setState({
+                  dateSeries: theList,
+                  previewVisible,
                 })
               }
 
@@ -7372,6 +7169,7 @@ class CornerstoneElement extends Component {
               },
               () => {
                 this.reportImageTopCalc()
+                this.template()
               }
             )
           })
@@ -7380,36 +7178,15 @@ class CornerstoneElement extends Component {
   }
 
   updateReport(prevProps, prevState) {
-    if (
-      prevState.doubleClick !== this.state.doubleClick ||
-      prevState.listsActiveIndex !== this.state.listsActiveIndex ||
-      // prevState.reportImageType !== this.state.reportImageType ||
-      prevState.reportGuideType !== this.state.reportGuideType
-    ) {
-      const activeItem = this.state.doubleClick === true ? 'all' : this.state.listsActiveIndex
-      this.template(this.state.reportImageType, activeItem, this.state.reportGuideType)
-    }
-    if (prevState.boxes !== this.state.boxes) {
-      const params = {
-        caseId: this.state.caseId,
-        username: this.state.modelName,
-      }
-      axios
-        .post(this.config.draft.structedReport, qs.stringify(params))
-        .then((response) => {
-          const data = response.data
-          // console.log('report:',data,params)
-          this.setState({
-            age: data.age,
-            date: data.date,
-            // nodules: data.nodules === undefined ? [] : data.nodules,
-            patientBirth: data.patientBirth,
-            patientId: data.patientID,
-            patientSex: data.patientSex === 'M' ? '男' : '女',
-          })
-        })
-        .catch((error) => console.log(error))
-    }
+    // if (
+    //   prevState.doubleClick !== this.state.doubleClick ||
+    //   prevState.listsActiveIndex !== this.state.listsActiveIndex ||
+    //   prevState.reportImageType !== this.state.reportImageType ||
+    //   prevState.reportGuideType !== this.state.reportGuideType
+    // ) {
+    //   const activeItem = this.state.doubleClick === true ? 'all' : this.state.listsActiveIndex
+    //   this.template(this.state.reportImageType, activeItem, this.state.reportGuideType)
+    // }
   }
 
   loadReport() {
@@ -7433,10 +7210,7 @@ class CornerstoneElement extends Component {
             patientId: data.patientID,
             patientSex: data.patientSex === 'M' ? '男' : '女',
           },
-          () => {
-            const activeItem = this.state.doubleClick === true ? 'all' : this.state.listsActiveIndex
-            this.template(this.state.reportImageType, activeItem, this.state.reportGuideType)
-          }
+          () => {}
         )
       })
       .catch((error) => console.log(error))
@@ -7471,7 +7245,7 @@ class CornerstoneElement extends Component {
     if (document.getElementById('footer')) {
       document.getElementById('footer').style.display = 'none'
     }
-    if(document.getElementById("main")){
+    if (document.getElementById('main')) {
       document.getElementById('main').setAttribute('style', 'height:100%;padding-bottom:0px')
     }
     console.log('componentDidMount', this.state.caseId)
@@ -7531,6 +7305,9 @@ class CornerstoneElement extends Component {
             localStorage.setItem('HCRecords', loginResponse.data.HCRecords)
             localStorage.setItem('auths', JSON.stringify(authResponse.data))
             console.log('localtoken', localStorage.getItem('token'))
+            this.setState({
+              realname: loginResponse.data.realname,
+            })
           } else {
             console.log('localtoken', localStorage.getItem('token'))
           }
@@ -7578,7 +7355,6 @@ class CornerstoneElement extends Component {
     let currentIdx = 0
     let listsActiveIndex = -1
     let backendNodules = []
-    let nodulesChecked = []
     if (nodules && nodules.length) {
       //save nodules from deep learning model
       backendNodules = [].concat(nodules)
@@ -7588,7 +7364,8 @@ class CornerstoneElement extends Component {
       nodules.forEach((item, index) => {
         item.prevIdx = index
         item.delOpen = false
-        nodulesChecked[index] = false
+        item.visible = true
+        item.checked = false
       })
 
       nodules.sort(this.arrayPropSort('slice_idx', 1))
@@ -7610,7 +7387,6 @@ class CornerstoneElement extends Component {
       imageIds,
       nodules,
       backendNodules,
-      nodulesChecked,
       currentIdx,
       listsActiveIndex,
     })
@@ -7989,17 +7765,19 @@ class CornerstoneElement extends Component {
   componentWillUnmount() {
     console.log('remove')
 
-    const element = this.element
-    element.removeEventListener('cornerstoneimagerendered', this.onImageRendered)
-
-    element.removeEventListener('cornerstonenewimage', this.onNewImage)
+    // const element = this.element
+    // element.removeEventListener('cornerstoneimagerendered', this.onImageRendered)
+    // element.removeEventListener('cornerstonenewimage', this.onNewImage)
 
     // window.removeEventListener("resize", this.onWindowResize)
     document.removeEventListener('keydown', this.onKeydown)
     window.removeEventListener('resize', this.resizeScreen.bind(this))
     // cornerstone.disable(element)
-    if(document.getElementById("main")){
+    if (document.getElementById('main')) {
       document.getElementById('main').setAttribute('style', '')
+    }
+    if (document.getElementById('footer')) {
+      document.getElementById('footer').style.display = ''
     }
   }
 
@@ -8018,8 +7796,6 @@ class CornerstoneElement extends Component {
     }
     if (prevState.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
       const visId = 'visual-' + prevState.listsActiveIndex
-      const bins = this.state.boxes[this.state.listsActiveIndex].nodule_hist.bins
-      this.setState({ HUSliderRange: [bins[0], bins[bins.length - 1]] })
       if (document.getElementById(visId) !== undefined && document.getElementById(visId) !== null) {
         // document.getElementById(visId).innerHTML=''
         document.getElementById(visId).style.display = 'none'
@@ -8032,11 +7808,6 @@ class CornerstoneElement extends Component {
     }
     if (prevState.listsActiveIndex !== -1 && this.state.listsActiveIndex === -1) {
       this.setState({ preListActiveIdx: prevState.listsActiveIndex })
-    }
-    if (prevState.chartType !== this.state.chartType || prevState.HUSliderRange !== this.state.HUSliderRange || prevState.listsActiveIndex !== this.state.listsActiveIndex) {
-      if (this.state.listsActiveIndex !== -1) {
-        this.plotHistogram(this.state.listsActiveIndex)
-      }
     }
     this.updateDisplay(prevProps, prevState)
     this.updateStudyBrowser(prevProps, prevState)
@@ -9039,71 +8810,38 @@ class CornerstoneElement extends Component {
   selectOpacity(e) {
     e.stopPropagation()
   }
-
-  handleFuncButton(idx, e) {
-    switch (idx) {
-      case 'FRG':
-        break
-      case 'MPR':
-        this.setState({
-          MPR: true,
-        })
-        this.changeMode(2)
-        break
-      case 'STMPR':
-        this.setState({
-          MPR: false,
-        })
-        this.changeMode(1)
-        break
-      case 'RC':
-        this.resetAllView()
-        break
-      case 'HC':
-        this.setState({
-          displayCrosshairs: false,
-        })
-        this.toggleCrosshairs(false)
-        break
-      case 'SC':
-        this.setState({
-          displayCrosshairs: true,
-        })
-        this.toggleCrosshairs(true)
-        break
-      case 'BP':
-        this.beginPaint()
-        break
-      case 'DP':
-        this.doPaint()
-        break
-      case 'DE':
-        this.doErase()
-        break
-      case 'EP':
-        this.endPaint()
-        break
-      case 'CPR':
-        this.setState({
-          CPR: true,
-        })
-        this.changeMode(3)
-        break
-      case 'STCPR':
-        this.setState({
-          CPR: false,
-        })
-        this.changeMode(2)
-        break
-      case 'RA':
-        this.pickAirway()
-        // this.createAirwayVolumes();
-        break
-      case 'FS':
-        this.finishPicking()
-        break
-      default:
-        break
+  setRegistering() {
+    this.setState((prevState) => ({
+      registering: !prevState.registering,
+    }))
+    if (this.followUpComponent) {
+      this.followUpComponent.setRegistering()
+    }
+  }
+  setMPR() {
+    if (this.state.MPR) {
+      this.setState({
+        MPR: false,
+      })
+      this.changeMode(1)
+    } else {
+      this.setState({
+        MPR: true,
+      })
+      this.changeMode(2)
+    }
+  }
+  setCPR() {
+    if (this.state.CPR) {
+      this.setState({
+        CPR: false,
+      })
+      this.changeMode(2)
+    } else {
+      this.setState({
+        CPR: true,
+      })
+      this.changeMode(3)
     }
   }
   setWL(model) {
@@ -9529,7 +9267,6 @@ class CornerstoneElement extends Component {
       console.log('strokeOnFrame', ' i', i)
     }
   }
-
   onChangeSlice(slice, viewerType) {
     const origin = this.state.origin
     const segRange = this.state.segRange
@@ -9552,7 +9289,6 @@ class CornerstoneElement extends Component {
     const istyle = renderWindow.getInteractor().getInteractorStyle()
     istyle.modified()
   }
-
   createChannelFragmentVolumes() {
     const fragmentVolumes = []
     const zs = [-284, -280, -278, -274, -270, -266]
@@ -10056,6 +9792,9 @@ export default connect(
     return {
       caseData: state.dataCenter.caseData,
       caseId: state.dataCenter.caseId,
+      curCaseId: state.dataCenter.curCaseId,
+      preCaseId: state.dataCenter.preCaseId,
+      followUpActiveTool: state.dataCenter.followUpActiveTool,
     }
   },
   (dispatch) => {

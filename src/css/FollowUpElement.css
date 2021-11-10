@@ -1,6 +1,14 @@
-h3.ant-typography,
-.ant-typography h3 .reportTitle {
-  color: white;
+#follow-up {
+  height: 100%;
+  background-color: rgb(5, 10, 29);
+}
+.content {
+  padding: 7px 0 14px 0 !important;
+}
+.reportTitle {
+  color: whitesmoke !important;
+  font-weight: bolder;
+  font-size: 16px;
 }
 
 .current-nodule-accordion-title {
@@ -12,31 +20,83 @@ h3.ant-typography,
 .current-nodule-accordion-content {
   background-color: rgba(17, 87, 148, 0.466);
 }
-.current-nodule-accordion{
-  overflow-y:scroll;
-  max-height: 220px;
+.current-nodule-accordion {
+  overflow-y: auto;
+  height: 100%;
 }
-.ant-typography{
+.ant-typography {
   color: white;
 }
-
-.register-nodule-match-card{
-  color: white;
+#follow-up-viewport {
+  position: relative;
+  height: 70%;
+}
+.follow-up-viewport-block {
+  height: 100%;
+  width: 50%;
+}
+.register-nodule-card {
+  background-color: rgb(23, 28, 47) !important;
+  color: whitesmoke;
+  width: 100%;
+  border-bottom: 2px solid rgb(5, 10, 29);
+}
+.register-nodule-card-first {
+  height: 35px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.register-nodule-card-second {
+  display: flex;
+  flex: row;
+  align-items: center;
+  height: 50px;
+}
+.register-nodule-card-note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 5px 0 0 10px;
 }
 
-.register-nodule-new-card{
-  color:white;
+.register-nodule-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 5px 0 0 0;
+  font-size: 14px;
 }
-
-.register-nodule-previews-card{
-  color: white;
+.register-nodule-card-content-first {
+  display: flex;
+  flex-direction: row;
 }
-
-.BoxesAccord-Row{
-  height: 220px;
-  background-color: rgba(17, 87, 148, 0.466);
+.register-nodule-card-second-center {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
 }
-
+.register-nodule-card-text-length {
+  margin-right: 10px;
+}
+.register-nodule-card-text-volume {
+  margin-right: 10px;
+}
+.register-nodule-card-text {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.BoxesAccord-Row {
+  padding: 3px 0;
+  height: 30%;
+  background-color: rgb(5, 10, 29);
+}
+.boxes-accord-col {
+  background-color: rgb(23, 28, 47);
+}
 .representDropdown {
   background: transparent !important;
   border: 1px solid transparent !important;
@@ -55,12 +115,21 @@ h3.ant-typography,
   /* border: 0.5px solid whitesmoke; */
 }
 
-.structured-report {
-  background-color: rgba(14, 48, 78, 0.493);
+#structured-report {
+  background-color: rgb(23, 28, 47);
   /* background-color: aliceblue; */
   border-radius: 2px;
 }
-
+#structured-report-title {
+  background-color: rgb(39, 46, 72);
+  padding: 10px;
+  font-size: 14px;
+  border-bottom: 2px solid rgb(5, 10, 29);
+}
+#structured-report-operation {
+  padding: 5px 0 5px 10px;
+  border-bottom: 2px solid rgb(5, 10, 29);
+}
 .nodule-report {
   margin-top: 10px;
   width: 96%;
@@ -94,37 +163,81 @@ h3.ant-typography,
 
 .doublingTypeText {
   color: white;
-  font-size: 12px;
+  font-size: 14px;
 }
 
-.VDTText{
+.VDTText {
   color: white;
-  font-size: 10px;
+  font-size: 14px;
 }
 
-.MDTText{
+.MDTText {
   color: white;
-  font-size: 10px;
+  font-size: 14px;
 }
 
-.match-checkbox{
+.match-checkbox {
   width: 100%;
-
+  color: whitesmoke;
+}
+.match-checkbox span {
+  color: whitesmoke !important;
 }
 
-.ant-checkbox-wrapper{
+.ant-checkbox-wrapper {
   color: white;
 }
 
 .all-nodule-table {
-  overflow: auto;
-  height: 200px;
+  overflow-y: auto;
 }
 
-.viewport-wrapper.active{
-  border: 1px solid dodgerblue;
+.viewport-wrapper.active {
+  border: 1px solid rgb(103, 118, 173);
 }
 
-.viewport-wrapper{
+.viewport-wrapper {
   border: 1px solid black;
+}
+
+.follow-up-viewport-exchange {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  border-radius: 20px;
+  top: 45%;
+  left: 50%;
+  margin-top: -20px;
+  margin-left: -20px;
+  color: whitesmoke;
+  z-index: 10;
+  cursor: pointer;
+  font-size: 30px;
+  opacity: 0.1;
+}
+.follow-up-viewport-exchange:hover {
+  /* border: 1px solid whitesmoke; */
+  /* background-color: whitesmoke; */
+  box-shadow: 5px 5px 20px rgb(245, 245, 245, 0.7);
+  /* color: rgb(0, 0, 0); */
+  color: whitesmoke;
+  opacity: 0.6;
+  transition: all 0.3 ease-in-out;
+  animation: textAni 1.5s ease-in-out infinite alternate;
+}
+@keyframes textAni {
+  from {
+    /* color: rgb(0, 0, 0); */
+    /* box-shadow: 0px 0px 30px rgb(0, 0, 0); */
+    color: whitesmoke;
+    box-shadow: 0px 0px 30px whitesmoke;
+  }
+  to {
+    color: rgb(117, 94, 219);
+    box-shadow: 0px 0px 30px rgb(117, 94, 219);
+  }
 }

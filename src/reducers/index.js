@@ -56,6 +56,47 @@ const dataCenterReducer = (state = { caseData: [], caseId: null }, action) => {
         caseData,
         caseId: action.caseId,
       }
+    case 'DROP_CASE_ID':
+      if (action.key === 0) {
+        let preDate = state.preDate
+        if (action.date < preDate) {
+          return {
+            ...state,
+            curCaseId: state.preCaseId,
+            curDate: state.preDate,
+            preCaseId: action.caseId,
+            preDate: action.date,
+          }
+        } else {
+          return {
+            ...state,
+            curCaseId: action.caseId,
+            curDate: action.date,
+          }
+        }
+      } else if (action.key === 1) {
+        let curDate = state.curDate
+        if (action.date > curDate) {
+          return {
+            ...state,
+            preCaseId: state.curCaseId,
+            preDate: state.curDate,
+            curCaseId: action.caseId,
+            curDate: action.date,
+          }
+        } else {
+          return {
+            ...state,
+            preCaseId: action.caseId,
+            preDate: action.date,
+          }
+        }
+      }
+    case 'SET_FOLLOW_UP_ACTIVE_TOOL':
+      return {
+        ...state,
+        followUpActiveTool: action.toolName,
+      }
     default:
       return state
   }

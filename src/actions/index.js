@@ -62,3 +62,15 @@ export const getNodulesByCaseId = (url, caseId, username) => (dispatch) => {
       })
   )
 }
+
+export const dropCaseId = (caseId, date, key) => ({
+  type: 'DROP_CASE_ID',
+  caseId,
+  date,
+  key,
+})
+
+export const setFollowUpActiveTool = (toolName) => ({
+  type: 'SET_FOLLOW_UP_ACTIVE_TOOL',
+  toolName,
+})

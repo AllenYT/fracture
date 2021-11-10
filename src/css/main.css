@@ -97,6 +97,16 @@ html {
   flex-direction: row;
   justify-content: flex-end;
 }
+.general-confirm-operation button {
+  border-radius: 20px !important;
+  color: whitesmoke !important;
+}
+.general-confirm-operation button:hover {
+  border-color: #1890ff !important;
+  background-color: #1890ff !important;
+  transition: all 0.3s ease;
+}
+
 .ant-message-notice-content {
   background-color: rgb(29, 36, 62) !important;
   color: whitesmoke !important;
