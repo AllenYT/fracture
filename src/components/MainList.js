@@ -158,7 +158,7 @@ class MainList extends Component {
                         <Menu.Item
                           icon={icon}
                           key={index}
-                          active={this.state.selectMainItem == value['patientId']}
+                          active={this.state.selectMainItem === value['patientId']}
                           onClick={this.handlePatientIdClick}
                           data-id={value['patientId']}
                           // name={newValue}
@@ -170,7 +170,7 @@ class MainList extends Component {
                             </div>
                           }></Menu.Item>
                       )
-                    } else if (this.props.type === 'date' && typeof value == 'string') {
+                    } else if (this.props.type === 'date' && typeof value === 'string') {
                       return (
                         <Menu.Item
                           icon={icon}
