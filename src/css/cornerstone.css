@@ -240,9 +240,9 @@
 .ct-info-horizontal {
   flex-direction: row;
 }
-.ct-info-contract {
+/* .ct-info-contract {
   padding-right: 150px;
-}
+} */
 .corner-center-block {
   height: 100%;
   position: 'relative';
@@ -557,21 +557,17 @@
 .nodule-accordion-item-title-type {
   margin-left: 10px;
 }
-.nodule-accordion-item-title-mal select:focus-visible,
-.nodule-accordion-item-title-type select:focus-visible {
-  padding: 4px 0;
-  width: auto !important;
-  outline: none;
-}
-.nodule-accordion-item-title-mal option,
-.nodule-accordion-item-title-type option {
-  color: whitesmoke;
+.nodule-accordion-item-title-mal .ui.dropdown .menu,
+.nodule-accordion-item-title-type .ui.dropdown .menu {
   background-color: rgb(39, 46, 72) !important;
-  border: none;
 }
-.nodule-accordion-item-title-mal option:first-child,
-.nodule-accordion-item-title-type option:first-child {
-  color: gray;
+.nodule-accordion-item-title-mal .ui.dropdown .menu > .item,
+.nodule-accordion-item-title-type .ui.dropdown .menu > .item {
+  color: whitesmoke !important;
+}
+.nodule-accordion-item-title-mal .ui.dropdown .menu > .item:hover,
+.nodule-accordion-item-title-type .ui.dropdown .menu > .item:hover {
+  background-color: rgb(75, 121, 243) !important;
 }
 .nodule-accordion-item-title-center {
   width: 20%;
@@ -648,6 +644,7 @@
 }
 
 #report {
+  z-index: -1;
   background-color: rgba(5, 10, 29, 1);
   color: whitesmoke;
   position: relative;
@@ -1244,4 +1241,7 @@ option {
   border-left: 1px solid rgb(13, 19, 41);
   width: 33%;
   padding-left: 1rem;
+option {
+  background: #2b2b2b;
+  color: white;
 }

@@ -48,11 +48,17 @@
   background: url('../icons/cube_hide.svg') no-repeat !important;
   background-size: 21px 21px !important;
 }
+.icon-custom-wwwc {
+  background: url('../icons/adjust.svg') no-repeat !important;
+  width: 21px !important;
+  height: 21px !important;
+  background-size: 21px 21px !important;
+}
 #segment-container {
   position: relative;
   width: 100%;
   height: 100%;
-  /* min-height: 880px; */  
+  /* min-height: 880px; */
   transition: transform 2s;
   transform-style: preserve-3d;
   transform: rotateY(0deg);
@@ -240,7 +246,7 @@ loading: 1
 .segment-widget-radius-slider {
   width: 100px;
 }
-.segment-widget-radius-slider .ant-slider-track{
+.segment-widget-radius-slider .ant-slider-track {
   background-color: #0033ff !important;
 }
 .segment-label-threshold-container {
@@ -253,7 +259,7 @@ loading: 1
 .segment-label-threshold-slider {
   width: 100px;
 }
-.segment-label-threshold-slider .ant-slider-track{
+.segment-label-threshold-slider .ant-slider-track {
   background-color: #0033ff !important;
 }
 .segment-label-color-selector {
