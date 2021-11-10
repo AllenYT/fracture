@@ -86,7 +86,6 @@ const lungLoc = {
   S16: '左肺下叶-内前基底段',
   S17: '左肺下叶-外基底段',
   S18: '左肺下叶-后基底段',
-  None: '未定位',
 }
 const dangerLevel = {
   1: '低危',

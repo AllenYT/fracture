@@ -1219,5 +1219,165 @@ table#nodule-table {
   justify-content: center;
 }
 
-.corner-select-dropdown-item {
+.histogram-float {
+  display: none;
+}
+
+.histogram-float-active {
+  position: absolute;
+  left: 60%;
+  top: 10%;
+  width: 500px;
+  height: 650px;
+  background: rgba(28, 34, 56);
+  border-radius: 5px;
+  z-index: 2;
+  padding-left: 0rem !important;
+  padding-right: 0rem !important;
+}
+
+.histogram-float-active #histogram-header {
+  color: white;
+  height: 40px;
+  background: rgba(40, 46, 78);
+}
+
+.histogram-float-active #histogram-header #title-1 {
+  vertical-align: middle;
+  color: rgba(177, 190, 225);
+  line-height: 40px;
+  width: 20%;
+  float: left;
+}
+
+.histogram-float-active #histogram-header #title-2 {
+  float: left;
+  color: rgba(177, 190, 225);
+  line-height: 40px;
+  width: 75%;
+}
+
+.histogram-float-active #histogram-header #icon {
+  float: left;
+  color: rgba(177, 190, 225);
+  line-height: 40px;
+  width: 5%;
+}
+
+.histogram-float-active .content {
+  background: rgba(28, 34, 56);
+}
+
+#chart-type {
+  /* width: 500px; */
+  margin: 0 auto;
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-top: 20px;
+}
+
+#chart-line-id {
+  color: rgba(171, 183, 207);
+  background: rgba(23, 30, 48);
+}
+
+/* #chart-line-id-active {
+  background-image: linear-gradient(to right, rgba(81, 96, 255), rgba(92, 140, 222));
+} */
+
+#chart-line-id:hover {
+  color: rgba(228, 252, 255);
+  background-image: linear-gradient(to right, rgba(81, 96, 255), rgba(92, 140, 222));
+}
+#chart-line-id:focus {
+  color: rgba(228, 252, 255);
+  background-image: linear-gradient(to right, rgba(81, 96, 255), rgba(92, 140, 222));
+}
+
+#chart-bar-id {
+  color: rgba(171, 183, 207);
+  background: rgba(23, 30, 48);
+}
+
+#chart-bar-id:hover {
+  color: rgba(228, 252, 255);
+  background-image: linear-gradient(to left, rgba(81, 96, 255), rgba(92, 140, 222));
+}
+
+#chart-bar-id:focus {
+  color: rgba(228, 252, 255);
+  background-image: linear-gradient(to left, rgba(81, 96, 255), rgba(92, 140, 222));
+}
+
+#chart-line {
+  display: none;
+}
+
+#chart-line-active {
+  height: 300px;
+  width: 400px;
+  margin: 0 auto;
+}
+
+#chart-bar {
+  display: none;
+}
+
+#chart-bar-active {
+  height: 300px;
+  width: 400px;
+  margin: 0 auto;
+}
+
+.histogram-float-active .content #analysis-table {
+  border-collapse: collapse;
+  margin: 0 auto;
+  width: 90%;
+}
+
+#analysis-table td {
+  height: 30px;
+  border: 1px solid rgb(13, 19, 41);
+}
+
+#analysis-table .title {
+  font-size: 12px;
+  color: rgba(177, 190, 225);
+}
+
+#analysis-table .range1 {
+  font-size: 12px;
+  color: rgba(70, 230, 254);
+}
+
+#analysis-table .range2 {
+  font-size: 12px;
+  color: rgba(89, 162, 230);
+}
+
+#analysis-table .range3 {
+  font-size: 12px;
+  color: rgba(68, 125, 241);
+}
+
+#range-slider {
+  width: 80%;
+  margin: 0 auto;
+}
+
+#feature-table {
+  border-collapse: collapse;
+  margin: 0 auto;
+  width: 96%;
+  font-size: 12px;
+  color: rgba(177, 190, 225);
+  border: 1px solid rgb(13, 19, 41);
+  margin-top: 10px;
+}
+
+#feature-table td {
+  border-left: 1px solid rgb(13, 19, 41);
+  width: 33%;
+  padding-left: 1rem;
 }

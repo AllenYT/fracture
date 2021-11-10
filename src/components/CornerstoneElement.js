@@ -17,7 +17,7 @@ import { Grid, Icon, Button, Accordion, Modal, Dropdown, Menu, Label, Header, Po
 import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
 import qs from 'qs'
 import axios from 'axios'
-import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Cascader } from 'antd'
+import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Cascader, Radio } from 'antd'
 import * as echarts from 'echarts'
 import html2pdf from 'html2pdf.js'
 import copy from 'copy-to-clipboard'
@@ -427,11 +427,14 @@ class CornerstoneElement extends Component {
       volumesLoading: true,
       percent: [],
       listLoading: [],
+      HUSliderRange: [-100, 100],
+      chartType: 'line',
     }
     this.config = JSON.parse(localStorage.getItem('config'))
     this.nextPath = this.nextPath.bind(this)
     this.onImageRendered = this.onImageRendered.bind(this)
     this.onNewImage = this.onNewImage.bind(this)
+    this.plotHistogram = this.plotHistogram.bind(this)
 
     this.onRightClick = this.onRightClick.bind(this)
 
@@ -1225,14 +1228,218 @@ class CornerstoneElement extends Component {
     console.log('特征分析')
     // const boxes = this.state.selectBoxes
     const boxes = this.state.boxes
-    // console.log('boxes', boxes, e.target.value)
-    if (boxes[idx] !== undefined) {
-      console.log('boxes', boxes[idx])
-      var hist = boxes[idx].nodule_hist
-      if (hist !== undefined) {
-        this.visualize(hist, idx)
-      }
+    let HUSliderRange = [boxes[idx].nodule_hist.bins[0], boxes[idx].nodule_hist.bins[boxes[idx].nodule_hist.bins.length - 1]]
+    console.log('HUSliderRange', HUSliderRange)
+    var histogram_float = document.getElementsByClassName('histogram-float')
+    if (histogram_float[0] !== undefined) {
+      histogram_float[0].className = 'histogram-float-active'
+      var initX,
+        initY,
+        dragable = false,
+        element_float = document.getElementsByClassName('histogram-float-active')[0],
+        element_drag = document.getElementById('histogram-header'),
+        wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
+        wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+      console.log('element_drag', element_drag)
+      element_drag.addEventListener(
+        'mousedown',
+        function (e) {
+          dragable = true
+          initX = e.clientX
+          initY = e.clientY
+        },
+        false
+      )
+      element_drag.addEventListener('mousemove', function (e) {
+        if (dragable === true) {
+          var nowX = e.clientX,
+            nowY = e.clientY,
+            disX = nowX - initX,
+            disY = nowY - initY
+          element_float.style.left = wrapLeft + disX + 'px'
+          element_float.style.top = wrapRight + disY + 'px'
+        }
+      })
+      element_drag.addEventListener(
+        'mouseup',
+        function (e) {
+          dragable = false
+          wrapLeft = parseInt(window.getComputedStyle(element_float)['left'])
+          wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+        },
+        false
+      )
+
+      this.setState({ HUSliderRange: HUSliderRange }, () => {
+        this.plotHistogram(idx)
+      })
     }
+
+    // console.log('histogram_float', histogram_float)
+    // console.log('boxes', boxes, e.target.value)
+    // if (boxes[idx] !== undefined) {
+    //   console.log('boxes', boxes[idx])
+    //   var hist = boxes[idx].nodule_hist
+    //   if (hist !== undefined) {
+    //     this.visualize(hist, idx)
+    //   }
+    // }
+  }
+
+  plotHistogram(idx) {
+    var { boxes, chartType, HUSliderRange } = this.state
+    var bins = boxes[idx].nodule_hist.bins
+    var ns = boxes[idx].nodule_hist.n
+    var max = bins[bins.length - 1]
+    var min = bins[0]
+    var abs = Math.ceil((max - min) / 150) * 150
+    let searchBetween = function (arr, arr_n, min, max) {
+      var flag = 0
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i] < max && arr[i] >= min) {
+          if (i === arr.length - 1) {
+            flag = flag + 0
+          } else {
+            flag = flag + arr_n[i]
+          }
+        } else if (arr[i] >= max) {
+          return flag
+        }
+      }
+      return flag
+    }
+    max = Math.ceil(max / 50) * 50
+    min = max - abs
+    let axis_data = []
+    let series_data = []
+    for (let i = 0; i <= abs / 150; i++) {
+      // console.log('abs', min + 150 * i)
+      let series = searchBetween(bins, ns, min + 150 * i, min + 150 * (i + 1))
+      series_data.push(series)
+      axis_data.push(min + 150 * i)
+    }
+
+    if (chartType === 'line') {
+      var chartDom = document.getElementById('chart-line-active')
+      if (echarts.getInstanceByDom(chartDom)) {
+        console.log('dispose')
+        echarts.dispose(chartDom)
+      }
+      var myChart = echarts.init(chartDom)
+      var option
+
+      option = {
+        visualMap: {
+          show: false,
+          type: 'continuous',
+          min: axis_data[0],
+          max: axis_data[axis_data.length - 1],
+          range: HUSliderRange,
+          inRange: {
+            color: ['rgba(89, 162, 230)'],
+          },
+          outOfRange: {
+            color: ['rgba(70, 230, 254)', 'rgba(68, 125, 241)'],
+          },
+        },
+        xAxis: {
+          type: 'category',
+          data: axis_data,
+          axisTick: {
+            alignWithLabel: true,
+          },
+        },
+        yAxis: {
+          type: 'value',
+        },
+        series: [
+          {
+            data: series_data,
+            type: 'line',
+            smooth: true,
+          },
+        ],
+      }
+
+      myChart.setOption(option)
+    } else {
+      var barDom = document.getElementById('chart-bar-active')
+
+      if (echarts.getInstanceByDom(barDom)) {
+        echarts.dispose(barDom)
+      }
+      var barChart = echarts.init(barDom)
+      var minValue = bins[0] - 50
+      var maxValue = bins[bins.length - 1] + 50
+      console.log(bins, bins[0] - 50, bins[bins.length - 1] + 50)
+      var histogram = []
+      var line = []
+      for (var i = 0; i < bins.length - 1; i++) {
+        var obj = {}
+        if (bins[i] >= HUSliderRange[0] && bins[i] < HUSliderRange[1]) {
+          // obj.value = [bins[i], bins[i + 1]]
+          // obj.count = ns[i]
+          // histogram.push(obj)
+          histogram.push(bins[i])
+          line.push(ns[i])
+        }
+      }
+      barChart.setOption({
+        // color: ['#00FFFF'],
+        tooltip: {
+          trigger: 'axis',
+          axisPointer: {
+            // 坐标轴指示器，坐标轴触发有效
+            type: 'line', // 默认为直线，可选为：'line' | 'shadow'
+          },
+        },
+        toolbox: {
+          feature: {
+            saveAsImage: {},
+          },
+        },
+        grid: {
+          bottom: '3%',
+          top: '10%',
+          containLabel: true,
+        },
+        xAxis: [
+          {
+            type: 'category',
+            scale: 'true',
+            data: histogram,
+            axisTick: {
+              alignWithLabel: true,
+            },
+            // axisLabel: {
+            //   color: 'rgb(191,192,195)',
+            // },
+          },
+        ],
+        yAxis: [
+          {
+            type: 'value',
+            minInterval: 1,
+          },
+        ],
+        series: [
+          {
+            name: 'count',
+            type: 'bar',
+            data: line,
+          },
+        ],
+      })
+    }
+  }
+
+  onChartTypeChange(type) {
+    this.setState({ chartType: type })
+  }
+
+  onHUValueChange(value) {
+    this.setState({ HUSliderRange: value })
+    console.log('onHUValueChange', value)
   }
 
   closeVisualContent() {
@@ -1407,6 +1614,9 @@ class CornerstoneElement extends Component {
       reportImageHeight,
       reportImageContentHeight,
       ctInfoPadding,
+      HUSliderRange,
+      chartType,
+      boxes,
 
       lobesData,
       tubularData,
@@ -1468,6 +1678,7 @@ class CornerstoneElement extends Component {
     let tubularContent
     let tubularCheckNumber = 0
     let visualContent
+    let histogramFloatWindow
     let previewContent
     let createDraftModal
     let submitButton
@@ -2453,6 +2664,205 @@ class CornerstoneElement extends Component {
           </div>
         )
       })
+
+      var range1 = 0,
+        range1_volume = 0,
+        range2 = 0,
+        range2_volume = 0,
+        range3 = 0,
+        range3_volume = 0,
+        overall_volume = 0,
+        quality1 = 0,
+        quality1_percent = 0,
+        quality2 = 0,
+        quality2_percent = 0,
+        quality3 = 0,
+        quality3_percent = 0,
+        overall_quality = 0
+
+      var CT_max = 0,
+        CT_min = 0,
+        CT_mean = 0,
+        CT_std = 0,
+        slice_idx = 0,
+        apsidal_mean = 0
+      var marks
+      let searchLE = function (arr, x) {
+        var flag = 0
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i] < x) {
+            flag = flag + 1
+          } else {
+            break
+          }
+        }
+        return flag
+      }
+      let calculateAvgCT = function (arr, min, max) {
+        var flag = 0
+        var overall_CT = 0
+        for (let i = 0; i < arr.length; i++) {
+          if (arr[i] >= min && arr[i] < max) {
+            flag = flag + 1
+            overall_CT = overall_CT + arr[i]
+          } else if (arr[i] >= max) {
+            break
+          }
+        }
+        if (flag !== 0) {
+          return Number(overall_CT / flag)
+        } else {
+          return Number(-1000)
+        }
+      }
+      let overall_CT = (arr) => {
+        let CT = 0
+        for (let i = 0; i < arr.length; i++) {
+          CT = CT + arr[i]
+        }
+        return Number((CT / arr.length).toFixed(0))
+      }
+      if (listsActiveIndex === -1) {
+        var minHU = 0
+        var maxHU = 100
+      } else {
+        // console.log('.bins', boxes[listsActiveIndex].nodule_hist.bins[0])
+        var nodule_hist = boxes[listsActiveIndex].nodule_hist.bins
+        if (nodule_hist[nodule_hist.length - 1] > 0) {
+          var maxHU = Math.ceil(nodule_hist[nodule_hist.length - 1] / 50) * 50
+        } else {
+          var maxHU = Math.floor(nodule_hist[nodule_hist.length - 1] / 50) * 50
+        }
+        if (nodule_hist[0] > 0) {
+          var minHU = Math.floor(nodule_hist[0] / 50) * 50
+        } else {
+          var minHU = Math.ceil(nodule_hist[0] / 50) * 50
+        }
+        overall_volume = (boxes[listsActiveIndex].volume * Math.pow(10, 3)).toFixed(2)
+        range1 = (searchLE(nodule_hist, HUSliderRange[0]) / nodule_hist.length).toFixed(3)
+        range1_volume = (range1 * overall_volume).toFixed(2)
+        range2 = ((searchLE(nodule_hist, HUSliderRange[1]) - searchLE(nodule_hist, HUSliderRange[0])) / nodule_hist.length).toFixed(3)
+        range2_volume = (range2 * overall_volume).toFixed(2)
+        range3 = (1 - searchLE(nodule_hist, HUSliderRange[1]) / nodule_hist.length).toFixed(3)
+        range3_volume = (range3 * overall_volume).toFixed(2)
+        // 质量
+        overall_quality = (((overall_CT(nodule_hist) + 1000) * overall_volume) / 103).toFixed(1)
+        quality1 = (((calculateAvgCT(nodule_hist, nodule_hist[0], HUSliderRange[0]) + 1000) * range1_volume) / 103).toFixed(1)
+        quality1_percent = ((((calculateAvgCT(nodule_hist, nodule_hist[0], HUSliderRange[0]) + 1000) * range1) / (overall_CT(nodule_hist) + 1000)) * 100).toFixed(1)
+        quality2 = (((calculateAvgCT(nodule_hist, HUSliderRange[0], HUSliderRange[1]) + 1000) * range2_volume) / 103).toFixed(1)
+        quality2_percent = ((((calculateAvgCT(nodule_hist, HUSliderRange[0], HUSliderRange[1]) + 1000) * range2) / (overall_CT(nodule_hist) + 1000)) * 100).toFixed(1)
+        quality3 = (((calculateAvgCT(nodule_hist, HUSliderRange[1], nodule_hist[nodule_hist.length - 1]) + 1000) * range3_volume) / 103).toFixed(1)
+        quality3_percent = ((((calculateAvgCT(nodule_hist, HUSliderRange[1], nodule_hist[nodule_hist.length - 1]) + 1000) * range3) / (overall_CT(nodule_hist) + 1000)) * 100).toFixed(1)
+        /* marks */
+        let slider_range1 = HUSliderRange[0]
+        let slider_range2 = HUSliderRange[1]
+        marks = {}
+        /**结节特征 */
+        CT_max = boxes[listsActiveIndex].huMax
+        CT_min = boxes[listsActiveIndex].huMin
+        CT_mean = boxes[listsActiveIndex].huMean
+        slice_idx = boxes[listsActiveIndex].slice_idx + 1
+        if (boxes[listsActiveIndex].measure !== null && boxes[listsActiveIndex].measure !== undefined) {
+          let measureCoord = boxes[listsActiveIndex].measure
+          let ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2))
+          let sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2))
+          apsidal_mean = ((ll + sl) / 2).toFixed(2)
+        }
+      }
+
+      histogramFloatWindow = (
+        <div className="histogram-float">
+          <div id="histogram-header">
+            <div id="title-1">
+              <p>病灶特征分析</p>
+            </div>
+            <div id="title-2">
+              <p>结节{listsActiveIndex + 1}</p>
+            </div>
+            <div id="icon">
+              <Icon
+                size="mini"
+                name="close"
+                onClick={() => {
+                  var histogram_float_active_header = document.getElementById('histogram-header')
+                  if (histogram_float_active_header !== undefined) {
+                    histogram_float_active_header.removeEventListener('mousedown', () => {})
+                    histogram_float_active_header.removeEventListener('mousemove', () => {})
+                    histogram_float_active_header.removeEventListener('mouseup', () => {})
+                    document.getElementsByClassName('histogram-float-active')[0].className = 'histogram-float'
+                  }
+                }}></Icon>
+            </div>
+          </div>
+          <div className="content">
+            <Button.Group id="chart-type">
+              <Button onClick={this.onChartTypeChange.bind(this, 'line')} id="chart-line-id">
+                折线图
+              </Button>
+              <Button onClick={this.onChartTypeChange.bind(this, 'bar')} id="chart-bar-id">
+                柱状图
+              </Button>
+            </Button.Group>
+            {chartType === 'line' ? <div id="chart-line-active"></div> : <div id="chart-line"></div>}
+            {chartType === 'bar' ? <div id="chart-bar-active"></div> : <div id="chart-bar"></div>}
+            <div id="range-slider">
+              <Slider range marks={marks} onChange={this.onHUValueChange.bind(this)} value={HUSliderRange} step={50} max={maxHU} min={minHU} />
+            </div>
+
+            <table id="analysis-table">
+              <tr>
+                <td className="title">分析项</td>
+                <td className="range1">{'<' + HUSliderRange[0] + 'HU'}</td>
+                <td className="range2">{HUSliderRange[0] + '~' + HUSliderRange[1] + 'HU'}</td>
+                <td className="range3">{'≥' + HUSliderRange[1] + 'HU'}</td>
+                <td className="title">总体</td>
+              </tr>
+              <tr>
+                <td className="title">体积mm³(占比)</td>
+                <td className="range1">{range1_volume + '(' + (range1 * 100).toFixed(2) + '%)'}</td>
+                <td className="range2">{range2_volume + '(' + (range2 * 100).toFixed(2) + '%)'}</td>
+                <td className="range3">{range3_volume + '(' + (range3 * 100).toFixed(2) + '%)'}</td>
+                <td className="title">{overall_volume}</td>
+              </tr>
+              <tr>
+                <td className="title">质量mg(占比)</td>
+                <td className="range1">{quality1 + '(' + quality1_percent + '%)'}</td>
+                <td className="range2">{quality2 + '(' + quality2_percent + '%)'}</td>
+                <td className="range3">{quality3 + '(' + quality3_percent + '%)'}</td>
+                <td className="title">{overall_quality}</td>
+              </tr>
+            </table>
+            <table id="feature-table">
+              <tr>
+                <td>{'CT最大值：' + CT_max.toFixed(1) + 'HU'}</td>
+                <td>{'最大层位置：' + 'IM ' + slice_idx}</td>
+                <td>{'峰度：'}</td>
+              </tr>
+              <tr>
+                <td>{'CT最小值：' + CT_min.toFixed(1) + 'HU'}</td>
+                <td>{'最大面面积：'}</td>
+                <td>{'偏度：'}</td>
+              </tr>
+              <tr>
+                <td>{'CT平均值：' + CT_mean.toFixed(1) + 'HU'}</td>
+                <td>{'表面积：'}</td>
+                <td>{'能量：'}</td>
+              </tr>{' '}
+              <tr>
+                <td>{'CT值方差：'}</td>
+                <td>{'3D长径：'}</td>
+                <td>{'紧凑度：'}</td>
+              </tr>{' '}
+              <tr>
+                <td>{'球型度：'}</td>
+                <td>{'长短径平均值：' + apsidal_mean + 'mm'}</td>
+                <td>{'熵：'}</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      )
+
       if (dateSeries && dateSeries.length) {
         previewContent = dateSeries.map((item, index) => {
           const vSeries = item.map((serie, serieIndex) => {
@@ -3532,6 +3942,7 @@ class CornerstoneElement extends Component {
               </Sidebar.Pusher>
             </Sidebar.Pushable>
           </div>
+          {histogramFloatWindow}
         </div>
       )
       // }
@@ -4103,6 +4514,7 @@ class CornerstoneElement extends Component {
       highlight: false,
       diameter: 0.0,
       place: 0,
+      segment: 'None',
       modified: 1,
       nodule_no: newIdx,
       prevIdx: newIdx,
@@ -5603,13 +6015,6 @@ class CornerstoneElement extends Component {
           }
         }
       )
-    }
-
-    if (document.getElementById(`visual-${this.state.listsActiveIndex}`) && document.getElementById('closeVisualContent')) {
-      // const visualPanel = document.getElementById(`visual-${this.state.listsActiveIndex}`)
-      if (document.getElementById('closeVisualContent').style.display !== 'none') {
-        this.featureAnalysis(this.state.listsActiveIndex)
-      }
     }
   }
 
@@ -7792,6 +8197,9 @@ class CornerstoneElement extends Component {
     }
     if (prevState.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
       const visId = 'visual-' + prevState.listsActiveIndex
+      const bins = this.state.boxes[this.state.listsActiveIndex].nodule_hist.bins
+      this.setState({ HUSliderRange: [bins[0], bins[bins.length - 1]] })
+
       if (document.getElementById(visId) !== undefined && document.getElementById(visId) !== null) {
         // document.getElementById(visId).innerHTML=''
         document.getElementById(visId).style.display = 'none'
@@ -7805,6 +8213,12 @@ class CornerstoneElement extends Component {
     if (prevState.listsActiveIndex !== -1 && this.state.listsActiveIndex === -1) {
       this.setState({ preListActiveIdx: prevState.listsActiveIndex })
     }
+    if (prevState.chartType !== this.state.chartType || prevState.HUSliderRange !== this.state.HUSliderRange || prevState.listsActiveIndex !== this.state.listsActiveIndex) {
+      if (this.state.listsActiveIndex !== -1) {
+        this.plotHistogram(this.state.listsActiveIndex)
+      }
+    }
+
     this.updateDisplay(prevProps, prevState)
     this.updateStudyBrowser(prevProps, prevState)
     this.updateReport(prevProps, prevState)
