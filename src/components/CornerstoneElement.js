@@ -2888,6 +2888,12 @@ class CornerstoneElement extends Component {
         overall_quality = (((overall_CT(nodule_hist) + 1000) * overall_volume) / 103).toFixed(1)
         quality1 = (((calculateAvgCT(nodule_hist, nodule_hist[0], HUSliderRange[0]) + 1000) * range1_volume) / 103).toFixed(1)
         quality1_percent = ((((calculateAvgCT(nodule_hist, nodule_hist[0], HUSliderRange[0]) + 1000) * range1) / (overall_CT(nodule_hist) + 1000)) * 100).toFixed(1)
+        if (quality1_percent < 0) {
+          quality1_percent = 0
+        }
+        if (quality1 < 0) {
+          quality1 = 0
+        }
         quality2 = (((calculateAvgCT(nodule_hist, HUSliderRange[0], HUSliderRange[1]) + 1000) * range2_volume) / 103).toFixed(1)
         quality2_percent = ((((calculateAvgCT(nodule_hist, HUSliderRange[0], HUSliderRange[1]) + 1000) * range2) / (overall_CT(nodule_hist) + 1000)) * 100).toFixed(1)
         quality3 = (((calculateAvgCT(nodule_hist, HUSliderRange[1], nodule_hist[nodule_hist.length - 1]) + 1000) * range3_volume) / 103).toFixed(1)
@@ -7471,7 +7477,7 @@ class CornerstoneElement extends Component {
     if (document.getElementById('footer')) {
       document.getElementById('footer').style.display = 'none'
     }
-    if(document.getElementById("main")){
+    if (document.getElementById('main')) {
       document.getElementById('main').setAttribute('style', 'height:100%;padding-bottom:0px')
     }
     console.log('componentDidMount', this.state.caseId)
@@ -7998,7 +8004,7 @@ class CornerstoneElement extends Component {
     document.removeEventListener('keydown', this.onKeydown)
     window.removeEventListener('resize', this.resizeScreen.bind(this))
     // cornerstone.disable(element)
-    if(document.getElementById("main")){
+    if (document.getElementById('main')) {
       document.getElementById('main').setAttribute('style', '')
     }
   }
