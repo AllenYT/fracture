@@ -328,7 +328,6 @@ class CornerstoneElement extends Component {
       nodulesSelect: [
         {
           key: 0,
-          desc: '结节类型',
           options: ['实性', '半实性', '磨玻璃', '毛刺征', '分叶征', '钙化征', '胸膜凹陷征', '空洞征', '血管集束征', '空泡征', '支气管充气征', '未知'],
           checked: new Array(12).fill(true),
         },
@@ -339,8 +338,6 @@ class CornerstoneElement extends Component {
       ctInfoPadding: 0,
       menuButtonsWidth: 1540,
       menuScrollable: false,
-      menuTotalPages: 1,
-      menuNowPage: 1,
       menuTransform: 0,
       show3DVisualization: false,
       studyListShowed: false,
@@ -5637,7 +5634,6 @@ class CornerstoneElement extends Component {
     // console.log('element',element)
     if (initial) {
       cornerstone.enable(element)
-
       if (this.state.imageIds.length !== 0) {
         const leftBtnSpeed = Math.floor(document.getElementById('canvas').offsetWidth / this.state.imageIds.length)
         this.setState({ leftBtnSpeed: leftBtnSpeed })
