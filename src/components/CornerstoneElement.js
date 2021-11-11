@@ -320,7 +320,7 @@ class CornerstoneElement extends Component {
       backendNodules: [],
       nodulesAllChecked: false,
       nodulesOrder: {
-        slice_idx: 0,
+        slice_idx: 1,
         diameter: 0,
         texture: 0,
         malignancy: 0,
@@ -473,8 +473,6 @@ class CornerstoneElement extends Component {
     this.closeModalCur = this.closeModalCur.bind(this)
     this.toMyAnno = this.toMyAnno.bind(this)
     this.checkHash = this.checkHash.bind(this)
-    this.handleLogout = this.handleLogout.bind(this)
-    this.handleLogin = this.handleLogin.bind(this)
     this.disableAllTools = this.disableAllTools.bind(this)
     this.featureAnalysis = this.featureAnalysis.bind(this)
     this.eraseLabel = this.eraseLabel.bind(this)
@@ -1327,6 +1325,14 @@ class CornerstoneElement extends Component {
     window.location.href = '/homepage'
     // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
   }
+
+  clearLocalStorage() {
+    localStorage.clear()
+    message.success('清空成功')
+    setTimeout(() => {
+      window.location.reload()
+    }, 2000)
+  }
   show3D() {
     clearTimeout(flipTimer)
     // cornerstone.disable(this.element)
@@ -1368,11 +1374,6 @@ class CornerstoneElement extends Component {
         }
       )
     }, 500)
-  }
-  handleLogin() {
-    this.setState({
-      reRender: Math.random(),
-    }) // force re-render the page
   }
 
   handleLogout() {
@@ -3132,13 +3133,14 @@ class CornerstoneElement extends Component {
               <div id="menu-item-user">
                 <Dropdown text={welcome}>
                   <Dropdown.Menu id="logout-menu">
-                    <Dropdown.Item icon="home" text="我的主页" onClick={this.toHomepage} />
+                    <Dropdown.Item icon="home" text="我的主页" onClick={this.toHomepage.bind(this)} />
                     {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
                   /> */}
-                    <Dropdown.Item icon="log out" text="注销" onClick={this.handleLogout} />
+                    <Dropdown.Item icon="trash alternate" text="清空缓存" onClick={this.clearLocalStorage.bind(this)} />
+                    <Dropdown.Item icon="log out" text="注销" onClick={this.handleLogout.bind(this)} />
                   </Dropdown.Menu>
                 </Dropdown>
                 {menuScrollable && menuNowPage < menuTotalPages ? (
@@ -7735,7 +7737,7 @@ class CornerstoneElement extends Component {
         }
       )
       .then((res) => {
-        console.log(res)
+        console.log('getMhaListForCaseId reponse', res)
         // const urls = res.data
         function sortUrl(x, y) {
           // small to big
@@ -7755,80 +7757,111 @@ class CornerstoneElement extends Component {
         let airwayLength = 0
         let nodulesLength = 0
         let vesselLength = 0
-        if (urlData) {
-          if (urlData.lung && urlData.lung.length > 0) {
-          }
-          if (urlData.lobe && urlData.lobe.length > 0) {
-            const prevCount = count
-            urlData.lobe.sort(sortUrl)
-            urlData.lobe.forEach((item, index) => {
-              const order = Math.round(item[item.length - 5])
-              const type = 'lobe' + order
+
+        if (urlData && urlData.length) {
+          let count = 0
+          urlData.sort((a, b) => a - b)
+          urlData.forEach((urlItem, urlIndex) => {
+            const originType = urlItem.split('/')[4]
+            let type
+            let order = 0
+            if (originType === 'lobe') {
+              order = Math.round(urlItem[urlItem.length - 5])
+              type = originType + order
+            } else if (originType === 'nodule') {
+              order = Math.round(urlItem[urlItem.length - 5])
+              type = originType
+            } else {
+              type = originType
+            }
+            if (originType !== 'lung') {
               urls.push({
-                url: item,
+                url: urlItem,
                 order,
-                index: index + prevCount,
+                index: count,
                 class: dictList[type].class,
                 name: dictList[type].name,
                 color: dictList[type].color,
               })
               count += 1
-              lobesLength += 1
-            })
-          }
-          if (urlData.airway && urlData.airway.length > 0) {
-            const prevCount = count
-            urlData.airway.forEach((item, index) => {
-              const order = 0
-              const type = 'airway'
-              urls.push({
-                url: item,
-                order,
-                index: index + prevCount,
-                class: dictList[type].class,
-                name: dictList[type].name,
-                color: dictList[type].color,
-              })
-              count += 1
-              airwayLength += 1
-            })
-          }
-          if (urlData.nodule && urlData.nodule.length > 0) {
-            const prevCount = count
-            urlData.nodule.sort(sortUrl)
-            urlData.nodule.forEach((item, index) => {
-              const order = Math.round(item[item.length - 5])
-              const type = 'nodule'
-              urls.push({
-                url: item,
-                order,
-                index: index + prevCount,
-                class: dictList[type].class,
-                name: dictList[type].name + order,
-                color: dictList[type].color,
-              })
-              count += 1
-              nodulesLength += 1
-            })
-          }
-          if (urlData.vessel && urlData.vessel.length > 0) {
-            const prevCount = count
-            urlData.vessel.forEach((item, index) => {
-              const order = 0
-              const type = 'vessel'
-              urls.push({
-                url: item,
-                order,
-                index: index + prevCount,
-                class: dictList[type].class,
-                name: dictList[type].name,
-                color: dictList[type].color,
-              })
-              count += 1
-              vesselLength += 1
-            })
-          }
+            }
+          })
         }
+
+        // if (urlData) {
+        //   if (urlData.lung && urlData.lung.length > 0) {
+        //   }
+        //   if (urlData.lobe && urlData.lobe.length > 0) {
+        //     const prevCount = count
+        //     urlData.lobe.sort(sortUrl)
+        //     urlData.lobe.forEach((item, index) => {
+        //       const order = Math.round(item[item.length - 5])
+        //       const type = 'lobe' + order
+        //       urls.push({
+        //         url: item,
+        //         order,
+        //         index: index + prevCount,
+        //         class: dictList[type].class,
+        //         name: dictList[type].name,
+        //         color: dictList[type].color,
+        //       })
+        //       count += 1
+        //       lobesLength += 1
+        //     })
+        //   }
+        //   if (urlData.airway && urlData.airway.length > 0) {
+        //     const prevCount = count
+        //     urlData.airway.forEach((item, index) => {
+        //       const order = 0
+        //       const type = 'airway'
+        //       urls.push({
+        //         url: item,
+        //         order,
+        //         index: index + prevCount,
+        //         class: dictList[type].class,
+        //         name: dictList[type].name,
+        //         color: dictList[type].color,
+        //       })
+        //       count += 1
+        //       airwayLength += 1
+        //     })
+        //   }
+        //   if (urlData.nodule && urlData.nodule.length > 0) {
+        //     const prevCount = count
+        //     urlData.nodule.sort(sortUrl)
+        //     urlData.nodule.forEach((item, index) => {
+        //       const order = Math.round(item[item.length - 5])
+        //       const type = 'nodule'
+        //       urls.push({
+        //         url: item,
+        //         order,
+        //         index: index + prevCount,
+        //         class: dictList[type].class,
+        //         name: dictList[type].name + order,
+        //         color: dictList[type].color,
+        //       })
+        //       count += 1
+        //       nodulesLength += 1
+        //     })
+        //   }
+        //   if (urlData.vessel && urlData.vessel.length > 0) {
+        //     const prevCount = count
+        //     urlData.vessel.forEach((item, index) => {
+        //       const order = 0
+        //       const type = 'vessel'
+        //       urls.push({
+        //         url: item,
+        //         order,
+        //         index: index + prevCount,
+        //         class: dictList[type].class,
+        //         name: dictList[type].name,
+        //         color: dictList[type].color,
+        //       })
+        //       count += 1
+        //       vesselLength += 1
+        //     })
+        //   }
+        // }
         const segments = Object.keys(urls).map((key) => null)
         const percent = Object.keys(urls).map((key) => 0)
         const listLoading = Object.keys(urls).map((key) => true)

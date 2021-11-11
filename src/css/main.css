@@ -22,7 +22,7 @@ html {
   background-color: rgb(39, 46, 72);
 }
 #logout-menu .item {
-  color: whitesmoke;
+  color: whitesmoke !important;
 }
 #logout-menu .item:hover {
   background-color: rgb(40, 46, 94) !important;
