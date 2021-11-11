@@ -182,7 +182,7 @@ const immersiveStyle = {
   color: 'white',
 }
 const nodulePlaces = {
-  0: '选择位置',
+  0: '无法定位',
   1: '右肺中叶',
   2: '右肺上叶',
   3: '右肺下叶',
@@ -332,7 +332,7 @@ class CornerstoneElement extends Component {
           checked: new Array(12).fill(true),
         },
         { key: 1, desc: '直径大小', options: ['<=0.3cm', '0.3cm-0.5cm', '0.5cm-1cm', '1cm-1.3cm', '1.3cm-3cm', '>=3cm'], checked: new Array(6).fill(true) },
-        { key: 2, desc: '良恶性', options: ['高危', '中危', '低危', '未知'], checked: new Array(6).fill(true) },
+        { key: 2, desc: '良恶性', options: ['高危', '中危', '低危', '未知'], checked: new Array(4).fill(true) },
       ],
       nodulesAllSelected: true,
       ctInfoPadding: 0,
@@ -497,7 +497,6 @@ class CornerstoneElement extends Component {
     this.toHideMask = this.toHideMask.bind(this)
     this.eraseMeasures = this.eraseMeasures.bind(this)
     // this.drawTmpBox = this.drawTmpBox.bind(this)
-    this.noduleHist = this.noduleHist.bind(this)
     this.drawLength = this.drawLength.bind(this)
     this.createLength = this.createLength.bind(this)
     // this.showMask = this
@@ -1496,6 +1495,9 @@ class CornerstoneElement extends Component {
           show3DVisualization: true,
         },
         () => {
+          if (this.viewer3D) {
+            this.viewer3D.setNeedReset()
+          }
           this.resizeScreen()
         }
       )
@@ -1558,18 +1560,6 @@ class CornerstoneElement extends Component {
       this.setState({ selectTiny: 1, listsActiveIndex: -1 })
     } else {
       this.setState({ selectTiny: 0, listsActiveIndex: -1 })
-    }
-  }
-
-  chooseDensity(value) {
-    if (value === '实性') {
-      this.setState({ selectTexture: 2 })
-    } else if (value === '半实性') {
-      this.setState({ selectTexture: 3 })
-    } else if (value === '磨玻璃') {
-      this.setState({ selectTexture: 1 })
-    } else {
-      this.setState({ selectTexture: -1 })
     }
   }
 
@@ -2237,7 +2227,7 @@ class CornerstoneElement extends Component {
             if (inside.place) {
               locationValues = [places[inside.place]]
             } else {
-              locationValues = '选择位置'
+              locationValues = ['无法定位']
             }
           }
 
@@ -2275,6 +2265,9 @@ class CornerstoneElement extends Component {
                           dropdownClassName={'corner-select-dropdown'}
                           onChange={this.onSelectTex.bind(this, idx)}
                           onClick={this.onSelectTexClick.bind(this)}>
+                          <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                            未知
+                          </Option>
                           <Option className="nodule-accordion-item-title-select-option" value={1}>
                             磨玻璃
                           </Option>
@@ -2321,6 +2314,9 @@ class CornerstoneElement extends Component {
                           dropdownClassName={'corner-select-dropdown'}
                           onChange={this.onSelectMal.bind(this, idx)}
                           onClick={this.onSelectMalClick.bind(this)}>
+                          <Option className={'nodule-accordion-item-title-select-option'} value={-1}>
+                            未知
+                          </Option>
                           <Option className={'nodule-accordion-item-title-select-option'} value={1}>
                             低危
                           </Option>
@@ -2356,6 +2352,7 @@ class CornerstoneElement extends Component {
                         <Select
                           className={'nodule-accordion-item-content-select'}
                           mode="multiple"
+                          dropdownMatchSelectWidth={false}
                           defaultValue={inside.malignancy}
                           value={representArray}
                           bordered={false}
@@ -2758,9 +2755,9 @@ class CornerstoneElement extends Component {
         let slider_range2 = HUSliderRange[1]
         marks = {}
         /**结节特征 */
-        CT_max = boxes[listsActiveIndex].huMax
-        CT_min = boxes[listsActiveIndex].huMin
-        CT_mean = boxes[listsActiveIndex].huMean
+        CT_max = boxes[listsActiveIndex].huMax ? boxes[listsActiveIndex].huMax : 0
+        CT_min = boxes[listsActiveIndex].huMin ? boxes[listsActiveIndex].huMin : 0
+        CT_mean = boxes[listsActiveIndex].huMean ? boxes[listsActiveIndex].huMean : 0
         slice_idx = boxes[listsActiveIndex].slice_idx + 1
         if (boxes[listsActiveIndex].measure !== null && boxes[listsActiveIndex].measure !== undefined) {
           let measureCoord = boxes[listsActiveIndex].measure
@@ -2810,54 +2807,58 @@ class CornerstoneElement extends Component {
             </div>
 
             <table id="analysis-table">
-              <tr>
-                <td className="title">分析项</td>
-                <td className="range1">{'<' + HUSliderRange[0] + 'HU'}</td>
-                <td className="range2">{HUSliderRange[0] + '~' + HUSliderRange[1] + 'HU'}</td>
-                <td className="range3">{'≥' + HUSliderRange[1] + 'HU'}</td>
-                <td className="title">总体</td>
-              </tr>
-              <tr>
-                <td className="title">体积mm³(占比)</td>
-                <td className="range1">{range1_volume + '(' + (range1 * 100).toFixed(2) + '%)'}</td>
-                <td className="range2">{range2_volume + '(' + (range2 * 100).toFixed(2) + '%)'}</td>
-                <td className="range3">{range3_volume + '(' + (range3 * 100).toFixed(2) + '%)'}</td>
-                <td className="title">{overall_volume}</td>
-              </tr>
-              <tr>
-                <td className="title">质量mg(占比)</td>
-                <td className="range1">{quality1 + '(' + quality1_percent + '%)'}</td>
-                <td className="range2">{quality2 + '(' + quality2_percent + '%)'}</td>
-                <td className="range3">{quality3 + '(' + quality3_percent + '%)'}</td>
-                <td className="title">{overall_quality}</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td className="title">分析项</td>
+                  <td className="range1">{'<' + HUSliderRange[0] + 'HU'}</td>
+                  <td className="range2">{HUSliderRange[0] + '~' + HUSliderRange[1] + 'HU'}</td>
+                  <td className="range3">{'≥' + HUSliderRange[1] + 'HU'}</td>
+                  <td className="title">总体</td>
+                </tr>
+                <tr>
+                  <td className="title">体积mm³(占比)</td>
+                  <td className="range1">{range1_volume + '(' + (range1 * 100).toFixed(2) + '%)'}</td>
+                  <td className="range2">{range2_volume + '(' + (range2 * 100).toFixed(2) + '%)'}</td>
+                  <td className="range3">{range3_volume + '(' + (range3 * 100).toFixed(2) + '%)'}</td>
+                  <td className="title">{overall_volume}</td>
+                </tr>
+                <tr>
+                  <td className="title">质量mg(占比)</td>
+                  <td className="range1">{quality1 + '(' + quality1_percent + '%)'}</td>
+                  <td className="range2">{quality2 + '(' + quality2_percent + '%)'}</td>
+                  <td className="range3">{quality3 + '(' + quality3_percent + '%)'}</td>
+                  <td className="title">{overall_quality}</td>
+                </tr>
+              </tbody>
             </table>
             <table id="feature-table">
-              <tr>
-                <td>{'CT最大值：' + CT_max.toFixed(1) + 'HU'}</td>
-                <td>{'最大层位置：' + 'IM ' + slice_idx}</td>
-                <td>{'峰度：'}</td>
-              </tr>
-              <tr>
-                <td>{'CT最小值：' + CT_min.toFixed(1) + 'HU'}</td>
-                <td>{'最大面面积：'}</td>
-                <td>{'偏度：'}</td>
-              </tr>
-              <tr>
-                <td>{'CT平均值：' + CT_mean.toFixed(1) + 'HU'}</td>
-                <td>{'表面积：'}</td>
-                <td>{'能量：'}</td>
-              </tr>{' '}
-              <tr>
-                <td>{'CT值方差：'}</td>
-                <td>{'3D长径：'}</td>
-                <td>{'紧凑度：'}</td>
-              </tr>{' '}
-              <tr>
-                <td>{'球型度：'}</td>
-                <td>{'长短径平均值：' + apsidal_mean + 'mm'}</td>
-                <td>{'熵：'}</td>
-              </tr>
+              <tbody>
+                <tr>
+                  <td>{'CT最大值：' + CT_max.toFixed(1) + 'HU'}</td>
+                  <td>{'最大层位置：' + 'IM ' + slice_idx}</td>
+                  <td>{'峰度：'}</td>
+                </tr>
+                <tr>
+                  <td>{'CT最小值：' + CT_min.toFixed(1) + 'HU'}</td>
+                  <td>{'最大面面积：'}</td>
+                  <td>{'偏度：'}</td>
+                </tr>
+                <tr>
+                  <td>{'CT平均值：' + CT_mean.toFixed(1) + 'HU'}</td>
+                  <td>{'表面积：'}</td>
+                  <td>{'能量：'}</td>
+                </tr>
+                <tr>
+                  <td>{'CT值方差：'}</td>
+                  <td>{'3D长径：'}</td>
+                  <td>{'紧凑度：'}</td>
+                </tr>
+                <tr>
+                  <td>{'球型度：'}</td>
+                  <td>{'长短径平均值：' + apsidal_mean + 'mm'}</td>
+                  <td>{'熵：'}</td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -3233,12 +3234,12 @@ class CornerstoneElement extends Component {
             </div>
           </div>
           {!this.state.isPlaying ? (
-            <div onClick={this.playAnimation.bind(this)} className="func-btn" title="播放动画">
+            <div onClick={this.playAnimation.bind(this)} className="func-btn" title="播放动画" hidden={show3DVisualization}>
               <Icon className="func-btn-icon" name="play" size="large"></Icon>
               <div className="func-btn-desc">播放</div>
             </div>
           ) : (
-            <div onClick={this.pauseAnimation.bind(this)} className="func-btn" title="暂停动画">
+            <div onClick={this.pauseAnimation.bind(this)} className="func-btn" title="暂停动画" hidden={show3DVisualization}>
               <Icon className="func-btn-icon" name="pause" size="large"></Icon>
               <div className="func-btn-desc">暂停</div>
             </div>
@@ -3427,7 +3428,7 @@ class CornerstoneElement extends Component {
                                       <div className="nodule-card-content">
                                         <div className="nodule-filter">
                                           <div className="nodule-filter-desc">
-                                            <div className="nodule-filter-desc-index"></div>
+                                            <div className="nodule-filter-desc-index">1</div>
                                             <Checkbox
                                               className="nodule-filter-desc-checkbox"
                                               checked={nodulesAllChecked}
@@ -3500,7 +3501,7 @@ class CornerstoneElement extends Component {
                                         <div className="threed-card-content">
                                           <div className="threed-filter">
                                             <div className="threed-filter-desc">
-                                              <div className="threed-filter-desc-index"></div>
+                                              <div className="threed-filter-desc-index">1</div>
                                               <Checkbox
                                                 className="threed-filter-desc-checkbox"
                                                 checked={lobesAllChecked}
@@ -3529,7 +3530,7 @@ class CornerstoneElement extends Component {
                                         <div className="threed-card-content">
                                           <div className="threed-filter">
                                             <div className="threed-filter-desc">
-                                              <div className="threed-filter-desc-index"></div>
+                                              <div className="threed-filter-desc-index">1</div>
                                               <Checkbox
                                                 className="threed-filter-desc-checkbox"
                                                 checked={tubularAllChecked}
@@ -3561,13 +3562,7 @@ class CornerstoneElement extends Component {
                               </Tabs>
                             </TabPane>
                             <TabPane tab={'淋巴结'} key="2"></TabPane>
-                            <TabPane tab={'其他'} key="3"></TabPane>
-                            {/* <TabPane tab={inflammationTab} key="2">
-                                                      Content of Tab Pane 2
-                                                      </TabPane>
-                                                      <TabPane tab={lymphnodeTab} key="3">
-                                                      Content of Tab Pane 3
-                                                      </TabPane> */}
+                            {/* <TabPane tab={'其他'} key="3"></TabPane> */}
                           </Tabs>
                         </div>
 
@@ -3578,6 +3573,7 @@ class CornerstoneElement extends Component {
                                 viewerStyle={{
                                   width: `${maskWidth}px`,
                                   height: `${maskHeight}px`,
+                                  border: '1px solid rgb(103, 118, 173)',
                                 }}
                                 volumes={maskVolumes}
                                 maskWidth={maskWidth}
@@ -4445,19 +4441,17 @@ class CornerstoneElement extends Component {
     const pixeldata = currentImage.getPixelData()
     const intercept = imageTag.string('x00281052')
     const slope = imageTag.string('x00281053')
-    console.log('createBoxHist', intercept, slope)
 
     for (var i = ~~x1; i <= x2; i++) {
       for (var j = ~~y1; j <= y2; j++) {
         pixelArray.push(parseInt(slope) * parseInt(pixeldata[512 * j + i]) + parseInt(intercept))
       }
     }
-    console.log('pixelArray', pixelArray)
     pixelArray.sort(this.pixeldataSort)
-    console.log('pixelArraySorted', pixelArray)
-    // console.log('array',pixelArray)
     const data = pixelArray
-    console.log('data', data)
+    const huMax = _.max(data)
+    const huMean = _.mean(data)
+    const huMin = _.min(data)
     var map = {}
     for (var i = 0; i < data.length; i++) {
       var key = data[i]
@@ -4470,7 +4464,7 @@ class CornerstoneElement extends Component {
     Object.keys(map).sort(function (a, b) {
       return map[b] - map[a]
     })
-    console.log('map', map)
+    // console.log('map', map)
 
     var ns = []
     var bins = []
@@ -4488,25 +4482,30 @@ class CornerstoneElement extends Component {
     //     bins.push(parseInt(key))
     //     ns.push(map[key])
     // }
-    console.log('bins', bins, ns)
     var obj = {}
     obj.bins = bins
     obj.n = ns
-    return obj
+    return [obj, huMax, huMean, huMin]
   }
 
   createBox(x1, x2, y1, y2, slice_idx, newIdx) {
-    console.log('coor', x1, x2, y1, y2)
     const imageId = this.state.imageIds[slice_idx]
     // console.log('image', imageId)
-    const nodule_hist = this.noduleHist(x1, y1, x2, y2)
+    const [nodule_hist, huMax, huMean, huMin] = this.noduleHist(x1, y1, x2, y2)
+    const boxes = this.state.boxes
+    console.log('coor', x1, x2, y1, y2)
+    const volume = Math.abs(x1 - x2) * Math.abs(y1 - y2) * Math.pow(10, -4)
     const newBox = {
       malignancy: -1,
+      texture: -1,
       patho: '',
-      place: '',
       probability: 1,
       slice_idx: slice_idx,
-      nodule_hist: nodule_hist,
+      nodule_hist,
+      huMax,
+      huMean,
+      huMin,
+      volume,
       x1: x1,
       x2: x2,
       y1: y1,
@@ -4523,9 +4522,8 @@ class CornerstoneElement extends Component {
       checked: false,
     }
     // let boxes = this.state.selectBoxes
-    let boxes = this.state.boxes
     boxes.push(newBox)
-    let measureStateList = this.state.measureStateList
+    const measureStateList = this.state.measureStateList
     measureStateList.push(false)
     this.setState({
       boxes,
@@ -5978,8 +5976,8 @@ class CornerstoneElement extends Component {
             if (document.getElementById('threed-mask-container')) {
               const threedMaskContainer = document.getElementById('threed-mask-container')
               this.setState({
-                maskWidth: threedMaskContainer.clientWidth,
-                maskHeight: threedMaskContainer.clientHeight,
+                maskWidth: threedMaskContainer.clientWidth - 2,
+                maskHeight: threedMaskContainer.clientHeight - 5,
               })
             }
           } else {
@@ -6672,9 +6670,14 @@ class CornerstoneElement extends Component {
     if (nodulesSelect !== -1) {
       nodulesSelect[nodulesSelectIndex].checked[opIdx] = !nodulesSelect[nodulesSelectIndex].checked[opIdx]
     }
-    this.setState({
-      nodulesSelect,
-    })
+    this.setState(
+      {
+        nodulesSelect,
+      },
+      () => {
+        this.isSelectAllCheck()
+      }
+    )
   }
   onHandleSelectAllNodules() {
     const nodulesAllSelected = !this.state.nodulesAllSelected
@@ -6771,6 +6774,13 @@ class CornerstoneElement extends Component {
                   val: 2,
                 })
                 break
+              case 11:
+                selectedPro.push({
+                  key: 'texture',
+                  val: -1,
+                })
+              default:
+                break
             }
           }
         })
@@ -6814,6 +6824,8 @@ class CornerstoneElement extends Component {
                   max: Infinity,
                 })
                 break
+              default:
+                break
             }
           }
         })
@@ -6838,6 +6850,14 @@ class CornerstoneElement extends Component {
                   key: 'malignancy',
                   val: 1,
                 })
+                break
+              case 3:
+                selectedMal.push({
+                  key: 'malignancy',
+                  val: -1,
+                })
+                break
+              default:
                 break
             }
           }
@@ -6888,6 +6908,34 @@ class CornerstoneElement extends Component {
     this.setState({
       boxes,
     })
+  }
+  isSelectAllCheck() {
+    let allChecked = true
+    let notAllChecked = true
+    const nodulesSelect = this.state.nodulesSelect
+    nodulesSelect.forEach((item, index) => {
+      const checked = item.checked
+      console.log('isSelectAllCheck', checked)
+      checked.forEach((chItem, chIndex) => {
+        if (chItem) {
+          notAllChecked = false
+        } else {
+          allChecked = false
+        }
+      })
+    })
+    console.log('isSelectAllCheck', allChecked, notAllChecked)
+
+    if (allChecked) {
+      this.setState({
+        nodulesAllSelected: true,
+      })
+    }
+    if (notAllChecked) {
+      this.setState({
+        nodulesAllSelected: false,
+      })
+    }
   }
   onSetPreviewActive(idx) {
     const previewVisible = this.state.previewVisible
@@ -8195,19 +8243,18 @@ class CornerstoneElement extends Component {
       console.log('random change', this.state.boxes)
       this.saveToDB()
     }
-    if (prevState.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
-      const visId = 'visual-' + prevState.listsActiveIndex
+    if (this.state.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
       const bins = this.state.boxes[this.state.listsActiveIndex].nodule_hist.bins
       this.setState({ HUSliderRange: [bins[0], bins[bins.length - 1]] })
 
-      if (document.getElementById(visId) !== undefined && document.getElementById(visId) !== null) {
-        // document.getElementById(visId).innerHTML=''
-        document.getElementById(visId).style.display = 'none'
-        document.getElementById('closeVisualContent').style.display = 'none'
-      } else {
-        console.log('visId is not exist!')
-      }
-      console.log('listsActiveIndex', prevState.listsActiveIndex, this.state.listsActiveIndex)
+      // if (document.getElementById(visId) !== undefined && document.getElementById(visId) !== null) {
+      //   // document.getElementById(visId).innerHTML=''
+      //   document.getElementById(visId).style.display = 'none'
+      //   document.getElementById('closeVisualContent').style.display = 'none'
+      // } else {
+      //   console.log('visId is not exist!')
+      // }
+      // console.log('listsActiveIndex', prevState.listsActiveIndex, this.state.listsActiveIndex)
       // document.
     }
     if (prevState.listsActiveIndex !== -1 && this.state.listsActiveIndex === -1) {
@@ -8527,12 +8574,19 @@ class CornerstoneElement extends Component {
       const tmp_segments = [].concat(this.state.segments)
       tmp_segments[idx] = actor
       const listLoading = this.state.listLoading
-      this.timer = setTimeout(() => {
+      this.downloadSegmentTimer = setTimeout(() => {
         listLoading[idx] = false
       }, 2500)
-      this.setState({
-        segments: tmp_segments,
-      })
+      this.setState(
+        {
+          segments: tmp_segments,
+        },
+        () => {
+          if (this.viewer3D) {
+            this.viewer3D.setNeedReset()
+          }
+        }
+      )
     })
   }
   updatePointActor(origin) {

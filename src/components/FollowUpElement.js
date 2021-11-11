@@ -60,7 +60,7 @@ cornerstoneTools.toolColors.setToolColor('rgb(255, 255, 0)')
 // const densityConfig = config.density
 
 const nodulePlaces = {
-  0: '选择位置',
+  0: '无法定位',
   1: '右肺中叶',
   2: '右肺上叶',
   3: '右肺下叶',
@@ -1173,7 +1173,7 @@ class FollowUpElement extends Component {
           if (inside.place) {
             locationValues = [nodulePlaces[inside.place]]
           } else {
-            locationValues = '选择位置'
+            locationValues = ['无法定位']
           }
         }
 
@@ -1206,6 +1206,9 @@ class FollowUpElement extends Component {
                         dropdownClassName={'corner-select-dropdown'}
                         onChange={this.onSelectTex.bind(this, idx, 'current')}
                         onClick={this.onSelectTexClick.bind(this)}>
+                        <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                          未知
+                        </Option>
                         <Option className="nodule-accordion-item-title-select-option" value={1}>
                           磨玻璃
                         </Option>
@@ -1252,6 +1255,9 @@ class FollowUpElement extends Component {
                         dropdownClassName={'corner-select-dropdown'}
                         onChange={this.onSelectMal.bind(this, idx, 'current')}
                         onClick={this.onSelectMalClick.bind(this)}>
+                        <Option className={'nodule-accordion-item-title-select-option'} value={-1}>
+                          未知
+                        </Option>
                         <Option className={'nodule-accordion-item-title-select-option'} value={1}>
                           低危
                         </Option>
@@ -1287,6 +1293,7 @@ class FollowUpElement extends Component {
                       <Select
                         className={'nodule-accordion-item-content-select'}
                         mode="multiple"
+                        dropdownMatchSelectWidth={false}
                         defaultValue={inside.malignancy}
                         value={representArray}
                         bordered={false}
@@ -1400,7 +1407,7 @@ class FollowUpElement extends Component {
           if (inside.place) {
             locationValues = [nodulePlaces[inside.place]]
           } else {
-            locationValues = '选择位置'
+            locationValues = ['无法定位']
           }
         }
 
@@ -1433,6 +1440,9 @@ class FollowUpElement extends Component {
                         dropdownClassName={'corner-select-dropdown'}
                         onChange={this.onSelectTex.bind(this, idx, 'previews')}
                         onClick={this.onSelectTexClick.bind(this)}>
+                        <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                          未知
+                        </Option>
                         <Option className="nodule-accordion-item-title-select-option" value={1}>
                           磨玻璃
                         </Option>
@@ -1479,6 +1489,9 @@ class FollowUpElement extends Component {
                         dropdownClassName={'corner-select-dropdown'}
                         onChange={this.onSelectMal.bind(this, idx, 'previews')}
                         onClick={this.onSelectMalClick.bind(this)}>
+                        <Option className={'nodule-accordion-item-title-select-option'} value={-1}>
+                          未知
+                        </Option>
                         <Option className={'nodule-accordion-item-title-select-option'} value={1}>
                           低危
                         </Option>
@@ -1514,6 +1527,7 @@ class FollowUpElement extends Component {
                       <Select
                         className={'nodule-accordion-item-content-select'}
                         mode="multiple"
+                        dropdownMatchSelectWidth={false}
                         defaultValue={inside.malignancy}
                         value={representArray}
                         bordered={false}
@@ -1585,7 +1599,7 @@ class FollowUpElement extends Component {
           if (newNodule.place) {
             newLocationValues = [nodulePlaces[newNodule.place]]
           } else {
-            newLocationValues = '选择位置'
+            newLocationValues = ['无法定位']
           }
         }
         if (previewsNodule.segment && previewsNodule.segment !== 'None') {
@@ -1594,7 +1608,7 @@ class FollowUpElement extends Component {
           if (previewsNodule.place) {
             preLocationValues = [nodulePlaces[previewsNodule.place]]
           } else {
-            preLocationValues = '选择位置'
+            preLocationValues = ['无法定位']
           }
         }
         if (newNodule.measure !== undefined && newNodule.measure !== null) {
@@ -1754,6 +1768,9 @@ class FollowUpElement extends Component {
                     dropdownClassName={'corner-select-dropdown'}
                     onChange={this.onSelectTex.bind(this, idx, 'match-cur')}
                     onClick={this.onSelectTexClick.bind(this)}>
+                    <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                      未知
+                    </Option>
                     <Option className="nodule-accordion-item-title-select-option" value={1}>
                       磨玻璃
                     </Option>
@@ -1773,6 +1790,7 @@ class FollowUpElement extends Component {
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
+                    dropdownMatchSelectWidth={false}
                     defaultValue={newNodule.malignancy}
                     value={newRepresentArray}
                     bordered={false}
@@ -1827,6 +1845,9 @@ class FollowUpElement extends Component {
                     dropdownClassName={'corner-select-dropdown'}
                     onChange={this.onSelectTex.bind(this, idx, 'match-pre')}
                     onClick={this.onSelectTexClick.bind(this)}>
+                    <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                      未知
+                    </Option>
                     <Option className="nodule-accordion-item-title-select-option" value={1}>
                       磨玻璃
                     </Option>
@@ -1846,6 +1867,7 @@ class FollowUpElement extends Component {
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
+                    dropdownMatchSelectWidth={false}
                     defaultValue={previewsNodule.malignancy}
                     value={preRepresentArray}
                     bordered={false}
@@ -1894,7 +1916,7 @@ class FollowUpElement extends Component {
           if (value.place) {
             locationValues = [nodulePlaces[value.place]]
           } else {
-            locationValues = '选择位置'
+            locationValues = ['无法定位']
           }
         }
         let representArray = []
@@ -1978,6 +2000,9 @@ class FollowUpElement extends Component {
                     dropdownClassName={'corner-select-dropdown'}
                     onChange={this.onSelectTex.bind(this, idx, 'new')}
                     onClick={this.onSelectTexClick.bind(this)}>
+                    <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                      未知
+                    </Option>
                     <Option className="nodule-accordion-item-title-select-option" value={1}>
                       磨玻璃
                     </Option>
@@ -1994,6 +2019,7 @@ class FollowUpElement extends Component {
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
+                    dropdownMatchSelectWidth={false}
                     defaultValue={value.malignancy}
                     value={representArray}
                     bordered={false}
@@ -2042,7 +2068,7 @@ class FollowUpElement extends Component {
           if (value.place) {
             locationValues = [nodulePlaces[value.place]]
           } else {
-            locationValues = '选择位置'
+            locationValues = ['无法定位']
           }
         }
         var representArray = []
@@ -2128,6 +2154,9 @@ class FollowUpElement extends Component {
                     dropdownClassName={'corner-select-dropdown'}
                     onChange={this.onSelectTex.bind(this, idx, 'vanish')}
                     onClick={this.onSelectTexClick.bind(this)}>
+                    <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                      未知
+                    </Option>
                     <Option className="nodule-accordion-item-title-select-option" value={1}>
                       磨玻璃
                     </Option>
@@ -2144,6 +2173,7 @@ class FollowUpElement extends Component {
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
+                    dropdownMatchSelectWidth={false}
                     defaultValue={value.malignancy}
                     value={representArray}
                     bordered={false}
@@ -2541,18 +2571,22 @@ class FollowUpElement extends Component {
 
     if (type === 'current') {
       const curBoxes = this.state.curBoxes
-
-      for (let item in places) {
-        if (places[item] === place) {
-          curBoxes[index].place = item
-        }
-      }
-      if (value[1] === '无法定位') {
+      if (value[0] === '无法定位') {
+        curBoxes[index].place = 0
         curBoxes[index].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            curBoxes[index].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            curBoxes[index].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          curBoxes[index].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              curBoxes[index].segment = item
+            }
           }
         }
       }
@@ -2561,18 +2595,22 @@ class FollowUpElement extends Component {
       })
     } else if (type === 'previews') {
       const preBoxes = this.state.preBoxes
-
-      for (let item in places) {
-        if (places[item] === place) {
-          preBoxes[index].place = item
-        }
-      }
-      if (value[1] === '无法定位') {
+      if (value[0] === '无法定位') {
+        preBoxes[index].place = 0
         preBoxes[index].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            preBoxes[index].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            preBoxes[index].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          preBoxes[index].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              preBoxes[index].segment = item
+            }
           }
         }
       }
@@ -2581,17 +2619,22 @@ class FollowUpElement extends Component {
       })
     } else if (type === 'match-cur') {
       const box = this.state.registerBoxes
-      for (let item in places) {
-        if (places[item] === place) {
-          box['match'][index]['later'].place = item
-        }
-      }
-      if (value[1] === '无法定位') {
+      if (value[0] === '无法定位') {
+        box['match'][index]['later'].place = 0
         box['match'][index]['later'].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            box['match'][index]['later'].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            box['match'][index]['later'].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          box['match'][index]['later'].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              box['match'][index]['later'].segment = item
+            }
           }
         }
       }
@@ -2600,17 +2643,22 @@ class FollowUpElement extends Component {
       })
     } else if (type === 'match-pre') {
       const box = this.state.registerBoxes
-      for (let item in places) {
-        if (places[item] === place) {
-          box['match'][index]['earlier'].place = item
-        }
-      }
-      if (value[1] === '无法定位') {
+      if (value[0] === '无法定位') {
+        box['match'][index]['earlier'].place = 0
         box['match'][index]['earlier'].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            box['match'][index]['earlier'].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            box['match'][index]['earlier'].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          box['match'][index]['earlier'].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              box['match'][index]['earlier'].segment = item
+            }
           }
         }
       }
@@ -2619,39 +2667,51 @@ class FollowUpElement extends Component {
       })
     } else if (type === 'new') {
       const box = this.state.registerBoxes
-      for (let item in places) {
-        if (places[item] === place) {
-          box['new'][index].place = item
-        }
-      }
-      if (value[1] === '无法定位') {
+      if (value[0] === '无法定位') {
+        box['new'][index].place = 0
         box['new'][index].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            box['new'][index].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            box['new'][index].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          box['new'][index].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              box['new'][index].segment = item
+            }
           }
         }
       }
+
       this.setState({
         registerBoxes: box,
       })
     } else if (type === 'vanish') {
       const box = this.state.registerBoxes
-      for (let item in places) {
-        if (places[item] === place) {
-          box['vanish'][index].place = item
-        }
-      }
-      if (value[1] === '无法定位') {
+      if (value[0] === '无法定位') {
+        box['vanish'][index].place = 0
         box['vanish'][index].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            box['vanish'][index].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            box['vanish'][index].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          box['vanish'][index].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              box['vanish'][index].segment = item
+            }
           }
         }
       }
+
       this.setState({
         registerBoxes: box,
       })

@@ -433,15 +433,19 @@
 }
 .nodule-filter-desc-index,
 .threed-filter-desc-index {
-  width: 30px;
+  margin-left: 10px;
+  margin-right: 10px;
+  opacity: 0;
+  font-size: large;
+  color: whitesmoke;
 }
 .nodule-filter-desc,
 .threed-filter-desc {
-  margin-left: 10px;
 }
-.nodule-filter-desc-checkbox span {
-  color: whitesmoke;
+.nodule-filter-desc-checkbox,
+.threed-filter-desc-checkbox {
 }
+.nodule-filter-desc-checkbox span,
 .threed-filter-desc-checkbox span {
   color: whitesmoke;
 }
@@ -621,7 +625,7 @@
 }
 .nodule-accordion-item-title-index {
   margin-left: 10px;
-  width: 30px;
+  margin-right: 10px;
 }
 .nodule-accordion-item-title-checkbox {
   width: 50px;
@@ -868,11 +872,11 @@
   color: whitesmoke;
 }
 .threed-mask-container-horizontal {
-  margin-top: 5px;
+  padding: 5px 2px 0px 0;
   height: 40%;
 }
 .threed-mask-container-vertical {
-  margin-left: 5px;
+  padding: 0 2px 0px 5px;
   width: 70%;
   height: 100%;
 }
@@ -923,7 +927,7 @@
 }
 .threed-accordion-item-title-index {
   margin-left: 10px;
-  width: 30px;
+  margin-right: 10px;
   font-size: large;
   color: whitesmoke;
 }
@@ -931,7 +935,7 @@
   width: 20px;
 }
 .threed-accordion-item-title-name {
-  margin-left: 40px;
+  margin-left: 8px;
 }
 .threed-accordion-item-title-center {
   width: 20%;
