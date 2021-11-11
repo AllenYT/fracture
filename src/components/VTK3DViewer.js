@@ -144,7 +144,14 @@ class VTK3DViewer extends Component {
       this.renderWindow.render()
     }
   }
-
+  zoomIn() {
+    this.camera.zoom(1.1)
+    this.renderWindow.render()
+  }
+  zoomOut() {
+    this.camera.zoom(0.9)
+    this.renderWindow.render()
+  }
   resetView() {
     this.renderer.resetCamera()
     this.renderWindow.render()

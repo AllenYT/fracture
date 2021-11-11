@@ -48,6 +48,7 @@
   border: 2px solid rgb(75, 121, 243);
 }
 .preview-item-canvas {
+  cursor: pointer;
   width: 105px;
   height: 105px;
   margin-top: 5px;

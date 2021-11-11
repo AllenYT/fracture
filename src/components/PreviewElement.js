@@ -70,13 +70,14 @@ class PreviewElement extends Component {
       cornerstone.displayImage(element, image)
     })
   }
-
+  onHandleClickPreview(href) {
+    window.location.href = href
+  }
   render() {
-    const { caseId, statusIcon, description, isSelected } = this.props
-    const { isDragging, connectDragSource } = this.props
+    const { connectDragSource, caseId, statusIcon, description, isSelected, href } = this.props
     return connectDragSource(
       <div className={'preview-item' + (isSelected ? ' preview-item-selected' : '')}>
-        <div className="preview-item-canvas" id={'preview-' + caseId}></div>
+        <div className="preview-item-canvas" id={'preview-' + caseId} onClick={this.onHandleClickPreview.bind(this, href)}></div>
         <div className="preview-item-info">
           <div className="preview-item-info-icon">{statusIcon}</div>
           <div className="preview-item-info-desc">{description}</div>
