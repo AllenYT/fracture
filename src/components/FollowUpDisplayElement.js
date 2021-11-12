@@ -20,6 +20,7 @@ class FollowUpDisplayElement extends Component {
       preBoxes: [],
       curInfo: {},
       preInfo: {},
+      registerBoxes: [],
       // initialViewport: {},
       show: false,
     }
@@ -42,6 +43,7 @@ class FollowUpDisplayElement extends Component {
   async componentDidMount() {
     if (this.props.preCaseId && this.props.curCaseId) {
       this.loadDoubleInfo(this.props.curCaseId, this.props.preCaseId)
+      // this.loadRegisterRects(this.props.curCaseId, this.props.preCaseId)
     }
   }
   loadSingleInfo(caseId) {
@@ -83,8 +85,8 @@ class FollowUpDisplayElement extends Component {
     }
 
     const followRectsParams = {
-      earlierCaseId: curCaseId,
-      laterCaseId: preCaseId,
+      earlierCaseId: preCaseId,
+      laterCaseId: curCaseId,
     }
 
     const token = localStorage.getItem('token')
@@ -139,27 +141,59 @@ class FollowUpDisplayElement extends Component {
         this.setState({
           curInfo,
           preInfo,
+          registerBoxes: frData,
           show: true,
         })
       }
     )
   }
+  // loadRegisterRects(curCaseId, preCaseId) {
+  //   const params = {
+  //     earlierCaseId: preCaseId,
+  //     laterCaseId: curCaseId,
+  //   }
+  //   axios.post(this.config.draft.getRectsForFollowUp, qs.stringify(params)).then((followupRectRes) => {
+  //     console.log('followupRect', followupRectRes.data)
+  //     const followupRect = followupRectRes.data
+  //     if (followupRect && followupRect['match'].length) {
+  //       followupRect['match'].forEach((item, index) => {
+  //         item['earlier'].cancelOpen = false
+  //         item['earlier'].checked = false
+  //         item['later'].cancelOpen = false
+  //         item['later'].checked = false
+  //       })
+  //       followupRect['new'].forEach((item, index) => {
+  //         item.checked = false
+  //         item.disabled = false
+  //       })
+  //       followupRect['vanish'].forEach((item, index) => {
+  //         item.checked = false
+  //         item.disabled = false
+  //       })
+  //     }
+  //     this.setState({ registerBoxes: followupRect })
+  //   })
+  // }
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.curCaseId !== this.props.curCaseId || prevProps.preCaseId !== this.props.preCaseId) {
       if (this.props.curCaseId && this.props.preCaseId) {
+        console.log('display componentDidUpdate')
         this.loadDoubleInfo(this.props.curCaseId, this.props.preCaseId)
+        // this.loadRegisterRects(this.props.curCaseId, this.props.preCaseId)
+        console.log('loadRegisterRects', this.state.registerBoxes)
       } else if (this.props.curCaseId) {
         this.loadSingleInfo(this.props.curCaseId)
       }
     }
   }
   render() {
-    const { curInfo, preInfo, show } = this.state
+    const { curInfo, preInfo, registerBoxes, show } = this.state
     if (show) {
       return (
         <FollowUpElement
           curInfo={curInfo}
           preInfo={preInfo}
+          registerBoxes={registerBoxes}
           username={this.props.username}
           onRef={(input) => {
             this.props.onRef(input)

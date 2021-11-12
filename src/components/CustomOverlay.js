@@ -92,7 +92,7 @@ class CustomOverlay extends Component {
     } else if (this.props.curDate === studyDate) {
       imageState = 'New'
     } else if (studyDate === this.props.preDate) {
-      imageState = 'Previews'
+      imageState = 'Previous'
     } else {
       imageState = 'Unknown'
     }

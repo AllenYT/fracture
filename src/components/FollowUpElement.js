@@ -60,7 +60,7 @@ cornerstoneTools.toolColors.setToolColor('rgb(255, 255, 0)')
 // const densityConfig = config.density
 
 const nodulePlaces = {
-  0: '选择位置',
+  0: '无法定位',
   1: '右肺中叶',
   2: '右肺上叶',
   3: '右肺下叶',
@@ -104,6 +104,7 @@ const { Option } = Select
 class FollowUpElement extends Component {
   constructor(props) {
     super(props)
+    console.log('props', this.props)
     this.state = {
       username: props.username,
       curImageIds: props.curInfo.curImageIds,
@@ -115,7 +116,7 @@ class FollowUpElement extends Component {
       currentIdx: 0,
       isOverlayVisible: true,
       isAnnoVisible: true,
-      previewsIdx: 0,
+      previousIdx: 0,
       clicked: false,
       clickedArea: {},
       showNodules: true,
@@ -132,12 +133,13 @@ class FollowUpElement extends Component {
       preListsActiveIndex: -1,
       newCornerstoneElement: null,
       preCornerstoneElement: null,
-      registerBoxes: '',
+      registerBoxes: props.registerBoxes,
       templateText: '',
       vanishNodules: [],
       newNodules: [],
       matchNodules: [],
       noduleTblCheckedValue: ['vanish', 'new', 'match'],
+      matchNodulesAllChecked: false,
       tools: [
         // Mouse
         {
@@ -253,7 +255,9 @@ class FollowUpElement extends Component {
         }
       )
     }
-    this.resizeScreen()
+
+    let nodules
+    nodules = this.resizeScreen()
     window.addEventListener('resize', this.resizeScreen.bind(this))
     // var templateText = ''
     // for (let i = 0; i < curBoxes.length; i++) {
@@ -431,6 +435,23 @@ class FollowUpElement extends Component {
         )
       }
     }
+    if (prevProps.registerBoxes !== this.props.registerBoxes) {
+      const preCaseId = this.props.preInfo.preCaseId
+      const curCaseId = this.props.curInfo.curCaseId
+      if (preCaseId && curCaseId) {
+        this.setState({
+          registerBoxes: this.props.registerBoxes,
+        })
+        // const followRectsParams = {
+        //   earlierCaseId: preCaseId,
+        //   laterCaseId: curCaseId,
+        // }
+        // const getRectsForFollowUpPromise = axios.post(this.config.draft.getRectsForFollowUp, qs.stringify(followRectsParams))
+        // Promise.all(getRectsForFollowUpPromise).then((FollowRectsRes) => {
+
+        // })
+      }
+    }
   }
 
   nextPath(path) {
@@ -451,16 +472,6 @@ class FollowUpElement extends Component {
         }
       )
     } else {
-      const params = {
-        earlierCaseId: this.state.preCaseId,
-        laterCaseId: this.state.curCaseId,
-      }
-      axios.post(this.config.draft.getRectsForFollowUp, qs.stringify(params)).then((followupRectRes) => {
-        console.log('followupRect', followupRectRes.data)
-        const followupRect = followupRectRes.data
-        this.setState({ registerBoxes: followupRect })
-      })
-
       this.setState({ isRegistering: true }, () => {
         this.resizeScreen()
       })
@@ -503,7 +514,7 @@ class FollowUpElement extends Component {
           this.setState({ curBoxes: box })
         }
       }
-    } else if (status === 'previews') {
+    } else if (status === 'previous') {
       let box = this.state.preBoxes
       console.log('location', val)
       for (let item in lungLoc) {
@@ -627,7 +638,7 @@ class FollowUpElement extends Component {
           }
         }
       )
-    } else if (status === 'previews') {
+    } else if (status === 'previous') {
       const { preListsActiveIndex } = this.state
       const newIndex = preListsActiveIndex === index ? -1 : index
       const targets = document.getElementsByClassName('viewport-element')
@@ -636,18 +647,18 @@ class FollowUpElement extends Component {
         {
           preListsActiveIndex: newIndex,
           preImageIdIndex: currentIdx - 1,
-          previewsIdx: currentIdx,
+          previousIdx: currentIdx,
         },
         () => {
           const { preBoxes, preImageIds } = this.state
-          const previewsTarget = targets[1]
-          var toolData = cornerstoneTools.getToolState(previewsTarget, 'RectangleRoi')
+          const previousTarget = targets[1]
+          var toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
           console.log('toolData before', toolData)
           for (let i = 0; i < preBoxes.length; i++) {
             if (preBoxes[i].slice_idx === currentIdx) {
               if (preBoxes[i].uuid === undefined) {
                 cornerstone.loadImage(preImageIds[preBoxes[i].slice_idx - 1]).then(function () {
-                  cornerstone.updateImage(previewsTarget)
+                  cornerstone.updateImage(previousTarget)
 
                   const measurementData = {
                     visible: true,
@@ -677,12 +688,12 @@ class FollowUpElement extends Component {
                       },
                     },
                   }
-                  cornerstoneTools.addToolState(previewsTarget, 'RectangleRoi', measurementData)
-                  toolData = cornerstoneTools.getToolState(previewsTarget, 'RectangleRoi')
+                  cornerstoneTools.addToolState(previousTarget, 'RectangleRoi', measurementData)
+                  toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
                   console.log('toolData after', toolData)
                   preBoxes[i].uuid = toolData.data[0].uuid
 
-                  cornerstoneTools.setToolEnabledForElement(previewsTarget, 'RectangleRoi')
+                  cornerstoneTools.setToolEnabledForElement(previousTarget, 'RectangleRoi')
                 })
                 break
               }
@@ -695,17 +706,17 @@ class FollowUpElement extends Component {
     }
   }
 
-  onMatchNoduleChange(newNodule, previewsNodule) {
-    console.log('onMatchNoduleChange', newNodule, previewsNodule)
+  onMatchNoduleChange(newNodule, previousNodule) {
+    console.log('onMatchNoduleChange', newNodule, previousNodule)
     this.setState(
       {
         curImageIdIndex: newNodule.slice_idx - 1,
-        preImageIdIndex: previewsNodule.slice_idx - 1,
+        preImageIdIndex: previousNodule.slice_idx - 1,
       },
       () => {
         const targets = document.getElementsByClassName('viewport-element')
         const currentTarget = targets[0]
-        const previewTarget = targets[1]
+        const previousTarget = targets[1]
         if (newNodule.uuid === undefined) {
           const { curImageIds, curBoxes } = this.state
           const curNodule_uuid = this.drawCustomRectangleRoi(currentTarget, newNodule, curImageIds)
@@ -713,11 +724,11 @@ class FollowUpElement extends Component {
           curBoxes[cur_nodule_idx - 1] = curNodule_uuid
           this.setState({ curBoxes: curBoxes })
         }
-        if (previewsNodule.uuid === undefined) {
+        if (previousNodule.uuid === undefined) {
           const { preImageIds, preBoxes } = this.state
-          const previewsNodule_uuid = this.drawCustomRectangleRoi(previewTarget, previewsNodule, preImageIds)
-          const pre_nodule_idx = Number(previewsNodule.nodule_no)
-          preBoxes[pre_nodule_idx - 1] = previewsNodule_uuid
+          const previousNodule_uuid = this.drawCustomRectangleRoi(previousTarget, previousNodule, preImageIds)
+          const pre_nodule_idx = Number(previousNodule.nodule_no)
+          preBoxes[pre_nodule_idx - 1] = previousNodule_uuid
           this.setState({ preBoxes: preBoxes })
         }
       }
@@ -751,10 +762,10 @@ class FollowUpElement extends Component {
       },
       () => {
         const targets = document.getElementsByClassName('viewport-element')
-        const previewsTarget = targets[1]
+        const previousTarget = targets[1]
         if (nodule.uuid === undefined) {
           const { preImageIds, preBoxes } = this.state
-          const preNodule_uuid = this.drawCustomRectangleRoi(previewsTarget, nodule, preImageIds)
+          const preNodule_uuid = this.drawCustomRectangleRoi(previousTarget, nodule, preImageIds)
           const pre_nodule_idx = Number(nodule.nodule_no)
           preBoxes[pre_nodule_idx - 1] = preNodule_uuid
           this.setState({ preBoxes: preBoxes })
@@ -807,26 +818,6 @@ class FollowUpElement extends Component {
   noduleTblCheckboxChange(checkedValues) {
     this.setState({ noduleTblCheckedValue: checkedValues })
     console.log('checkedValues', checkedValues)
-  }
-
-  onDensityChange(idx, status, val, e) {
-    if (status === 'register-new') {
-      let box = this.state.registerBoxes
-      box['new'][idx].texture = val[0]
-      this.setState({ registerBox: box })
-    } else if (status === 'register-vanish') {
-      let box = this.state.registerBoxes
-      box['vanish'][idx].texture = val[0]
-      this.setState({ registerBox: box })
-    } else if (status === 'register-match-new') {
-      let box = this.state.registerBoxes
-      box['match'][idx]['later'].texture = val[0]
-      this.setState({ registerBox: box })
-    } else if (status === 'register-match-previews') {
-      let box = this.state.registerBoxes
-      box['match'][idx]['earlier'].texture = val[0]
-      this.setState({ registerBox: box })
-    }
   }
 
   toHideInfo() {
@@ -1081,6 +1072,7 @@ class FollowUpElement extends Component {
       reportImageTop,
       reportImageHeight,
       reportImageContentHeight,
+      matchNodulesAllChecked,
     } = this.state
     let curBoxesAccord = ''
     let preBoxesAccord = ''
@@ -1174,7 +1166,7 @@ class FollowUpElement extends Component {
           if (inside.place) {
             locationValues = [nodulePlaces[inside.place]]
           } else {
-            locationValues = '选择位置'
+            locationValues = ['无法定位']
           }
         }
 
@@ -1189,13 +1181,13 @@ class FollowUpElement extends Component {
                       <div style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>{inside.visibleIdx + 1}</div>
                     </div>
 
-                    <Checkbox
+                    {/* <Checkbox
                       className="nodule-accordion-item-title-checkbox"
                       checked={inside.checked}
                       onChange={this.onHandleNoduleCheckChange.bind(this, idx, 'current')}
-                      onClick={this.onHandleNoduleCheckClick.bind(this)}>
-                      {parseInt(inside.slice_idx) + 1}
-                    </Checkbox>
+                      onClick={this.onHandleNoduleCheckClick.bind(this)}> */}
+                    <div className="nodule-accordion-item-title-slice-idx">{parseInt(inside.slice_idx) + 1}</div>
+                    {/* </Checkbox> */}
                     <div className="nodule-accordion-item-title-type">
                       <Select
                         className="nodule-accordion-item-title-select"
@@ -1207,6 +1199,9 @@ class FollowUpElement extends Component {
                         dropdownClassName={'corner-select-dropdown'}
                         onChange={this.onSelectTex.bind(this, idx, 'current')}
                         onClick={this.onSelectTexClick.bind(this)}>
+                        <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                          未知
+                        </Option>
                         <Option className="nodule-accordion-item-title-select-option" value={1}>
                           磨玻璃
                         </Option>
@@ -1253,6 +1248,9 @@ class FollowUpElement extends Component {
                         dropdownClassName={'corner-select-dropdown'}
                         onChange={this.onSelectMal.bind(this, idx, 'current')}
                         onClick={this.onSelectMalClick.bind(this)}>
+                        <Option className={'nodule-accordion-item-title-select-option'} value={-1}>
+                          未知
+                        </Option>
                         <Option className={'nodule-accordion-item-title-select-option'} value={1}>
                           低危
                         </Option>
@@ -1402,7 +1400,7 @@ class FollowUpElement extends Component {
           if (inside.place) {
             locationValues = [nodulePlaces[inside.place]]
           } else {
-            locationValues = '选择位置'
+            locationValues = ['无法定位']
           }
         }
 
@@ -1410,20 +1408,20 @@ class FollowUpElement extends Component {
         if (inside.visible) {
           return (
             <div key={idx} className={'highlightTbl' + (preListsActiveIndex === idx ? ' highlightTbl-active' : '')}>
-              <Accordion.Title onClick={this.handleListClick.bind(this, inside.slice_idx, idx, 'previews')} active={preListsActiveIndex === idx} index={idx}>
+              <Accordion.Title onClick={this.handleListClick.bind(this, inside.slice_idx, idx, 'previous')} active={preListsActiveIndex === idx} index={idx}>
                 <div className="nodule-accordion-item-title">
                   <div className="nodule-accordion-item-title-start">
                     <div className="nodule-accordion-item-title-index">
                       <div style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>{inside.visibleIdx + 1}</div>
                     </div>
 
-                    <Checkbox
+                    {/* <Checkbox
                       className="nodule-accordion-item-title-checkbox"
                       checked={inside.checked}
-                      onChange={this.onHandleNoduleCheckChange.bind(this, idx, 'previews')}
-                      onClick={this.onHandleNoduleCheckClick.bind(this)}>
-                      {parseInt(inside.slice_idx) + 1}
-                    </Checkbox>
+                      onChange={this.onHandleNoduleCheckChange.bind(this, idx, 'previous')}
+                      onClick={this.onHandleNoduleCheckClick.bind(this)}> */}
+                    <div className="nodule-accordion-item-title-slice-idx">{parseInt(inside.slice_idx) + 1}</div>
+                    {/* </Checkbox> */}
                     <div className="nodule-accordion-item-title-type">
                       <Select
                         className="nodule-accordion-item-title-select"
@@ -1433,8 +1431,11 @@ class FollowUpElement extends Component {
                         bordered={false}
                         showArrow={false}
                         dropdownClassName={'corner-select-dropdown'}
-                        onChange={this.onSelectTex.bind(this, idx, 'previews')}
+                        onChange={this.onSelectTex.bind(this, idx, 'previous')}
                         onClick={this.onSelectTexClick.bind(this)}>
+                        <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                          未知
+                        </Option>
                         <Option className="nodule-accordion-item-title-select-option" value={1}>
                           磨玻璃
                         </Option>
@@ -1466,7 +1467,7 @@ class FollowUpElement extends Component {
                         dropdownRender={(menus) => {
                           return <div onClick={this.onSelectPlaceClick.bind(this)}>{menus}</div>
                         }}
-                        onChange={this.onSelectPlace.bind(this, idx, 'previews')}
+                        onChange={this.onSelectPlace.bind(this, idx, 'previous')}
                         onClick={this.onSelectPlaceClick.bind(this)}
                       />
                     </div>
@@ -1479,8 +1480,11 @@ class FollowUpElement extends Component {
                         bordered={false}
                         showArrow={false}
                         dropdownClassName={'corner-select-dropdown'}
-                        onChange={this.onSelectMal.bind(this, idx, 'previews')}
+                        onChange={this.onSelectMal.bind(this, idx, 'previous')}
                         onClick={this.onSelectMalClick.bind(this)}>
+                        <Option className={'nodule-accordion-item-title-select-option'} value={-1}>
+                          未知
+                        </Option>
                         <Option className={'nodule-accordion-item-title-select-option'} value={1}>
                           低危
                         </Option>
@@ -1522,7 +1526,7 @@ class FollowUpElement extends Component {
                         bordered={false}
                         showArrow={false}
                         dropdownClassName={'corner-select-dropdown'}
-                        onChange={this.representChange.bind(this, idx, 'previews')}>
+                        onChange={this.representChange.bind(this, idx, 'previous')}>
                         <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
                           分叶
                         </Option>
@@ -1568,11 +1572,11 @@ class FollowUpElement extends Component {
         var VDT = 0
         var MDT = 0
         var doublingType = ''
-        const previewsNodule = value['earlier']
+        const previousNodule = value['earlier']
         const newNodule = value['later']
         var followupLoc = ''
         var newLoc = newNodule.segment
-        var previewsLoc = previewsNodule.segment
+        var previousLoc = previousNodule.segment
         var newRepresentArray = []
         var preRepresentArray = []
         let newNoduleLength = 0
@@ -1588,16 +1592,16 @@ class FollowUpElement extends Component {
           if (newNodule.place) {
             newLocationValues = [nodulePlaces[newNodule.place]]
           } else {
-            newLocationValues = '选择位置'
+            newLocationValues = ['无法定位']
           }
         }
-        if (previewsNodule.segment && previewsNodule.segment !== 'None') {
-          preLocationValues = lungLoc[previewsNodule.segment].split('-')
+        if (previousNodule.segment && previousNodule.segment !== 'None') {
+          preLocationValues = lungLoc[previousNodule.segment].split('-')
         } else {
-          if (previewsNodule.place) {
-            preLocationValues = [nodulePlaces[previewsNodule.place]]
+          if (previousNodule.place) {
+            preLocationValues = [nodulePlaces[previousNodule.place]]
           } else {
-            preLocationValues = '选择位置'
+            preLocationValues = ['无法定位']
           }
         }
         if (newNodule.measure !== undefined && newNodule.measure !== null) {
@@ -1611,9 +1615,9 @@ class FollowUpElement extends Component {
           }
         }
 
-        if (previewsNodule.measure !== undefined && previewsNodule.measure !== null) {
-          preNoduleLength = Math.sqrt(Math.pow(previewsNodule.measure.x1 - previewsNodule.measure.x2, 2) + Math.pow(previewsNodule.measure.y1 - previewsNodule.measure.y2, 2))
-          preNoduleWidth = Math.sqrt(Math.pow(previewsNodule.measure.x3 - previewsNodule.measure.x4, 2) + Math.pow(previewsNodule.measure.y3 - previewsNodule.measure.y4, 2))
+        if (previousNodule.measure !== undefined && previousNodule.measure !== null) {
+          preNoduleLength = Math.sqrt(Math.pow(previousNodule.measure.x1 - previousNodule.measure.x2, 2) + Math.pow(previousNodule.measure.y1 - previousNodule.measure.y2, 2))
+          preNoduleWidth = Math.sqrt(Math.pow(previousNodule.measure.x3 - previousNodule.measure.x4, 2) + Math.pow(previousNodule.measure.y3 - previousNodule.measure.y4, 2))
           if (isNaN(preNoduleLength)) {
             preNoduleLength = 0
           }
@@ -1622,13 +1626,15 @@ class FollowUpElement extends Component {
           }
         }
 
-        if (newNodule['volume'] > previewsNodule['volume']) {
+        if (newNodule['volume'] > previousNodule['volume']) {
           doublingType = '增加'
-        } else {
+        } else if (newNodule['volume'] < previousNodule['volume']) {
           doublingType = '减少'
+        } else {
+          doublingType = '不变'
         }
 
-        if (newNodule['volume'] !== 0 && previewsNodule['volume'] !== 0) {
+        if (newNodule['volume'] !== 0 && previousNodule['volume'] !== 0) {
           const curDate = this.state.curCaseId.split('_')[1]
           const preDate = this.state.preCaseId.split('_')[1]
           var curTime = new Date()
@@ -1638,14 +1644,14 @@ class FollowUpElement extends Component {
 
           var interval = Math.floor((curTime - preTime) / (24 * 3600 * 1000))
           var cur_nodule_volume = newNodule['volume']
-          var pre_nodule_volume = previewsNodule['volume']
+          var pre_nodule_volume = previousNodule['volume']
           if (cur_nodule_volume / pre_nodule_volume !== 1) {
             VDT = (interval * (Math.LN2 / Math.log(cur_nodule_volume / pre_nodule_volume))).toFixed(0)
-            MDT = ((interval * Math.LN2) / Math.log((cur_nodule_volume * (1000 + newNodule['huMean'])) / (pre_nodule_volume * (1000 + previewsNodule['huMean'])))).toFixed(0)
+            MDT = ((interval * Math.LN2) / Math.log((cur_nodule_volume * (1000 + newNodule['huMean'])) / (pre_nodule_volume * (1000 + previousNodule['huMean'])))).toFixed(0)
           }
         }
 
-        if (newLoc === previewsLoc) {
+        if (newLoc === previousLoc) {
           followupLoc = newLoc
         } else {
           followupLoc = 'None'
@@ -1676,47 +1682,44 @@ class FollowUpElement extends Component {
           newRepresentArray.push('支气管充气')
         }
 
-        if (previewsNodule.lobulation === 2) {
+        if (previousNodule.lobulation === 2) {
           preRepresentArray.push('分叶')
         }
-        if (previewsNodule.spiculation === 2) {
+        if (previousNodule.spiculation === 2) {
           preRepresentArray.push('毛刺')
         }
-        if (previewsNodule.calcification === 2) {
+        if (previousNodule.calcification === 2) {
           preRepresentArray.push('钙化')
         }
-        if (previewsNodule.pin === 2) {
+        if (previousNodule.pin === 2) {
           preRepresentArray.push('胸膜凹陷')
         }
-        if (previewsNodule.cav === 2) {
+        if (previousNodule.cav === 2) {
           preRepresentArray.push('空洞')
         }
-        if (previewsNodule.vss === 2) {
+        if (previousNodule.vss === 2) {
           preRepresentArray.push('血管集束')
         }
-        if (previewsNodule.bea === 2) {
+        if (previousNodule.bea === 2) {
           preRepresentArray.push('空泡')
         }
-        if (previewsNodule.bro === 2) {
+        if (previousNodule.bro === 2) {
           preRepresentArray.push('支气管充气')
         }
 
         return (
-          <Row key={idx} justify="center" className="register-nodule-card" onClick={this.onMatchNoduleChange.bind(this, newNodule, previewsNodule)}>
+          <Row key={idx} justify="center" className="register-nodule-card" onClick={this.onMatchNoduleChange.bind(this, newNodule, previousNodule)}>
             <Col span={2} className="register-nodule-card-note">
               <Row className="register-nodule-card-first">
                 <Checkbox
                   className="nodule-accordion-item-title-checkbox"
-                  // checked={inside.checked}
-                  // onChange={this.onHandleNoduleCheckChange.bind(this, idx, 'previews')}
-                  // onClick={this.onHandleNoduleCheckClick.bind(this)}
-                >
-                  {/* {parseInt(inside.slice_idx) + 1} */}
-                </Checkbox>
+                  checked={newNodule.checked && previousNodule.checked}
+                  onChange={this.onHandleMatchNoduleCheckChange.bind(this, idx)}
+                  onClick={this.onHandleMatchNoduleCheckClick.bind(this)}></Checkbox>
               </Row>
               {/* checkbox */}
               <Row className="register-nodule-card-second">{'N' + newNodule.nodule_no}</Row>
-              <Row className="register-nodule-card-second">{'P' + previewsNodule.nodule_no}</Row>
+              <Row className="register-nodule-card-second">{'P' + previousNodule.nodule_no}</Row>
             </Col>
 
             <Col span={22} className="register-nodule-card-content">
@@ -1750,7 +1753,7 @@ class FollowUpElement extends Component {
                   <p className="MDTText">{'MDT : ' + MDT}</p>
                 </Col>
               </Row>
-              <Row className="register-nodule-card-second">
+              <Row className="register-nodule-card-second" align="middle">
                 <Col span={2}>{'IM' + (newNodule.slice_idx + 1)}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{newNoduleLength.toFixed(1) + '*' + newNoduleWidth.toFixed(1) + 'mm'}</div>
@@ -1769,6 +1772,9 @@ class FollowUpElement extends Component {
                     dropdownClassName={'corner-select-dropdown'}
                     onChange={this.onSelectTex.bind(this, idx, 'match-cur')}
                     onClick={this.onSelectTexClick.bind(this)}>
+                    <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                      未知
+                    </Option>
                     <Option className="nodule-accordion-item-title-select-option" value={1}>
                       磨玻璃
                     </Option>
@@ -1779,11 +1785,8 @@ class FollowUpElement extends Component {
                       半实性
                     </Option>
                   </Select>
-                  {/* <Cascader options={this.config.densityConfig} onChange={this.onDensityChange.bind(this, idx, 'register-match-new')}>
-                    <a href="#">{densityList[newNodule.texture]}</a>
-                  </Cascader> */}
                 </Col>
-                <Col span={10}>
+                <Col span={8} className="register-nodule-card-select-center">
                   表征
                   <Select
                     className={'nodule-accordion-item-content-select'}
@@ -1821,28 +1824,51 @@ class FollowUpElement extends Component {
                     </Option>
                   </Select>
                 </Col>
+                <Col span={2}>
+                  <Popup
+                    on="click"
+                    trigger={<Icon inverted color="grey" name="trash alternate"></Icon>}
+                    onOpen={this.setDelNodule.bind(this, idx, 'later', true)}
+                    onClose={this.setDelNodule.bind(this, idx, 'later', false)}
+                    open={newNodule.cancelOpen}>
+                    <div className="general-confirm-block">
+                      <div className="general-confirm-info">是否取消该结节配准？</div>
+                      <div className="general-confirm-operation">
+                        <Button inverted size="mini" onClick={this.setDelNodule.bind(this, idx, 'later', false)}>
+                          取消
+                        </Button>
+                        <Button inverted size="mini" onClick={this.onConfirmDelNodule.bind(this, idx, 'later')}>
+                          确认
+                        </Button>
+                      </div>
+                    </div>
+                  </Popup>
+                </Col>
               </Row>
-              <Row className="register-nodule-card-second">
-                <Col span={2}>{'IM' + (previewsNodule.slice_idx + 1)}</Col>
+              <Row className="register-nodule-card-second" align="middle" justify="center">
+                <Col span={2}>{'IM' + (previousNodule.slice_idx + 1)}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{preNoduleLength.toFixed(1) + '*' + preNoduleWidth.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">
-                    {previewsNodule.volume !== undefined ? Math.floor(previewsNodule.volume * 1000).toFixed(1) + '\xa0mm³' : null}
+                    {previousNodule.volume !== undefined ? Math.floor(previousNodule.volume * 1000).toFixed(1) + '\xa0mm³' : null}
                   </div>
-                  <div className="register-nodule-card-text register-nodule-card-text-hu">{previewsNodule.huMin + '~' + previewsNodule.huMax + 'HU'}</div>
+                  <div className="register-nodule-card-text register-nodule-card-text-hu">{previousNodule.huMin + '~' + previousNodule.huMax + 'HU'}</div>
                 </Col>
                 <Col span={4}>
                   密度：
                   <Select
                     className="nodule-accordion-item-title-select"
                     dropdownMatchSelectWidth={true}
-                    defaultValue={previewsNodule.texture}
-                    value={previewsNodule.texture}
+                    defaultValue={previousNodule.texture}
+                    value={previousNodule.texture}
                     bordered={false}
                     showArrow={false}
                     dropdownClassName={'corner-select-dropdown'}
                     onChange={this.onSelectTex.bind(this, idx, 'match-pre')}
                     onClick={this.onSelectTexClick.bind(this)}>
+                    <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                      未知
+                    </Option>
                     <Option className="nodule-accordion-item-title-select-option" value={1}>
                       磨玻璃
                     </Option>
@@ -1853,17 +1879,14 @@ class FollowUpElement extends Component {
                       半实性
                     </Option>
                   </Select>
-                  {/* <Cascader options={this.config.densityConfig} onChange={this.onDensityChange.bind(this, idx, 'register-match-previews')}>
-                    <a href="#">{densityList[previewsNodule.texture]}</a>
-                  </Cascader> */}
                 </Col>
-                <Col span={10}>
+                <Col span={8} className="register-nodule-card-select-center">
                   表征
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
                     dropdownMatchSelectWidth={false}
-                    defaultValue={previewsNodule.malignancy}
+                    defaultValue={previousNodule.malignancy}
                     value={preRepresentArray}
                     bordered={false}
                     showArrow={false}
@@ -1895,6 +1918,26 @@ class FollowUpElement extends Component {
                     </Option>
                   </Select>
                 </Col>
+                <Col span={2}>
+                  <Popup
+                    on="click"
+                    trigger={<Icon inverted color="grey" name="trash alternate"></Icon>}
+                    onOpen={this.setDelNodule.bind(this, idx, 'earlier', true)}
+                    onClose={this.setDelNodule.bind(this, idx, 'earlier', false)}
+                    open={previousNodule.cancelOpen}>
+                    <div className="general-confirm-block">
+                      <div className="general-confirm-info">是否取消该结节配准？</div>
+                      <div className="general-confirm-operation">
+                        <Button inverted size="mini" onClick={this.setDelNodule.bind(this, idx, 'earlier', false)}>
+                          取消
+                        </Button>
+                        <Button inverted size="mini" onClick={this.onConfirmDelNodule.bind(this, idx, 'earlier')}>
+                          确认
+                        </Button>
+                      </div>
+                    </div>
+                  </Popup>
+                </Col>
               </Row>
             </Col>
           </Row>
@@ -1911,7 +1954,7 @@ class FollowUpElement extends Component {
           if (value.place) {
             locationValues = [nodulePlaces[value.place]]
           } else {
-            locationValues = '选择位置'
+            locationValues = ['无法定位']
           }
         }
         let representArray = []
@@ -1954,7 +1997,17 @@ class FollowUpElement extends Component {
         return (
           <Row key={idx} justify="center" className="register-nodule-card" onClick={this.onNewNoduleChange.bind(this, value)}>
             <Col span={2} className="register-nodule-card-note">
-              <Row className="register-nodule-card-first">{'N' + value.nodule_no}</Row>
+              <Row className="register-nodule-card-first">
+                <Checkbox
+                  className="nodule-accordion-item-title-checkbox"
+                  checked={value.checked}
+                  disabled={value.disabled}
+                  onChange={this.onHandleNewNoduleCheckChange.bind(this, idx)}
+                  onClick={this.onHandleNewNoduleCheckClick.bind(this)}>
+                  {/* {parseInt(inside.slice_idx) + 1} */}
+                </Checkbox>
+              </Row>
+              <Row className="register-nodule-card-second">{'N' + value.nodule_no}</Row>
             </Col>
 
             <Col span={22} className="register-nodule-card-content">
@@ -1976,7 +2029,7 @@ class FollowUpElement extends Component {
                   />
                 </Col>
               </Row>
-              <Row className="register-nodule-card-second">
+              <Row className="register-nodule-card-second" align="middle">
                 <Col span={2}>{'IM ' + value['slice_idx']}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{ll.toFixed(1) + '*' + sl.toFixed(1) + 'mm'}</div>
@@ -1995,6 +2048,9 @@ class FollowUpElement extends Component {
                     dropdownClassName={'corner-select-dropdown'}
                     onChange={this.onSelectTex.bind(this, idx, 'new')}
                     onClick={this.onSelectTexClick.bind(this)}>
+                    <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                      未知
+                    </Option>
                     <Option className="nodule-accordion-item-title-select-option" value={1}>
                       磨玻璃
                     </Option>
@@ -2006,7 +2062,7 @@ class FollowUpElement extends Component {
                     </Option>
                   </Select>
                 </Col>
-                <Col span={10}>
+                <Col span={10} className="register-nodule-card-select-center">
                   表征：
                   <Select
                     className={'nodule-accordion-item-content-select'}
@@ -2060,7 +2116,7 @@ class FollowUpElement extends Component {
           if (value.place) {
             locationValues = [nodulePlaces[value.place]]
           } else {
-            locationValues = '选择位置'
+            locationValues = ['无法定位']
           }
         }
         var representArray = []
@@ -2103,8 +2159,17 @@ class FollowUpElement extends Component {
         return (
           <Row key={idx} onClick={this.onPreNoduleChange.bind(this, value)} justify="center" className="register-nodule-card">
             <Col span={2} className="register-nodule-card-note">
-              {/* <Row></Row> */}
-              <Row className="register-nodule-card-first">{'P' + value.nodule_no}</Row>
+              <Row className="register-nodule-card-first">
+                <Checkbox
+                  className="nodule-accordion-item-title-checkbox"
+                  checked={value.checked}
+                  disabled={value.disabled}
+                  onChange={this.onHandleVanishNoduleCheckChange.bind(this, idx)}
+                  onClick={this.onHandleVanishNoduleCheckClick.bind(this)}>
+                  {/* {parseInt(inside.slice_idx) + 1} */}
+                </Checkbox>
+              </Row>
+              <Row className="register-nodule-card-second">{'P' + value.nodule_no}</Row>
             </Col>
 
             <Col span={22} className="register-nodule-card-content">
@@ -2127,7 +2192,7 @@ class FollowUpElement extends Component {
                 </Col>
               </Row>
 
-              <Row className="register-nodule-card-second">
+              <Row className="register-nodule-card-second" align="middle">
                 <Col span={2}>{'IM ' + value['slice_idx']}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{ll.toFixed(1) + '*' + sl.toFixed(1) + 'mm'}</div>
@@ -2146,6 +2211,9 @@ class FollowUpElement extends Component {
                     dropdownClassName={'corner-select-dropdown'}
                     onChange={this.onSelectTex.bind(this, idx, 'vanish')}
                     onClick={this.onSelectTexClick.bind(this)}>
+                    <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                      未知
+                    </Option>
                     <Option className="nodule-accordion-item-title-select-option" value={1}>
                       磨玻璃
                     </Option>
@@ -2157,7 +2225,7 @@ class FollowUpElement extends Component {
                     </Option>
                   </Select>
                 </Col>
-                <Col span={10}>
+                <Col span={10} className="register-nodule-card-select-center">
                   表征：
                   <Select
                     className={'nodule-accordion-item-content-select'}
@@ -2322,8 +2390,13 @@ class FollowUpElement extends Component {
           <Row justify="space-between" className="BoxesAccord-Row">
             <Col span={12} id="structured-report" className="boxes-accord-col">
               <Row gutter={4} id="structured-report-title" align="middle">
-                <Col span={22}>
+                <Col span={20}>
                   <div className="reportTitle">结构化报告</div>
+                </Col>
+                <Col span={2}>
+                  <AntdButton type="primary" shape="round" size="small" onClick={this.onRegisterClick.bind(this)}>
+                    匹配
+                  </AntdButton>
                 </Col>
                 <Col span={2}>
                   <AntdButton type="primary" shape="round" size="small">
@@ -2331,22 +2404,36 @@ class FollowUpElement extends Component {
                   </AntdButton>
                 </Col>
               </Row>
-              <Row align="middle" justify="end" id="structured-report-operation">
-                <Checkbox.Group
-                  // style={{ width: "100%" }}
-                  className="match-checkbox"
-                  defaultValue={['match', 'new', 'vanish']}
-                  onChange={this.noduleTblCheckboxChange}>
-                  <Checkbox checked={noduleTblCheckedValue.includes('match') ? true : false} value="match">
-                    {'匹配(' + matchNoduleLen + ')'}
-                  </Checkbox>
-                  <Checkbox checked={noduleTblCheckedValue.includes('new') ? true : false} value="new">
-                    {'新增(' + newNoduleLen + ')'}
-                  </Checkbox>
-                  <Checkbox checked={noduleTblCheckedValue.includes('vanish') ? true : false} value="vanish">
-                    {'消失(' + vanishNoduleLen + ')'}
-                  </Checkbox>
-                </Checkbox.Group>
+              <Row align="middle" justify="start" id="structured-report-operation">
+                <Col span={3}>
+                  {noduleTblCheckedValue.includes('match') && !noduleTblCheckedValue.includes('new') && !noduleTblCheckedValue.includes('vanish') ? (
+                    <Checkbox
+                      className="nodule-filter-desc-checkbox"
+                      checked={matchNodulesAllChecked}
+                      onChange={this.onHandleMatchNoduleAllCheckChange.bind(this)}
+                      onClick={this.onHandleMatchNoduleAllCheckClick.bind(this)}>
+                      {'全选(' + matchNoduleLen + ')'}
+                    </Checkbox>
+                  ) : null}
+                </Col>
+                <Col span={14}></Col>
+                <Col span={7}>
+                  <Checkbox.Group
+                    // style={{ width: "100%" }}
+                    className="match-checkbox"
+                    defaultValue={['match', 'new', 'vanish']}
+                    onChange={this.noduleTblCheckboxChange}>
+                    <Checkbox checked={noduleTblCheckedValue.includes('match') ? true : false} value="match">
+                      {'匹配(' + matchNoduleLen + ')'}
+                    </Checkbox>
+                    <Checkbox checked={noduleTblCheckedValue.includes('new') ? true : false} value="new">
+                      {'新增(' + newNoduleLen + ')'}
+                    </Checkbox>
+                    <Checkbox checked={noduleTblCheckedValue.includes('vanish') ? true : false} value="vanish">
+                      {'消失(' + vanishNoduleLen + ')'}
+                    </Checkbox>
+                  </Checkbox.Group>
+                </Col>
               </Row>
               <Row className="all-nodule-table" style={{ height: `${tableHeight}px` }}>
                 {noduleTblCheckedValue.includes('match') ? matchNodulesTbl : null}
@@ -2451,41 +2538,45 @@ class FollowUpElement extends Component {
       </div>
     )
   }
-  setDelNodule(idx, open) {
-    const boxes = this.state.boxes
-    boxes[idx].delOpen = open
+  setDelNodule(idx, status, open) {
+    const registerBoxes = this.state.registerBoxes
+    registerBoxes['match'][idx][status].cancelOpen = open
+    console.log('registerBoxes', registerBoxes)
     this.setState({
-      boxes,
+      registerBoxes,
     })
   }
-  onConfirmDelNodule(idx) {
-    // let selectBoxes = this.state.selectBoxes
-    // let measureStateList = this.state.measureStateList
-    // for (var i = 0; i < selectBoxes.length; i++) {
-    //     if (selectBoxes[i].nodule_no === nodule_no) {
-    //         // selectBoxes.splice(i, 1)
-    //         selectBoxes[i]="delete"
-    //     }
-    // }
-    const boxes = this.state.boxes
-    const measureStateList = this.state.measureStateList
-    // for (var i = 0; i < boxes.length; i++) {
-    //     if (boxes[i].nodule_no === nodule_no) {
-    //         boxes.splice(i, 1)
-    //         boxes[i]="delete"
-    //     }
-    // }
-    console.log('delNodule', measureStateList, boxes, idx)
-    boxes.splice(idx, 1)
-    measureStateList.splice(idx, 1)
-    console.log('delNodule after', measureStateList, boxes)
+  onConfirmDelNodule(idx, status) {
+    //cancel register api：caseId, idx
+    const registerBoxes = this.state.registerBoxes
+    const newBox = registerBoxes['match'][idx]['later']
+    const vanishBox = registerBoxes['match'][idx]['earlier']
+    newBox.checked = false
+    vanishBox.checked = false
+    newBox.disabled = false
+    vanishBox.disabled = false
+    registerBoxes['match'].splice(idx, 1)
+    registerBoxes['vanish'].push(vanishBox)
+    registerBoxes['new'].push(newBox)
     this.setState({
-      boxes,
-      measureStateList,
-      // random: Math.random()
+      registerBoxes,
     })
-    this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
-    message.success('结节删除成功')
+    message.success('P' + vanishBox.nodule_no + '和N' + newBox.nodule_no + '号结节取消配准成功')
+  }
+  onHandleMatchNoduleAllCheckChange() {
+    const registerBoxes = this.state.registerBoxes
+    const matchNodulesAllChecked = !this.state.matchNodulesAllChecked
+    registerBoxes['match'].forEach((item, index) => {
+      item['earlier'].checked = matchNodulesAllChecked
+      item['later'].checked = matchNodulesAllChecked
+    })
+
+    this.setState({ matchNodulesAllChecked, registerBoxes }, () => {
+      console.log('onHandleMatchNoduleAllCheckChange', this.state.registerBoxes)
+    })
+  }
+  onHandleMatchNoduleAllCheckClick(e) {
+    e.stopPropagation()
   }
   onSelectMal(index, type, value) {
     if (type === 'current') {
@@ -2494,7 +2585,7 @@ class FollowUpElement extends Component {
       this.setState({
         curBoxes: curBoxes,
       })
-    } else if (type === 'previews') {
+    } else if (type === 'previous') {
       const preBoxes = this.state.preBoxes
       preBoxes[index].malignancy = parseInt(value)
       this.setState({
@@ -2515,7 +2606,7 @@ class FollowUpElement extends Component {
       this.setState({
         curBoxes: curBoxes,
       })
-    } else if (type === 'previews') {
+    } else if (type === 'previous') {
       const preBoxes = this.state.preBoxes
       preBoxes[index].texture = parseInt(value)
       this.setState({
@@ -2560,38 +2651,46 @@ class FollowUpElement extends Component {
     console.log('place', place, segment)
     if (type === 'current') {
       const curBoxes = this.state.curBoxes
-
-      for (let item in places) {
-        if (places[item] === place) {
-          curBoxes[index].place = item
-        }
-      }
       if (value[0] === '无法定位') {
+        curBoxes[index].place = 0
         curBoxes[index].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            curBoxes[index].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            curBoxes[index].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          curBoxes[index].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              curBoxes[index].segment = item
+            }
           }
         }
       }
       this.setState({
         curBoxes: curBoxes,
       })
-    } else if (type === 'previews') {
+    } else if (type === 'previous') {
       const preBoxes = this.state.preBoxes
-
-      for (let item in places) {
-        if (places[item] === place) {
-          preBoxes[index].place = item
-        }
-      }
       if (value[0] === '无法定位') {
+        preBoxes[index].place = 0
         preBoxes[index].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            preBoxes[index].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            preBoxes[index].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          preBoxes[index].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              preBoxes[index].segment = item
+            }
           }
         }
       }
@@ -2600,17 +2699,22 @@ class FollowUpElement extends Component {
       })
     } else if (type === 'match-cur') {
       const box = this.state.registerBoxes
-      for (let item in places) {
-        if (places[item] === place) {
-          box['match'][index]['later'].place = item
-        }
-      }
       if (value[0] === '无法定位') {
+        box['match'][index]['later'].place = 0
         box['match'][index]['later'].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            box['match'][index]['later'].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            box['match'][index]['later'].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          box['match'][index]['later'].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              box['match'][index]['later'].segment = item
+            }
           }
         }
       }
@@ -2619,17 +2723,22 @@ class FollowUpElement extends Component {
       })
     } else if (type === 'match-pre') {
       const box = this.state.registerBoxes
-      for (let item in places) {
-        if (places[item] === place) {
-          box['match'][index]['earlier'].place = item
-        }
-      }
       if (value[0] === '无法定位') {
+        box['match'][index]['earlier'].place = 0
         box['match'][index]['earlier'].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            box['match'][index]['earlier'].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            box['match'][index]['earlier'].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          box['match'][index]['earlier'].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              box['match'][index]['earlier'].segment = item
+            }
           }
         }
       }
@@ -2638,39 +2747,51 @@ class FollowUpElement extends Component {
       })
     } else if (type === 'new') {
       const box = this.state.registerBoxes
-      for (let item in places) {
-        if (places[item] === place) {
-          box['new'][index].place = item
-        }
-      }
       if (value[0] === '无法定位') {
+        box['new'][index].place = 0
         box['new'][index].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            box['new'][index].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            box['new'][index].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          box['new'][index].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              box['new'][index].segment = item
+            }
           }
         }
       }
+
       this.setState({
         registerBoxes: box,
       })
     } else if (type === 'vanish') {
       const box = this.state.registerBoxes
-      for (let item in places) {
-        if (places[item] === place) {
-          box['vanish'][index].place = item
-        }
-      }
       if (value[0] === '无法定位') {
+        box['vanish'][index].place = 0
         box['vanish'][index].segment = 'None'
       } else {
-        for (let item in segments) {
-          if (segments[item] === segment) {
-            box['vanish'][index].segment = item
+        for (let item in places) {
+          if (places[item] === place) {
+            box['vanish'][index].place = item
+          }
+        }
+        if (value[1] === '无法定位') {
+          box['vanish'][index].segment = 'None'
+        } else {
+          for (let item in segments) {
+            if (segments[item] === segment) {
+              box['vanish'][index].segment = item
+            }
           }
         }
       }
+
       this.setState({
         registerBoxes: box,
       })
@@ -2728,7 +2849,7 @@ class FollowUpElement extends Component {
         curBoxes: curBoxes,
         // random: Math.random()
       })
-    } else if (type === 'previews') {
+    } else if (type === 'previous') {
       const preBoxes = this.state.preBoxes
       preBoxes[idx].lobulation = 1
       preBoxes[idx].spiculation = 1
@@ -3421,10 +3542,11 @@ class FollowUpElement extends Component {
           curNodulesAllChecked,
         },
         () => {
+          this.isAllCheck()
           // this.template()
         }
       )
-    } else if (type === 'previews') {
+    } else if (type === 'previous') {
       const preBoxes = this.state.preBoxes
       const preNodulesAllChecked = !this.state.preNodulesAllChecked
       preBoxes.forEach((item, index) => {
@@ -3457,7 +3579,7 @@ class FollowUpElement extends Component {
           // this.template()
         }
       )
-    } else if (type === 'previews') {
+    } else if (type === 'previous') {
       const preBoxes = this.state.preBoxes
       preBoxes[idx].checked = !preBoxes[idx].checked
       this.setState(
@@ -3473,6 +3595,120 @@ class FollowUpElement extends Component {
   }
   onHandleNoduleCheckClick(e) {
     e.stopPropagation()
+  }
+  onHandleMatchNoduleCheckChange(idx) {
+    const registerBoxes = this.state.registerBoxes
+    registerBoxes['match'][idx]['earlier'].checked = !registerBoxes['match'][idx]['earlier'].checked
+    registerBoxes['match'][idx]['later'].checked = !registerBoxes['match'][idx]['later'].checked
+    this.setState(
+      {
+        registerBoxes,
+      },
+      () => {
+        this.isAllCheck()
+      }
+    )
+  }
+  onHandleMatchNoduleCheckClick(e) {
+    e.stopPropagation()
+  }
+  onHandleNewNoduleCheckChange(idx) {
+    const registerBoxes = this.state.registerBoxes
+    registerBoxes['new'][idx].checked = !registerBoxes['new'][idx].checked
+    if (registerBoxes['new'][idx].checked) {
+      registerBoxes['new'].forEach((item, index) => {
+        if (index !== idx) {
+          item.disabled = true
+        }
+      })
+    } else {
+      registerBoxes['new'].forEach((item, index) => {
+        item.disabled = false
+      })
+    }
+    this.setState({ registerBoxes })
+  }
+  onHandleNewNoduleCheckClick(e) {
+    e.stopPropagation()
+  }
+  onHandleVanishNoduleCheckChange(idx) {
+    const registerBoxes = this.state.registerBoxes
+    registerBoxes['vanish'][idx].checked = !registerBoxes['vanish'][idx].checked
+    if (registerBoxes['vanish'][idx].checked) {
+      registerBoxes['vanish'].forEach((item, index) => {
+        if (index !== idx) {
+          item.disabled = true
+        }
+      })
+    } else {
+      registerBoxes['vanish'].forEach((item, index) => {
+        item.disabled = false
+      })
+    }
+    this.setState({ registerBoxes })
+  }
+  onHandleVanishNoduleCheckClick(e) {
+    e.stopPropagation()
+  }
+  isAllCheck() {
+    let allChecked = true
+    // let notAllChecked = true
+    const registerBoxes = this.state.registerBoxes
+    registerBoxes['match'].forEach((item, index) => {
+      if (!item['earlier'].checked || !item['later'].checked) {
+        allChecked = false
+      }
+    })
+    this.setState({
+      matchNodulesAllChecked: allChecked,
+    })
+  }
+  onRegisterClick() {
+    const { registerBoxes } = this.state
+    const newBoxes = registerBoxes['new']
+    const vanishBoxes = registerBoxes['vanish']
+    let selectedNewBox = [],
+      selectedVanishBox = [],
+      selectedNewIdx = -1,
+      selectedVanishIdx = -1
+    newBoxes.forEach((item, index) => {
+      if (item.checked) {
+        selectedNewBox.push(item)
+        selectedNewIdx = index
+      }
+    })
+    vanishBoxes.forEach((item, index) => {
+      if (item.checked) {
+        selectedVanishBox.push(item)
+        selectedVanishIdx = index
+      }
+    })
+    if (selectedNewBox.length === 0 || selectedVanishBox.length === 0) {
+      message.warning('请选择需要匹配的结节！')
+    } else if (selectedNewBox.length === 1 && selectedVanishBox.length === 1) {
+      //api,caseId-nodule_no*2
+      if (selectedNewIdx !== -1 && selectedVanishIdx !== -1) {
+        registerBoxes['new'].splice(selectedNewIdx, 1)
+        registerBoxes['vanish'].splice(selectedVanishIdx, 1)
+        selectedVanishBox[0].checked = false
+        selectedNewBox[0].checked = false
+        let matchBox = {
+          earlier: selectedVanishBox[0],
+          later: selectedNewBox[0],
+        }
+        // matchBox.earlier = selectedVanishBox
+        // matchBox['later'] = selectedNewBox
+        registerBoxes['match'].push(matchBox)
+        registerBoxes['new'].forEach((item) => {
+          item.disabled = false
+        })
+        registerBoxes['vanish'].forEach((item) => {
+          item.disabled = false
+        })
+        console.log('onRegisterClick', registerBoxes)
+      }
+      this.setState({ registerBoxes })
+    }
   }
 }
 

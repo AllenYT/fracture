@@ -2,7 +2,7 @@
   height: 100%;
   background-color: rgb(5, 10, 29);
 }
-.content {
+#follow-up .content {
   padding: 7px 0 14px 0 !important;
 }
 .reportTitle {
@@ -88,6 +88,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+.register-nodule-card-select-center {
+  display: flex !important;
+  align-items: center !important;
 }
 .BoxesAccord-Row {
   padding: 3px 0;
