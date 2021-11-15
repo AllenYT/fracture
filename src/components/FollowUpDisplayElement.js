@@ -203,7 +203,18 @@ class FollowUpDisplayElement extends Component {
         />
       )
     } else {
-      return <div>数据载入中...</div>
+      return (
+        <div id="loading-panel">
+          <div className="sk-chase">
+            <div className="sk-chase-dot"></div>
+            <div className="sk-chase-dot"></div>
+            <div className="sk-chase-dot"></div>
+            <div className="sk-chase-dot"></div>
+            <div className="sk-chase-dot"></div>
+            <div className="sk-chase-dot"></div>
+          </div>
+        </div>
+      )
     }
     // if (this.state.show) {
 

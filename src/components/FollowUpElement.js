@@ -218,9 +218,6 @@ class FollowUpElement extends Component {
   componentDidMount() {
     this.props.onRef(this)
     console.log('followup props', this.props)
-    if (document.getElementById('footer')) {
-      document.getElementById('footer').style.display = 'none'
-    }
     const curInfo = this.props.curInfo
     if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
       const curImagePromise = curInfo.curImageIds.map((curImageId) => {
@@ -334,11 +331,7 @@ class FollowUpElement extends Component {
   componentWillMount() {
     document.getElementById('header').style.display = 'none'
   }
-  componentWillUnmount() {
-    if (document.getElementById('footer')) {
-      document.getElementById('footer').style.display = ''
-    }
-  }
+  componentWillUnmount() {}
   resizeScreen() {
     if (document.getElementById('structured-report') && document.getElementById('structured-report-title') && document.getElementById('structured-report-operation')) {
       const stReport = document.getElementById('structured-report')

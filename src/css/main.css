@@ -19,8 +19,14 @@ html {
 #logout-menu {
   min-width: 100px;
   margin-top: 10px;
+  background-color: rgb(39, 46, 72);
 }
-
+#logout-menu .item {
+  color: whitesmoke !important;
+}
+#logout-menu .item:hover {
+  background-color: rgb(40, 46, 94) !important;
+}
 #footer {
   background: #1b1c1d;
   color: rgba(255, 255, 255, 0.9);

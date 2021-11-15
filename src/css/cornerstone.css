@@ -162,6 +162,7 @@
 #cor-container {
   height: 100%;
   position: relative;
+  border: 2px solid rgb(103, 118, 173);
   /* transition: transform 2s;
   transform-style: preserve-3d;
   transform: rotateY(0deg); */
@@ -256,7 +257,7 @@
   display: flex;
   flex-direction: column;
   margin-right: 5px;
-  border: 2px solid rgb(103, 118, 173);
+  background-color: black;
 }
 .corner-center-horizontal-block {
   width: 70%;
@@ -970,7 +971,7 @@
   color: whitesmoke;
   width: 100%;
   text-align: start;
-  padding-left: 100px;
+  padding-left: 20px;
 }
 .threed-accordion-item-content-opacity {
   width: 100%;

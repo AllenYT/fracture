@@ -321,7 +321,7 @@ class CornerstoneElement extends Component {
       backendNodules: [],
       nodulesAllChecked: false,
       nodulesOrder: {
-        slice_idx: 0,
+        slice_idx: 1,
         diameter: 0,
         texture: 0,
         malignancy: 0,
@@ -448,8 +448,6 @@ class CornerstoneElement extends Component {
     this.handleRangeChange = this.handleRangeChange.bind(this)
     this.refreshImage = this.refreshImage.bind(this)
 
-    this.reset = this.reset.bind(this)
-
     this.findCurrentArea = this.findCurrentArea.bind(this)
     this.findMeasureArea = this.findMeasureArea.bind(this)
 
@@ -476,8 +474,6 @@ class CornerstoneElement extends Component {
     this.closeModalCur = this.closeModalCur.bind(this)
     this.toMyAnno = this.toMyAnno.bind(this)
     this.checkHash = this.checkHash.bind(this)
-    this.handleLogout = this.handleLogout.bind(this)
-    this.handleLogin = this.handleLogin.bind(this)
     this.disableAllTools = this.disableAllTools.bind(this)
     this.featureAnalysis = this.featureAnalysis.bind(this)
     this.eraseLabel = this.eraseLabel.bind(this)
@@ -492,7 +488,6 @@ class CornerstoneElement extends Component {
     this.segmentsIntr = this.segmentsIntr.bind(this)
     this.invertHandles = this.invertHandles.bind(this)
     this.pixeldataSort = this.pixeldataSort.bind(this)
-    this.closeVisualContent = this.closeVisualContent.bind(this)
     // this.drawTmpBox = this.drawTmpBox.bind(this)
     this.toHideMeasures = this.toHideMeasures.bind(this)
     this.toHideMask = this.toHideMask.bind(this)
@@ -567,101 +562,6 @@ class CornerstoneElement extends Component {
   //     view1.interval().position('value*count').color('#00FFFF')
   //     chart.render()
   // }
-
-  //echarts
-  visualize(hist_data, idx) {
-    const visId = 'visual-' + idx
-    const btnId = 'closeButton-' + idx
-    // document.getElementById(visId).innerHTML=''
-    console.log('visualize', idx)
-    var dom = document.getElementById(visId)
-    document.getElementById('closeVisualContent').style.display = ''
-    dom.style.display = ''
-    dom.style.height = (200 * this.state.windowHeight) / 1000 + 'px'
-    dom.style.width = `${this.state.canvasWidth}px`
-
-    let bins = hist_data.bins
-    let ns = hist_data.n
-    if (echarts.getInstanceByDom(dom)) {
-      echarts.dispose(dom)
-    }
-    var myChart = echarts.init(dom)
-    var minValue = bins[0] - 50
-    var maxValue = bins[bins.length - 1] + 50
-    console.log(bins, bins[0] - 50, bins[bins.length - 1] + 50)
-    var histogram = []
-    var line = []
-    for (var i = 0; i < bins.length - 1; i++) {
-      var obj = {}
-
-      obj.value = [bins[i], bins[i + 1]]
-      obj.count = ns[i]
-      histogram.push(obj)
-    }
-    myChart.setOption({
-      color: ['#00FFFF'],
-      lazyUpdate: false,
-      tooltip: {
-        trigger: 'axis',
-        axisPointer: {
-          // 坐标轴指示器，坐标轴触发有效
-          type: 'shadow', // 默认为直线，可选为：'line' | 'shadow'
-        },
-      },
-      toolbox: {
-        feature: {
-          saveAsImage: {},
-        },
-      },
-      grid: {
-        // left: '15%',
-        // right: '4%',
-        bottom: '3%',
-        top: '10%',
-        containLabel: true,
-      },
-      xAxis: [
-        {
-          type: 'category',
-          scale: 'true',
-          data: bins,
-          // min: minValue,
-          // max: maxValue,
-          axisTick: {
-            alignWithLabel: true,
-          },
-          axisLabel: {
-            color: 'rgb(191,192,195)',
-          },
-        },
-      ],
-      yAxis: [
-        {
-          type: 'value',
-
-          axisLabel: {
-            color: 'rgb(191,192,195)',
-          },
-          minInterval: 1,
-        },
-      ],
-      series: [
-        {
-          name: 'count',
-          type: 'bar',
-          barWidth: '60%',
-          data: ns,
-        },
-      ],
-    })
-    if (document.getElementById(visId) && document.getElementById('closeVisualContent')) {
-      const histogramClientHeight = document.getElementById(visId).clientHeight
-      const closeClientHeight = document.getElementById('closeVisualContent').clientHeight
-      this.setState({
-        histogramHeight: histogramClientHeight + 30 - closeClientHeight,
-      })
-    }
-  }
 
   wcSlider = (e, { name, value }) => {
     //窗位
@@ -820,42 +720,6 @@ class CornerstoneElement extends Component {
     }
   }
   onSetStudyList(studyListShowed) {
-    // const apiTool = cornerstoneTools[`RectangleRoiTool`]
-    // cornerstoneTools.addTool(apiTool)
-    // cornerstoneTools.setToolActive('RectangleRoi', {
-    //   mouseButtonMask: 1,
-    //   isTouchActive: true,
-    // })
-    // cornerstoneTools.addToolState(this.element, 'RectangleRoi', {
-    //   visible: true,
-    //   active: true,
-    //   color: undefined,
-    //   invalidated: true,
-    //   handles: {
-    //     start: {
-    //       x: 50,
-    //       y: 50,
-    //       highlight: true,
-    //       active: false,
-    //     },
-    //     end: {
-    //       x: 300,
-    //       y: 300,
-    //       highlight: true,
-    //       active: true,
-    //     },
-    //     textBox: {
-    //       active: false,
-    //       hasMoved: false,
-    //       movesIndependently: false,
-    //       drawnIndependently: true,
-    //       allowedOutsideImage: true,
-    //       hasBoundingBox: true,
-    //     },
-    //   },
-    // })
-    // console.log('tool data', cornerstoneTools.getToolState(this.element, 'RectangleRoi'))
-    // cornerstoneTools.setToolEnabled('RectangleRoi')
     this.setState(
       {
         studyListShowed,
@@ -1108,18 +972,6 @@ class CornerstoneElement extends Component {
       },
       ['Mouse']
     )
-  }
-
-  handleClickScreen(e, href) {
-    console.log('card', href)
-    if (window.location.pathname.split('/case/')[1].split('/')[0] !== href.split('/case/')[1].split('/')[0]) {
-      this.setState({
-        caseId: href.split('/case/')[1].split('/')[0],
-        username: href.split('/')[3],
-      })
-      // this.nextPath(href)
-      window.location.href = href
-    }
   }
 
   startAnnos() {
@@ -1442,15 +1294,6 @@ class CornerstoneElement extends Component {
     console.log('onHUValueChange', value)
   }
 
-  closeVisualContent() {
-    console.log('close')
-    const visId = 'visual-' + this.state.listsActiveIndex
-    if (document.getElementById(visId) !== undefined && document.getElementById(visId) !== null) {
-      document.getElementById(visId).style.display = 'none'
-      document.getElementById('closeVisualContent').style.display = 'none'
-    }
-  }
-
   // downloadBar(idx,e){
   //     const visId = 'visual_' + idx
   //     console.log(visId)
@@ -1482,6 +1325,14 @@ class CornerstoneElement extends Component {
   toHomepage() {
     window.location.href = '/homepage'
     // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
+  }
+
+  clearLocalStorage() {
+    localStorage.clear()
+    message.success('清空成功')
+    setTimeout(() => {
+      window.location.reload()
+    }, 2000)
   }
   show3D() {
     clearTimeout(flipTimer)
@@ -1524,11 +1375,6 @@ class CornerstoneElement extends Component {
         }
       )
     }, 500)
-  }
-  handleLogin() {
-    this.setState({
-      reRender: Math.random(),
-    }) // force re-render the page
   }
 
   handleLogout() {
@@ -1668,7 +1514,6 @@ class CornerstoneElement extends Component {
     let lobeCheckNumber = 0
     let tubularContent
     let tubularCheckNumber = 0
-    let visualContent
     let histogramFloatWindow
     let previewContent
     let createDraftModal
@@ -2655,15 +2500,6 @@ class CornerstoneElement extends Component {
           )
         })
       }
-      visualContent = this.state.boxes.map((inside, idx) => {
-        const visualId = 'visual-' + inside.nodule_no
-        const btnId = 'closeButton-' + inside.nodule_no
-        return (
-          <div id={visualId} className="histogram" key={idx}>
-            {/* <button id={btnId} className='closeVisualContent' onClick={this.closeVisualContent}>×</button> */}
-          </div>
-        )
-      })
 
       var range1 = 0,
         range1_volume = 0,
@@ -2912,7 +2748,6 @@ class CornerstoneElement extends Component {
             }
             let previewId = 'preview-' + serie.caseId
             let keyId = 'key-' + index + '-' + serieIndex
-            // console.log('render',previewId)
             return (
               <PreviewElement
                 key={keyId}
@@ -2923,6 +2758,7 @@ class CornerstoneElement extends Component {
                 description={serie.Description}
                 isReady={true}
                 isSelected={this.state.caseId === serie.caseId}
+                href={serie.href}
               />
               // <div className={'preview-item' + (this.state.caseId === serie.caseId ? ' preview-item-selected' : '')} onClick={(e) => this.handleClickScreen(e, serie.href, validStatus)} key={keyId}>
               //   <div className="preview-item-canvas" id={previewId}></div>
@@ -3217,7 +3053,7 @@ class CornerstoneElement extends Component {
               </Dropdown.Menu>
             </Dropdown>
           </div>
-          <div onClick={this.reset} className="func-btn" title="刷新">
+          <div onClick={this.reset.bind(this)} className="func-btn" title="刷新">
             <Icon className="func-btn-icon" name="repeat" size="large"></Icon>
             <div className="func-btn-desc">刷新</div>
           </div>
@@ -3270,12 +3106,12 @@ class CornerstoneElement extends Component {
           )}
 
           {showFollowUp ? (
-            <div title="随访" className={'func-btn'} onClick={this.hideFollowUp.bind(this)}>
+            <div title="随访" className={'func-btn'} onClick={this.hideFollowUp.bind(this)} hidden={show3DVisualization}>
               <Icon className="func-btn-icon" name="history" size="large"></Icon>
               <div className="func-btn-desc">关闭随访</div>
             </div>
           ) : (
-            <div title="随访" className={'func-btn'} onClick={this.showFollowUp.bind(this)}>
+            <div title="随访" className={'func-btn'} onClick={this.showFollowUp.bind(this)} hidden={show3DVisualization}>
               <Icon className="func-btn-icon" name="history" size="large"></Icon>
               <div className="func-btn-desc">进入随访</div>
             </div>
@@ -3306,13 +3142,14 @@ class CornerstoneElement extends Component {
               <div id="menu-item-user">
                 <Dropdown text={welcome}>
                   <Dropdown.Menu id="logout-menu">
-                    <Dropdown.Item icon="home" text="我的主页" onClick={this.toHomepage} />
+                    <Dropdown.Item icon="home" text="我的主页" onClick={this.toHomepage.bind(this)} />
                     {/* <Dropdown.Item
                     icon="write"
                     text="留言"
                     onClick={this.handleWriting}
                   /> */}
-                    <Dropdown.Item icon="log out" text="注销" onClick={this.handleLogout} />
+                    <Dropdown.Item icon="trash alternate" text="清空缓存" onClick={this.clearLocalStorage.bind(this)} />
+                    <Dropdown.Item icon="log out" text="注销" onClick={this.handleLogout.bind(this)} />
                   </Dropdown.Menu>
                 </Dropdown>
                 {menuScrollable && menuNowPage < menuTotalPages ? (
@@ -3325,14 +3162,14 @@ class CornerstoneElement extends Component {
           </div>
           <div className="corner-bottom-row" style={{ height: bottomRowHeight }}>
             <Sidebar.Pushable style={{ overflow: 'hidden', width: '100%' }}>
-              <Sidebar visible={studyListShowed} animation={'uncover'} width="thin">
+              <Sidebar visible={studyListShowed} animation={'overlay'} width="thin">
                 <div className="preview">{previewContent}</div>
               </Sidebar>
               <Sidebar.Pusher style={{ height: '100%' }}>
                 {showFollowUp ? (
                   <div
                     className={'ct-follow-up' + (studyListShowed ? ' ct-follow-up-contract' : '') + (verticalMode ? ' ct-follow-up-vertical' : ' ct-follow-up-horizontal')}
-                    style={studyListShowed ? { paddingRight: `${ctInfoPadding}px` } : {}}>
+                    style={studyListShowed ? { paddingLeft: `${ctInfoPadding}px` } : {}}>
                     <FollowUpDisplayElement
                       curCaseId={curCaseId}
                       preCaseId={preCaseId}
@@ -3348,7 +3185,7 @@ class CornerstoneElement extends Component {
                       className={
                         'corner-center-block' + (studyListShowed ? ' corner-center-contract-block' : '') + (verticalMode ? ' corner-center-vertical-block' : ' corner-center-horizontal-block')
                       }
-                      style={verticalMode ? { paddingRight: `${ctInfoPadding}px` } : {}}>
+                      style={{ paddingLeft: `${ctInfoPadding}px` }}>
                       {show3DVisualization ? (
                         <div className="center-viewport-panel" id="segment-container">
                           {renderLoading ? loadingPanel : <div style={{ width: viewerWidth, height: viewerHeight }}>{panel}</div>}
@@ -3404,14 +3241,10 @@ class CornerstoneElement extends Component {
                       {/* <div className='antd-slider'> */}
 
                       {/* </div> */}
-                      {visualContent}
-                      <button id="closeVisualContent" className="closeVisualContent-cross" style={{ bottom: `${histogramHeight}px` }} onClick={this.closeVisualContent}>
-                        ×
-                      </button>
                     </div>
                     <div
                       className={'corner-list-block' + (studyListShowed ? ' corner-list-contract-block' : '') + (verticalMode ? ' corner-list-vertical-block' : ' corner-list-horizontal-block')}
-                      style={studyListShowed ? { paddingRight: `${ctInfoPadding}px` } : {}}>
+                      style={verticalMode ? { paddingLeft: `${ctInfoPadding}px` } : {}}>
                       <div className={'ct-list-container'}>
                         <div id="nodule-card-container" className={verticalMode ? 'nodule-card-container-vertical' : 'nodule-card-container-horizontal'}>
                           <Tabs type="card" defaultActiveKey={1} size="small">
@@ -5415,7 +5248,12 @@ class CornerstoneElement extends Component {
         this.followUpComponent.reset()
       }
     } else if (this.state.show3DVisualization) {
-      this.resetAllView()
+      if (this.viewer3D) {
+        this.viewer3D.resetView()
+      }
+      if (this.state.MPR) {
+        this.resetAllView()
+      }
     } else {
       let viewport = cornerstone.getViewport(this.element)
       viewport.translation = {
@@ -5435,6 +5273,7 @@ class CornerstoneElement extends Component {
       if (this.followUpComponent) {
         this.followUpComponent.imagesFlip()
       }
+    } else if (this.state.show3DVisualization) {
     } else {
       let viewport = cornerstone.getViewport(this.element)
       if (viewport.invert === true) {
@@ -5452,6 +5291,10 @@ class CornerstoneElement extends Component {
     if (this.state.showFollowUp) {
       if (this.followUpComponent) {
         this.followUpComponent.ZoomIn()
+      }
+    } else if (this.state.show3DVisualization) {
+      if (this.viewer3D) {
+        this.viewer3D.zoomIn()
       }
     } else {
       let viewport = cornerstone.getViewport(this.element)
@@ -5474,6 +5317,10 @@ class CornerstoneElement extends Component {
     if (this.state.showFollowUp) {
       if (this.followUpComponent) {
         this.followUpComponent.ZoomOut()
+      }
+    } else if (this.state.show3DVisualization) {
+      if (this.viewer3D) {
+        this.viewer3D.zoomOut()
       }
     } else {
       let viewport = cornerstone.getViewport(this.element)
@@ -7780,7 +7627,6 @@ class CornerstoneElement extends Component {
     this.apis = []
     window.addEventListener('resize', this.resizeScreen.bind(this))
     // this.getNoduleIfos()
-    document.getElementById('closeVisualContent').style.display = 'none'
 
     if (localStorage.getItem('token') == null) {
       sessionStorage.setItem(
@@ -7903,7 +7749,7 @@ class CornerstoneElement extends Component {
         }
       )
       .then((res) => {
-        console.log(res)
+        console.log('getMhaListForCaseId reponse', res)
         // const urls = res.data
         function sortUrl(x, y) {
           // small to big
@@ -7923,80 +7769,111 @@ class CornerstoneElement extends Component {
         let airwayLength = 0
         let nodulesLength = 0
         let vesselLength = 0
-        if (urlData) {
-          if (urlData.lung && urlData.lung.length > 0) {
-          }
-          if (urlData.lobe && urlData.lobe.length > 0) {
-            const prevCount = count
-            urlData.lobe.sort(sortUrl)
-            urlData.lobe.forEach((item, index) => {
-              const order = Math.round(item[item.length - 5])
-              const type = 'lobe' + order
+
+        if (urlData && urlData.length) {
+          let count = 0
+          urlData.sort((a, b) => a - b)
+          urlData.forEach((urlItem, urlIndex) => {
+            const originType = urlItem.split('/')[4]
+            let type
+            let order = 0
+            if (originType === 'lobe') {
+              order = Math.round(urlItem[urlItem.length - 5])
+              type = originType + order
+            } else if (originType === 'nodule') {
+              order = Math.round(urlItem[urlItem.length - 5])
+              type = originType
+            } else {
+              type = originType
+            }
+            if (originType !== 'lung') {
               urls.push({
-                url: item,
+                url: urlItem,
                 order,
-                index: index + prevCount,
+                index: count,
                 class: dictList[type].class,
                 name: dictList[type].name,
                 color: dictList[type].color,
               })
               count += 1
-              lobesLength += 1
-            })
-          }
-          if (urlData.airway && urlData.airway.length > 0) {
-            const prevCount = count
-            urlData.airway.forEach((item, index) => {
-              const order = 0
-              const type = 'airway'
-              urls.push({
-                url: item,
-                order,
-                index: index + prevCount,
-                class: dictList[type].class,
-                name: dictList[type].name,
-                color: dictList[type].color,
-              })
-              count += 1
-              airwayLength += 1
-            })
-          }
-          if (urlData.nodule && urlData.nodule.length > 0) {
-            const prevCount = count
-            urlData.nodule.sort(sortUrl)
-            urlData.nodule.forEach((item, index) => {
-              const order = Math.round(item[item.length - 5])
-              const type = 'nodule'
-              urls.push({
-                url: item,
-                order,
-                index: index + prevCount,
-                class: dictList[type].class,
-                name: dictList[type].name + order,
-                color: dictList[type].color,
-              })
-              count += 1
-              nodulesLength += 1
-            })
-          }
-          if (urlData.vessel && urlData.vessel.length > 0) {
-            const prevCount = count
-            urlData.vessel.forEach((item, index) => {
-              const order = 0
-              const type = 'vessel'
-              urls.push({
-                url: item,
-                order,
-                index: index + prevCount,
-                class: dictList[type].class,
-                name: dictList[type].name,
-                color: dictList[type].color,
-              })
-              count += 1
-              vesselLength += 1
-            })
-          }
+            }
+          })
         }
+
+        // if (urlData) {
+        //   if (urlData.lung && urlData.lung.length > 0) {
+        //   }
+        //   if (urlData.lobe && urlData.lobe.length > 0) {
+        //     const prevCount = count
+        //     urlData.lobe.sort(sortUrl)
+        //     urlData.lobe.forEach((item, index) => {
+        //       const order = Math.round(item[item.length - 5])
+        //       const type = 'lobe' + order
+        //       urls.push({
+        //         url: item,
+        //         order,
+        //         index: index + prevCount,
+        //         class: dictList[type].class,
+        //         name: dictList[type].name,
+        //         color: dictList[type].color,
+        //       })
+        //       count += 1
+        //       lobesLength += 1
+        //     })
+        //   }
+        //   if (urlData.airway && urlData.airway.length > 0) {
+        //     const prevCount = count
+        //     urlData.airway.forEach((item, index) => {
+        //       const order = 0
+        //       const type = 'airway'
+        //       urls.push({
+        //         url: item,
+        //         order,
+        //         index: index + prevCount,
+        //         class: dictList[type].class,
+        //         name: dictList[type].name,
+        //         color: dictList[type].color,
+        //       })
+        //       count += 1
+        //       airwayLength += 1
+        //     })
+        //   }
+        //   if (urlData.nodule && urlData.nodule.length > 0) {
+        //     const prevCount = count
+        //     urlData.nodule.sort(sortUrl)
+        //     urlData.nodule.forEach((item, index) => {
+        //       const order = Math.round(item[item.length - 5])
+        //       const type = 'nodule'
+        //       urls.push({
+        //         url: item,
+        //         order,
+        //         index: index + prevCount,
+        //         class: dictList[type].class,
+        //         name: dictList[type].name + order,
+        //         color: dictList[type].color,
+        //       })
+        //       count += 1
+        //       nodulesLength += 1
+        //     })
+        //   }
+        //   if (urlData.vessel && urlData.vessel.length > 0) {
+        //     const prevCount = count
+        //     urlData.vessel.forEach((item, index) => {
+        //       const order = 0
+        //       const type = 'vessel'
+        //       urls.push({
+        //         url: item,
+        //         order,
+        //         index: index + prevCount,
+        //         class: dictList[type].class,
+        //         name: dictList[type].name,
+        //         color: dictList[type].color,
+        //       })
+        //       count += 1
+        //       vesselLength += 1
+        //     })
+        //   }
+        // }
         const segments = Object.keys(urls).map((key) => null)
         const percent = Object.keys(urls).map((key) => 0)
         const listLoading = Object.keys(urls).map((key) => true)
