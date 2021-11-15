@@ -400,6 +400,7 @@ class FollowUpElement extends Component {
     if (prevProps.curInfo !== this.props.curInfo) {
       const curInfo = this.props.curInfo
       if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
+        console.log('componentDidUpdate jn')
         const curImagePromise = curInfo.curImageIds.map((curImageId) => {
           return cornerstone.loadAndCacheImage(curImageId)
         })
@@ -419,6 +420,7 @@ class FollowUpElement extends Component {
     if (prevProps.preInfo !== this.props.preInfo) {
       const preInfo = this.props.preInfo
       if (preInfo.preImageIds && preInfo.preCaseId && preInfo.preBoxes) {
+        console.log('componentDidUpdate jn')
         const preImagePromise = preInfo.preImageIds.map((preImageId) => {
           return cornerstone.loadAndCacheImage(preImageId)
         })
@@ -451,6 +453,9 @@ class FollowUpElement extends Component {
 
         // })
       }
+    }
+    if (prevState.preBoxes !== this.state.preBoxes) {
+      console.log('didupdate', this.state.preBoxes)
     }
   }
 
@@ -1074,6 +1079,7 @@ class FollowUpElement extends Component {
       reportImageContentHeight,
       matchNodulesAllChecked,
     } = this.state
+    console.log('preBox', preBoxes)
     let curBoxesAccord = ''
     let preBoxesAccord = ''
     var newNodulesTbl = ''
@@ -1094,7 +1100,7 @@ class FollowUpElement extends Component {
       { key: '支气管充气', text: '支气管充气', value: '支气管充气' },
     ]
 
-    if (registerBoxes !== '') {
+    if (registerBoxes && registerBoxes !== '' && registerBoxes !== []) {
       matchNoduleLen = registerBoxes['match'].length
       newNoduleLen = registerBoxes['new'].length
       vanishNoduleLen = registerBoxes['vanish'].length
@@ -2523,13 +2529,16 @@ class FollowUpElement extends Component {
                   </div>
                 </Accordion.Title>
                 <Accordion.Content active={reportImageActive} style={{ height: `${reportImageContentHeight}px` }}>
-                  <Form.TextArea
+                  {/* <Form.TextArea
                     id="report-image-textarea"
                     className="report-textarea"
                     placeholder="在此填写诊断报告"
                     onChange={this.onHandleImageTextareaChange.bind(this)}
                     value={reportImageText}
-                    maxLength={500}></Form.TextArea>
+                    maxLength={500}></Form.TextArea> */}
+                  <div id="report-image-textarea" className="report-textarea">
+                    {reportImageText}
+                  </div>
                 </Accordion.Content>
               </Accordion>
             </Col>
@@ -2549,19 +2558,37 @@ class FollowUpElement extends Component {
   onConfirmDelNodule(idx, status) {
     //cancel register api：caseId, idx
     const registerBoxes = this.state.registerBoxes
-    const newBox = registerBoxes['match'][idx]['later']
-    const vanishBox = registerBoxes['match'][idx]['earlier']
-    newBox.checked = false
-    vanishBox.checked = false
-    newBox.disabled = false
-    vanishBox.disabled = false
-    registerBoxes['match'].splice(idx, 1)
-    registerBoxes['vanish'].push(vanishBox)
-    registerBoxes['new'].push(newBox)
-    this.setState({
-      registerBoxes,
+    var selectedBox, unselectedBox
+    if (status === 'later') {
+      selectedBox = registerBoxes['match'][idx]['later']
+      unselectedBox = registerBoxes['match'][idx]['earlier']
+    } else {
+      selectedBox = registerBoxes['match'][idx]['earlier']
+      unselectedBox = registerBoxes['match'][idx]['later']
+    }
+
+    const deleteMatchParams = {
+      patientId: registerBoxes.patientId,
+      noduleDocumentId: registerBoxes['match'][idx][status].documentId,
+    }
+    axios.post(this.config.nodule.deleteNoduleMatch, qs.stringify(deleteMatchParams)).then((deleteRes) => {
+      if (deleteRes.data.status === 'okay') {
+        selectedBox.checked = false
+        unselectedBox.checked = false
+        selectedBox.disabled = false
+        unselectedBox.disabled = false
+        selectedBox.cancelOpen = false
+        registerBoxes['match'].splice(idx, 1)
+        registerBoxes['vanish'].push(unselectedBox)
+        registerBoxes['new'].push(selectedBox)
+        this.setState({
+          registerBoxes,
+        })
+        message.success('P' + unselectedBox.nodule_no + '和N' + selectedBox.nodule_no + '号结节取消配准成功')
+      } else {
+        message.success('取消匹配失败，未找到该结节！')
+      }
     })
-    message.success('P' + vanishBox.nodule_no + '和N' + newBox.nodule_no + '号结节取消配准成功')
   }
   onHandleMatchNoduleAllCheckChange() {
     const registerBoxes = this.state.registerBoxes
@@ -3096,130 +3123,129 @@ class FollowUpElement extends Component {
     }
   }
   template() {
-    const boxes = this.state.boxes
+    const registerBoxes = this.state.registerBoxes
     const reportImageType = this.state.reportImageType
     const reportGuideType = this.state.reportGuideType
-    let reportImageText = ''
-    boxes.forEach((item, index) => {
-      if (item.checked) {
-        reportImageText += this.templateReportImage(reportImageType, index) + '\n'
-      }
-    })
+    let reportImageText = []
+    // registerBoxes['match'].forEach((item, index) => {
+    //   if (item['later'].checked) {
+    reportImageText = this.templateReportImage(reportImageType)
+    // console.log('nodule_no', item['later'].nodule_no)
+    // this.templateReportImage(reportImageType, item['later'].nodule_no)
+    //   }
+    // })
     this.setState({
       reportImageText,
     })
+    console.log('reportImageText', reportImageType, reportImageText)
     this.templateReportGuide(reportGuideType)
   }
-  templateReportImage(type, boxIndex) {
+  templateReportImage(type) {
     const places = nodulePlaces
     const segments = lungLoc
-    const boxes = this.state.registerBoxes['new']
-    let texts = ''
-
-    if (type === '结节类型') {
-      let place = ''
-      let diameter = ''
-      let texture = ''
-      let representArray = []
-      let represent = ''
-      let malignancy = ''
-      if (boxes[boxIndex]['place'] === 0 || boxes[boxIndex]['place'] === undefined || boxes[boxIndex]['place'] === '') {
-        if (boxes[boxIndex]['segment'] === undefined || boxes[boxIndex]['segment'] === '' || boxes[boxIndex]['segment'] === 'None') {
-          place = '未知位置'
-        } else {
-          place = segments[boxes[boxIndex]['segment']]
-        }
-      } else {
-        if (boxes[boxIndex]['segment'] === undefined || boxes[boxIndex]['segment'] === '' || boxes[boxIndex]['segment'] === 'None') {
-          place = places[boxes[boxIndex]['place']]
-        } else {
-          place = segments[boxes[boxIndex]['segment']]
-        }
-      }
-      let ll = 0
-      let sl = 0
-      if (boxes[boxIndex]['measure'] !== undefined) {
-        ll = Math.sqrt(Math.pow(boxes[boxIndex].measure.x1 - boxes[boxIndex].measure.x2, 2) + Math.pow(boxes[boxIndex].measure.y1 - boxes[boxIndex].measure.y2, 2))
-        sl = Math.sqrt(Math.pow(boxes[boxIndex].measure.x3 - boxes[boxIndex].measure.x4, 2) + Math.pow(boxes[boxIndex].measure.y3 - boxes[boxIndex].measure.y4, 2))
-        if (isNaN(ll)) {
-          ll = 0
-        }
-        if (isNaN(sl)) {
-          sl = 0
-        }
-        if (ll === 0 && sl === 0) {
-          if (boxes[boxIndex]['diameter'] !== undefined && boxes[boxIndex]['diameter'] !== 0) {
-            diameter = '\xa0\xa0' + (boxes[boxIndex]['diameter'] / 10).toFixed(2) + ' 厘米'
+    const boxes = this.state.registerBoxes['later']
+    let reportImageText = []
+    boxes.forEach((item, index) => {
+      let texts = ''
+      console.log('textsType', type)
+      if (type === '结节类型') {
+        let place = ''
+        let diameter = ''
+        let texture = ''
+        let representArray = []
+        let represent = ''
+        let malignancy = ''
+        if (item['place'] === 0 || item['place'] === undefined || item['place'] === '') {
+          if (item['segment'] === undefined || item['segment'] === '' || item['segment'] === 'None') {
+            place = '未知位置'
           } else {
-            diameter = '未知'
+            place = segments[item['segment']]
           }
         } else {
-          diameter = '\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0' + '×' + '\xa0' + (sl / 10).toFixed(2) + ' 厘米'
+          if (item['segment'] === undefined || item['segment'] === '' || item['segment'] === 'None') {
+            place = places[item['place']]
+          } else {
+            place = segments[item['segment']]
+          }
         }
-      }
+        let ll = 0
+        let sl = 0
+        if (item['measure'] !== undefined) {
+          ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
+          sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2))
+          if (isNaN(ll)) {
+            ll = 0
+          }
+          if (isNaN(sl)) {
+            sl = 0
+          }
+          if (ll === 0 && sl === 0) {
+            if (item['diameter'] !== undefined && item['diameter'] !== 0) {
+              diameter = '\xa0\xa0' + (item['diameter'] / 10).toFixed(2) + ' 厘米'
+            } else {
+              diameter = '未知'
+            }
+          } else {
+            diameter = '\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0' + '×' + '\xa0' + (sl / 10).toFixed(2) + ' 厘米'
+          }
+        }
 
-      if (boxes[boxIndex]['texture'] === 2) {
-        texture = '实性'
-      } else if (boxes[boxIndex]['texture'] === 3) {
-        texture = '混合磨玻璃'
-      } else {
-        texture = '磨玻璃'
-      }
-      if (boxes[boxIndex]['lobulation'] === 2) {
-        representArray.push('分叶')
-      }
-      if (boxes[boxIndex]['spiculation'] === 2) {
-        representArray.push('毛刺')
-      }
-      if (boxes[boxIndex]['calcification'] === 2) {
-        representArray.push('钙化')
-      }
-      if (boxes[boxIndex]['pin'] === 2) {
-        representArray.push('胸膜凹陷')
-      }
-      if (boxes[boxIndex]['cav'] === 2) {
-        representArray.push('空洞')
-      }
-      if (boxes[boxIndex]['vss'] === 2) {
-        representArray.push('血管集束')
-      }
-      if (boxes[boxIndex]['bea'] === 2) {
-        representArray.push('空泡')
-      }
-      if (boxes[boxIndex]['bro'] === 2) {
-        representArray.push('支气管充气')
-      }
-      for (let index = 0; index < representArray.length; index++) {
-        if (index === 0) {
-          represent = representArray[index]
+        if (item['texture'] === 2) {
+          texture = '实性'
+        } else if (item['texture'] === 3) {
+          texture = '混合磨玻璃'
         } else {
-          represent = represent + '、' + representArray[index]
+          texture = '磨玻璃'
         }
+        if (item['lobulation'] === 2) {
+          representArray.push('分叶')
+        }
+        if (item['spiculation'] === 2) {
+          representArray.push('毛刺')
+        }
+        if (item['calcification'] === 2) {
+          representArray.push('钙化')
+        }
+        if (item['pin'] === 2) {
+          representArray.push('胸膜凹陷')
+        }
+        if (item['cav'] === 2) {
+          representArray.push('空洞')
+        }
+        if (item['vss'] === 2) {
+          representArray.push('血管集束')
+        }
+        if (item['bea'] === 2) {
+          representArray.push('空泡')
+        }
+        if (item['bro'] === 2) {
+          representArray.push('支气管充气')
+        }
+        for (let index = 0; index < representArray.length; index++) {
+          if (index === 0) {
+            represent = representArray[index]
+          } else {
+            represent = represent + '、' + representArray[index]
+          }
+        }
+        if (item['malignancy'] === 3) {
+          malignancy = '风险较高。'
+        } else if (item['malignancy'] === 2) {
+          malignancy = '风险中等。'
+        } else {
+          malignancy = '风险较低。'
+        }
+        texts =
+          texts + place + ' ( Im ' + (parseInt(item['slice_idx']) + 1) + '/' + this.state.curImageIds.length + ') 见' + texture + '结节, 大小为' + diameter + ', 可见' + represent + ', ' + malignancy
       }
-      if (boxes[boxIndex]['malignancy'] === 3) {
-        malignancy = '风险较高。'
-      } else if (boxes[boxIndex]['malignancy'] === 2) {
-        malignancy = '风险中等。'
+      console.log('nodule_no', item.nodule_no, texts)
+      if (!item.checked) {
+        reportImageText.push(<div>{texts}</div>)
       } else {
-        malignancy = '风险较低。'
+        reportImageText.push(<div className="report-textarea-highlight">{texts}</div>)
       }
-      texts =
-        texts +
-        place +
-        ' ( Im ' +
-        (parseInt(boxes[boxIndex]['slice_idx']) + 1) +
-        '/' +
-        this.state.imageIds.length +
-        ') 见' +
-        texture +
-        '结节, 大小为' +
-        diameter +
-        ', 可见' +
-        represent +
-        ', ' +
-        malignancy
-    }
-    return texts
+    })
+    return reportImageText
   }
   templateReportGuide(dealchoose) {
     const boxes = this.state.registerBoxes['new']
@@ -3606,6 +3632,7 @@ class FollowUpElement extends Component {
       },
       () => {
         this.isAllCheck()
+        this.template()
       }
     )
   }
@@ -3688,26 +3715,42 @@ class FollowUpElement extends Component {
     } else if (selectedNewBox.length === 1 && selectedVanishBox.length === 1) {
       //api,caseId-nodule_no*2
       if (selectedNewIdx !== -1 && selectedVanishIdx !== -1) {
-        registerBoxes['new'].splice(selectedNewIdx, 1)
-        registerBoxes['vanish'].splice(selectedVanishIdx, 1)
-        selectedVanishBox[0].checked = false
-        selectedNewBox[0].checked = false
-        let matchBox = {
-          earlier: selectedVanishBox[0],
-          later: selectedNewBox[0],
+        const matchParams = {
+          patientId: registerBoxes.patientId,
+          firstDocumentId: selectedNewBox[0].documentId,
+          secondDocumentId: selectedVanishBox[0].documentId,
         }
-        // matchBox.earlier = selectedVanishBox
-        // matchBox['later'] = selectedNewBox
-        registerBoxes['match'].push(matchBox)
-        registerBoxes['new'].forEach((item) => {
-          item.disabled = false
+        axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
+          let status = matchRes.data.status
+          if (status === 'okay') {
+            registerBoxes['new'].splice(selectedNewIdx, 1)
+            registerBoxes['vanish'].splice(selectedVanishIdx, 1)
+            selectedVanishBox[0].checked = false
+            selectedNewBox[0].checked = false
+            let matchBox = {
+              earlier: selectedVanishBox[0],
+              later: selectedNewBox[0],
+            }
+            // matchBox.earlier = selectedVanishBox
+            // matchBox['later'] = selectedNewBox
+            registerBoxes['match'].push(matchBox)
+            registerBoxes['new'].forEach((item) => {
+              item.disabled = false
+            })
+            registerBoxes['vanish'].forEach((item) => {
+              item.disabled = false
+            })
+            console.log('onRegisterClick', registerBoxes)
+            this.setState({ registerBoxes })
+          } else if (status === 'failed') {
+            if (matchRes.data.errorCode === 'Match-0001') {
+              message.error('该结节已与其他结节绑定')
+            } else if (matchRes.data.errorCode === 'Match-0002') {
+              message.error('结节不存在')
+            }
+          }
         })
-        registerBoxes['vanish'].forEach((item) => {
-          item.disabled = false
-        })
-        console.log('onRegisterClick', registerBoxes)
       }
-      this.setState({ registerBoxes })
     }
   }
 }

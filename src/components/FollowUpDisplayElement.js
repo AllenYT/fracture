@@ -86,7 +86,9 @@ class FollowUpDisplayElement extends Component {
 
     const followRectsParams = {
       earlierCaseId: preCaseId,
+      earlierUsername: 'deepln',
       laterCaseId: curCaseId,
+      laterUsername: 'deepln',
     }
 
     const token = localStorage.getItem('token')
@@ -108,8 +110,8 @@ class FollowUpDisplayElement extends Component {
         // const curBox = followRectsResponse.data["rects1"];
         // const preBox = followRectsResponse.data["rects2"];
         // console.log('curbox',curBox)
-        const curBox = frData.earlier
-        const preBox = frData.later
+        const curBox = [].concat(frData.earlier)
+        const preBox = [].concat(frData.later)
         if (curBox && curBox.length) {
           curBox.sort(this.sliceIdxSort('slice_idx'))
           curBox.forEach((item, index) => {
@@ -177,11 +179,11 @@ class FollowUpDisplayElement extends Component {
   componentDidUpdate(prevProps, prevState, snapshot) {
     if (prevProps.curCaseId !== this.props.curCaseId || prevProps.preCaseId !== this.props.preCaseId) {
       if (this.props.curCaseId && this.props.preCaseId) {
-        console.log('display componentDidUpdate')
         this.loadDoubleInfo(this.props.curCaseId, this.props.preCaseId)
         // this.loadRegisterRects(this.props.curCaseId, this.props.preCaseId)
         console.log('loadRegisterRects', this.state.registerBoxes)
       } else if (this.props.curCaseId) {
+        console.log('display componentDidUpdate')
         this.loadSingleInfo(this.props.curCaseId)
       }
     }

@@ -42,7 +42,9 @@ class FollowUpDisplayPanel extends Component {
 
     const followRectsParams = {
       earlierCaseId: this.state.preCaseId,
+      earlierUsername: 'deepln',
       laterCaseId: this.state.curCaseId,
+      laterUsername: 'deepln',
     }
 
     const token = localStorage.getItem('token')

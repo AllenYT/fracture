@@ -87,7 +87,9 @@
         "cavMalDist": "http://192.168.7.198:8085/nodule/cavMalDist",
         "vssMalDist": "http://192.168.7.198:8085/nodule/vssMalDist",
         "beaMalDist": "http://192.168.7.198:8085/nodule/beaMalDist",
-        "broMalDist": "http://192.168.7.198:8085/nodule/broMalDist"
+        "broMalDist": "http://192.168.7.198:8085/nodule/broMalDist",
+        "noduleMatch": "http://192.168.7.198:8085/nodule//noduleMatch",
+        "deleteNoduleMatch": "http://192.168.7.198:8085/nodule/deleteNoduleMatch"
     },
     "subset": {
         "createQueue": "http://192.168.7.198:8085/subset/create",

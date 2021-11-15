@@ -844,6 +844,12 @@
 .report-textarea {
   outline: none;
 }
+.report-textarea-highlight {
+  font-size: 14px;
+  width: 100%;
+  background: transparent;
+  color: #1890ff;
+}
 #report-accordion-guide {
   width: 100%;
   background-color: rgb(23, 28, 47);
