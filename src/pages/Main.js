@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Menu, Dropdown, Button, Image } from 'semantic-ui-react'
-import { notification } from 'antd'
+import { notification, message } from 'antd'
 import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom'
 import qs from 'qs'
 import { connect } from 'react-redux'
@@ -30,6 +30,10 @@ import AdminManagePanel from '../panels/AdminManagePanel'
 
 import md5 from 'js-md5'
 import FollowUpDisplayPanel from '../panels/FollowUpDisplayPanel'
+
+message.config({
+  duration: 3,
+})
 
 class Main extends Component {
   constructor(props) {

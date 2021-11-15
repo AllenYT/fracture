@@ -3,6 +3,7 @@ import CornerstoneElement from '../components/CornerstoneElement'
 import * as cornerstone from 'cornerstone-core'
 import axios from 'axios'
 import qs from 'qs'
+import _ from 'lodash'
 import FollowUpElement from '../components/FollowUpElement'
 
 class FollowUpDisplayElement extends Component {
@@ -110,14 +111,17 @@ class FollowUpDisplayElement extends Component {
         // const curBox = followRectsResponse.data["rects1"];
         // const preBox = followRectsResponse.data["rects2"];
         // console.log('curbox',curBox)
-        const curBox = [].concat(frData.earlier)
-        const preBox = [].concat(frData.later)
+        const curBox = [].concat(frData.later)
+        const preBox = [].concat(frData.earlier)
+        const matchPairs = frData.matchPairs
+
         if (curBox && curBox.length) {
           curBox.sort(this.sliceIdxSort('slice_idx'))
           curBox.forEach((item, index) => {
             item.visibleIdx = index
             item.visible = true
             item.checked = false
+            item.matched = false
           })
         }
 
@@ -127,9 +131,41 @@ class FollowUpDisplayElement extends Component {
             item.visibleIdx = index
             item.visible = true
             item.checked = false
+            item.matched = false
           })
         }
+        const matchBox = []
+        const newBox = []
+        const vanishBox = []
 
+        matchPairs.forEach((pairItem, pairIndex) => {
+          let curIndex = _.findIndex(curBox, { documentId: pairItem[1] })
+          let preIndex = _.findIndex(preBox, { documentId: pairItem[0] })
+          if (curIndex !== -1 && preIndex !== -1) {
+            curBox[curIndex].matched = true
+            preBox[preIndex].matched = true
+            matchBox.push({
+              earlier: preBox[preIndex],
+              later: curBox[curIndex],
+            })
+          }
+        })
+        curBox.forEach((item) => {
+          if (!item.matched) {
+            delete item.matched
+            newBox.push(item)
+          } else {
+            delete item.matched
+          }
+        })
+        preBox.forEach((item) => {
+          if (!item.matched) {
+            delete item.matched
+            vanishBox.push(item)
+          } else {
+            delete item.matched
+          }
+        })
         const curInfo = {
           curImageIds: curData,
           curCaseId: curCaseId,
@@ -143,7 +179,11 @@ class FollowUpDisplayElement extends Component {
         this.setState({
           curInfo,
           preInfo,
-          registerBoxes: frData,
+          registerBoxes: {
+            match: matchBox,
+            new: newBox,
+            vanish: vanishBox,
+          },
           show: true,
         })
       }

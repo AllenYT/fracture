@@ -14,7 +14,7 @@ html {
   /* background-size: 100% 100%; */
 }
 #main {
-  height: 100%;
+  /* height: 100%; */
 }
 #logout-menu {
   min-width: 100px;
@@ -106,11 +106,15 @@ html {
 .general-confirm-operation button {
   border-radius: 20px !important;
   color: whitesmoke !important;
+  transition: all 0.3s ease;
 }
 .general-confirm-operation button:hover {
   border-color: #1890ff !important;
   background-color: #1890ff !important;
-  transition: all 0.3s ease;
+}
+.general-confirm-operation button:focus {
+  border-color: #1890ff !important;
+  background-color: #1890ff !important;
 }
 
 .ant-message-notice-content {

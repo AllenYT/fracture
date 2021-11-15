@@ -59,7 +59,8 @@
         "getLobeInfo": "http://192.168.7.198:8085/draft/getLobeInfo",
         "getCenterLine": "http://192.168.7.198:8085/draft/getCenterLine",
         "dataValid": "http://192.168.7.198:8085/draft/dataValidation",
-        "getRectsForFollowUp":"http://192.168.7.198:8085/draft/getRectsForFollowUp/"
+        "getRectsForFollowUp":"http://192.168.7.198:8085/draft/getRectsForFollowUp/",
+        "getLymphs": "http://192.168.7.198:8085/draft/getLymph"
     },
     "review": {
         "isOkayForReview": "http://192.168.7.198:8085/review/isOkayForReview",
@@ -106,9 +107,6 @@
         "password":"123456"
     },
     "segment":[
-        {"value":"无法定位",
-        "label":"无法定位",
-    "children":[]},
         {
             "value":"右肺中叶",
             "label":"右肺中叶",
@@ -122,7 +120,7 @@
                     "label":"内侧段"
                 },
                 {
-                    "value":"无法定位",
+                    "value":"无法定位1",
                     "label":"无法定位"
                 }
             ]
@@ -146,7 +144,7 @@
                     "label":"前段"
                 },
                 {
-                    "value":"无法定位",
+                    "value":"无法定位1",
                     "label":"无法定位"
                 }
             ]
@@ -176,7 +174,7 @@
                     "label":"后基底段"
                 },
                 {
-                    "value":"无法定位",
+                    "value":"无法定位1",
                     "label":"无法定位"
                 }
             ]
@@ -202,7 +200,7 @@
                     "label":"下舌段"
                 },
                 {
-                    "value":"无法定位",
+                    "value":"无法定位1",
                     "label":"无法定位"
                 }
             ]
@@ -228,7 +226,7 @@
                     "label":"后基底段"
                 },
                 {
-                    "value":"无法定位",
+                    "value":"无法定位1",
                     "label":"无法定位"
                 }
             ]

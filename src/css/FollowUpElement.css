@@ -29,7 +29,7 @@
 }
 #follow-up-viewport {
   position: relative;
-  height: 70%;
+  height: 65%;
 }
 .follow-up-viewport-block {
   height: 100%;
@@ -46,12 +46,14 @@
   display: flex;
   flex-direction: row;
   align-items: center;
+  width: 100%;
 }
 .register-nodule-card-second {
   display: flex;
   flex: row;
   align-items: center;
   height: 50px;
+  width: 100%;
 }
 .register-nodule-card-note {
   display: flex;
@@ -76,6 +78,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
+  overflow: hidden;
 }
 .register-nodule-card-text-length {
   margin-right: 10px;
@@ -88,18 +91,29 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .register-nodule-card-select-center {
   display: flex !important;
   align-items: center !important;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .BoxesAccord-Row {
   padding: 3px 0;
-  height: 30%;
+  height: 35%;
   background-color: rgb(5, 10, 29);
 }
 .boxes-accord-col {
   background-color: rgb(23, 28, 47);
+}
+.boxes-accord-col:first-child {
+  width: 50%;
+}
+.boxes-accord-col:last-child {
+  width: calc(50% - 5px);
+  margin-left: 5px;
 }
 .representDropdown {
   background: transparent !important;
@@ -193,6 +207,7 @@
 }
 
 .all-nodule-table {
+  width: 100%;
   overflow-y: auto;
 }
 

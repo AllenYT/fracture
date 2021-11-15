@@ -7,6 +7,7 @@ import * as cornerstoneTools from 'cornerstone-tools'
 import Hammer from 'hammerjs'
 import * as cornerstoneWadoImageLoader from 'cornerstone-wado-image-loader'
 import '../css/FollowUpElement.css'
+import _ from 'lodash'
 import qs from 'qs'
 import axios from 'axios'
 import PropTypes from 'prop-types'
@@ -66,7 +67,6 @@ const nodulePlaces = {
   3: '右肺下叶',
   4: '左肺上叶',
   5: '左肺下叶',
-  6: '无法定位',
 }
 const lungLoc = {
   S1: '右肺上叶-尖段',
@@ -253,79 +253,9 @@ class FollowUpElement extends Component {
       )
     }
 
-    let nodules
-    nodules = this.resizeScreen()
+    this.resizeScreen()
+    this.template()
     window.addEventListener('resize', this.resizeScreen.bind(this))
-    // var templateText = ''
-    // for (let i = 0; i < curBoxes.length; i++) {
-    //   let location = ''
-    //   let diameter = ''
-    //   let texture = ''
-    //   let representArray = []
-    //   let represent = ''
-    //   let malignancy = ''
-
-    //   location = lungLoc[curBoxes[i]['segment']]
-
-    //   if (curBoxes[i]['diameter'] !== undefined) {
-    //     diameter = curBoxes[i]['diameter'].toFixed(1) + 'mm'
-    //   } else {
-    //     diameter = '未知'
-    //   }
-    //   if (curBoxes[i]['texture'] === 2) {
-    //     texture = '实性'
-    //   } else if (curBoxes[i]['texture'] === 3) {
-    //     texture = '半实性'
-    //   } else {
-    //     texture = '磨玻璃'
-    //   }
-
-    //   if (curBoxes[i]['lobulation'] === 2) {
-    //     representArray.push('分叶')
-    //   }
-    //   if (curBoxes[i]['spiculation'] === 2) {
-    //     representArray.push('毛刺')
-    //   }
-    //   if (curBoxes[i]['calcification'] === 2) {
-    //     representArray.push('钙化')
-    //   }
-    //   if (curBoxes[i]['pin'] === 2) {
-    //     representArray.push('胸膜凹陷')
-    //   }
-    //   if (curBoxes[i]['cav'] === 2) {
-    //     representArray.push('空洞')
-    //   }
-    //   if (curBoxes[i]['vss'] === 2) {
-    //     representArray.push('血管集束')
-    //   }
-    //   if (curBoxes[i]['bea'] === 2) {
-    //     representArray.push('空泡')
-    //   }
-    //   if (curBoxes[i]['bro'] === 2) {
-    //     representArray.push('支气管充气')
-    //   }
-    //   for (let index = 0; index < representArray.length; index++) {
-    //     if (index === 0) {
-    //       represent = representArray[index]
-    //     } else {
-    //       represent = represent + '、' + representArray[index]
-    //     }
-    //   }
-    //   if (curBoxes[i]['malignancy'] === 3) {
-    //     malignancy = '风险较高。'
-    //   } else if (curBoxes[i]['malignancy'] === 2) {
-    //     malignancy = '风险中等。'
-    //   } else {
-    //     malignancy = '风险较低。'
-    //   }
-    //   if (represent === '') {
-    //     templateText = templateText + location + ' ( Im ' + curBoxes[i]['slice_idx'] + ') 见' + texture + '结节, 大小为' + diameter + ', ' + malignancy + '\n'
-    //   } else {
-    //     templateText = templateText + location + ' ( Im ' + curBoxes[i]['slice_idx'] + ') 见' + texture + '结节, 大小为' + diameter + ', 可见' + represent + ', ' + malignancy + '\n'
-    //   }
-    // }
-    // this.setState({ templateText: templateText })
-    // document.addEventListener("keydown", this.onKeydown);
   }
 
   componentWillMount() {
@@ -549,22 +479,6 @@ class FollowUpElement extends Component {
     }
   }
 
-  onDangerLevelChange = (idx, status, val) => {
-    if (status === 'current') {
-      let box = this.state.curBoxes
-      console.log('risk', val)
-      box[idx].malignancy = val[0]
-      this.setState({ curBoxes: box })
-      console.log('change location', this.state.curBoxes)
-    } else {
-      let box = this.state.preBoxes
-      console.log('risk', val)
-      box[idx].malignancy = val[0]
-      this.setState({ preBoxes: box })
-      console.log('change location', this.state.preBoxes)
-    }
-  }
-
   measure(e) {
     console.log('measurements', e)
   }
@@ -583,8 +497,8 @@ class FollowUpElement extends Component {
           currentIdx: currentIdx,
         },
         () => {
-          const { curBoxes, curImageIds } = this.state
-          const currentTarget = targets[0]
+          const { curBoxes, curImageIds, sortChanged } = this.state
+          const currentTarget = targets[sortChanged ? 1 : 0]
           var toolData = cornerstoneTools.getToolState(currentTarget, 'RectangleRoi')
           console.log('toolData before', toolData)
           for (let i = 0; i < curBoxes.length; i++) {
@@ -648,8 +562,8 @@ class FollowUpElement extends Component {
           previousIdx: currentIdx,
         },
         () => {
-          const { preBoxes, preImageIds } = this.state
-          const previousTarget = targets[1]
+          const { preBoxes, preImageIds, sortChanged } = this.state
+          const previousTarget = targets[sortChanged ? 0 : 1]
           var toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
           console.log('toolData before', toolData)
           for (let i = 0; i < preBoxes.length; i++) {
@@ -704,72 +618,61 @@ class FollowUpElement extends Component {
     }
   }
 
-  onMatchNoduleChange(newNodule, previousNodule) {
-    console.log('onMatchNoduleChange', newNodule, previousNodule)
-    this.setState(
-      {
-        curImageIdIndex: newNodule.slice_idx - 1,
-        preImageIdIndex: previousNodule.slice_idx - 1,
-      },
-      () => {
-        const targets = document.getElementsByClassName('viewport-element')
-        const currentTarget = targets[0]
-        const previousTarget = targets[1]
-        if (newNodule.uuid === undefined) {
-          const { curImageIds, curBoxes } = this.state
-          const curNodule_uuid = this.drawCustomRectangleRoi(currentTarget, newNodule, curImageIds)
-          const cur_nodule_idx = Number(newNodule.nodule_no)
-          curBoxes[cur_nodule_idx - 1] = curNodule_uuid
-          this.setState({ curBoxes: curBoxes })
-        }
-        if (previousNodule.uuid === undefined) {
-          const { preImageIds, preBoxes } = this.state
-          const previousNodule_uuid = this.drawCustomRectangleRoi(previousTarget, previousNodule, preImageIds)
-          const pre_nodule_idx = Number(previousNodule.nodule_no)
-          preBoxes[pre_nodule_idx - 1] = previousNodule_uuid
-          this.setState({ preBoxes: preBoxes })
-        }
-      }
-    )
+  onMatchNoduleChange(newNoduleNo, previousNoduleNo) {
+    console.log('onMatchNoduleChange', newNoduleNo, previousNoduleNo)
+    this.onNewNoduleChange(newNoduleNo)
+    this.onPreNoduleChange(previousNoduleNo)
     this.setState({ activeTool: 'RectangleRoi' })
   }
 
-  onNewNoduleChange(nodule) {
-    this.setState(
-      {
-        curImageIdIndex: nodule.slice_idx - 1,
-      },
-      () => {
-        const targets = document.getElementsByClassName('viewport-element')
-        const currentTarget = targets[0]
-        if (nodule.uuid === undefined) {
-          const { curImageIds, curBoxes } = this.state
-          const curNodule_uuid = this.drawCustomRectangleRoi(currentTarget, nodule, curImageIds)
-          const cur_nodule_idx = Number(nodule.nodule_no)
-          curBoxes[cur_nodule_idx - 1] = curNodule_uuid
-          this.setState({ curBoxes: curBoxes })
+  onNewNoduleChange(noduleNo) {
+    const curBoxes = this.state.curBoxes
+    let curIndex = _.findIndex(curBoxes, { nodule_no: noduleNo })
+    if (curIndex !== -1) {
+      this.setState(
+        {
+          curImageIdIndex: curBoxes[curIndex].slice_idx - 1,
+        },
+        () => {
+          const sortChanged = this.state.sortChanged
+          const targets = document.getElementsByClassName('viewport-element')
+          const currentTarget = targets[sortChanged ? 1 : 0]
+          if (curBoxes[curIndex].uuid === undefined) {
+            const curImageIds = this.state.curImageIds
+            const curNodule_uuid = this.drawCustomRectangleRoi(currentTarget, curBoxes[curIndex], curImageIds)
+            curBoxes[curIndex] = curNodule_uuid
+            this.setState({
+              curBoxes,
+            })
+          }
         }
-      }
-    )
+      )
+    }
   }
 
-  onPreNoduleChange(nodule) {
-    this.setState(
-      {
-        preImageIdIndex: nodule.slice_idx - 1,
-      },
-      () => {
-        const targets = document.getElementsByClassName('viewport-element')
-        const previousTarget = targets[1]
-        if (nodule.uuid === undefined) {
-          const { preImageIds, preBoxes } = this.state
-          const preNodule_uuid = this.drawCustomRectangleRoi(previousTarget, nodule, preImageIds)
-          const pre_nodule_idx = Number(nodule.nodule_no)
-          preBoxes[pre_nodule_idx - 1] = preNodule_uuid
-          this.setState({ preBoxes: preBoxes })
+  onPreNoduleChange(noduleNo) {
+    const preBoxes = this.state.preBoxes
+    let preIndex = _.findIndex(preBoxes, { nodule_no: noduleNo })
+    if (preIndex !== -1) {
+      this.setState(
+        {
+          preImageIdIndex: preBoxes[preIndex].slice_idx - 1,
+        },
+        () => {
+          const sortChanged = this.state.sortChanged
+          const targets = document.getElementsByClassName('viewport-element')
+          const currentTarget = targets[sortChanged ? 0 : 1]
+          if (preBoxes[preIndex].uuid === undefined) {
+            const preImageIds = this.state.preImageIds
+            const preNodule_uuid = this.drawCustomRectangleRoi(currentTarget, preBoxes[preIndex], preImageIds)
+            preBoxes[preIndex] = preNodule_uuid
+            this.setState({
+              preBoxes,
+            })
+          }
         }
-      }
-    )
+      )
+    }
   }
 
   drawCustomRectangleRoi(target, nodule, imageIds) {
@@ -1706,7 +1609,7 @@ class FollowUpElement extends Component {
         }
 
         return (
-          <Row key={idx} justify="center" className="register-nodule-card" onClick={this.onMatchNoduleChange.bind(this, newNodule, previousNodule)}>
+          <Row key={idx} justify="center" className="register-nodule-card" onClick={this.onMatchNoduleChange.bind(this, newNodule.nodule_no, previousNodule.nodule_no)}>
             <Col span={2} className="register-nodule-card-note">
               <Row className="register-nodule-card-first">
                 <Checkbox
@@ -1716,8 +1619,8 @@ class FollowUpElement extends Component {
                   onClick={this.onHandleMatchNoduleCheckClick.bind(this)}></Checkbox>
               </Row>
               {/* checkbox */}
-              <Row className="register-nodule-card-second">{'N' + newNodule.nodule_no}</Row>
-              <Row className="register-nodule-card-second">{'P' + previousNodule.nodule_no}</Row>
+              <Row className="register-nodule-card-second">{'N' + (newNodule.visibleIdx + 1)}</Row>
+              <Row className="register-nodule-card-second">{'P' + (previousNodule.visibleIdx + 1)}</Row>
             </Col>
 
             <Col span={22} className="register-nodule-card-content">
@@ -1751,14 +1654,14 @@ class FollowUpElement extends Component {
                   <p className="MDTText">{'MDT : ' + MDT}</p>
                 </Col>
               </Row>
-              <Row className="register-nodule-card-second" align="middle">
+              <Row className="register-nodule-card-second" align="middle" wrap={false}>
                 <Col span={2}>{'IM' + (newNodule.slice_idx + 1)}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{newNoduleLength.toFixed(1) + '*' + newNoduleWidth.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">{newNodule.volume !== undefined ? Math.floor(newNodule.volume * 1000).toFixed(1) + '\xa0mm³' : null}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-hu">{newNodule.huMin + '~' + newNodule.huMax + 'HU'}</div>
                 </Col>
-                <Col span={4}>
+                <Col span={4} className="register-nodule-card-select-center">
                   密度：
                   <Select
                     className="nodule-accordion-item-title-select"
@@ -1843,7 +1746,7 @@ class FollowUpElement extends Component {
                   </Popup>
                 </Col>
               </Row>
-              <Row className="register-nodule-card-second" align="middle" justify="center">
+              <Row className="register-nodule-card-second" align="middle" justify="center" wrap={false}>
                 <Col span={2}>{'IM' + (previousNodule.slice_idx + 1)}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{preNoduleLength.toFixed(1) + '*' + preNoduleWidth.toFixed(1) + 'mm'}</div>
@@ -1852,7 +1755,7 @@ class FollowUpElement extends Component {
                   </div>
                   <div className="register-nodule-card-text register-nodule-card-text-hu">{previousNodule.huMin + '~' + previousNodule.huMax + 'HU'}</div>
                 </Col>
-                <Col span={4}>
+                <Col span={4} className="register-nodule-card-select-center">
                   密度：
                   <Select
                     className="nodule-accordion-item-title-select"
@@ -1993,7 +1896,7 @@ class FollowUpElement extends Component {
           representArray.push('支气管充气')
         }
         return (
-          <Row key={idx} justify="center" className="register-nodule-card" onClick={this.onNewNoduleChange.bind(this, value)}>
+          <Row key={idx} justify="center" className="register-nodule-card" onClick={this.onNewNoduleChange.bind(this, value.nodule_no)}>
             <Col span={2} className="register-nodule-card-note">
               <Row className="register-nodule-card-first">
                 <Checkbox
@@ -2005,7 +1908,7 @@ class FollowUpElement extends Component {
                   {/* {parseInt(inside.slice_idx) + 1} */}
                 </Checkbox>
               </Row>
-              <Row className="register-nodule-card-second">{'N' + value.nodule_no}</Row>
+              <Row className="register-nodule-card-second">{'N' + (value.visibleIdx + 1)}</Row>
             </Col>
 
             <Col span={22} className="register-nodule-card-content">
@@ -2027,14 +1930,14 @@ class FollowUpElement extends Component {
                   />
                 </Col>
               </Row>
-              <Row className="register-nodule-card-second" align="middle">
+              <Row className="register-nodule-card-second" align="middle" wrap={false}>
                 <Col span={2}>{'IM ' + value['slice_idx']}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{ll.toFixed(1) + '*' + sl.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">{value.volume !== undefined ? Math.floor(value.volume * 1000).toFixed(1) + '\xa0mm³' : null}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-hu">{value.huMin + '~' + value.huMax + 'HU'}</div>
                 </Col>
-                <Col span={4}>
+                <Col span={4} className="register-nodule-card-select-center">
                   密度：
                   <Select
                     className="nodule-accordion-item-title-select"
@@ -2155,7 +2058,7 @@ class FollowUpElement extends Component {
           representArray.push('支气管充气')
         }
         return (
-          <Row key={idx} onClick={this.onPreNoduleChange.bind(this, value)} justify="center" className="register-nodule-card">
+          <Row key={idx} onClick={this.onPreNoduleChange.bind(this, value.nodule_no)} justify="center" className="register-nodule-card">
             <Col span={2} className="register-nodule-card-note">
               <Row className="register-nodule-card-first">
                 <Checkbox
@@ -2167,7 +2070,7 @@ class FollowUpElement extends Component {
                   {/* {parseInt(inside.slice_idx) + 1} */}
                 </Checkbox>
               </Row>
-              <Row className="register-nodule-card-second">{'P' + value.nodule_no}</Row>
+              <Row className="register-nodule-card-second">{'P' + (value.visibleIdx + 1)}</Row>
             </Col>
 
             <Col span={22} className="register-nodule-card-content">
@@ -2190,14 +2093,14 @@ class FollowUpElement extends Component {
                 </Col>
               </Row>
 
-              <Row className="register-nodule-card-second" align="middle">
+              <Row className="register-nodule-card-second" align="middle" wrap={false}>
                 <Col span={2}>{'IM ' + value['slice_idx']}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{ll.toFixed(1) + '*' + sl.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">{value.volume !== undefined ? Math.floor(value.volume * 1000).toFixed(1) + '\xa0mm³' : null}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-hu">{value.huMin + '~' + value.huMax + 'HU'}</div>
                 </Col>
-                <Col span={4}>
+                <Col span={4} className="register-nodule-card-select-center">
                   密度：
                   <Select
                     className="nodule-accordion-item-title-select"
@@ -2377,18 +2280,18 @@ class FollowUpElement extends Component {
         </Row>
         {this.state.isRegistering === false ? (
           <Row justify="space-between" className="BoxesAccord-Row">
-            <Col span={12} style={{ height: '100%' }} className="boxes-accord-col">
+            <div span={12} style={{ height: '100%' }} className="boxes-accord-col">
               <Accordion className="current-nodule-accordion">{sortChanged ? preBoxesAccord : curBoxesAccord}</Accordion>
-            </Col>
-            <Col span={12} style={{ height: '100%' }} className="boxes-accord-col">
+            </div>
+            <div span={12} style={{ height: '100%' }} className="boxes-accord-col">
               <Accordion className="current-nodule-accordion">{sortChanged ? curBoxesAccord : preBoxesAccord}</Accordion>
-            </Col>
+            </div>
           </Row>
         ) : (
           <Row justify="space-between" className="BoxesAccord-Row">
-            <Col span={12} id="structured-report" className="boxes-accord-col">
-              <Row gutter={4} id="structured-report-title" align="middle">
-                <Col span={20}>
+            <div span={12} id="structured-report" className="boxes-accord-col">
+              <Row id="structured-report-title" align="middle">
+                <Col span={22}>
                   <div className="reportTitle">结构化报告</div>
                 </Col>
                 <Col span={2}>
@@ -2396,11 +2299,11 @@ class FollowUpElement extends Component {
                     匹配
                   </AntdButton>
                 </Col>
-                <Col span={2}>
+                {/* <Col span={2}>
                   <AntdButton type="primary" shape="round" size="small">
                     保存
                   </AntdButton>
-                </Col>
+                </Col> */}
               </Row>
               <Row align="middle" justify="start" id="structured-report-operation">
                 <Col span={3}>
@@ -2419,7 +2322,7 @@ class FollowUpElement extends Component {
                   <Checkbox.Group
                     // style={{ width: "100%" }}
                     className="match-checkbox"
-                    defaultValue={['match', 'new', 'vanish']}
+                    defaultValue={noduleTblCheckedValue}
                     onChange={this.noduleTblCheckboxChange}>
                     <Checkbox checked={noduleTblCheckedValue.includes('match') ? true : false} value="match">
                       {'匹配(' + matchNoduleLen + ')'}
@@ -2438,9 +2341,9 @@ class FollowUpElement extends Component {
                 {noduleTblCheckedValue.includes('new') ? newNodulesTbl : null}
                 {noduleTblCheckedValue.includes('vanish') ? vanishNodulesTbl : null}
               </Row>
-            </Col>
+            </div>
 
-            <Col span={12} className="boxes-accord-col" id="report">
+            <div span={12} className="boxes-accord-col" id="report">
               <Accordion id="report-accordion-guide">
                 <Accordion.Title active={reportGuideActive} onClick={this.onSetReportGuideActive.bind(this)}>
                   <div className="report-title">
@@ -2504,11 +2407,11 @@ class FollowUpElement extends Component {
                             text: '结节类型',
                             value: '结节类型',
                           },
-                          {
-                            key: '单个结节',
-                            text: '单个结节',
-                            value: '单个结节',
-                          },
+                          // {
+                          //   key: '单个结节',
+                          //   text: '单个结节',
+                          //   value: '单个结节',
+                          // },
                         ]}
                         defaultValue={reportImageType}
                         icon={<FontAwesomeIcon icon={faChevronDown} />}
@@ -2533,7 +2436,7 @@ class FollowUpElement extends Component {
                   </div>
                 </Accordion.Content>
               </Accordion>
-            </Col>
+            </div>
           </Row>
         )}
       </div>
@@ -2662,12 +2565,10 @@ class FollowUpElement extends Component {
   }
   onSelectPlace(index, type, value) {
     // console.log('onSelectPlace', index, value)
-
     const places = nodulePlaces
     const segments = lungLoc
     const place = value[0]
     const segment = value[0] + '-' + value[1]
-    console.log('place', place, segment)
     if (type === 'current') {
       const curBoxes = this.state.curBoxes
       if (value[0] === '无法定位') {
@@ -2679,7 +2580,7 @@ class FollowUpElement extends Component {
             curBoxes[index].place = item
           }
         }
-        if (value[1] === '无法定位') {
+        if (value[1] === '无法定位1') {
           curBoxes[index].segment = 'None'
         } else {
           for (let item in segments) {
@@ -2703,7 +2604,7 @@ class FollowUpElement extends Component {
             preBoxes[index].place = item
           }
         }
-        if (value[1] === '无法定位') {
+        if (value[1] === '无法定位1') {
           preBoxes[index].segment = 'None'
         } else {
           for (let item in segments) {
@@ -2727,7 +2628,7 @@ class FollowUpElement extends Component {
             box['match'][index]['later'].place = item
           }
         }
-        if (value[1] === '无法定位') {
+        if (value[1] === '无法定位1') {
           box['match'][index]['later'].segment = 'None'
         } else {
           for (let item in segments) {
@@ -2751,7 +2652,7 @@ class FollowUpElement extends Component {
             box['match'][index]['earlier'].place = item
           }
         }
-        if (value[1] === '无法定位') {
+        if (value[1] === '无法定位1') {
           box['match'][index]['earlier'].segment = 'None'
         } else {
           for (let item in segments) {
@@ -2775,7 +2676,7 @@ class FollowUpElement extends Component {
             box['new'][index].place = item
           }
         }
-        if (value[1] === '无法定位') {
+        if (value[1] === '无法定位1') {
           box['new'][index].segment = 'None'
         } else {
           for (let item in segments) {
@@ -2800,7 +2701,7 @@ class FollowUpElement extends Component {
             box['vanish'][index].place = item
           }
         }
-        if (value[1] === '无法定位') {
+        if (value[1] === '无法定位1') {
           box['vanish'][index].segment = 'None'
         } else {
           for (let item in segments) {
@@ -3135,7 +3036,7 @@ class FollowUpElement extends Component {
   templateReportImage(type) {
     const places = nodulePlaces
     const segments = lungLoc
-    const boxes = this.state.registerBoxes['later']
+    const boxes = this.state.curBoxes
     let reportImageText = []
     boxes.forEach((item, index) => {
       let texts = ''
@@ -3232,15 +3133,19 @@ class FollowUpElement extends Component {
       }
       console.log('nodule_no', item.nodule_no, texts)
       if (!item.checked) {
-        reportImageText.push(<div>{texts}</div>)
+        reportImageText.push(<div key={index}>{texts}</div>)
       } else {
-        reportImageText.push(<div className="report-textarea-highlight">{texts}</div>)
+        reportImageText.push(
+          <div key={index} className="report-textarea-highlight">
+            {texts}
+          </div>
+        )
       }
     })
     return reportImageText
   }
   templateReportGuide(dealchoose) {
-    const boxes = this.state.registerBoxes['new']
+    const boxes = this.state.curBoxes
     if (dealchoose === '中华共识') {
       let weight = 0
 

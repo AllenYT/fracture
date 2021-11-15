@@ -309,7 +309,8 @@
 
 #nodule-accordion,
 #lobe-accordion,
-#tubular-accordion {
+#tubular-accordion,
+#lymph-accordion {
   /* background-color:rgba(1, 23, 46, 0.997) !important; */
   background-color: transparent !important;
   border-radius: 0.1rem !important;
@@ -322,7 +323,8 @@
 
 #nodule-accordion .title,
 #lobe-accordion .title,
-#tubular-accordion .title {
+#tubular-accordion .title,
+#lymph-accordion .title {
   color: whitesmoke;
 }
 
@@ -606,6 +608,36 @@
 .highlightTbl .title {
   padding: 10px 0px !important;
   font-size: 14px;
+}
+.lymph-accordion-item-title {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.lymph-accordion-item-title-start,
+.lymph-accordion-item-title-center {
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.lymph-accordion-item-title-start {
+  width: 35%;
+}
+.lymph-accordion-item-title-index {
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.lymph-accordion-item-title-slice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  color: #2ecc71;
+}
+.lymph-accordion-item-title-name {
+  margin-left: 20px;
 }
 .nodule-accordion-item-title {
   width: 100%;
@@ -980,6 +1012,9 @@
   align-items: center;
   margin-top: 10px;
   padding-left: 20px;
+}
+.threed-accordion-item-content-opacity .ant-input-number-handler-wrap {
+  background-color: rgb(23, 28, 47);
 }
 .threed-accordion-item-content-operation {
   width: 100%;
@@ -1408,7 +1443,64 @@ table#nodule-table {
   padding-left: 1rem;
 }
 
-option {
-  background: #2b2b2b;
-  color: white;
+.corner-report-modal {
+  background-color: rgb(5, 10, 29) !important;
+  transition: box-shadow 0.3s ease-in-out opacity 0.3s ease-in-out;
+  opacity: 0.9;
+}
+.corner-report-modal:hover {
+  box-shadow: 0 0 50px black !important;
+  opacity: 1;
+}
+.corner-report-modal-header {
+  background-color: rgb(49, 56, 82) !important;
+  border-bottom: 2px solid rgb(5, 10, 29) !important;
+  color: whitesmoke !important;
+}
+.corner-report-modal-header-info {
+  display: flex !important;
+  flex-direction: row;
+  align-items: center;
+}
+.corner-report-modal-header-button {
+  display: flex !important;
+  flex-direction: row;
+  justify-content: flex-end;
+}
+
+#pdf {
+  background-color: rgb(49, 56, 82) !important;
+  color: whitesmoke;
+  padding: 0 !important;
+}
+#pdf .description {
+  background-color: rgb(49, 56, 82) !important;
+  padding: 20px;
+  height: 100%;
+}
+#pdf .description span {
+  font-size: 16px;
+  font-weight: bold;
+}
+.corner-report-modal-title {
+  font-size: 18px;
+  font-weight: bolder;
+  color: rgb(75, 121, 243);
+}
+#pdf table {
+  background-color: rgb(49, 56, 82) !important;
+  border-color: rgb(110, 110, 110) !important;
+}
+#pdf th {
+  background-color: rgb(39, 46, 72) !important;
+  color: whitesmoke !important;
+  border-color: rgb(110, 110, 110) !important;
+}
+#pdf td {
+  background-color: rgb(23, 28, 47) !important;
+  color: whitesmoke !important;
+  border-color: rgb(110, 110, 110) !important;
+}
+#main .ant-cascader-picker-label {
+  padding: 0 !important;
 }
