@@ -1072,7 +1072,6 @@ class FollowUpElement extends Component {
       reportImageContentHeight,
       matchNodulesAllChecked,
     } = this.state
-    console.log('preBox', preBoxes)
     let curBoxesAccord = ''
     let preBoxesAccord = ''
     var newNodulesTbl = ''
