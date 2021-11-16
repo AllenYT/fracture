@@ -2419,7 +2419,7 @@ class FollowUpElement extends Component {
                       />
                     </div>
                     <div className="report-title-operation">
-                      <Button title="复制" className="inverted blue button" icon="copy outline" onClick={this.handleCopyClick}></Button>
+                      <Icon title="复制" className="inverted blue button" name="copy outline" onClick={this.handleCopyClick}></Icon>
                     </div>
                   </div>
                 </Accordion.Title>

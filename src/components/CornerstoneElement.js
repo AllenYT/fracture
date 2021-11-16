@@ -3527,7 +3527,7 @@ class CornerstoneElement extends Component {
                                   <div className="report-title-operation">
                                     <Modal
                                       className="corner-report-modal"
-                                      trigger={<Button icon="expand arrows alternate" title="放大" className="inverted blue button" onClick={this.showImages.bind(this)}></Button>}>
+                                      trigger={<Icon name="expand arrows alternate" title="放大" className="inverted blue button" onClick={this.showImages.bind(this)}></Icon>}>
                                       <Modal.Header className="corner-report-modal-header">
                                         <Row>
                                           <Col span={12} className="corner-report-modal-header-info">

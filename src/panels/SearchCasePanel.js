@@ -81,7 +81,6 @@ export class SearchPanel extends Component {
     //     }
     // }
 
-    console.log('main config', this.config)
     if (prevState.chooseQueue !== this.state.chooseQueue) {
       this.getTotalPages()
     }
@@ -435,7 +434,11 @@ export class SearchPanel extends Component {
     //     )
     // }
     const options = this.state.searchQueue.map((item, index) => {
-      return <Option key={index} value={item.value}>{item.text}</Option>
+      return (
+        <Option key={index} value={item.value}>
+          {item.text}
+        </Option>
+      )
     })
 
     return (

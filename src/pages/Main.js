@@ -5,6 +5,7 @@ import { BrowserRouter as Router, Route, Switch, Link } from 'react-router-dom'
 import qs from 'qs'
 import { connect } from 'react-redux'
 import { getConfigJson } from '../actions'
+import _ from 'lodash'
 
 import LoginPanel from '../panels/LoginPanel'
 import DataCockpit from '../panels/DataCockpit'
@@ -94,6 +95,13 @@ class Main extends Component {
         console.log('error')
       })
   }
+  clearLocalStorage() {
+    localStorage.clear()
+    message.success('清空成功')
+    setTimeout(() => {
+      window.location.reload()
+    }, 2000)
+  }
   async componentDidMount() {
     // console.log('localstorage', !localStorage.getItem('config'))
 
@@ -107,17 +115,27 @@ class Main extends Component {
     // });
     // const config = await configPromise;
     // this.config = config;
+    await this.props.getConfigJson(process.env.PUBLIC_URL + '/config.json')
+    const publicConfig = this.props.config
     if (!localStorage.getItem('config')) {
-      await this.props.getConfigJson(process.env.PUBLIC_URL + '/config.json')
-      this.config = this.props.config
+      console.log('config not saved')
+      this.config = publicConfig
       localStorage.setItem('config', JSON.stringify(this.config))
     } else {
-      this.config = JSON.parse(localStorage.getItem('config'))
+      const localConfig = JSON.parse(localStorage.getItem('config'))
+      if (_.isEqual(publicConfig, localConfig)) {
+        console.log('config all same')
+        this.config = localConfig
+      } else {
+        console.log('config not same')
+        this.config = publicConfig
+        localStorage.setItem('config', JSON.stringify(publicConfig))
+      }
     }
+    console.log('check config equal', _.isEqual(publicConfig, JSON.parse(localStorage.getItem('config'))))
     this.setState({
       haveConfig: true,
     })
-    console.log('main config', this.config)
 
     axios
       .post(this.config.data.getDiskInfo)
@@ -339,6 +357,7 @@ class Main extends Component {
                     text="留言"
                     onClick={this.handleWriting}
                   /> */}
+                  <Dropdown.Item icon="trash alternate" text="清空缓存" onClick={this.clearLocalStorage.bind(this)} />
                   <Dropdown.Item icon="log out" text="注销" onClick={this.handleLogout} />
                 </Dropdown.Menu>
               </Dropdown>
