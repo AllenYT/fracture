@@ -8175,7 +8175,7 @@ class CornerstoneElement extends Component {
         console.log('didUpdateHUSliderRange', this.state.HUSliderRange)
       }
     }
-    if (prevState.chartType !== this.state.chartType) {
+    if (prevState.chartType !== this.state.chartType || prevState.HUSliderRange !== this.state.HUSliderRange) {
       if (this.state.listsActiveIndex !== -1) {
         this.plotHistogram(this.state.listsActiveIndex)
       }
