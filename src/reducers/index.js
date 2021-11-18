@@ -97,6 +97,11 @@ const dataCenterReducer = (state = { caseData: [], caseId: null }, action) => {
         ...state,
         followUpActiveTool: action.toolName,
       }
+    case 'SET_FOLLOW_UP_LOADING_COMPLETED':
+      return {
+        ...state,
+        followUpLoadingCompleted: action.loadingCompleted,
+      }
     default:
       return state
   }

@@ -74,3 +74,8 @@ export const setFollowUpActiveTool = (toolName) => ({
   type: 'SET_FOLLOW_UP_ACTIVE_TOOL',
   toolName,
 })
+
+export const setFollowUpLoadingCompleted = (loadingCompleted) => ({
+  type: 'SET_FOLLOW_UP_LOADING_COMPLETED',
+  loadingCompleted,
+})

@@ -40,7 +40,7 @@ class FollowUpDisplayElement extends Component {
       return value1 - value2
     }
   }
-
+  componentWillUnmount() {}
   async componentDidMount() {
     if (this.props.preCaseId && this.props.curCaseId) {
       this.loadDoubleInfo(this.props.curCaseId, this.props.preCaseId)
@@ -107,6 +107,14 @@ class FollowUpDisplayElement extends Component {
         console.log('preDataResponse', preDataResponse)
         const curData = curDataResponse.data
         const preData = preDataResponse.data
+        // if (curData && curData.length) {
+        //   const curImagePromise = curData.map((curImageId) => cornerstone.loadAndCacheImage(curImageId))
+        //   Promise.all(curImagePromise).then(() => console.log('curData loading completed'))
+        // }
+        // if (preData && preData.length) {
+        //   const preImagePromise = preData.map((preImageId) => cornerstone.loadAndCacheImage(preImageId))
+        //   Promise.all(preImagePromise).then(() => console.log('preData loading completed'))
+        // }
         const frData = followRectsResponse.data
         // const curBox = followRectsResponse.data["rects1"];
         // const preBox = followRectsResponse.data["rects2"];

@@ -13,6 +13,7 @@ import { getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpActiveT
 import { DropTarget } from 'react-dnd'
 
 import CustomOverlay from './CustomOverlay'
+import ViewportOverlay from '../vtk/ViewportOverlay/ViewportOverlay'
 
 cornerstoneTools.external.cornerstone = cornerstone
 cornerstoneTools.external.cornerstoneMath = cornerstoneMath
@@ -84,11 +85,28 @@ class FollowUpViewport extends Component {
     super()
     this.state = {}
   }
-  componentDidMount() {}
+  componentDidMount() {
+    console.log('CustomOverlay', typeof CustomOverlay)
+    console.log('ViewportOverlay', typeof ViewportOverlay)
+  }
   render() {
-    const { connectDropTarget, viewportIndex, tools, imageIds, style, imageIdIndex, isPlaying, frameRate, activeTool, isOverlayVisible, className, setCornerstoneElement, setViewportIndex, voi } =
-      this.props
-
+    const {
+      connectDropTarget,
+      viewportIndex,
+      tools,
+      imageIds,
+      style,
+      imageIdIndex,
+      isPlaying,
+      frameRate,
+      activeTool,
+      isOverlayVisible,
+      className,
+      setCornerstoneElement,
+      setViewportIndex,
+      voi,
+      onMouseUp,
+    } = this.props
     return connectDropTarget(
       <div className="follow-up-viewport-block">
         <CornerstoneViewport
@@ -116,6 +134,9 @@ class FollowUpViewport extends Component {
               })
 
               cornerstone.setViewport(newCornerstoneElement, newViewport)
+            })
+            newCornerstoneElement.addEventListener('mouseup', () => {
+              onMouseUp(newCornerstoneElement, viewportIndex)
             })
           }}
           className={className}

@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { PureComponent, Component } from 'react'
 
 import { helpers } from '../vtk/helpers/index.js'
 import PropTypes from 'prop-types'
@@ -10,7 +10,7 @@ import * as cornerstoneTools from 'cornerstone-tools'
 
 const { formatPN, formatDA, formatNumberPrecision, formatTM, isValidNumber } = helpers
 
-class CustomOverlay extends Component {
+class CustomOverlay extends PureComponent {
   constructor(props) {
     super(props)
     this.state = {
@@ -86,7 +86,7 @@ class CustomOverlay extends Component {
     if (!studyDate) {
       studyDate = imageId.split('/')[4].split('_')[1]
     }
-    console.log('studyDate', studyDate, this.props.curDate, this.props.preDate)
+    // console.log('studyDate', studyDate, this.props.curDate, this.props.preDate)
     if (this.props.preDate === this.props.curDate) {
       imageState = 'Same'
     } else if (this.props.curDate === studyDate) {

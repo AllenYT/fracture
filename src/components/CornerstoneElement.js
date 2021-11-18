@@ -103,6 +103,7 @@ const cacheSize = 5
 let playTimer = undefined
 let flipTimer = undefined
 let leftSlideTimer = undefined
+let closeFollowUpInterval = undefined
 
 const dictList = {
   lung: {
@@ -734,6 +735,7 @@ class CornerstoneElement extends Component {
     })
   }
   onConfirmDelNodule(idx) {
+    this.setDelNodule(idx, false)
     const boxes = this.state.boxes
     const measureStateList = this.state.measureStateList
     const listsActiveIndex = this.state.listsActiveIndex
@@ -752,9 +754,8 @@ class CornerstoneElement extends Component {
       boxes,
       measureStateList,
       listsActiveIndex: currentActiveIdx,
-      currentIdx: boxes[currentActiveIdx].slice_idx,
-      autoRefresh: true,
     })
+    this.refreshImage(false, this.state.imageIds[boxes[currentActiveIdx].slice_idx], boxes[currentActiveIdx].slice_idx)
     message.success('结节删除成功')
   }
 
@@ -1108,6 +1109,9 @@ class CornerstoneElement extends Component {
 
   plotHistogram(idx) {
     var { boxes, chartType, HUSliderRange } = this.state
+    if (!(boxes && boxes.length)) {
+      return
+    }
     var bins = boxes[idx].nodule_hist.bins
     var ns = boxes[idx].nodule_hist.n
     var max = bins[bins.length - 1]
@@ -1525,20 +1529,11 @@ class CornerstoneElement extends Component {
       )
     }
 
-    if (slideSpan > 0) {
+    if (slideSpan) {
       slideLabel = (
-        <div style={{ position: 'absolute', top: '90px', left: '-95px' }}>
+        <div>
           <Label as="a">
             <Icon name="caret down" />
-            {Math.abs(slideSpan)}
-          </Label>
-        </div>
-      )
-    } else if (slideSpan < 0) {
-      slideLabel = (
-        <div style={{ position: 'absolute', top: '90px', left: '-95px' }}>
-          <Label as="a">
-            <Icon name="caret up" />
             {Math.abs(slideSpan)}
           </Label>
         </div>
@@ -1549,93 +1544,40 @@ class CornerstoneElement extends Component {
 
     dicomTagPanel =
       !showInfo || dicomTag === null ? null : (
-        <div>
-          <div id="dicomTag">
-            <div
-              style={{
-                top: '5px',
-                // left: "-95px", // 5px
-                position: 'absolute',
-                color: 'white',
-              }}>
-              {dicomTag.string('x00100010')}
-            </div>
-            <div style={{ position: 'absolute', color: 'white', top: '20px' }}>
+        <div id="dicomTag">
+          <div className="top-left overlay-element">
+            <div>{dicomTag.string('x00100010')}</div>
+            <div>
               {dicomTag.string('x00101010')} {dicomTag.string('x00100040')}
             </div>
-            <div style={{ position: 'absolute', color: 'white', top: '35px' }}>{dicomTag.string('x00100020')}</div>
-            <div style={{ position: 'absolute', color: 'white', top: '50px' }}>{dicomTag.string('x00185100')}</div>
-            <div style={{ position: 'absolute', color: 'white', top: '65px' }}>
+            <div>{dicomTag.string('x00100020')}</div>
+            <div>{dicomTag.string('x00185100')}</div>
+            <div>
               IM: {this.state.currentIdx + 1} / {this.state.imageIds.length}
             </div>
+          </div>
+
+          <div className="top-right overlay-element">
             {slideLabel}
-            <div
-              style={{
-                top: '5px',
-                right: '5px', //5px
-                position: 'absolute',
-                color: 'white',
-              }}>
-              {dicomTag.string('x00080080')}
-            </div>
-            <div
-              style={{
-                position: 'absolute',
-                color: 'white',
-                top: '20px',
-                right: '5px',
-              }}>
-              ACC No: {dicomTag.string('x00080050')}
-            </div>
-            <div
-              style={{
-                position: 'absolute',
-                color: 'white',
-                top: '35px',
-                right: '5px',
-              }}>
-              {dicomTag.string('x00090010')}
-            </div>
-            <div
-              style={{
-                position: 'absolute',
-                color: 'white',
-                top: '50px',
-                right: '5px',
-              }}>
-              {dicomTag.string('x0008103e')}
-            </div>
-            <div
-              style={{
-                position: 'absolute',
-                color: 'white',
-                top: '65px',
-                right: '5px',
-              }}>
-              {dicomTag.string('x00080020')}
-            </div>
-            <div
-              style={{
-                position: 'absolute',
-                color: 'white',
-                top: '80px',
-                right: '5px',
-              }}>
-              T: {dicomTag.string('x00180050')}
-            </div>
+            <div>{dicomTag.string('x00080080')}</div>
+            <div>ACC No: {dicomTag.string('x00080050')}</div>
+            <div>{dicomTag.string('x00090010')}</div>
+            <div>{dicomTag.string('x0008103e')}</div>
+            <div>{dicomTag.string('x00080020')}</div>
+            <div>T: {dicomTag.string('x00180050')}</div>
           </div>
-          <div style={{ position: 'absolute', color: 'white', bottom: '30px' }}>
-            Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+
+          <div className="bottom-left overlay-element">
+            <div>
+              Offset: {this.state.viewport.translation['x'].toFixed(1)}, {this.state.viewport.translation['y'].toFixed(1)}
+            </div>
+            <div>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
           </div>
-          <div style={{ position: 'absolute', color: 'white', bottom: '10px' }}>Zoom: {Math.round(this.state.viewport.scale * 100)}%</div>
-          <div
-            style={{
-              position: 'absolute',
-              color: 'white',
-              bottom: '20px',
-              right: '5px',
-            }}>
-            WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}/ {Math.round(this.state.viewport.voi.windowCenter)}
+
+          <div className="bottom-right overlay-element">
+            <div>
+              WW/WC: {Math.round(this.state.viewport.voi.windowWidth)}/ {Math.round(this.state.viewport.voi.windowCenter)}
+            </div>
           </div>
         </div>
       )
@@ -2089,9 +2031,9 @@ class CornerstoneElement extends Component {
                     </div>
 
                     {ll === 0 && sl === 0 ? (
-                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + 'cm'}</div>
+                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
                     ) : (
-                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + 'cm'}</div>
+                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
                     )}
 
                     <div className="nodule-accordion-item-title-end">
@@ -2154,7 +2096,7 @@ class CornerstoneElement extends Component {
                                       </Grid.Column> */}
 
                     <div className="nodule-accordion-item-content-char">
-                      <div className="nodule-accordion-item-content-char-title">表征:</div>
+                      <div className="nodule-accordion-item-content-char-title">表征：</div>
                       <div className="nodule-accordion-item-content-char-content">
                         <Select
                           className={'nodule-accordion-item-content-select'}
@@ -2332,7 +2274,8 @@ class CornerstoneElement extends Component {
                   </div>
                   <div className="threed-accordion-item-title-center">
                     <div className="threed-accordion-item-title-volume">
-                      {item.volume}cm<sup>3</sup>
+                      {`${item.volume} cm`}
+                      <sup>3</sup>
                     </div>
                   </div>
                 </div>
@@ -2340,9 +2283,7 @@ class CornerstoneElement extends Component {
               <Accordion.Content active={lobesController.lobesActive[index]}>
                 <div className="threed-accordion-item-content">
                   <div className="threed-accordion-item-content-info">
-                    <div>
-                      {`${item.lobeName}/全肺`}:&nbsp;{item.percent}%
-                    </div>
+                    <div>{`${item.lobeName}/全肺：${item.percent}%`}</div>
                   </div>
 
                   <div className="threed-accordion-item-content-opacity">
@@ -2407,7 +2348,8 @@ class CornerstoneElement extends Component {
                   </div>
                   <div className="threed-accordion-item-title-center">
                     <div className="threed-accordion-item-title-volume">
-                      100cm<sup>3</sup>
+                      {`100cm`}
+                      <sup>3</sup>
                     </div>
                   </div>
                 </div>
@@ -2416,7 +2358,8 @@ class CornerstoneElement extends Component {
                 <div className="threed-accordion-item-content">
                   <div className="threed-accordion-item-content-info">
                     <div>
-                      体积:&nbsp;100cm<sup>3</sup>
+                      {`体积：100cm`}
+                      <sup>3</sup>
                     </div>
                   </div>
 
@@ -2473,7 +2416,7 @@ class CornerstoneElement extends Component {
                     <div className="lymph-accordion-item-title-name">{item.name}</div>
                   </div>
                   <div className="lymph-accordion-item-title-center">
-                    <div className="lymph-accordion-item-title-volume">{`${(Math.floor(item.volume * 100) / 100).toFixed(2)}\xa0cm³`}</div>
+                    <div className="lymph-accordion-item-title-volume">{`${(Math.floor(item.volume * 100) / 100).toFixed(2)} cm³`}</div>
                   </div>
                 </div>
               </Accordion.Title>
@@ -2542,7 +2485,7 @@ class CornerstoneElement extends Component {
       if (listsActiveIndex === -1) {
         var minHU = 0
         var maxHU = 100
-      } else {
+      } else if (boxes && boxes.length) {
         // console.log('.bins', boxes[listsActiveIndex].nodule_hist.bins[0])
         var nodule_hist = boxes[listsActiveIndex].nodule_hist.bins
         if (nodule_hist[nodule_hist.length - 1] > 0) {
@@ -3253,7 +3196,7 @@ class CornerstoneElement extends Component {
                               <Tabs type="card" defaultActiveKey="1" size="small">
                                 <TabPane tab={`肺结节 ${boxes.length}个`} key="1">
                                   <div id="elec-table">
-                                    {this.state.boxes.length === 0 ? (
+                                    {boxes.length === 0 ? (
                                       <div
                                         style={{
                                           height: '100%',
@@ -3404,9 +3347,27 @@ class CornerstoneElement extends Component {
                               <Tabs type="card" defaultActiveKey="1" size="small">
                                 <TabPane tab={`淋巴结 ${lymphs.length}个`} key="1">
                                   <div id="elec-table">
-                                    <Accordion styled id="lymph-accordion" fluid>
-                                      {lymphContent}
-                                    </Accordion>
+                                    {lymphs && lymphs.length ? (
+                                      <>
+                                        <Accordion styled id="lymph-accordion" fluid>
+                                          {lymphContent}
+                                        </Accordion>
+                                      </>
+                                    ) : (
+                                      <div
+                                        style={{
+                                          height: '100%',
+                                          background: 'rgb(23, 28, 47)',
+                                          display: 'flex',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                        }}>
+                                        <Header as="h2" inverted>
+                                          <Icon name="low vision" />
+                                          <Header.Content>未检测出任何淋巴结</Header.Content>
+                                        </Header>
+                                      </div>
+                                    )}
                                   </div>
                                 </TabPane>
                               </Tabs>
@@ -4348,13 +4309,15 @@ class CornerstoneElement extends Component {
     return [obj, huMax, huMean, huMin]
   }
 
-  createBox(x1, x2, y1, y2, slice_idx, newIdx) {
+  createBox(x1, x2, y1, y2, slice_idx) {
     const imageId = this.state.imageIds[slice_idx]
     // console.log('image', imageId)
     const [nodule_hist, huMax, huMean, huMin] = this.noduleHist(x1, y1, x2, y2)
     const boxes = this.state.boxes
     console.log('coor', x1, x2, y1, y2)
     const volume = Math.abs(x1 - x2) * Math.abs(y1 - y2) * Math.pow(10, -4)
+    const visibleIdx = _.maxBy(boxes, 'visibleIdx').visibleIdx + 1
+    console.log('createBox', visibleIdx)
     const newBox = {
       malignancy: -1,
       texture: -1,
@@ -4375,9 +4338,9 @@ class CornerstoneElement extends Component {
       place: 0,
       segment: 'None',
       modified: 1,
-      nodule_no: newIdx,
-      prevIdx: newIdx,
-      visibleIdx: newIdx,
+      nodule_no: '',
+      prevIdx: '',
+      visibleIdx,
       visible: true,
       checked: false,
     }
@@ -5019,7 +4982,6 @@ class CornerstoneElement extends Component {
   }
 
   onMouseDown(event) {
-    // console.log('onmouse Down')
     if (event.button == 0) {
       const clickX = event.offsetX
       const clickY = event.offsetY
@@ -5134,7 +5096,7 @@ class CornerstoneElement extends Component {
       const y2 = this.state.tmpBox.y2
       // const boxes = this.state.selectBoxes
       let boxes = this.state.boxes
-      this.createBox(x1, x2, y1, y2, this.state.currentIdx, boxes.length)
+      this.createBox(x1, x2, y1, y2, this.state.currentIdx)
       // this.createBox(this.state.tmpBox, this.state.currentIdx, (1+newNodule_no).toString())
     }
     if (this.state.clickedArea.box !== -1 && this.state.leftButtonTools === 3 && event.button === 0 && this.state.clickedArea.m_pos === 'om') {
@@ -5247,6 +5209,20 @@ class CornerstoneElement extends Component {
     // window.location.href = '/followup/' + this.state.caseId + '&' + preCaseId + '/' + this.state.username
   }
   hideFollowUp() {
+    if (this.props.followUpLoadingCompleted) {
+      this.hideFollowUpOp()
+    } else {
+      const hide = message.loading('正在加载图像，稍后关闭随访', 0)
+      closeFollowUpInterval = setInterval(() => {
+        if (this.props.followUpLoadingCompleted) {
+          clearInterval(closeFollowUpInterval)
+          hide()
+          this.hideFollowUpOp()
+        }
+      }, 500)
+    }
+  }
+  hideFollowUpOp() {
     this.setState((prevState) => ({
       registering: false,
     }))
@@ -5601,7 +5577,8 @@ class CornerstoneElement extends Component {
     const boxes = this.state.boxes
     let backendNodules = []
     for (let i = 0; i < boxes.length; i++) {
-      const currentIdx = boxes[i].prevIdx
+      // const currentIdx = boxes[i].prevIdx
+      const currentIdx = i
       backendNodules[currentIdx] = _.assign({}, boxes[i])
       delete backendNodules[currentIdx].prevIdx
       delete backendNodules[currentIdx].delOpen
@@ -6283,67 +6260,37 @@ class CornerstoneElement extends Component {
   isAllCheck(classification) {
     if (classification === 0) {
       let allChecked = true
-      let notAllChecked = true
       const lobesController = this.state.lobesController
       lobesController.lobesChecked.forEach((item, index) => {
-        if (item) {
-          notAllChecked = false
-        } else {
+        if (!item) {
           allChecked = false
         }
       })
-      if (allChecked) {
-        this.setState({
-          lobesAllChecked: true,
-        })
-      }
-      if (notAllChecked) {
-        this.setState({
-          lobesAllChecked: false,
-        })
-      }
+      this.setState({
+        lobesAllChecked: allChecked,
+      })
     } else if (classification === 1) {
       let allChecked = true
-      let notAllChecked = true
       const tubularController = this.state.tubularController
       tubularController.tubularChecked.forEach((item, index) => {
-        if (item) {
-          notAllChecked = false
-        } else {
+        if (!item) {
           allChecked = false
         }
       })
-      if (allChecked) {
-        this.setState({
-          tubularAllChecked: true,
-        })
-      }
-      if (notAllChecked) {
-        this.setState({
-          tubularAllChecked: false,
-        })
-      }
+      this.setState({
+        tubularAllChecked: allChecked,
+      })
     } else if (classification === 2) {
       let allChecked = true
-      let notAllChecked = true
       const boxes = this.state.boxes
       boxes.forEach((item, index) => {
-        if (item.checked) {
-          notAllChecked = false
-        } else {
+        if (!item.checked) {
           allChecked = false
         }
       })
-      if (allChecked) {
-        this.setState({
-          nodulesAllChecked: true,
-        })
-      }
-      if (notAllChecked) {
-        this.setState({
-          nodulesAllChecked: false,
-        })
-      }
+      this.setState({
+        nodulesAllChecked: allChecked,
+      })
     }
   }
   checkVisible(classification) {
@@ -6760,31 +6707,18 @@ class CornerstoneElement extends Component {
   }
   isSelectAllCheck() {
     let allChecked = true
-    let notAllChecked = true
     const nodulesSelect = this.state.nodulesSelect
     nodulesSelect.forEach((item, index) => {
       const checked = item.checked
-      console.log('isSelectAllCheck', checked)
       checked.forEach((chItem, chIndex) => {
-        if (chItem) {
-          notAllChecked = false
-        } else {
+        if (!chItem) {
           allChecked = false
         }
       })
     })
-    console.log('isSelectAllCheck', allChecked, notAllChecked)
-
-    if (allChecked) {
-      this.setState({
-        nodulesAllSelected: true,
-      })
-    }
-    if (notAllChecked) {
-      this.setState({
-        nodulesAllSelected: false,
-      })
-    }
+    this.setState({
+      nodulesAllSelected: allChecked,
+    })
   }
   onSetPreviewActive(idx) {
     const previewVisible = this.state.previewVisible
@@ -7327,7 +7261,7 @@ class CornerstoneElement extends Component {
                 date: key,
                 caseId: serie.caseId,
                 Description: serie.description,
-                href: '/case/' + serie.caseId + '/' + annotype.data,
+                href: '/case/' + serie.caseId.replace('#', '%23') + '/' + annotype.data,
                 image: dicom.data[parseInt(dicom.data.length / 3)],
                 validInfo: dataValidRes.data,
               })
@@ -7667,7 +7601,7 @@ class CornerstoneElement extends Component {
     if (nodules && nodules.length) {
       //sort and save previous index
       nodules.forEach((item, index) => {
-        item.prevIdx = index
+        item.prevIdx = parseInt(item.nodule_no)
         item.delOpen = false
         item.visible = true
         item.checked = false
@@ -8167,8 +8101,10 @@ class CornerstoneElement extends Component {
       this.saveToDB()
     }
     if (this.state.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
-      const bins = this.state.boxes[this.state.listsActiveIndex].nodule_hist.bins
-      this.setState({ HUSliderRange: [bins[0], bins[bins.length - 1]] })
+      if (this.state.boxes && this.state.boxes.length) {
+        const bins = this.state.boxes[this.state.listsActiveIndex].nodule_hist.bins
+        this.setState({ HUSliderRange: [bins[0], bins[bins.length - 1]] })
+      }
     }
     if (prevState.chartType !== this.state.chartType || prevState.HUSliderRange !== this.state.HUSliderRange || prevState.listsActiveIndex !== this.state.listsActiveIndex) {
       if (this.state.listsActiveIndex !== -1) {
@@ -10174,6 +10110,7 @@ export default connect(
       curCaseId: state.dataCenter.curCaseId,
       preCaseId: state.dataCenter.preCaseId,
       followUpActiveTool: state.dataCenter.followUpActiveTool,
+      followUpLoadingCompleted: state.dataCenter.followUpLoadingCompleted,
     }
   },
   (dispatch) => {

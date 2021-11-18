@@ -11,15 +11,6 @@
   font-size: 16px;
 }
 
-.current-nodule-accordion-title {
-  color: white !important;
-  font: white;
-  background-color: rgba(7, 116, 211, 0.466);
-}
-
-.current-nodule-accordion-content {
-  background-color: rgba(17, 87, 148, 0.466);
-}
 .current-nodule-accordion {
   overflow-y: auto;
   height: 100%;
@@ -36,10 +27,13 @@
   width: 50%;
 }
 .register-nodule-card {
-  background-color: rgb(23, 28, 47) !important;
+  background-color: rgb(23, 28, 47);
   color: whitesmoke;
   width: 100%;
   border-bottom: 2px solid rgb(5, 10, 29);
+}
+.register-nodule-card-active {
+  background-image: linear-gradient(to right top, rgb(39, 46, 72), rgb(89, 96, 122)) !important;
 }
 .register-nodule-card-first {
   height: 35px;
@@ -72,6 +66,7 @@
 .register-nodule-card-content-first {
   display: flex;
   flex-direction: row;
+  align-items: center;
 }
 .register-nodule-card-second-center {
   display: flex !important;
@@ -81,18 +76,19 @@
   overflow: hidden;
 }
 .register-nodule-card-text-length {
-  margin-right: 10px;
+  /* margin-right: 10px; */
 }
 .register-nodule-card-text-volume {
-  margin-right: 10px;
+  /* margin-right: 10px; */
 }
 .register-nodule-card-text {
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex-direction: row;
+  justify-content: flex-start;
   align-items: center;
   white-space: nowrap;
   text-overflow: ellipsis;
+  width: 33%;
 }
 .register-nodule-card-select-center {
   display: flex !important;
@@ -161,10 +157,6 @@
 .horizontal-divider-nodule {
   margin-top: 5px;
   margin-bottom: 5px;
-}
-
-.register-nodule-card {
-  background-color: rgba(8, 34, 58, 0.678);
 }
 
 /* .tabs-diagnose {

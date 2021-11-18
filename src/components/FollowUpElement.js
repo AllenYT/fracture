@@ -14,7 +14,7 @@ import PropTypes from 'prop-types'
 import { helpers } from '../vtk/helpers/index.js'
 import copy from 'copy-to-clipboard'
 import { connect } from 'react-redux'
-import { getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpActiveTool } from '../actions'
+import { getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpActiveTool, setFollowUpLoadingCompleted } from '../actions'
 import { DropTarget } from 'react-dnd'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -119,6 +119,8 @@ class FollowUpElement extends Component {
       previousIdx: 0,
       clicked: false,
       clickedArea: {},
+      curImageIdsLoadingCompleted: false,
+      preImageIdsLoadingCompleted: false,
       showNodules: true,
       showInfo: true,
       activeViewportIndex: 0,
@@ -131,6 +133,9 @@ class FollowUpElement extends Component {
       isRegistering: false,
       curListsActiveIndex: -1,
       preListsActiveIndex: -1,
+      matchListsActiveIndex: -1,
+      newListsActiveIndex: -1,
+      vanishListsActiveIndex: -1,
       newCornerstoneElement: null,
       preCornerstoneElement: null,
       registerBoxes: props.registerBoxes,
@@ -214,16 +219,32 @@ class FollowUpElement extends Component {
     this.drawCustomRectangleRoi = this.drawCustomRectangleRoi.bind(this)
     // this.onKeydown = this.onKeydown.bind(this);
   }
-
+  fetchSignal(promise) {
+    if (this.signal.aborted) {
+      return Promise.reject()
+    }
+    return promise
+      .then((res) => {
+        if (this.signal.aborted) {
+          throw new Error('unmount')
+        }
+        return res
+      })
+      .catch((e) => {
+        console.log('fetchSignal', e)
+      })
+  }
   componentDidMount() {
     this.props.onRef(this)
     console.log('followup props', this.props)
+    this.props.setFollowUpLoadingCompleted(false)
     const curInfo = this.props.curInfo
     if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
-      const curImagePromise = curInfo.curImageIds.map((curImageId) => {
-        return cornerstone.loadAndCacheImage(curImageId)
+      const curImagePromise = curInfo.curImageIds.map((curImageId) => cornerstone.loadAndCacheImage(curImageId))
+      Promise.all(curImagePromise).then(() => {
+        this.setState({ curImageIdsLoadingCompleted: true })
+        console.log('followup curImages loading completed')
       })
-      Promise.all(curImagePromise).then(() => {})
       this.setState(
         {
           curImageIds: curInfo.curImageIds,
@@ -237,10 +258,11 @@ class FollowUpElement extends Component {
     }
     const preInfo = this.props.preInfo
     if (preInfo.preImageIds && preInfo.preCaseId && preInfo.preBoxes) {
-      const preImagePromise = preInfo.preImageIds.map((preImageId) => {
-        return cornerstone.loadAndCacheImage(preImageId)
+      const preImagePromise = preInfo.preImageIds.map((preImageId) => cornerstone.loadAndCacheImage(preImageId))
+      Promise.all(preImagePromise).then(() => {
+        this.setState({ preImageIdsLoadingCompleted: true })
+        console.log('followup preImages loading completed')
       })
-      Promise.all(preImagePromise).then(() => {})
       this.setState(
         {
           preImageIds: preInfo.preImageIds,
@@ -261,7 +283,12 @@ class FollowUpElement extends Component {
   componentWillMount() {
     document.getElementById('header').style.display = 'none'
   }
-  componentWillUnmount() {}
+  componentWillUnmount() {
+    //阻止异步操作
+    this.setState = (state, callback) => {
+      return
+    }
+  }
   resizeScreen() {
     if (document.getElementById('structured-report') && document.getElementById('structured-report-title') && document.getElementById('structured-report-operation')) {
       const stReport = document.getElementById('structured-report')
@@ -273,12 +300,80 @@ class FollowUpElement extends Component {
     }
     this.reportImageTopCalc()
   }
+  mouseUp(target, viewportIndex) {
+    const stackData = cornerstoneTools.getToolState(target, 'stack')
+    const toolData = cornerstoneTools.getToolState(target, 'RectangleRoi')
+    if (toolData && toolData.data && toolData.data.length) {
+      const data = toolData.data
+      let boxes
+      let currentIdx
+      if (stackData && stackData.data && stackData.data.length) {
+        currentIdx = stackData.data[0].currentImageIdIndex
+      }
+      if (viewportIndex === 0) {
+        boxes = this.state.curBoxes
+      } else if (viewportIndex === 1) {
+        boxes = this.state.preBoxes
+      }
+      data.forEach((item, index) => {
+        const uuid = item.uuid
+
+        const boxIndex = _.findIndex(boxes, { uuid })
+        if (boxIndex === -1) {
+          const newIdx = boxes.length
+          boxes.push({
+            malignancy: -1,
+            texture: -1,
+            patho: '',
+            probability: 1,
+            uuid,
+            slice_idx: currentIdx + 1,
+            // nodule_hist,
+            huMax: item.cachedStats.max,
+            huMean: item.cachedStats.mean,
+            huMin: item.cachedStats.min,
+            volume: item.cachedStats.area * Math.pow(10, -4),
+            x1: item.handles.start.x,
+            x2: item.handles.end.x,
+            y1: item.handles.start.y,
+            y2: item.handles.end.y,
+            highlight: false,
+            diameter: 0.0,
+            place: 0,
+            segment: 'None',
+            modified: 1,
+            nodule_no: newIdx,
+            prevIdx: newIdx,
+            visibleIdx: newIdx,
+            visible: true,
+            checked: false,
+          })
+        } else {
+          const boxItem = boxes[boxIndex]
+          boxItem.x1 = item.handles.start.x
+          boxItem.x2 = item.handles.end.x
+          boxItem.y1 = item.handles.start.y
+          boxItem.y2 = item.handles.end.y
+        }
+      })
+      if (viewportIndex === 0) {
+        this.setState({
+          curBoxes: boxes,
+        })
+      } else if (viewportIndex === 1) {
+        this.setState({
+          preBoxes: boxes,
+        })
+      }
+    } else {
+      return
+    }
+  }
   changeImageIndex(type) {
     if (type === 'cur') {
       const curBoxes = this.state.curBoxes
       let curImageIdIndex = this.state.curImageIdIndex
       let tmpIndex = this.state.curImageIdIndex
-
       if (curImageIdIndex === 0) {
         tmpIndex = 1
         console.log('显示第一张ct')
@@ -298,7 +393,6 @@ class FollowUpElement extends Component {
       const preBoxes = this.state.preBoxes
       let preImageIdIndex = this.state.preImageIdIndex
       let tmpIndex = this.state.preImageIdIndex
-
       if (preImageIdIndex === 0) {
         tmpIndex = 1
         console.log('显示第一张ct')
@@ -323,11 +417,15 @@ class FollowUpElement extends Component {
     if (prevProps.curInfo !== this.props.curInfo) {
       const curInfo = this.props.curInfo
       if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
-        console.log('componentDidUpdate jn')
-        const curImagePromise = curInfo.curImageIds.map((curImageId) => {
-          return cornerstone.loadAndCacheImage(curImageId)
+        this.props.setFollowUpLoadingCompleted(false)
+        this.setState({
+          curImageIdsLoadingCompleted: false,
         })
-        Promise.all(curImagePromise).then(() => {})
+        const curImagePromise = curInfo.curImageIds.map((curImageId) => cornerstone.loadAndCacheImage(curImageId))
+        Promise.all(curImagePromise).then(() => {
+          this.setState({ curImageIdsLoadingCompleted: true })
+          console.log('followup curImages loading completed')
+        })
         this.setState(
           {
             curImageIds: curInfo.curImageIds,
@@ -343,11 +441,15 @@ class FollowUpElement extends Component {
     if (prevProps.preInfo !== this.props.preInfo) {
       const preInfo = this.props.preInfo
       if (preInfo.preImageIds && preInfo.preCaseId && preInfo.preBoxes) {
-        console.log('componentDidUpdate jn')
-        const preImagePromise = preInfo.preImageIds.map((preImageId) => {
-          return cornerstone.loadAndCacheImage(preImageId)
+        this.props.setFollowUpLoadingCompleted(false)
+        this.setState({
+          preImageIdsLoadingCompleted: false,
         })
-        Promise.all(preImagePromise).then(() => {})
+        const preImagePromise = preInfo.preImageIds.map((preImageId) => cornerstone.loadAndCacheImage(preImageId))
+        Promise.all(preImagePromise).then(() => {
+          this.setState({ preImageIdsLoadingCompleted: true })
+          console.log('followup preImages loading completed')
+        })
         this.setState(
           {
             preImageIds: preInfo.preImageIds,
@@ -377,8 +479,10 @@ class FollowUpElement extends Component {
         // })
       }
     }
-    if (prevState.preBoxes !== this.state.preBoxes) {
-      console.log('didupdate', this.state.preBoxes)
+    if (prevState.curImageIdsLoadingCompleted !== this.state.curImageIdsLoadingCompleted || prevState.preImageIdsLoadingCompleted !== this.state.preImageIdsLoadingCompleted) {
+      if (this.state.curImageIdsLoadingCompleted && this.state.preImageIdsLoadingCompleted) {
+        this.props.setFollowUpLoadingCompleted(true)
+      }
     }
   }
 
@@ -488,7 +592,7 @@ class FollowUpElement extends Component {
     if (status === 'current') {
       const { curListsActiveIndex } = this.state
       const newIndex = curListsActiveIndex === index ? -1 : index
-      console.log('curidx', index, curListsActiveIndex)
+      // console.log('curidx', index, curListsActiveIndex)
       const targets = document.getElementsByClassName('viewport-element')
       this.setState(
         {
@@ -504,9 +608,8 @@ class FollowUpElement extends Component {
           for (let i = 0; i < curBoxes.length; i++) {
             if (curBoxes[i].slice_idx === currentIdx) {
               if (curBoxes[i].uuid === undefined) {
-                cornerstone.loadImage(curImageIds[curBoxes[i].slice_idx - 1]).then(function () {
+                cornerstone.loadImage(curImageIds[curBoxes[i].slice_idx - 1]).then(() => {
                   // cornerstone.updateImage(currentTarget)
-                  console.log('box', curBoxes[i], curBoxes[i].slice_idx, currentIdx)
                   const measurementData = {
                     visible: true,
                     active: true,
@@ -539,8 +642,8 @@ class FollowUpElement extends Component {
                   toolData = cornerstoneTools.getToolState(currentTarget, 'RectangleRoi')
                   console.log('toolData after', toolData)
                   curBoxes[i].uuid = toolData.data[0].uuid
-
-                  cornerstoneTools.setToolEnabledForElement(currentTarget, 'RectangleRoi')
+                  this.startAnnos()
+                  // cornerstoneTools.setToolEnabledForElement(currentTarget, 'RectangleRoi')
                 })
                 break
               }
@@ -563,15 +666,15 @@ class FollowUpElement extends Component {
         },
         () => {
           const { preBoxes, preImageIds, sortChanged } = this.state
+          const that = this
           const previousTarget = targets[sortChanged ? 0 : 1]
           var toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
           console.log('toolData before', toolData)
           for (let i = 0; i < preBoxes.length; i++) {
             if (preBoxes[i].slice_idx === currentIdx) {
               if (preBoxes[i].uuid === undefined) {
-                cornerstone.loadImage(preImageIds[preBoxes[i].slice_idx - 1]).then(function () {
-                  cornerstone.updateImage(previousTarget)
-
+                cornerstone.loadImage(preImageIds[preBoxes[i].slice_idx - 1]).then(() => {
+                  // cornerstone.updateImage(previousTarget)
                   const measurementData = {
                     visible: true,
                     active: true,
@@ -604,8 +707,8 @@ class FollowUpElement extends Component {
                   toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
                   console.log('toolData after', toolData)
                   preBoxes[i].uuid = toolData.data[0].uuid
-
-                  cornerstoneTools.setToolEnabledForElement(previousTarget, 'RectangleRoi')
+                  this.startAnnos()
+                  // cornerstoneTools.setToolEnabledForElement(previousTarget, 'RectangleRoi')
                 })
                 break
               }
@@ -618,14 +721,26 @@ class FollowUpElement extends Component {
     }
   }
 
-  onMatchNoduleChange(newNoduleNo, previousNoduleNo) {
+  onMatchNoduleChange(newNoduleNo, previousNoduleNo, idx) {
+    if (typeof idx !== undefined || idx !== null) {
+      const matchListsActiveIndex = this.state.matchListsActiveIndex
+      this.setState({
+        matchListsActiveIndex: matchListsActiveIndex === idx ? -1 : idx,
+      })
+    }
     console.log('onMatchNoduleChange', newNoduleNo, previousNoduleNo)
     this.onNewNoduleChange(newNoduleNo)
     this.onPreNoduleChange(previousNoduleNo)
     this.setState({ activeTool: 'RectangleRoi' })
   }
 
-  onNewNoduleChange(noduleNo) {
+  onNewNoduleChange(noduleNo, idx) {
+    if (typeof idx !== undefined || idx !== null) {
+      const newListsActiveIndex = this.state.newListsActiveIndex
+      this.setState({
+        newListsActiveIndex: newListsActiveIndex === idx ? -1 : idx,
+      })
+    }
     const curBoxes = this.state.curBoxes
     let curIndex = _.findIndex(curBoxes, { nodule_no: noduleNo })
     if (curIndex !== -1) {
@@ -650,7 +765,14 @@ class FollowUpElement extends Component {
     }
   }
 
-  onPreNoduleChange(noduleNo) {
+  onPreNoduleChange(noduleNo, idx) {
+    if (typeof idx !== undefined || idx !== null) {
+      const vanishListsActiveIndex = this.state.vanishListsActiveIndex
+
+      this.setState({
+        vanishListsActiveIndex: vanishListsActiveIndex === idx ? -1 : idx,
+      })
+    }
     const preBoxes = this.state.preBoxes
     let preIndex = _.findIndex(preBoxes, { nodule_no: noduleNo })
     if (preIndex !== -1) {
@@ -676,7 +798,7 @@ class FollowUpElement extends Component {
   }
 
   drawCustomRectangleRoi(target, nodule, imageIds) {
-    cornerstone.loadImage(imageIds[nodule.slice_idx - 1]).then(function () {
+    cornerstone.loadImage(imageIds[nodule.slice_idx - 1]).then(() => {
       cornerstone.updateImage(target)
       const measurementData = {
         visible: true,
@@ -710,8 +832,8 @@ class FollowUpElement extends Component {
       const toolData = cornerstoneTools.getToolState(target, 'RectangleRoi')
       console.log('toolData after', toolData)
       nodule.uuid = toolData.data[0].uuid
-
-      cornerstoneTools.setToolEnabledForElement(target, 'RectangleRoi')
+      this.startAnnos()
+      // cornerstoneTools.setToolEnabledForElement(target, 'RectangleRoi')
     })
     return nodule
   }
@@ -953,6 +1075,9 @@ class FollowUpElement extends Component {
     const {
       curListsActiveIndex,
       preListsActiveIndex,
+      matchListsActiveIndex,
+      newListsActiveIndex,
+      vanishListsActiveIndex,
       registerBoxes,
       templateText,
       noduleTblCheckedValue,
@@ -995,7 +1120,7 @@ class FollowUpElement extends Component {
       { key: '支气管充气', text: '支气管充气', value: '支气管充气' },
     ]
 
-    if (registerBoxes && registerBoxes !== '' && registerBoxes !== []) {
+    if (registerBoxes && registerBoxes.match && registerBoxes.new && registerBoxes.vanish) {
       matchNoduleLen = registerBoxes['match'].length
       newNoduleLen = registerBoxes['new'].length
       vanishNoduleLen = registerBoxes['vanish'].length
@@ -1087,7 +1212,7 @@ class FollowUpElement extends Component {
                       checked={inside.checked}
                       onChange={this.onHandleNoduleCheckChange.bind(this, idx, 'current')}
                       onClick={this.onHandleNoduleCheckClick.bind(this)}> */}
-                    <div className="nodule-accordion-item-title-slice-idx">{parseInt(inside.slice_idx) + 1}</div>
+                    <div className="nodule-accordion-item-title-slice-idx">{parseInt(inside.slice_idx)}</div>
                     {/* </Checkbox> */}
                     <div className="nodule-accordion-item-title-type">
                       <Select
@@ -1117,9 +1242,9 @@ class FollowUpElement extends Component {
                   </div>
 
                   {ll === 0 && sl === 0 ? (
-                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + 'cm'}</div>
+                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
                   ) : (
-                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + 'cm'}</div>
+                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
                   )}
 
                   <div className="nodule-accordion-item-title-end">
@@ -1182,7 +1307,7 @@ class FollowUpElement extends Component {
                                     </Grid.Column> */}
 
                   <div className="nodule-accordion-item-content-char">
-                    <div className="nodule-accordion-item-content-char-title">表征:</div>
+                    <div className="nodule-accordion-item-content-char-title">表征：</div>
                     <div className="nodule-accordion-item-content-char-content">
                       <Select
                         className={'nodule-accordion-item-content-select'}
@@ -1193,7 +1318,8 @@ class FollowUpElement extends Component {
                         bordered={false}
                         showArrow={false}
                         dropdownClassName={'corner-select-dropdown'}
-                        onChange={this.representChange.bind(this, idx, 'current')}>
+                        onChange={this.representChange.bind(this, idx, 'current')}
+                        onClick={this.representClick.bind(this)}>
                         <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
                           分叶
                         </Option>
@@ -1321,7 +1447,7 @@ class FollowUpElement extends Component {
                       checked={inside.checked}
                       onChange={this.onHandleNoduleCheckChange.bind(this, idx, 'previous')}
                       onClick={this.onHandleNoduleCheckClick.bind(this)}> */}
-                    <div className="nodule-accordion-item-title-slice-idx">{parseInt(inside.slice_idx) + 1}</div>
+                    <div className="nodule-accordion-item-title-slice-idx">{parseInt(inside.slice_idx)}</div>
                     {/* </Checkbox> */}
                     <div className="nodule-accordion-item-title-type">
                       <Select
@@ -1351,9 +1477,9 @@ class FollowUpElement extends Component {
                   </div>
 
                   {ll === 0 && sl === 0 ? (
-                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + 'cm'}</div>
+                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
                   ) : (
-                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + 'cm'}</div>
+                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
                   )}
 
                   <div className="nodule-accordion-item-title-end">
@@ -1416,7 +1542,7 @@ class FollowUpElement extends Component {
                                     </Grid.Column> */}
 
                   <div className="nodule-accordion-item-content-char">
-                    <div className="nodule-accordion-item-content-char-title">表征:</div>
+                    <div className="nodule-accordion-item-content-char-title">表征：</div>
                     <div className="nodule-accordion-item-content-char-content">
                       <Select
                         className={'nodule-accordion-item-content-select'}
@@ -1427,7 +1553,8 @@ class FollowUpElement extends Component {
                         bordered={false}
                         showArrow={false}
                         dropdownClassName={'corner-select-dropdown'}
-                        onChange={this.representChange.bind(this, idx, 'previous')}>
+                        onChange={this.representChange.bind(this, idx, 'previous')}
+                        onClick={this.representClick.bind(this)}>
                         <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
                           分叶
                         </Option>
@@ -1609,7 +1736,11 @@ class FollowUpElement extends Component {
         }
 
         return (
-          <Row key={idx} justify="center" className="register-nodule-card" onClick={this.onMatchNoduleChange.bind(this, newNodule.nodule_no, previousNodule.nodule_no)}>
+          <Row
+            key={idx}
+            justify="center"
+            className={'register-nodule-card' + (matchListsActiveIndex === idx ? ' register-nodule-card-active' : '')}
+            onClick={this.onMatchNoduleChange.bind(this, newNodule.nodule_no, previousNodule.nodule_no, idx)}>
             <Col span={2} className="register-nodule-card-note">
               <Row className="register-nodule-card-first">
                 <Checkbox
@@ -1655,7 +1786,7 @@ class FollowUpElement extends Component {
                 </Col>
               </Row>
               <Row className="register-nodule-card-second" align="middle" wrap={false}>
-                <Col span={2}>{'IM' + (newNodule.slice_idx + 1)}</Col>
+                <Col span={2}>{'IM' + newNodule.slice_idx}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{newNoduleLength.toFixed(1) + '*' + newNoduleWidth.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">{newNodule.volume !== undefined ? Math.floor(newNodule.volume * 1000).toFixed(1) + '\xa0mm³' : null}</div>
@@ -1688,7 +1819,7 @@ class FollowUpElement extends Component {
                   </Select>
                 </Col>
                 <Col span={8} className="register-nodule-card-select-center">
-                  表征
+                  表征：
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
@@ -1698,7 +1829,8 @@ class FollowUpElement extends Component {
                     bordered={false}
                     showArrow={false}
                     dropdownClassName={'corner-select-dropdown'}
-                    onChange={this.representChange.bind(this, idx, 'match-cur')}>
+                    onChange={this.representChange.bind(this, idx, 'match-cur')}
+                    onClick={this.representClick.bind(this)}>
                     <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
                       分叶
                     </Option>
@@ -1747,7 +1879,7 @@ class FollowUpElement extends Component {
                 </Col>
               </Row>
               <Row className="register-nodule-card-second" align="middle" justify="center" wrap={false}>
-                <Col span={2}>{'IM' + (previousNodule.slice_idx + 1)}</Col>
+                <Col span={2}>{'IM' + previousNodule.slice_idx}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{preNoduleLength.toFixed(1) + '*' + preNoduleWidth.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">
@@ -1782,7 +1914,7 @@ class FollowUpElement extends Component {
                   </Select>
                 </Col>
                 <Col span={8} className="register-nodule-card-select-center">
-                  表征
+                  表征：
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
@@ -1792,7 +1924,8 @@ class FollowUpElement extends Component {
                     bordered={false}
                     showArrow={false}
                     dropdownClassName={'corner-select-dropdown'}
-                    onChange={this.representChange.bind(this, idx, 'match-pre')}>
+                    onChange={this.representChange.bind(this, idx, 'match-pre')}
+                    onClick={this.representClick.bind(this)}>
                     <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
                       分叶
                     </Option>
@@ -1896,7 +2029,11 @@ class FollowUpElement extends Component {
           representArray.push('支气管充气')
         }
         return (
-          <Row key={idx} justify="center" className="register-nodule-card" onClick={this.onNewNoduleChange.bind(this, value.nodule_no)}>
+          <Row
+            key={idx}
+            justify="center"
+            className={'register-nodule-card' + (newListsActiveIndex === idx ? ' register-nodule-card-active' : '')}
+            onClick={this.onNewNoduleChange.bind(this, value.nodule_no, idx)}>
             <Col span={2} className="register-nodule-card-note">
               <Row className="register-nodule-card-first">
                 <Checkbox
@@ -1974,7 +2111,8 @@ class FollowUpElement extends Component {
                     bordered={false}
                     showArrow={false}
                     dropdownClassName={'corner-select-dropdown'}
-                    onChange={this.representChange.bind(this, idx, 'new')}>
+                    onChange={this.representChange.bind(this, idx, 'new')}
+                    onClick={this.representClick.bind(this)}>
                     <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
                       分叶
                     </Option>
@@ -2058,7 +2196,11 @@ class FollowUpElement extends Component {
           representArray.push('支气管充气')
         }
         return (
-          <Row key={idx} onClick={this.onPreNoduleChange.bind(this, value.nodule_no)} justify="center" className="register-nodule-card">
+          <Row
+            key={idx}
+            justify="center"
+            className={'register-nodule-card' + (vanishListsActiveIndex === idx ? ' register-nodule-card-active' : '')}
+            onClick={this.onPreNoduleChange.bind(this, value.nodule_no, idx)}>
             <Col span={2} className="register-nodule-card-note">
               <Row className="register-nodule-card-first">
                 <Checkbox
@@ -2137,7 +2279,8 @@ class FollowUpElement extends Component {
                     bordered={false}
                     showArrow={false}
                     dropdownClassName={'corner-select-dropdown'}
-                    onChange={this.representChange.bind(this, idx, 'vanish')}>
+                    onChange={this.representChange.bind(this, idx, 'vanish')}
+                    onClick={this.representClick.bind(this)}>
                     <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
                       分叶
                     </Option>
@@ -2176,7 +2319,7 @@ class FollowUpElement extends Component {
         <Row id="follow-up-viewport">
           {/* current case */}
           <div className="follow-up-viewport-exchange" onClick={this.onChangeViewportSort.bind(this)}>
-            <FontAwesomeIcon icon={faArrowsAltH} />
+            <FontAwesomeIcon icon={faExchangeAlt} />
           </div>
           {sortChanged ? (
             <>
@@ -2200,6 +2343,9 @@ class FollowUpElement extends Component {
                     activeViewportIndex: this.state.preViewportIndex,
                   })
                 }}
+                onMouseUp={(target, viewportIndex) => {
+                  this.mouseUp(target, viewportIndex)
+                }}
                 voi={preVoi}
                 className={this.state.activeViewportIndex === this.state.preViewportIndex ? 'active' : ''}
               />
@@ -2222,6 +2368,9 @@ class FollowUpElement extends Component {
                   this.setState({
                     activeViewportIndex: this.state.curViewportIndex,
                   })
+                }}
+                onMouseUp={(target, viewportIndex) => {
+                  this.mouseUp(target, viewportIndex)
                 }}
                 voi={curVoi}
                 className={this.state.activeViewportIndex === this.state.curViewportIndex ? 'active' : ''}
@@ -2249,6 +2398,9 @@ class FollowUpElement extends Component {
                     activeViewportIndex: this.state.curViewportIndex,
                   })
                 }}
+                onMouseUp={(target, viewportIndex) => {
+                  this.mouseUp(target, viewportIndex)
+                }}
                 voi={curVoi}
                 className={this.state.activeViewportIndex === this.state.curViewportIndex ? 'active' : ''}
               />
@@ -2271,6 +2423,9 @@ class FollowUpElement extends Component {
                   this.setState({
                     activeViewportIndex: this.state.preViewportIndex,
                   })
+                }}
+                onMouseUp={(target, viewportIndex) => {
+                  this.mouseUp(target, viewportIndex)
                 }}
                 voi={preVoi}
                 className={this.state.activeViewportIndex === this.state.preViewportIndex ? 'active' : ''}
@@ -2442,15 +2597,18 @@ class FollowUpElement extends Component {
       </div>
     )
   }
-  setDelNodule(idx, status, open) {
+  setDelNodule(idx, status, open, e) {
+    if (e && typeof e.stopPropagation === 'function') {
+      e.stopPropagation()
+    }
     const registerBoxes = this.state.registerBoxes
     registerBoxes['match'][idx][status].cancelOpen = open
-    console.log('registerBoxes', registerBoxes)
     this.setState({
       registerBoxes,
     })
   }
   onConfirmDelNodule(idx, status) {
+    this.setDelNodule(idx, status, false)
     //cancel register api：caseId, idx
     const registerBoxes = this.state.registerBoxes
     var selectedBox, unselectedBox
@@ -2478,6 +2636,7 @@ class FollowUpElement extends Component {
         registerBoxes['new'].push(selectedBox)
         this.setState({
           registerBoxes,
+          matchListsActiveIndex: -1,
         })
         message.success('P' + unselectedBox.nodule_no + '和N' + selectedBox.nodule_no + '号结节取消配准成功')
       } else {
@@ -2716,6 +2875,9 @@ class FollowUpElement extends Component {
         registerBoxes: box,
       })
     }
+  }
+  representClick(e) {
+    e.stopPropagation()
   }
   representChange(idx, type, value) {
     // console.log("representChange", idx, value)
@@ -3661,6 +3823,7 @@ export default connect(
   (dispatch) => {
     return {
       setFollowUpActiveTool: (toolName) => dispatch(setFollowUpActiveTool(toolName)),
+      setFollowUpLoadingCompleted: (loadingCompleted) => dispatch(setFollowUpLoadingCompleted(loadingCompleted)),
       dispatch,
     }
   }
