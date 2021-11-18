@@ -1288,7 +1288,7 @@ table#nodule-table {
   left: 60%;
   top: 10%;
   width: 500px;
-  height: 650px;
+  height: 600px;
   background: rgba(28, 34, 56);
   border-radius: 5px;
   z-index: 2;
@@ -1376,8 +1376,8 @@ table#nodule-table {
 }
 
 #chart-line-active {
-  height: 300px;
-  width: 400px;
+  height: 250px;
+  width: 500px;
   margin: 0 auto;
 }
 
@@ -1386,8 +1386,8 @@ table#nodule-table {
 }
 
 #chart-bar-active {
-  height: 300px;
-  width: 400px;
+  height: 250px;
+  width: 500px;
   margin: 0 auto;
 }
 

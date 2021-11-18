@@ -32,10 +32,11 @@ import {
   faEyeSlash,
   faExchangeAlt,
   faArrowsAltH,
+  faLink,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { Dropdown, Menu, Icon, Image, Button, Accordion, Popup, Form } from 'semantic-ui-react'
-import { Checkbox, Row, Col, Typography, Cascader, Button as AntdButton, Divider, Tag, Tabs, Radio, Input, Select, message } from 'antd'
+import { Checkbox, Row, Col, Typography, Cascader, Button as AntdButton, Divider, Tag, Tabs, Radio, Input, Select, message, Slider } from 'antd'
 import src1 from '../images/scu-logo.jpg'
 import FollowUpViewport from './FollowUpViewport'
 import '../vtk/ViewportOverlay/ViewportOverlay.css'
@@ -145,6 +146,8 @@ class FollowUpElement extends Component {
       matchNodules: [],
       noduleTblCheckedValue: ['vanish', 'new', 'match'],
       matchNodulesAllChecked: false,
+      activeMatchNewNoduleNo: -1,
+      activeMatchPreNoduleNo: -1,
       tools: [
         // Mouse
         {
@@ -212,6 +215,7 @@ class FollowUpElement extends Component {
       curNodulesAllChecked: false,
       preNodulesAllChecked: false,
       sortChanged: false,
+      HUSliderRange: [-100, 100],
     }
     this.config = JSON.parse(localStorage.getItem('config'))
     this.nextPath = this.nextPath.bind(this)
@@ -484,6 +488,19 @@ class FollowUpElement extends Component {
         this.props.setFollowUpLoadingCompleted(true)
       }
     }
+    if (prevState.HUSliderRange !== this.state.HUSliderRange) {
+      const { activeMatchNewNoduleNo, activeMatchPreNoduleNo, curBoxes, preBoxes } = this.state
+      if (activeMatchNewNoduleNo !== -1 && activeMatchPreNoduleNo !== -1) {
+        let curIndex = _.findIndex(curBoxes, { nodule_no: activeMatchNewNoduleNo })
+        let activeMatchNewBox = curBoxes[curIndex]
+        let preIndex = _.findIndex(preBoxes, { nodule_no: activeMatchPreNoduleNo })
+        let activeMatchPreBox = preBoxes[preIndex]
+        let minHU = Math.min(activeMatchNewBox.huMin, activeMatchPreBox.huMin)
+        let maxHU = Math.max(activeMatchNewBox.huMax, activeMatchPreBox.huMax)
+        this.plotHistogram(activeMatchNewBox, 'chart-current', maxHU, minHU)
+        this.plotHistogram(activeMatchPreBox, 'chart-previous', maxHU, minHU)
+      }
+    }
   }
 
   nextPath(path) {
@@ -731,7 +748,7 @@ class FollowUpElement extends Component {
     console.log('onMatchNoduleChange', newNoduleNo, previousNoduleNo)
     this.onNewNoduleChange(newNoduleNo)
     this.onPreNoduleChange(previousNoduleNo)
-    this.setState({ activeTool: 'RectangleRoi' })
+    this.setState({ activeTool: 'RectangleRoi', activeMatchNewNoduleNo: newNoduleNo, activeMatchPreNoduleNo: previousNoduleNo })
   }
 
   onNewNoduleChange(noduleNo, idx) {
@@ -1069,6 +1086,7 @@ class FollowUpElement extends Component {
     this.setState((prevState) => ({
       sortChanged: !prevState.sortChanged,
     }))
+    console.log('targets', document.getElementsByClassName('viewport-element'))
   }
   render() {
     const welcome = '欢迎您，' + localStorage.realname
@@ -1099,6 +1117,10 @@ class FollowUpElement extends Component {
       reportImageHeight,
       reportImageContentHeight,
       matchNodulesAllChecked,
+
+      activeMatchNewNoduleNo,
+      activeMatchPreNoduleNo,
+      HUSliderRange,
     } = this.state
     let curBoxesAccord = ''
     let preBoxesAccord = ''
@@ -1109,6 +1131,7 @@ class FollowUpElement extends Component {
     var newNoduleLen = 0
     var vanishNoduleLen = 0
     let noduleNumber = 0
+    let featureModal
     const repretationOptions = [
       { key: '分叶', text: '分叶', value: '分叶' },
       { key: '毛刺', text: '毛刺', value: '毛刺' },
@@ -1734,7 +1757,6 @@ class FollowUpElement extends Component {
         if (previousNodule.bro === 2) {
           preRepresentArray.push('支气管充气')
         }
-
         return (
           <Row
             key={idx}
@@ -1756,7 +1778,7 @@ class FollowUpElement extends Component {
 
             <Col span={22} className="register-nodule-card-content">
               <Row className="register-nodule-card-first">
-                <Col span={14} className="register-nodule-card-content-first">
+                <Col span={12} className="register-nodule-card-content-first">
                   定位：
                   <Cascader
                     className="nodule-accordion-item-title-cascader"
@@ -1783,6 +1805,9 @@ class FollowUpElement extends Component {
                 </Col>
                 <Col span={3} className="register-nodule-card-content-first">
                   <p className="MDTText">{'MDT : ' + MDT}</p>
+                </Col>
+                <Col span={2}>
+                  <Button size="mini" circular inverted icon="chart bar" title="特征分析" value={idx} onClick={this.featureAnalysis.bind(this, idx)}></Button>
                 </Col>
               </Row>
               <Row className="register-nodule-card-second" align="middle" wrap={false}>
@@ -2314,6 +2339,139 @@ class FollowUpElement extends Component {
       })
     }
 
+    let maxHU = 0,
+      minHU = 0,
+      activeMatchNewNo = 0,
+      activeMatchPreNo = 0,
+      curMaxCT = 0,
+      preMaxCT = 0,
+      curMeanCT = 0,
+      preMeanCT = 0,
+      curMinCT = 0,
+      preMinCT = 0,
+      new_apsidal_mean = 0,
+      pre_apsidal_mean = 0,
+      newArea = 0,
+      preArea = 0
+
+    if (activeMatchNewNoduleNo !== -1 && activeMatchPreNoduleNo !== -1) {
+      let curIndex = _.findIndex(curBoxes, { nodule_no: activeMatchNewNoduleNo })
+      let activeMatchNewBox = curBoxes[curIndex]
+      let preIndex = _.findIndex(preBoxes, { nodule_no: activeMatchPreNoduleNo })
+      let activeMatchPreBox = preBoxes[preIndex]
+      activeMatchNewNo = activeMatchNewBox.nodule_no
+      activeMatchPreNo = activeMatchPreBox.nodule_no
+      curMaxCT = activeMatchNewBox.huMax
+      preMaxCT = activeMatchPreBox.huMax
+      curMeanCT = activeMatchNewBox.huMean
+      preMeanCT = activeMatchPreBox.huMean
+      curMinCT = activeMatchNewBox.huMin
+      preMinCT = activeMatchPreBox.huMin
+      maxHU = Math.max(curMaxCT, preMaxCT)
+      minHU = Math.min(curMinCT, preMinCT)
+      if (activeMatchNewBox.measure !== null && activeMatchNewBox.measure !== undefined) {
+        let newMeasureCoord = activeMatchNewBox.measure
+        let new_ll = Math.sqrt(Math.pow(newMeasureCoord.x1 - newMeasureCoord.x2, 2) + Math.pow(newMeasureCoord.y1 - newMeasureCoord.y2, 2))
+        let new_sl = Math.sqrt(Math.pow(newMeasureCoord.x3 - newMeasureCoord.x4, 2) + Math.pow(newMeasureCoord.y3 - newMeasureCoord.y4, 2))
+        new_apsidal_mean = ((new_ll + new_sl) / 2).toFixed(2)
+      }
+      if (activeMatchPreBox.measure !== null && activeMatchPreBox.measure !== undefined) {
+        let preMeasureCoord = activeMatchPreBox.measure
+        let pre_ll = Math.sqrt(Math.pow(preMeasureCoord.x1 - preMeasureCoord.x2, 2) + Math.pow(preMeasureCoord.y1 - preMeasureCoord.y2, 2))
+        let pre_sl = Math.sqrt(Math.pow(preMeasureCoord.x3 - preMeasureCoord.x4, 2) + Math.pow(preMeasureCoord.y3 - preMeasureCoord.y4, 2))
+        pre_apsidal_mean = ((pre_ll + pre_sl) / 2).toFixed(2)
+      }
+    }
+
+    // if (activeMatchNewNoduleNo !== -1 && activeMatchPreNoduleNo !== -1) {
+
+    featureModal = (
+      <div className="followup-histogram-float">
+        <div id="followup-histogram-header">
+          <div id="followup-title-1">
+            <p>随访病灶特征分析</p>
+          </div>
+          <div id="followup-title-2">
+            <p>{`当前N${activeMatchNewNo}结节 & 历史P${activeMatchPreNo}号结节`}</p>
+          </div>
+          <div id="followup-icon">
+            <Icon
+              size="large"
+              name="close"
+              onClick={() => {
+                var histogram_float_active_header = document.getElementById('followup-histogram-header')
+                if (histogram_float_active_header !== undefined) {
+                  histogram_float_active_header.removeEventListener('mousedown', () => {})
+                  histogram_float_active_header.removeEventListener('mousemove', () => {})
+                  histogram_float_active_header.removeEventListener('mouseup', () => {})
+                  document.getElementsByClassName('followup-histogram-float-active')[0].className = 'followup-histogram-float'
+                }
+              }}></Icon>
+          </div>
+        </div>
+        <div className="content">
+          <Row justify="center" align="middle">
+            <Col className="histogram-title" span={1}>
+              当前
+            </Col>
+            <Col span={23}>
+              <div id="chart-current"></div>
+            </Col>
+          </Row>
+          <Row justify="center" align="middle">
+            <Col className="histogram-title" span={1}>
+              历史
+            </Col>
+            <Col span={23}>
+              <div id="chart-previous"></div>
+            </Col>
+          </Row>
+          <Row justify="center">
+            <Col span={1}></Col>
+            <Col span={23}>
+              <Slider range onChange={this.onHUValueChange.bind(this)} value={HUSliderRange} step={50} max={maxHU} min={minHU} />
+            </Col>
+          </Row>
+
+          <table id="analysis-table">
+            <tbody>
+              <tr>
+                <td></td>
+                <td>当前</td>
+                <td>历史</td>
+              </tr>
+              <tr>
+                <td>最大值(HU)</td>
+                <td>{curMaxCT}</td>
+                <td>{preMaxCT}</td>
+              </tr>
+              <tr>
+                <td>最小值(HU)</td>
+                <td>{curMinCT}</td>
+                <td>{preMinCT}</td>
+              </tr>
+              <tr>
+                <td>平均值(HU)</td>
+                <td>{curMeanCT}</td>
+                <td>{preMeanCT}</td>
+              </tr>
+              <tr>
+                <td>长短径平均值(mm)</td>
+                <td>{new_apsidal_mean}</td>
+                <td>{pre_apsidal_mean}</td>
+              </tr>
+              {/* <tr>
+                <td>最大面面积(mm²)</td>
+                <td></td>
+                <td></td>
+              </tr> */}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    )
+    // }
+
     return (
       <div id="follow-up">
         <Row id="follow-up-viewport">
@@ -2437,6 +2595,9 @@ class FollowUpElement extends Component {
           <Row justify="space-between" className="BoxesAccord-Row">
             <div span={12} style={{ height: '100%' }} className="boxes-accord-col">
               <Accordion className="current-nodule-accordion">{sortChanged ? preBoxesAccord : curBoxesAccord}</Accordion>
+            </div>
+            <div className="follow-up-viewport-match" onClick={this.onNoduleMatch.bind(this)}>
+              <FontAwesomeIcon icon={faLink} />
             </div>
             <div span={12} style={{ height: '100%' }} className="boxes-accord-col">
               <Accordion className="current-nodule-accordion">{sortChanged ? curBoxesAccord : preBoxesAccord}</Accordion>
@@ -2591,6 +2752,7 @@ class FollowUpElement extends Component {
                   </div>
                 </Accordion.Content>
               </Accordion>
+              {featureModal}
             </div>
           </Row>
         )}
@@ -2641,6 +2803,65 @@ class FollowUpElement extends Component {
         message.success('P' + unselectedBox.nodule_no + '和N' + selectedBox.nodule_no + '号结节取消配准成功')
       } else {
         message.success('取消匹配失败，未找到该结节！')
+      }
+    })
+  }
+  onNoduleMatch() {
+    const { curBoxes, preBoxes, curListsActiveIndex, preListsActiveIndex, registerBoxes } = this.state
+    let curMatchBox = curBoxes[curListsActiveIndex]
+    let preMatchBox = preBoxes[preListsActiveIndex]
+    console.log('MatchBox', curMatchBox, preMatchBox)
+    const matchParams = {
+      patientId: registerBoxes.patientId,
+      firstDocumentId: curMatchBox.documentId,
+      secondDocumentId: preMatchBox.documentId,
+    }
+    axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
+      let status = matchRes.data.status
+      let earlierBox, laterBox
+      if (status === 'okay') {
+        for (let i = 0; i < registerBoxes['new'].length; i++) {
+          if (curMatchBox.nodule_no === registerBoxes['new'][i].nodule_no) {
+            laterBox = registerBoxes['new'][i]
+            registerBoxes['new'].splice(i, 1)
+            break
+          }
+        }
+        for (let i = 0; i < registerBoxes['vanish'].length; i++) {
+          if (preMatchBox.nodule_no === registerBoxes['vanish'][i].nodule_no) {
+            earlierBox = registerBoxes['vanish'][i]
+            registerBoxes['vanish'].splice(i, 1)
+            break
+          }
+        }
+        console.log('earlierBox', earlierBox, laterBox)
+        // registerBoxes['new'].splice(selectedNewIdx, 1)
+        // registerBoxes['vanish'].splice(selectedVanishIdx, 1)
+        // selectedVanishBox[0].checked = false
+        // selectedNewBox[0].checked = false
+        let matchBox = {
+          earlier: earlierBox,
+          later: laterBox,
+        }
+        console.log('matchbox', matchBox)
+        // matchBox.earlier = selectedVanishBox
+        // matchBox['later'] = selectedNewBox
+        registerBoxes['match'].push(matchBox)
+        // registerBoxes['new'].forEach((item) => {
+        //   item.disabled = false
+        // })
+        // registerBoxes['vanish'].forEach((item) => {
+        //   item.disabled = false
+        // })
+        // console.log('onRegisterClick', registerBoxes)
+        this.setState({ registerBoxes })
+        message.success('结节匹配成功')
+      } else if (status === 'failed') {
+        if (matchRes.data.errorCode === 'Match-0001' || matchRes.data.errorCode === 'Match-0002') {
+          message.error('该结节已与其他结节绑定')
+        } else if (matchRes.data.errorCode === 'Match-0003') {
+          message.error('结节不存在')
+        }
       }
     })
   }
@@ -3169,7 +3390,9 @@ class FollowUpElement extends Component {
   }
   handleCopyClick(e) {
     e.stopPropagation()
+    console.log('reportImageText', this.state.reportImageText)
     const reportImageText = this.state.reportImageText
+
     if (reportImageText && reportImageText.length > 0) {
       copy(this.state.reportImageText)
       message.success('复制成功')
@@ -3179,6 +3402,7 @@ class FollowUpElement extends Component {
   }
   template() {
     const registerBoxes = this.state.registerBoxes
+    const { curBoxes, preBoxes } = this.state
     const reportImageType = this.state.reportImageType
     const reportGuideType = this.state.reportGuideType
     let reportImageText = []
@@ -3802,15 +4026,165 @@ class FollowUpElement extends Component {
             console.log('onRegisterClick', registerBoxes)
             this.setState({ registerBoxes })
           } else if (status === 'failed') {
-            if (matchRes.data.errorCode === 'Match-0001') {
+            if (matchRes.data.errorCode === 'Match-0001' || matchRes.data.errorCode === 'Match-0002') {
               message.error('该结节已与其他结节绑定')
-            } else if (matchRes.data.errorCode === 'Match-0002') {
+            } else if (matchRes.data.errorCode === 'Match-0003') {
               message.error('结节不存在')
             }
           }
         })
       }
     }
+  }
+  featureAnalysis(idx, e) {
+    const activeMatchNewNoduleNo = this.state.registerBoxes.match[idx].later.nodule_no
+    const activeMatchPreNoduleNo = this.state.registerBoxes.match[idx].earlier.nodule_no
+    console.log('activeMatchNewNoduleNo', activeMatchNewNoduleNo, activeMatchPreNoduleNo)
+    if (activeMatchNewNoduleNo !== -1 && activeMatchPreNoduleNo !== -1) {
+      this.setState({ activeMatchNewNoduleNo, activeMatchPreNoduleNo })
+      const { curBoxes, preBoxes } = this.state
+      let curIndex = _.findIndex(curBoxes, { nodule_no: activeMatchNewNoduleNo })
+      let activeMatchNewBox = curBoxes[curIndex]
+      let preIndex = _.findIndex(preBoxes, { nodule_no: activeMatchPreNoduleNo })
+      let activeMatchPreBox = preBoxes[preIndex]
+      let maxHU = Math.max(activeMatchNewBox.huMax, activeMatchPreBox.huMax)
+      let minHU = Math.min(activeMatchNewBox.huMin, activeMatchPreBox.huMin)
+      var histogram_float = document.getElementsByClassName('followup-histogram-float')
+      if (histogram_float[0] !== undefined) {
+        histogram_float[0].className = 'followup-histogram-float-active'
+        var initX,
+          initY,
+          dragable = false,
+          element_float = document.getElementsByClassName('followup-histogram-float-active')[0],
+          element_drag = document.getElementById('followup-histogram-header'),
+          wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
+          wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+        console.log('element_drag', element_drag)
+        document.addEventListener(
+          'mousedown',
+          function (e) {
+            let path = e.path
+            if (path && e.path) {
+              if (path[1] === element_drag) {
+                dragable = true
+                initX = e.clientX
+                initY = e.clientY
+              }
+            }
+          },
+          false
+        )
+        document.addEventListener('mousemove', function (e) {
+          if (dragable === true) {
+            var nowX = e.clientX,
+              nowY = e.clientY,
+              disX = nowX - initX,
+              disY = nowY - initY
+            element_float.style.left = wrapLeft + disX + 'px'
+            element_float.style.top = wrapRight + disY + 'px'
+          }
+        })
+        document.addEventListener(
+          'mouseup',
+          function (e) {
+            dragable = false
+            wrapLeft = parseInt(window.getComputedStyle(element_float)['left'])
+            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+          },
+          false
+        )
+      }
+      this.plotHistogram(activeMatchNewBox, 'chart-current', maxHU, minHU)
+      this.plotHistogram(activeMatchPreBox, 'chart-previous', maxHU, minHU)
+    }
+  }
+  plotHistogram(box, dom, maxHU, minHU) {
+    let a = 100 / (maxHU - minHU)
+    let b = 100 - a * maxHU
+    let min = 0
+    let max = 100
+    console.log('HU', (minHU / box.huMin) * 100, (maxHU / box.huMax) * 100)
+    var bins = box.nodule_hist.bins
+    var ns = box.nodule_hist.n
+    const { HUSliderRange } = this.state
+    let range_min = HUSliderRange[0] * a + b
+    let range_max = HUSliderRange[1] * a + b
+    var chartDom = document.getElementById(dom)
+    console.log('chartdom', chartDom, dom)
+    if (echarts.getInstanceByDom(chartDom)) {
+      console.log('dispose')
+      echarts.dispose(chartDom)
+    }
+    var myChart = echarts.init(chartDom)
+    myChart.setOption({
+      // color: ['#00FFFF'],
+      tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+          // 坐标轴指示器，坐标轴触发有效
+          type: 'line', // 默认为直线，可选为：'line' | 'shadow'
+        },
+      },
+      grid: {
+        bottom: '3%',
+        top: '10%',
+        containLabel: true,
+      },
+      xAxis: [
+        {
+          type: 'category',
+          scale: 'true',
+          min: min,
+          max: max,
+          data: bins,
+          axisTick: {
+            alignWithLabel: true,
+          },
+        },
+      ],
+      yAxis: [
+        {
+          type: 'value',
+          minInterval: 1,
+        },
+      ],
+      series: [
+        {
+          name: 'count',
+          type: 'bar',
+          data: ns,
+        },
+      ],
+      visualMap: {
+        show: false,
+        type: 'piecewise',
+        dimension: 0,
+        pieces: [
+          {
+            gt: min,
+            lte: range_min,
+            color: '#447DF1',
+          },
+          {
+            gt: range_min,
+            lte: range_max,
+            color: '#59A2E6',
+          },
+          {
+            gt: range_max,
+            lte: max,
+            color: '#46E6FE',
+          },
+        ],
+        outOfRange: {
+          color: '#59A2E6',
+        },
+      },
+    })
+  }
+  onHUValueChange(value) {
+    this.setState({ HUSliderRange: value })
+    console.log('onHUValueChange', value)
   }
 }
 

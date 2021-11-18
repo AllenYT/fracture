@@ -1062,16 +1062,22 @@ class CornerstoneElement extends Component {
         wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
         wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
       console.log('element_drag', element_drag)
-      element_drag.addEventListener(
+      window.addEventListener(
         'mousedown',
         function (e) {
-          dragable = true
-          initX = e.clientX
-          initY = e.clientY
+          console.log('e', e)
+          let path = e.path
+          if (path && path.length) {
+            if (path[1] === element_drag) {
+              dragable = true
+              initX = e.clientX
+              initY = e.clientY
+            }
+          }
         },
         false
       )
-      element_drag.addEventListener('mousemove', function (e) {
+      window.addEventListener('mousemove', function (e) {
         if (dragable === true) {
           var nowX = e.clientX,
             nowY = e.clientY,
@@ -1081,7 +1087,7 @@ class CornerstoneElement extends Component {
           element_float.style.top = wrapRight + disY + 'px'
         }
       })
-      element_drag.addEventListener(
+      window.addEventListener(
         'mouseup',
         function (e) {
           dragable = false
@@ -1156,8 +1162,10 @@ class CornerstoneElement extends Component {
         visualMap: {
           show: false,
           type: 'continuous',
-          min: axis_data[0],
-          max: axis_data[axis_data.length - 1],
+
+          min: 0,
+          max: axis_data.length - 1,
+          dimension: 0,
           range: HUSliderRange,
           inRange: {
             color: ['rgba(89, 162, 230)'],

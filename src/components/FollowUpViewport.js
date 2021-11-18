@@ -111,6 +111,7 @@ class FollowUpViewport extends Component {
       <div className="follow-up-viewport-block">
         <CornerstoneViewport
           key={viewportIndex}
+          id={`viewport-${viewportIndex}`}
           tools={tools}
           imageIds={imageIds}
           style={style}
