@@ -1182,28 +1182,28 @@ class CornerstoneElement extends Component {
       // let range_max = HUSliderRange[1] * a + b
 
       option = {
-        // visualMap: {
-        //   show: false,
-        //   dimension: 0,
-        //   pieces: [
-        //     {
-        //       lte: range_min,
-        //       color: '#447DF1',
-        //     },
-        //     {
-        //       gt: range_min,
-        //       lte: range_max,
-        //       color: '#59A2E6',
-        //     },
-        //     {
-        //       gt: range_max,
-        //       color: '#46E6FE',
-        //     },
-        //   ],
-        //   outOfRange: {
-        //     color: '#59A2E6',
-        //   },
-        // },
+        visualMap: {
+          show: false,
+          dimension: 0,
+          pieces: [
+            {
+              lte: range_min,
+              color: '#447DF1',
+            },
+            {
+              gt: range_min,
+              lte: range_max,
+              color: '#59A2E6',
+            },
+            {
+              gt: range_max,
+              color: '#46E6FE',
+            },
+          ],
+          outOfRange: {
+            color: '#59A2E6',
+          },
+        },
         xAxis: {
           type: 'category',
           data: axis_data,
@@ -8168,10 +8168,14 @@ class CornerstoneElement extends Component {
     if (this.state.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
       if (this.state.boxes && this.state.boxes.length) {
         const bins = this.state.boxes[this.state.listsActiveIndex].nodule_hist.bins
-        this.setState({ HUSliderRange: [bins[0], bins[bins.length - 1]] })
+
+        this.setState({ HUSliderRange: [bins[0], bins[bins.length - 1]] }, () => {
+          this.plotHistogram(this.state.listsActiveIndex)
+        })
+        console.log('didUpdateHUSliderRange', this.state.HUSliderRange)
       }
     }
-    if (prevState.chartType !== this.state.chartType || prevState.HUSliderRange !== this.state.HUSliderRange || prevState.listsActiveIndex !== this.state.listsActiveIndex) {
+    if (prevState.chartType !== this.state.chartType) {
       if (this.state.listsActiveIndex !== -1) {
         this.plotHistogram(this.state.listsActiveIndex)
       }
