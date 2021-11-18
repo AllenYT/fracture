@@ -129,7 +129,7 @@ class FollowUpElement extends Component {
       preViewportIndex: 1,
       curImageIdIndex: 0,
       preImageIdIndex: 0,
-      isPlaying: false,
+      // followUpIsPlaying: false,
       frameRate: 22,
       isRegistering: false,
       curListsActiveIndex: -1,
@@ -1047,11 +1047,12 @@ class FollowUpElement extends Component {
     cornerstone.setViewport(preCornerstoneElement, preViewport)
   }
 
-  playAnimation() {
-    this.setState(({ isPlaying }) => ({
-      isPlaying: !isPlaying,
-    }))
-  }
+  // playAnimation() {
+  //   this.setState(({ isPlaying }) => ({
+  //     isPlaying: !isPlaying,
+  //   }))
+
+  // }
 
   wwwcCustom() {
     this.props.setFollowUpActiveTool('Wwwc')
@@ -2487,7 +2488,7 @@ class FollowUpElement extends Component {
                 imageIds={this.state.preImageIds}
                 style={{ minWidth: '50%', flex: '1' }}
                 imageIdIndex={this.state.preImageIdIndex}
-                isPlaying={this.state.isPlaying}
+                isPlaying={this.props.followUpIsPlaying}
                 frameRate={this.state.frameRate}
                 activeTool={this.state.activeTool}
                 isOverlayVisible={this.state.isOverlayVisible}
@@ -2513,7 +2514,7 @@ class FollowUpElement extends Component {
                 imageIds={this.state.curImageIds}
                 style={{ minWidth: '50%', flex: '1' }}
                 imageIdIndex={this.state.curImageIdIndex}
-                isPlaying={this.state.isPlaying}
+                isPlaying={this.props.followUpIsPlaying}
                 frameRate={this.state.frameRate}
                 activeTool={this.state.activeTool}
                 isOverlayVisible={this.state.isOverlayVisible}
@@ -2542,7 +2543,7 @@ class FollowUpElement extends Component {
                 imageIds={this.state.curImageIds}
                 style={{ minWidth: '50%', flex: '1' }}
                 imageIdIndex={this.state.curImageIdIndex}
-                isPlaying={this.state.isPlaying}
+                isPlaying={this.props.followUpIsPlaying}
                 frameRate={this.state.frameRate}
                 activeTool={this.state.activeTool}
                 isOverlayVisible={this.state.isOverlayVisible}
@@ -2568,7 +2569,7 @@ class FollowUpElement extends Component {
                 imageIds={this.state.preImageIds}
                 style={{ minWidth: '50%', flex: '1' }}
                 imageIdIndex={this.state.preImageIdIndex}
-                isPlaying={this.state.isPlaying}
+                isPlaying={this.props.followUpIsPlaying}
                 frameRate={this.state.frameRate}
                 activeTool={this.state.activeTool}
                 isOverlayVisible={this.state.isOverlayVisible}
@@ -4192,6 +4193,7 @@ export default connect(
   (state) => {
     return {
       isDragging: state.dataCenter.isDragging,
+      followUpIsPlaying: state.dataCenter.isPlaying,
     }
   },
   (dispatch) => {

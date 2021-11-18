@@ -31,7 +31,7 @@ import { vec3, vec4, mat4 } from 'gl-matrix'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faCaretDown, faFilter, faSortAmountDownAlt, faSortUp, faSortDown, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import { connect } from 'react-redux'
-import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId, dropCaseId } from '../actions'
+import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpPlaying } from '../actions'
 import { DropTarget } from 'react-dnd'
 
 import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor'
@@ -630,7 +630,8 @@ class CornerstoneElement extends Component {
     //coffee button
     if (this.state.showFollowUp) {
       if (this.followUpComponent) {
-        this.followUpComponent.playAnimation()
+        // this.followUpComponent.playAnimation()
+        this.props.setFollowUpPlaying(true)
       }
     } else {
       this.setState(({ isPlaying }) => ({
@@ -643,7 +644,8 @@ class CornerstoneElement extends Component {
   pauseAnimation() {
     if (this.state.showFollowUp) {
       if (this.followUpComponent) {
-        this.followUpComponent.playAnimation()
+        // this.followUpComponent.playAnimation()
+        this.props.setFollowUpPlaying(false)
       }
     } else {
       this.setState(({ isPlaying }) => ({
@@ -1062,22 +1064,16 @@ class CornerstoneElement extends Component {
         wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
         wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
       console.log('element_drag', element_drag)
-      window.addEventListener(
+      element_drag.addEventListener(
         'mousedown',
         function (e) {
-          console.log('e', e)
-          let path = e.path
-          if (path && path.length) {
-            if (path[1] === element_drag) {
-              dragable = true
-              initX = e.clientX
-              initY = e.clientY
-            }
-          }
+          dragable = true
+          initX = e.clientX
+          initY = e.clientY
         },
         false
       )
-      window.addEventListener('mousemove', function (e) {
+      element_drag.addEventListener('mousemove', function (e) {
         if (dragable === true) {
           var nowX = e.clientX,
             nowY = e.clientY,
@@ -1087,7 +1083,7 @@ class CornerstoneElement extends Component {
           element_float.style.top = wrapRight + disY + 'px'
         }
       })
-      window.addEventListener(
+      element_drag.addEventListener(
         'mouseup',
         function (e) {
           dragable = false
@@ -1142,8 +1138,25 @@ class CornerstoneElement extends Component {
     min = max - abs
     let axis_data = []
     let series_data = []
+    let range_min = 0,
+      range_max = 0
     for (let i = 0; i <= abs / 150; i++) {
-      // console.log('abs', min + 150 * i)
+      console.log('HUSliderRange', HUSliderRange[0], HUSliderRange[1], min + 150 * i, min + 150 * (i + 1))
+      if (HUSliderRange[1] - HUSliderRange[0] <= 150) {
+        if (HUSliderRange[0] >= min + 150 * i && HUSliderRange[0] < min + 150 * (i + 1)) {
+          range_min = i
+          range_max = i + 1
+        }
+      } else {
+        if (HUSliderRange[0] >= min + 150 * i && HUSliderRange[0] < min + 150 * (i + 1)) {
+          range_min = i
+        }
+        if (HUSliderRange[1] >= min + 150 * i && HUSliderRange[1] < min + 150 * (i + 1)) {
+          range_max = i
+        }
+      }
+
+      console.log('range_max', range_min, range_max)
       let series = searchBetween(bins, ns, min + 150 * i, min + 150 * (i + 1))
       series_data.push(series)
       axis_data.push(min + 150 * i)
@@ -1157,21 +1170,32 @@ class CornerstoneElement extends Component {
       }
       var myChart = echarts.init(chartDom)
       var option
+      // let a = 100 / (bins[bins.length - 1] - bins[0])
+      // let b = 100 - a * bins[bins.length - 1]
+      // let range_min = HUSliderRange[0] * a + b
+      // let range_max = HUSliderRange[1] * a + b
 
       option = {
         visualMap: {
-          show: false,
-          type: 'continuous',
-
-          min: 0,
-          max: axis_data.length - 1,
+          show: true,
           dimension: 0,
-          range: HUSliderRange,
-          inRange: {
-            color: ['rgba(89, 162, 230)'],
-          },
+          pieces: [
+            {
+              lte: range_min,
+              color: '#447DF1',
+            },
+            {
+              gt: range_min,
+              lte: range_max,
+              color: '#59A2E6',
+            },
+            {
+              gt: range_max,
+              color: '#46E6FE',
+            },
+          ],
           outOfRange: {
-            color: ['rgba(70, 230, 254)', 'rgba(68, 125, 241)'],
+            color: '#59A2E6',
           },
         },
         xAxis: {
@@ -1191,6 +1215,12 @@ class CornerstoneElement extends Component {
             smooth: true,
           },
         ],
+        // tooltip: {
+        //   trigger: 'axis',
+        //   axisPointer: {
+        //     type: 'cross',
+        //   },
+        // },
       }
 
       myChart.setOption(option)
@@ -3029,17 +3059,23 @@ class CornerstoneElement extends Component {
               </Dropdown>
             </div>
           </div>
-          {!this.state.isPlaying ? (
-            <div onClick={this.playAnimation.bind(this)} className="func-btn" title="播放动画" hidden={show3DVisualization}>
-              <Icon className="func-btn-icon" name="play" size="large"></Icon>
-              <div className="func-btn-desc">播放</div>
-            </div>
-          ) : (
+          {this.state.isPlaying ? (
             <div onClick={this.pauseAnimation.bind(this)} className="func-btn" title="暂停动画" hidden={show3DVisualization}>
               <Icon className="func-btn-icon" name="pause" size="large"></Icon>
               <div className="func-btn-desc">暂停</div>
             </div>
+          ) : this.props.followUpIsPlaying ? (
+            <div onClick={this.pauseAnimation.bind(this)} className="func-btn" title="暂停动画" hidden={show3DVisualization}>
+              <Icon className="func-btn-icon" name="pause" size="large"></Icon>
+              <div className="func-btn-desc">暂停</div>
+            </div>
+          ) : (
+            <div onClick={this.playAnimation.bind(this)} className="func-btn" title="播放动画" hidden={show3DVisualization}>
+              <Icon className="func-btn-icon" name="play" size="large"></Icon>
+              <div className="func-btn-desc">播放</div>
+            </div>
           )}
+
           {!(show3DVisualization || showFollowUp) ? twodMenus : null}
           {show3DVisualization ? threedMenus : null}
           {showFollowUp ? followUpMenus : null}
@@ -5177,6 +5213,7 @@ class CornerstoneElement extends Component {
 
   showFollowUp() {
     this.onSetStudyList(true)
+    this.pauseAnimation()
     this.setState({
       showFollowUp: true,
     })
@@ -5231,6 +5268,7 @@ class CornerstoneElement extends Component {
     }
   }
   hideFollowUpOp() {
+    this.props.setFollowUpPlaying(false)
     this.setState((prevState) => ({
       registering: false,
     }))
@@ -10119,12 +10157,14 @@ export default connect(
       preCaseId: state.dataCenter.preCaseId,
       followUpActiveTool: state.dataCenter.followUpActiveTool,
       followUpLoadingCompleted: state.dataCenter.followUpLoadingCompleted,
+      followUpIsPlaying: state.dataCenter.isPlaying,
     }
   },
   (dispatch) => {
     return {
       getImageIdsByCaseId: (url, caseId) => dispatch(getImageIdsByCaseId(url, caseId)),
       getNodulesByCaseId: (url, caseId, username) => dispatch(getNodulesByCaseId(url, caseId, username)),
+      setFollowUpPlaying: (isPlaying) => dispatch(setFollowUpPlaying(isPlaying)),
       dispatch,
     }
   }

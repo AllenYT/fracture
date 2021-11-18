@@ -79,3 +79,8 @@ export const setFollowUpLoadingCompleted = (loadingCompleted) => ({
   type: 'SET_FOLLOW_UP_LOADING_COMPLETED',
   loadingCompleted,
 })
+
+export const setFollowUpPlaying = (isPlaying) => ({
+  type: 'SET_FOLLOW_UP_PLAYING',
+  isPlaying,
+})
