@@ -1177,7 +1177,7 @@ class CornerstoneElement extends Component {
 
       option = {
         visualMap: {
-          show: true,
+          show: false,
           dimension: 0,
           pieces: [
             {
@@ -8149,7 +8149,11 @@ class CornerstoneElement extends Component {
     if (this.state.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
       if (this.state.boxes && this.state.boxes.length) {
         const bins = this.state.boxes[this.state.listsActiveIndex].nodule_hist.bins
-        this.setState({ HUSliderRange: [bins[0], bins[bins.length - 1]] })
+
+        this.setState({ HUSliderRange: [bins[0], bins[bins.length - 1]] }, () => {
+          this.plotHistogram(this.state.listsActiveIndex)
+        })
+        console.log('didUpdateHUSliderRange', this.state.HUSliderRange)
       }
     }
     if (prevState.chartType !== this.state.chartType || prevState.HUSliderRange !== this.state.HUSliderRange || prevState.listsActiveIndex !== this.state.listsActiveIndex) {
