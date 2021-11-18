@@ -7,6 +7,7 @@ import vtkWidgetManager from 'vtk.js/Sources/Widgets/Core/WidgetManager'
 import vtkPaintFilter from 'vtk.js/Sources/Filters/General/PaintFilter'
 import vtkPaintWidget from 'vtk.js/Sources/Widgets/Widgets3D/PaintWidget'
 import vtkInteractorStyleMPRSlice from './vtkInteractorStyleMPRSlice'
+import vtkInteractorStyleMPRWindowLevel from './vtkInteractorStyleMPRWindowLevel'
 import vtkSVGWidgetManager from './vtkSVGWidgetManager'
 import { Slider } from 'antd'
 
@@ -103,7 +104,8 @@ export default class View2D extends Component {
     let filters = []
     let actors = []
     let volumes = []
-    const istyle = vtkInteractorStyleMPRSlice.newInstance()
+    const istyle = vtkInteractorStyleMPRWindowLevel.newInstance()
+    // const istyle = vtkInteractorStyleMPRSlice.newInstance()
     this.renderWindow.getInteractor().setInteractorStyle(istyle)
 
     const inter = this.renderWindow.getInteractor()
@@ -362,8 +364,14 @@ export default class View2D extends Component {
   }
 
   resetAllView() {
+    this.renderer.resetCamera()
+    const camera = this.renderer.getActiveCamera()
+    const paintCamera = this.paintRenderer.getActiveCamera()
+    if (this.props.parallelScale) {
+      camera.setParallelScale(this.props.parallelScale * 1.1)
+      paintCamera.setParallelScale(this.props.parallelScale * 1.1)
+    }
     this.resetOrientation()
-    // this.renderer.resetCamera();
     this.renderWindow.render()
   }
 

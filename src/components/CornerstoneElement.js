@@ -634,9 +634,9 @@ class CornerstoneElement extends Component {
         this.props.setFollowUpPlaying(true)
       }
     } else {
-      this.setState(({ isPlaying }) => ({
-        isPlaying: !isPlaying,
-      }))
+      this.setState({
+        isPlaying: true,
+      })
       playTimer = setInterval(() => this.Animation(), 1)
     }
   }
@@ -648,9 +648,9 @@ class CornerstoneElement extends Component {
         this.props.setFollowUpPlaying(false)
       }
     } else {
-      this.setState(({ isPlaying }) => ({
-        isPlaying: !isPlaying,
-      }))
+      this.setState({
+        isPlaying: false,
+      })
       clearInterval(playTimer)
     }
   }
@@ -1064,16 +1064,22 @@ class CornerstoneElement extends Component {
         wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
         wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
       console.log('element_drag', element_drag)
-      element_drag.addEventListener(
+      window.addEventListener(
         'mousedown',
         function (e) {
-          dragable = true
-          initX = e.clientX
-          initY = e.clientY
+          console.log('e', e)
+          let path = e.path
+          if (path && path.length) {
+            if (path[1] === element_drag) {
+              dragable = true
+              initX = e.clientX
+              initY = e.clientY
+            }
+          }
         },
         false
       )
-      element_drag.addEventListener('mousemove', function (e) {
+      window.addEventListener('mousemove', function (e) {
         if (dragable === true) {
           var nowX = e.clientX,
             nowY = e.clientY,
@@ -1083,7 +1089,7 @@ class CornerstoneElement extends Component {
           element_float.style.top = wrapRight + disY + 'px'
         }
       })
-      element_drag.addEventListener(
+      window.addEventListener(
         'mouseup',
         function (e) {
           dragable = false
@@ -1176,28 +1182,28 @@ class CornerstoneElement extends Component {
       // let range_max = HUSliderRange[1] * a + b
 
       option = {
-        visualMap: {
-          show: true,
-          dimension: 0,
-          pieces: [
-            {
-              lte: range_min,
-              color: '#447DF1',
-            },
-            {
-              gt: range_min,
-              lte: range_max,
-              color: '#59A2E6',
-            },
-            {
-              gt: range_max,
-              color: '#46E6FE',
-            },
-          ],
-          outOfRange: {
-            color: '#59A2E6',
-          },
-        },
+        // visualMap: {
+        //   show: false,
+        //   dimension: 0,
+        //   pieces: [
+        //     {
+        //       lte: range_min,
+        //       color: '#447DF1',
+        //     },
+        //     {
+        //       gt: range_min,
+        //       lte: range_max,
+        //       color: '#59A2E6',
+        //     },
+        //     {
+        //       gt: range_max,
+        //       color: '#46E6FE',
+        //     },
+        //   ],
+        //   outOfRange: {
+        //     color: '#59A2E6',
+        //   },
+        // },
         xAxis: {
           type: 'category',
           data: axis_data,
@@ -1567,11 +1573,20 @@ class CornerstoneElement extends Component {
       )
     }
 
-    if (slideSpan) {
+    if (slideSpan > 0) {
       slideLabel = (
         <div>
           <Label as="a">
             <Icon name="caret down" />
+            {Math.abs(slideSpan)}
+          </Label>
+        </div>
+      )
+    } else if (slideSpan < 0) {
+      slideLabel = (
+        <div>
+          <Label as="a">
+            <Icon name="caret up" />
             {Math.abs(slideSpan)}
           </Label>
         </div>
@@ -1596,13 +1611,13 @@ class CornerstoneElement extends Component {
           </div>
 
           <div className="top-right overlay-element">
-            {slideLabel}
             <div>{dicomTag.string('x00080080')}</div>
             <div>ACC No: {dicomTag.string('x00080050')}</div>
             <div>{dicomTag.string('x00090010')}</div>
             <div>{dicomTag.string('x0008103e')}</div>
             <div>{dicomTag.string('x00080020')}</div>
             <div>T: {dicomTag.string('x00180050')}</div>
+            {slideLabel}
           </div>
 
           <div className="bottom-left overlay-element">
@@ -2969,7 +2984,7 @@ class CornerstoneElement extends Component {
               <div className="func-btn-desc">开始配准</div>
             </div>
           )}
-          {showNodules ? (
+          {/* {showNodules ? (
             <div onClick={this.toHidebox.bind(this)} className="func-btn" id="hideNodule" title="隐藏结节">
               <Icon className="func-btn-icon" id="cache-button" name="eye slash" size="large"></Icon>
               <div className="func-btn-desc">隐藏结节</div>
@@ -2979,7 +2994,7 @@ class CornerstoneElement extends Component {
               <Icon className="func-btn-icon" id="cache-button" name="eye" size="large"></Icon>
               <div className="func-btn-desc">显示结节</div>
             </div>
-          )}
+          )} */}
           {showInfo ? (
             <div onClick={this.toHideInfo.bind(this)} className="func-btn" id="hideInfo" title="隐藏信息">
               <Icon className="func-btn-icon" id="cache-button" name="delete calendar" size="large"></Icon>
@@ -3038,7 +3053,11 @@ class CornerstoneElement extends Component {
             <Icon className="func-btn-icon" name="repeat" size="large"></Icon>
             <div className="func-btn-desc">刷新</div>
           </div>
-          <div title="窗宽窗位" onClick={this.wwwcCustom.bind(this)} className={'func-btn' + (menuTools === 'wwwc' || followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '')}>
+          <div
+            title="窗宽窗位"
+            onClick={this.wwwcCustom.bind(this)}
+            className={'func-btn' + (menuTools === 'wwwc' || followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '')}
+            hidden={show3DVisualization && !MPR}>
             <Icon className="func-btn-icon icon-custom icon-custom-wwwc" size="large"></Icon>
             <div className="func-btn-desc">
               <Dropdown
@@ -3093,12 +3112,12 @@ class CornerstoneElement extends Component {
           )}
 
           {showFollowUp ? (
-            <div title="随访" className={'func-btn'} onClick={this.hideFollowUp.bind(this)} hidden={show3DVisualization}>
+            <div title="随访" className={'func-btn'} onClick={this.hideFollowUp.bind(this)} hidden={show3DVisualization || renderLoading}>
               <Icon className="func-btn-icon" name="history" size="large"></Icon>
               <div className="func-btn-desc">关闭随访</div>
             </div>
           ) : (
-            <div title="随访" className={'func-btn'} onClick={this.showFollowUp.bind(this)} hidden={show3DVisualization}>
+            <div title="随访" className={'func-btn'} onClick={this.showFollowUp.bind(this)} hidden={show3DVisualization || renderLoading}>
               <Icon className="func-btn-icon" name="history" size="large"></Icon>
               <div className="func-btn-desc">进入随访</div>
             </div>
@@ -9294,6 +9313,7 @@ class CornerstoneElement extends Component {
     })
   }
   toggleCrosshairs(displayCrosshairs) {
+    this.toggleTool(displayCrosshairs)
     const apis = this.apis
 
     apis.forEach((api) => {
@@ -9394,8 +9414,8 @@ class CornerstoneElement extends Component {
         api.svgWidgets.rotatableCrosshairsWidget.resetCrosshairs(apis, 0)
 
         this.toggleCrosshairs(false)
+        this.toggleTool(false)
       }
-
       const paintWidget = api.widgets[0]
       const paintFilter = api.filters[0]
 
@@ -9645,10 +9665,12 @@ class CornerstoneElement extends Component {
         break
     }
     const apis = this.apis
-    apis[0].svgWidgets.rotatableCrosshairsWidget.moveCrosshairs(origin, apis, 0)
-    const renderWindow = apis[0].genericRenderWindow.getRenderWindow()
-    const istyle = renderWindow.getInteractor().getInteractorStyle()
-    istyle.modified()
+    if (apis && apis[0].svgWidgets && apis[0].svgWidgets.rotatableCrosshairsWidget) {
+      apis[0].svgWidgets.rotatableCrosshairsWidget.moveCrosshairs(origin, apis, 0)
+      const renderWindow = apis[0].genericRenderWindow.getRenderWindow()
+      const istyle = renderWindow.getInteractor().getInteractorStyle()
+      istyle.modified()
+    }
   }
   createChannelFragmentVolumes() {
     const fragmentVolumes = []

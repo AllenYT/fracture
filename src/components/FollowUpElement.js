@@ -1849,6 +1849,7 @@ class FollowUpElement extends Component {
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
+                    maxTagCount={3}
                     dropdownMatchSelectWidth={false}
                     defaultValue={newNodule.malignancy}
                     value={newRepresentArray}
@@ -1944,6 +1945,7 @@ class FollowUpElement extends Component {
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
+                    maxTagCount={3}
                     dropdownMatchSelectWidth={false}
                     defaultValue={previousNodule.malignancy}
                     value={preRepresentArray}
@@ -2131,6 +2133,7 @@ class FollowUpElement extends Component {
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
+                    maxTagCount={3}
                     dropdownMatchSelectWidth={false}
                     defaultValue={value.malignancy}
                     value={representArray}
@@ -2299,6 +2302,7 @@ class FollowUpElement extends Component {
                   <Select
                     className={'nodule-accordion-item-content-select'}
                     mode="multiple"
+                    maxTagCount={3}
                     dropdownMatchSelectWidth={false}
                     defaultValue={value.malignancy}
                     value={representArray}

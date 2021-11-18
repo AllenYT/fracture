@@ -191,6 +191,7 @@ class FollowUpDisplayElement extends Component {
             match: matchBox,
             new: newBox,
             vanish: vanishBox,
+            patientId: frData.patientId,
           },
           show: true,
         })
