@@ -317,7 +317,6 @@ class CornerstoneElement extends Component {
       age: 0,
       temp: 0,
       dealchoose: '中华共识',
-      reportType: '影像所见',
 
       /*新加变量 */
       nodules: [],
@@ -429,6 +428,7 @@ class CornerstoneElement extends Component {
       /*加载变量*/
       volumesLoading: true,
       percent: [],
+      noThreedData: false,
       listLoading: [],
       HUSliderRange: [-100, 100],
       chartType: 'line',
@@ -1052,7 +1052,7 @@ class CornerstoneElement extends Component {
     // const boxes = this.state.selectBoxes
     const boxes = this.state.boxes
     let HUSliderRange = [boxes[idx].nodule_hist.bins[0], boxes[idx].nodule_hist.bins[boxes[idx].nodule_hist.bins.length - 1]]
-    console.log('HUSliderRange', HUSliderRange)
+    // console.log('HUSliderRange', HUSliderRange)
     var histogram_float = document.getElementsByClassName('histogram-float')
     if (histogram_float[0] !== undefined) {
       histogram_float[0].className = 'histogram-float-active'
@@ -1125,6 +1125,7 @@ class CornerstoneElement extends Component {
     var max = bins[bins.length - 1]
     var min = bins[0]
     var abs = Math.ceil((max - min) / 150) * 150
+    // console.log('plotHistogram', idx, boxes[idx], HUSliderRange)
     let searchBetween = function (arr, arr_n, min, max) {
       var flag = 0
       for (let i = 0; i < arr.length; i++) {
@@ -1147,7 +1148,7 @@ class CornerstoneElement extends Component {
     let range_min = 0,
       range_max = 0
     for (let i = 0; i <= abs / 150; i++) {
-      console.log('HUSliderRange', HUSliderRange[0], HUSliderRange[1], min + 150 * i, min + 150 * (i + 1))
+      // console.log('HUSliderRange', HUSliderRange[0], HUSliderRange[1], min + 150 * i, min + 150 * (i + 1))
       if (HUSliderRange[1] - HUSliderRange[0] <= 150) {
         if (HUSliderRange[0] >= min + 150 * i && HUSliderRange[0] < min + 150 * (i + 1)) {
           range_min = i
@@ -1162,16 +1163,32 @@ class CornerstoneElement extends Component {
         }
       }
 
-      console.log('range_max', range_min, range_max)
       let series = searchBetween(bins, ns, min + 150 * i, min + 150 * (i + 1))
       series_data.push(series)
       axis_data.push(min + 150 * i)
     }
-
+    if (range_min === 0 && range_max === 0) {
+      range_max = 1
+    }
+    let pieces = [
+      {
+        lte: range_min,
+        color: '#447DF1',
+      },
+      {
+        gt: range_min,
+        lte: range_max,
+        color: '#59A2E6',
+      },
+      {
+        gt: range_max,
+        color: '#46E6FE',
+      },
+    ]
     if (chartType === 'line') {
       var chartDom = document.getElementById('chart-line-active')
       if (echarts.getInstanceByDom(chartDom)) {
-        console.log('dispose')
+        // console.log('dispose')
         echarts.dispose(chartDom)
       }
       var myChart = echarts.init(chartDom)
@@ -1185,21 +1202,7 @@ class CornerstoneElement extends Component {
         visualMap: {
           show: false,
           dimension: 0,
-          pieces: [
-            {
-              lte: range_min,
-              color: '#447DF1',
-            },
-            {
-              gt: range_min,
-              lte: range_max,
-              color: '#59A2E6',
-            },
-            {
-              gt: range_max,
-              color: '#46E6FE',
-            },
-          ],
+          pieces,
           outOfRange: {
             color: '#59A2E6',
           },
@@ -1353,6 +1356,14 @@ class CornerstoneElement extends Component {
   show3D() {
     clearTimeout(flipTimer)
     // cornerstone.disable(this.element)
+    if (!(this.state.urls && this.state.urls.length)) {
+      if (this.state.noThreedData) {
+        message.error('没有3D数据')
+      } else {
+        message.warn('正在请求3D数据，请稍等')
+      }
+      return
+    }
     this.setState({
       renderLoading: true,
     })
@@ -1536,7 +1547,6 @@ class CornerstoneElement extends Component {
     let tubularCheckNumber = 0
     let histogramFloatWindow
     let previewContent
-    let createDraftModal
     let submitButton
     let StartReviewButton
     let canvas
@@ -1635,88 +1645,6 @@ class CornerstoneElement extends Component {
         </div>
       )
     // }
-    if (window.location.pathname.split('/')[3] === 'origin')
-      createDraftModal = (
-        <div style={{ width: '100%', height: '100%' }}>
-          <Modal
-            trigger={
-              <Button inverted style={{ height: 60, fontSize: 14, width: 75 }} color="blue" onClick={this.toNewModel}>
-                {' '}
-                从新
-                <br />
-                标注{' '}
-              </Button>
-            }
-            size="tiny"
-            open={modalOpenNew}>
-            <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
-            <Modal.Content>
-              <Button color="blue" style={modalBtnStyle} onClick={this.toMyAnno}>
-                跳转至已有标注
-              </Button>
-              <Button color="blue" style={modalBtnStyle} onClick={this.clearthenNew}>
-                清空现有标注并从头开始标注
-              </Button>
-            </Modal.Content>
-            <Modal.Actions>
-              <Button onClick={this.closeModalNew}>返回</Button>
-            </Modal.Actions>
-          </Modal>
-        </div>
-      )
-    else
-      createDraftModal = (
-        <div style={{ width: '100%', height: '100%' }}>
-          <Modal
-            trigger={
-              <Button inverted color="blue" onClick={this.toNewModel}>
-                {' '}
-                从新
-                <br />
-                标注{' '}
-              </Button>
-            }
-            size="tiny"
-            open={modalOpenNew}>
-            <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
-            <Modal.Content>
-              <Button color="blue" style={modalBtnStyle} onClick={this.toMyAnno}>
-                跳转至已有标注
-              </Button>
-              <Button color="blue" style={modalBtnStyle} onClick={this.clearthenNew}>
-                清空现有标注并从头开始标注
-              </Button>
-            </Modal.Content>
-            <Modal.Actions>
-              <Button onClick={this.closeModalNew}>返回</Button>
-            </Modal.Actions>
-          </Modal>
-          <Modal
-            trigger={
-              <Button inverted color="blue" onClick={this.toCurrentModel}>
-                {' '}
-                拷贝
-                <br />
-                标注{' '}
-              </Button>
-            }
-            size="tiny"
-            open={modalOpenCur}>
-            <Modal.Header>当前用户存在当前检查的标注，请选择以下操作：</Modal.Header>
-            <Modal.Content>
-              <Button color="blue" style={modalBtnStyle} onClick={this.toMyAnno}>
-                跳转至已有标注
-              </Button>
-              <Button color="blue" style={modalBtnStyle} onClick={this.clearthenFork}>
-                清空现有标注并拷贝开始标注
-              </Button>
-            </Modal.Content>
-            <Modal.Actions>
-              <Button onClick={this.closeModalCur}>返回</Button>
-            </Modal.Actions>
-          </Modal>
-        </div>
-      )
 
     let loadingList = []
     const loadingStyle = this.getLoadingStyle()
@@ -2039,16 +1967,15 @@ class CornerstoneElement extends Component {
               <div key={idx} className={'highlightTbl' + (listsActiveIndex === idx ? ' highlightTbl-active' : '')}>
                 <Accordion.Title onClick={this.handleListClick.bind(this, inside.slice_idx, idx)} active={listsActiveIndex === idx}>
                   <div className="nodule-accordion-item-title">
-                    <div className="nodule-accordion-item-title-start">
-                      <div className="nodule-accordion-item-title-index">
-                        <div
-                          // onMouseEnter={this.highlightNodule}
-                          // onMouseLeave={this.dehighlightNodule}
-                          style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>
-                          {inside.visibleIdx + 1}
-                        </div>
+                    <div className="nodule-accordion-item-title-index nodule-accordion-item-title-column">
+                      <div
+                        // onMouseEnter={this.highlightNodule}
+                        // onMouseLeave={this.dehighlightNodule}
+                        style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>
+                        {inside.visibleIdx + 1}
                       </div>
-
+                    </div>
+                    <div className="nodule-accordion-item-title-column">
                       <Checkbox
                         className="nodule-accordion-item-title-checkbox"
                         checked={inside.checked}
@@ -2056,40 +1983,41 @@ class CornerstoneElement extends Component {
                         onClick={this.onHandleNoduleCheckClick.bind(this)}>
                         {parseInt(inside.slice_idx) + 1}
                       </Checkbox>
-                      <div className="nodule-accordion-item-title-type">
-                        <Select
-                          className="nodule-accordion-item-title-select"
-                          dropdownMatchSelectWidth={false}
-                          defaultValue={inside.texture}
-                          value={inside.texture}
-                          bordered={false}
-                          showArrow={false}
-                          dropdownClassName={'corner-select-dropdown'}
-                          onChange={this.onSelectTex.bind(this, idx)}
-                          onClick={this.onSelectTexClick.bind(this)}>
-                          <Option className="nodule-accordion-item-title-select-option" value={-1}>
-                            未知
-                          </Option>
-                          <Option className="nodule-accordion-item-title-select-option" value={1}>
-                            磨玻璃
-                          </Option>
-                          <Option className="nodule-accordion-item-title-select-option" value={2}>
-                            实性
-                          </Option>
-                          <Option className="nodule-accordion-item-title-select-option" value={3}>
-                            半实性
-                          </Option>
-                        </Select>
-                      </div>
+                    </div>
+
+                    <div className="nodule-accordion-item-title-type nodule-accordion-item-title-column">
+                      <Select
+                        className="nodule-accordion-item-title-select"
+                        dropdownMatchSelectWidth={false}
+                        defaultValue={inside.texture}
+                        value={inside.texture}
+                        bordered={false}
+                        showArrow={false}
+                        dropdownClassName={'corner-select-dropdown'}
+                        onChange={this.onSelectTex.bind(this, idx)}
+                        onClick={this.onSelectTexClick.bind(this)}>
+                        <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                          未知
+                        </Option>
+                        <Option className="nodule-accordion-item-title-select-option" value={1}>
+                          磨玻璃
+                        </Option>
+                        <Option className="nodule-accordion-item-title-select-option" value={2}>
+                          实性
+                        </Option>
+                        <Option className="nodule-accordion-item-title-select-option" value={3}>
+                          半实性
+                        </Option>
+                      </Select>
                     </div>
 
                     {ll === 0 && sl === 0 ? (
-                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
+                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
                     ) : (
-                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
+                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
                     )}
 
-                    <div className="nodule-accordion-item-title-end">
+                    <div className="nodule-accordion-item-title-column">
                       <div className="nodule-accordion-item-title-location">
                         <Cascader
                           className="nodule-accordion-item-title-cascader"
@@ -2316,8 +2244,8 @@ class CornerstoneElement extends Component {
             <div key={index} className={'highlightTbl' + (lobesController.lobesActive[index] ? ' highlightTbl-active' : '')}>
               <Accordion.Title onClick={this.setActive.bind(this, 0, index, item.index)} active={lobesController.lobesActive[index]}>
                 <div className="threed-accordion-item-title">
+                  <div className="threed-accordion-item-title-index">{index + 1}</div>
                   <div className="threed-accordion-item-title-start">
-                    <div className="threed-accordion-item-title-index">{index + 1}</div>
                     <Checkbox
                       className="threed-accordion-item-title-checkbox"
                       checked={lobesController.lobesChecked[index]}
@@ -2390,8 +2318,8 @@ class CornerstoneElement extends Component {
             <div key={index} className={'highlightTbl' + (tubularController.tubularActive[index] ? ' highlightTbl-active' : '')}>
               <Accordion.Title onClick={this.setActive.bind(this, 1, index, item.index)} active={tubularController.tubularActive[index]}>
                 <div className="threed-accordion-item-title">
+                  <div className="threed-accordion-item-title-index">{index + 1}</div>
                   <div className="threed-accordion-item-title-start">
-                    <div className="threed-accordion-item-title-index">{index + 1}</div>
                     <Checkbox
                       className="threed-accordion-item-title-checkbox"
                       checked={tubularController.tubularChecked[index]}
@@ -3023,10 +2951,10 @@ class CornerstoneElement extends Component {
             <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
             <div className="func-btn-desc">长度</div>
           </div>
-          <div onClick={this.eraseAnno.bind(this)} title="擦除" className={'func-btn' + (followUpActiveTool === 'Eraser' ? ' func-btn-active' : '')}>
+          {/* <div onClick={this.eraseAnno.bind(this)} title="擦除" className={'func-btn' + (followUpActiveTool === 'Eraser' ? ' func-btn-active' : '')}>
             <Icon className="func-btn-icon" name="eraser" size="large"></Icon>
             <div className="func-btn-desc">擦除</div>
-          </div>
+          </div> */}
         </>
       )
       const originMenus = (
@@ -3126,7 +3054,7 @@ class CornerstoneElement extends Component {
       )
 
       return (
-        <div className="corner-container">
+        <div id="corner-container">
           <div className="corner-top-row">
             <div className="corner-header">
               <div id="menu-item-logo">
@@ -3276,8 +3204,8 @@ class CornerstoneElement extends Component {
                                     ) : (
                                       <>
                                         <div className="nodule-filter">
+                                          <div className="nodule-filter-desc-index">1</div>
                                           <div className="nodule-filter-desc">
-                                            <div className="nodule-filter-desc-index">1</div>
                                             <Checkbox
                                               className="nodule-filter-desc-checkbox"
                                               checked={nodulesAllChecked}
@@ -3348,8 +3276,8 @@ class CornerstoneElement extends Component {
                                     <TabPane tab={'肺叶'} key="3">
                                       <div id="elec-table">
                                         <div className="threed-filter">
+                                          <div className="threed-filter-desc-index">1</div>
                                           <div className="threed-filter-desc">
-                                            <div className="threed-filter-desc-index">1</div>
                                             <Checkbox
                                               className="threed-filter-desc-checkbox"
                                               checked={lobesAllChecked}
@@ -3375,8 +3303,9 @@ class CornerstoneElement extends Component {
                                     <TabPane tab={'气管和血管'} key="4">
                                       <div id="elec-table">
                                         <div className="threed-filter">
+                                          <div className="threed-filter-desc-index">1</div>
+
                                           <div className="threed-filter-desc">
-                                            <div className="threed-filter-desc-index">1</div>
                                             <Checkbox
                                               className="threed-filter-desc-checkbox"
                                               checked={tubularAllChecked}
@@ -4376,11 +4305,15 @@ class CornerstoneElement extends Component {
     const imageId = this.state.imageIds[slice_idx]
     // console.log('image', imageId)
     const [nodule_hist, huMax, huMean, huMin] = this.noduleHist(x1, y1, x2, y2)
-    const boxes = this.state.boxes
     console.log('coor', x1, x2, y1, y2)
     const volume = Math.abs(x1 - x2) * Math.abs(y1 - y2) * Math.pow(10, -4)
-    const visibleIdx = _.maxBy(boxes, 'visibleIdx').visibleIdx + 1
-    console.log('createBox', visibleIdx)
+    const boxes = this.state.boxes
+    let visibleIdx
+    if (boxes && boxes.length) {
+      visibleIdx = _.maxBy(boxes, 'visibleIdx').visibleIdx + 1
+    } else {
+      visibleIdx = 0
+    }
     const newBox = {
       malignancy: -1,
       texture: -1,
@@ -5279,9 +5212,9 @@ class CornerstoneElement extends Component {
       const hide = message.loading('正在加载图像，稍后关闭随访', 0)
       closeFollowUpInterval = setInterval(() => {
         if (this.props.followUpLoadingCompleted) {
-          clearInterval(closeFollowUpInterval)
           hide()
           this.hideFollowUpOp()
+          clearInterval(closeFollowUpInterval)
         }
       }, 500)
     }
@@ -7381,12 +7314,13 @@ class CornerstoneElement extends Component {
     }
     const imageIds = this.state.imageIds
     if (this.state.modelName === 'origin') {
-      loadAndCacheImagePlus(currentIdx, 1).then((image) => {
+      loadAndCacheImagePlus(imageIds[currentIdx], 1).then((image) => {
         // const readonly = readonlyResponse.data.readonly === 'true'
         // console.log('parse',dicomParser.parseDicom(image))
         const dicomTag = image.data
         const boxes = []
         const draftStatus = -1
+        this.refreshImage(true, imageIds[currentIdx], undefined)
         this.setState({
           dicomTag,
           boxes,
@@ -7554,6 +7488,9 @@ class CornerstoneElement extends Component {
     if (document.getElementById('footer')) {
       document.getElementById('footer').style.display = 'none'
     }
+    if (document.getElementById('header')) {
+      document.getElementById('header').style.display = 'none'
+    }
     if (document.getElementById('main')) {
       document.getElementById('main').setAttribute('style', 'height:100%;padding-bottom:0px')
     }
@@ -7636,7 +7573,6 @@ class CornerstoneElement extends Component {
       )
       // window.location.href = '/'
     }
-    document.getElementById('header').style.display = 'none'
 
     const token = localStorage.getItem('token')
     const headers = {
@@ -7830,99 +7766,28 @@ class CornerstoneElement extends Component {
               count += 1
             }
           })
+          const segments = Object.keys(urls).map((key) => null)
+          const percent = Object.keys(urls).map((key) => 0)
+          const listLoading = Object.keys(urls).map((key) => true)
+          console.log('urls', urls)
+          this.setState({
+            urls: urls,
+            lobesLength,
+            airwayLength,
+            nodulesLength,
+            vesselLength,
+            segments: segments,
+            percent: percent,
+            listLoading: listLoading,
+          })
+          urls.forEach((item, index) => {
+            this.DownloadSegment(item.index)
+          })
+        } else {
+          this.setState({
+            noThreedData: true,
+          })
         }
-
-        // if (urlData) {
-        //   if (urlData.lung && urlData.lung.length > 0) {
-        //   }
-        //   if (urlData.lobe && urlData.lobe.length > 0) {
-        //     const prevCount = count
-        //     urlData.lobe.sort(sortUrl)
-        //     urlData.lobe.forEach((item, index) => {
-        //       const order = Math.round(item[item.length - 5])
-        //       const type = 'lobe' + order
-        //       urls.push({
-        //         url: item,
-        //         order,
-        //         index: index + prevCount,
-        //         class: dictList[type].class,
-        //         name: dictList[type].name,
-        //         color: dictList[type].color,
-        //       })
-        //       count += 1
-        //       lobesLength += 1
-        //     })
-        //   }
-        //   if (urlData.airway && urlData.airway.length > 0) {
-        //     const prevCount = count
-        //     urlData.airway.forEach((item, index) => {
-        //       const order = 0
-        //       const type = 'airway'
-        //       urls.push({
-        //         url: item,
-        //         order,
-        //         index: index + prevCount,
-        //         class: dictList[type].class,
-        //         name: dictList[type].name,
-        //         color: dictList[type].color,
-        //       })
-        //       count += 1
-        //       airwayLength += 1
-        //     })
-        //   }
-        //   if (urlData.nodule && urlData.nodule.length > 0) {
-        //     const prevCount = count
-        //     urlData.nodule.sort(sortUrl)
-        //     urlData.nodule.forEach((item, index) => {
-        //       const order = Math.round(item[item.length - 5])
-        //       const type = 'nodule'
-        //       urls.push({
-        //         url: item,
-        //         order,
-        //         index: index + prevCount,
-        //         class: dictList[type].class,
-        //         name: dictList[type].name + order,
-        //         color: dictList[type].color,
-        //       })
-        //       count += 1
-        //       nodulesLength += 1
-        //     })
-        //   }
-        //   if (urlData.vessel && urlData.vessel.length > 0) {
-        //     const prevCount = count
-        //     urlData.vessel.forEach((item, index) => {
-        //       const order = 0
-        //       const type = 'vessel'
-        //       urls.push({
-        //         url: item,
-        //         order,
-        //         index: index + prevCount,
-        //         class: dictList[type].class,
-        //         name: dictList[type].name,
-        //         color: dictList[type].color,
-        //       })
-        //       count += 1
-        //       vesselLength += 1
-        //     })
-        //   }
-        // }
-        const segments = Object.keys(urls).map((key) => null)
-        const percent = Object.keys(urls).map((key) => 0)
-        const listLoading = Object.keys(urls).map((key) => true)
-        console.log('urls', urls)
-        this.setState({
-          urls: urls,
-          lobesLength,
-          airwayLength,
-          nodulesLength,
-          vesselLength,
-          segments: segments,
-          percent: percent,
-          listLoading: listLoading,
-        })
-        urls.forEach((item, index) => {
-          this.DownloadSegment(item.index)
-        })
       })
       .catch((error) => {
         console.log(error)
@@ -8356,7 +8221,6 @@ class CornerstoneElement extends Component {
     }
     return { max, min }
   }
-
   setupSyncedBrush(imageDataObject) {
     // Create buffer the size of the 3D volume
     const dimensions = imageDataObject.dimensions
@@ -8415,7 +8279,6 @@ class CornerstoneElement extends Component {
       mapper,
     }
   }
-
   createPipeline(binary, color, opacity, cl) {
     // console.log("createPipeline")
     const vtpReader = vtkXMLPolyDataReader.newInstance()

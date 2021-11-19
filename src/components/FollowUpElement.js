@@ -1226,11 +1226,10 @@ class FollowUpElement extends Component {
             <div key={idx} className={'highlightTbl' + (curListsActiveIndex === idx ? ' highlightTbl-active' : '')}>
               <Accordion.Title onClick={this.handleListClick.bind(this, inside.slice_idx, idx, 'current')} active={curListsActiveIndex === idx} index={idx}>
                 <div className="nodule-accordion-item-title">
-                  <div className="nodule-accordion-item-title-start">
-                    <div className="nodule-accordion-item-title-index">
-                      <div style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>{inside.visibleIdx + 1}</div>
-                    </div>
-
+                  <div className="nodule-accordion-item-title-index nodule-accordion-item-title-column">
+                    <div style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>{inside.visibleIdx + 1}</div>
+                  </div>
+                  <div className="nodule-accordion-item-title-column">
                     {/* <Checkbox
                       className="nodule-accordion-item-title-checkbox"
                       checked={inside.checked}
@@ -1238,40 +1237,40 @@ class FollowUpElement extends Component {
                       onClick={this.onHandleNoduleCheckClick.bind(this)}> */}
                     <div className="nodule-accordion-item-title-slice-idx">{parseInt(inside.slice_idx)}</div>
                     {/* </Checkbox> */}
-                    <div className="nodule-accordion-item-title-type">
-                      <Select
-                        className="nodule-accordion-item-title-select"
-                        dropdownMatchSelectWidth={true}
-                        defaultValue={inside.texture}
-                        value={inside.texture}
-                        bordered={false}
-                        showArrow={false}
-                        dropdownClassName={'corner-select-dropdown'}
-                        onChange={this.onSelectTex.bind(this, idx, 'current')}
-                        onClick={this.onSelectTexClick.bind(this)}>
-                        <Option className="nodule-accordion-item-title-select-option" value={-1}>
-                          未知
-                        </Option>
-                        <Option className="nodule-accordion-item-title-select-option" value={1}>
-                          磨玻璃
-                        </Option>
-                        <Option className="nodule-accordion-item-title-select-option" value={2}>
-                          实性
-                        </Option>
-                        <Option className="nodule-accordion-item-title-select-option" value={3}>
-                          半实性
-                        </Option>
-                      </Select>
-                    </div>
+                  </div>
+                  <div className="nodule-accordion-item-title-type nodule-accordion-item-title-column">
+                    <Select
+                      className="nodule-accordion-item-title-select"
+                      dropdownMatchSelectWidth={true}
+                      defaultValue={inside.texture}
+                      value={inside.texture}
+                      bordered={false}
+                      showArrow={false}
+                      dropdownClassName={'corner-select-dropdown'}
+                      onChange={this.onSelectTex.bind(this, idx, 'current')}
+                      onClick={this.onSelectTexClick.bind(this)}>
+                      <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                        未知
+                      </Option>
+                      <Option className="nodule-accordion-item-title-select-option" value={1}>
+                        磨玻璃
+                      </Option>
+                      <Option className="nodule-accordion-item-title-select-option" value={2}>
+                        实性
+                      </Option>
+                      <Option className="nodule-accordion-item-title-select-option" value={3}>
+                        半实性
+                      </Option>
+                    </Select>
                   </div>
 
                   {ll === 0 && sl === 0 ? (
-                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
+                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
                   ) : (
-                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
+                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
                   )}
 
-                  <div className="nodule-accordion-item-title-end">
+                  <div className="nodule-accordion-item-title-column">
                     <div className="nodule-accordion-item-title-location">
                       <Cascader
                         className="nodule-accordion-item-title-cascader"
@@ -1461,11 +1460,10 @@ class FollowUpElement extends Component {
             <div key={idx} className={'highlightTbl' + (preListsActiveIndex === idx ? ' highlightTbl-active' : '')}>
               <Accordion.Title onClick={this.handleListClick.bind(this, inside.slice_idx, idx, 'previous')} active={preListsActiveIndex === idx} index={idx}>
                 <div className="nodule-accordion-item-title">
-                  <div className="nodule-accordion-item-title-start">
-                    <div className="nodule-accordion-item-title-index">
-                      <div style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>{inside.visibleIdx + 1}</div>
-                    </div>
-
+                  <div className="nodule-accordion-item-title-index nodule-accordion-item-title-column">
+                    <div style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>{inside.visibleIdx + 1}</div>
+                  </div>
+                  <div className="nodule-accordion-item-title-column">
                     {/* <Checkbox
                       className="nodule-accordion-item-title-checkbox"
                       checked={inside.checked}
@@ -1473,40 +1471,39 @@ class FollowUpElement extends Component {
                       onClick={this.onHandleNoduleCheckClick.bind(this)}> */}
                     <div className="nodule-accordion-item-title-slice-idx">{parseInt(inside.slice_idx)}</div>
                     {/* </Checkbox> */}
-                    <div className="nodule-accordion-item-title-type">
-                      <Select
-                        className="nodule-accordion-item-title-select"
-                        dropdownMatchSelectWidth={true}
-                        defaultValue={inside.texture}
-                        value={inside.texture}
-                        bordered={false}
-                        showArrow={false}
-                        dropdownClassName={'corner-select-dropdown'}
-                        onChange={this.onSelectTex.bind(this, idx, 'previous')}
-                        onClick={this.onSelectTexClick.bind(this)}>
-                        <Option className="nodule-accordion-item-title-select-option" value={-1}>
-                          未知
-                        </Option>
-                        <Option className="nodule-accordion-item-title-select-option" value={1}>
-                          磨玻璃
-                        </Option>
-                        <Option className="nodule-accordion-item-title-select-option" value={2}>
-                          实性
-                        </Option>
-                        <Option className="nodule-accordion-item-title-select-option" value={3}>
-                          半实性
-                        </Option>
-                      </Select>
-                    </div>
                   </div>
-
+                  <div className="nodule-accordion-item-title-type">
+                    <Select
+                      className="nodule-accordion-item-title-select nodule-accordion-item-title-column"
+                      dropdownMatchSelectWidth={true}
+                      defaultValue={inside.texture}
+                      value={inside.texture}
+                      bordered={false}
+                      showArrow={false}
+                      dropdownClassName={'corner-select-dropdown'}
+                      onChange={this.onSelectTex.bind(this, idx, 'previous')}
+                      onClick={this.onSelectTexClick.bind(this)}>
+                      <Option className="nodule-accordion-item-title-select-option" value={-1}>
+                        未知
+                      </Option>
+                      <Option className="nodule-accordion-item-title-select-option" value={1}>
+                        磨玻璃
+                      </Option>
+                      <Option className="nodule-accordion-item-title-select-option" value={2}>
+                        实性
+                      </Option>
+                      <Option className="nodule-accordion-item-title-select-option" value={3}>
+                        半实性
+                      </Option>
+                    </Select>
+                  </div>
                   {ll === 0 && sl === 0 ? (
-                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
+                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
                   ) : (
-                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-center">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
+                    <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
                   )}
 
-                  <div className="nodule-accordion-item-title-end">
+                  <div className="nodule-accordion-item-title-column">
                     <div className="nodule-accordion-item-title-location">
                       <Cascader
                         className="nodule-accordion-item-title-cascader"
@@ -2740,7 +2737,7 @@ class FollowUpElement extends Component {
                       />
                     </div>
                     <div className="report-title-operation">
-                      <Icon title="复制" className="inverted blue button" name="copy outline" onClick={this.handleCopyClick}></Icon>
+                      <Icon title="复制" className="inverted blue button" name="copy outline" onClick={this.handleCopyClick.bind(this)}></Icon>
                     </div>
                   </div>
                 </Accordion.Title>
@@ -2816,6 +2813,16 @@ class FollowUpElement extends Component {
     let curMatchBox = curBoxes[curListsActiveIndex]
     let preMatchBox = preBoxes[preListsActiveIndex]
     console.log('MatchBox', curMatchBox, preMatchBox)
+    if (!preMatchBox && !curMatchBox) {
+      message.error('未选中结节')
+      return
+    } else if (!preMatchBox) {
+      message.error('未选中消失的结节')
+      return
+    } else if (!curMatchBox) {
+      message.error('未选中新增的结节')
+      return
+    }
     const matchParams = {
       patientId: registerBoxes.patientId,
       firstDocumentId: curMatchBox.documentId,
@@ -2865,7 +2872,7 @@ class FollowUpElement extends Component {
         if (matchRes.data.errorCode === 'Match-0001' || matchRes.data.errorCode === 'Match-0002') {
           message.error('该结节已与其他结节绑定')
         } else if (matchRes.data.errorCode === 'Match-0003') {
-          message.error('结节不存在')
+          message.error('结节在数据库未找到')
         }
       }
     })

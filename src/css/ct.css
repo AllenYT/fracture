@@ -1,0 +1,21 @@
+.ct-n-h {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
+.ct-n-h-l {
+  width: 70%;
+}
+.ct-n-h-r {
+  width: 30%;
+}
+
+.ct-n-v {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}

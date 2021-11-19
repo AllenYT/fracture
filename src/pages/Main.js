@@ -9,7 +9,6 @@ import _ from 'lodash'
 
 import LoginPanel from '../panels/LoginPanel'
 import DataCockpit from '../panels/DataCockpit'
-// import DisplayPanel from "../panels/DisplayPanel";
 import CornerstoneElement from '../components/CornerstoneElement'
 import MyAnnosPanel from '../panels/MyAnnosPanel'
 import DownloadPanel from '../panels/DownloadPanel'
@@ -17,6 +16,7 @@ import MyReviewsPanel from '../panels/MyReviewsPanel'
 import PatientPanel from '../panels/PatientPanel'
 import SearchCasePanel from '../panels/SearchCasePanel'
 import SearchNodulePanel from '../panels/SearchNodulePanel'
+import CTPanel from '../panels/CTPanel'
 import TestPanel from '../components/Test'
 import '../css/main.css'
 import axios from 'axios'
@@ -30,7 +30,6 @@ import ViewerPanel from '../panels/ViewerPanel'
 import AdminManagePanel from '../panels/AdminManagePanel'
 
 import md5 from 'js-md5'
-import FollowUpDisplayPanel from '../panels/FollowUpDisplayPanel'
 
 message.config({
   duration: 3,
@@ -444,8 +443,8 @@ class Main extends Component {
                     <Route path="/homepage/" component={HomepagePanel} />
                     <Route path="/preprocess/" component={preprocess} />
                     <Route path="/adminManage" component={AdminManagePanel} />
-                    <Route path="/followup" component={FollowUpDisplayPanel} />
-                    <Route path="/test" component={TestPanel} />
+                    {/* <Route path="/test" component={TestPanel} />
+                    <Route path="/ct" component={CTPanel} /> */}
                   </Switch>
                 </>
               ) : (

@@ -792,7 +792,14 @@ export default class View2D extends Component {
     if (!this.props.volumes || !this.props.volumes.length) {
       return null
     }
+    const viewerType = this.props.viewerType
     const viewerStyle = this.props.viewerStyle
+    let reverse
+    if (viewerType === 0 || viewerType === 1) {
+      reverse = true
+    } else if (viewerType === 2) {
+      reverse = false
+    }
     const style = { width: '100%', height: '100%', position: 'relative' }
     const sliderStyle = { marginTop: '15%', height: '50%', position: 'absolute', top: 0, right: 0, zIndex: 1 }
     const sliderValue = this.state.sliderValue
@@ -806,6 +813,7 @@ export default class View2D extends Component {
         <Slider
           style={sliderStyle}
           vertical
+          reverse={reverse}
           included={false}
           defaultValue={0}
           value={sliderValue}
