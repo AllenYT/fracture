@@ -1890,289 +1890,291 @@ class CornerstoneElement extends Component {
     }
 
     if (!this.state.immersive) {
-      tableContent = boxes // .selectBoxes
-        .map((inside, idx) => {
-          if (inside.visible) {
-            noduleNumber += 1
-          }
-          let representArray = []
-          let locationValues = ''
-          const visualId = 'visual-' + idx
-          let ll = 0
-          let sl = 0
-          if (inside.measure !== undefined && inside.measure !== null) {
-            ll = Math.sqrt(Math.pow(inside.measure.x1 - inside.measure.x2, 2) + Math.pow(inside.measure.y1 - inside.measure.y2, 2))
-            sl = Math.sqrt(Math.pow(inside.measure.x3 - inside.measure.x4, 2) + Math.pow(inside.measure.y3 - inside.measure.y4, 2))
-            if (isNaN(ll)) {
-              ll = 0
+      if (boxes && boxes.length > 0) {
+        tableContent = boxes // .selectBoxes
+          .map((inside, idx) => {
+            if (inside.visible) {
+              noduleNumber += 1
             }
-            if (isNaN(sl)) {
-              sl = 0
+            let representArray = []
+            let locationValues = ''
+            const visualId = 'visual-' + idx
+            let ll = 0
+            let sl = 0
+            if (inside.measure !== undefined && inside.measure !== null) {
+              ll = Math.sqrt(Math.pow(inside.measure.x1 - inside.measure.x2, 2) + Math.pow(inside.measure.y1 - inside.measure.y2, 2))
+              sl = Math.sqrt(Math.pow(inside.measure.x3 - inside.measure.x4, 2) + Math.pow(inside.measure.y3 - inside.measure.y4, 2))
+              if (isNaN(ll)) {
+                ll = 0
+              }
+              if (isNaN(sl)) {
+                sl = 0
+              }
+              if (
+                inside.measure.x1 === 0 &&
+                inside.measure.y1 === 0 &&
+                inside.measure.x2 === 0 &&
+                inside.measure.y2 === 0 &&
+                inside.measure.x3 === 0 &&
+                inside.measure.y3 === 0 &&
+                inside.measure.x4 === 0 &&
+                inside.measure.y4 === 0
+              ) {
+                ll = 0
+                sl = 0
+              }
             }
-            if (
-              inside.measure.x1 === 0 &&
-              inside.measure.y1 === 0 &&
-              inside.measure.x2 === 0 &&
-              inside.measure.y2 === 0 &&
-              inside.measure.x3 === 0 &&
-              inside.measure.y3 === 0 &&
-              inside.measure.x4 === 0 &&
-              inside.measure.y4 === 0
-            ) {
-              ll = 0
-              sl = 0
-            }
-          }
-          let diameter = inside.diameter
+            let diameter = inside.diameter
 
-          let showMeasure = measureStateList[idx]
-          let showMask = maskStateList[idx]
-          if (inside.lobulation === 2) {
-            representArray.push('分叶')
-          }
-          if (inside.spiculation === 2) {
-            representArray.push('毛刺')
-          }
-          if (inside.calcification === 2) {
-            representArray.push('钙化')
-          }
-          if (inside.pin === 2) {
-            representArray.push('胸膜凹陷')
-          }
-          if (inside.cav === 2) {
-            representArray.push('空洞')
-          }
-          if (inside.vss === 2) {
-            representArray.push('血管集束')
-          }
-          if (inside.bea === 2) {
-            representArray.push('空泡')
-          }
-          if (inside.bro === 2) {
-            representArray.push('支气管充气')
-          }
-          if (inside.segment && inside.segment !== 'None') {
-            locationValues = noduleSegments[inside.segment].split('-')
-          } else {
-            if (inside.place) {
-              locationValues = [places[inside.place]]
+            let showMeasure = measureStateList[idx]
+            let showMask = maskStateList[idx]
+            if (inside.lobulation === 2) {
+              representArray.push('分叶')
+            }
+            if (inside.spiculation === 2) {
+              representArray.push('毛刺')
+            }
+            if (inside.calcification === 2) {
+              representArray.push('钙化')
+            }
+            if (inside.pin === 2) {
+              representArray.push('胸膜凹陷')
+            }
+            if (inside.cav === 2) {
+              representArray.push('空洞')
+            }
+            if (inside.vss === 2) {
+              representArray.push('血管集束')
+            }
+            if (inside.bea === 2) {
+              representArray.push('空泡')
+            }
+            if (inside.bro === 2) {
+              representArray.push('支气管充气')
+            }
+            if (inside.segment && inside.segment !== 'None') {
+              locationValues = noduleSegments[inside.segment].split('-')
             } else {
-              locationValues = ['无法定位']
+              if (inside.place) {
+                locationValues = [places[inside.place]]
+              } else {
+                locationValues = ['无法定位']
+              }
             }
-          }
 
-          // if(this.state.readonly){
-          if (inside.visible) {
-            return (
-              <div key={idx} className={'highlightTbl' + (listsActiveIndex === idx ? ' highlightTbl-active' : '')}>
-                <Accordion.Title onClick={this.handleListClick.bind(this, inside.slice_idx, idx)} active={listsActiveIndex === idx}>
-                  <div className="nodule-accordion-item-title">
-                    <div className="nodule-accordion-item-title-index nodule-accordion-item-title-column">
-                      <div
-                        // onMouseEnter={this.highlightNodule}
-                        // onMouseLeave={this.dehighlightNodule}
-                        style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>
-                        {inside.visibleIdx + 1}
+            // if(this.state.readonly){
+            if (inside.visible) {
+              return (
+                <div key={idx} className={'highlightTbl' + (listsActiveIndex === idx ? ' highlightTbl-active' : '')}>
+                  <Accordion.Title onClick={this.handleListClick.bind(this, inside.slice_idx, idx)} active={listsActiveIndex === idx}>
+                    <div className="nodule-accordion-item-title">
+                      <div className="nodule-accordion-item-title-index nodule-accordion-item-title-column">
+                        <div
+                          // onMouseEnter={this.highlightNodule}
+                          // onMouseLeave={this.dehighlightNodule}
+                          style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>
+                          {inside.visibleIdx + 1}
+                        </div>
                       </div>
-                    </div>
-                    <div className="nodule-accordion-item-title-column">
-                      <Checkbox
-                        className="nodule-accordion-item-title-checkbox"
-                        checked={inside.checked}
-                        onChange={this.onHandleNoduleCheckChange.bind(this, idx)}
-                        onClick={this.onHandleNoduleCheckClick.bind(this)}>
-                        {parseInt(inside.slice_idx) + 1}
-                      </Checkbox>
-                    </div>
-
-                    <div className="nodule-accordion-item-title-type nodule-accordion-item-title-column">
-                      <Select
-                        className="nodule-accordion-item-title-select"
-                        dropdownMatchSelectWidth={false}
-                        defaultValue={inside.texture}
-                        value={inside.texture}
-                        bordered={false}
-                        showArrow={false}
-                        dropdownClassName={'corner-select-dropdown'}
-                        onChange={this.onSelectTex.bind(this, idx)}
-                        onClick={this.onSelectTexClick.bind(this)}>
-                        <Option className="nodule-accordion-item-title-select-option" value={-1}>
-                          未知
-                        </Option>
-                        <Option className="nodule-accordion-item-title-select-option" value={1}>
-                          磨玻璃
-                        </Option>
-                        <Option className="nodule-accordion-item-title-select-option" value={2}>
-                          实性
-                        </Option>
-                        <Option className="nodule-accordion-item-title-select-option" value={3}>
-                          半实性
-                        </Option>
-                      </Select>
-                    </div>
-
-                    {ll === 0 && sl === 0 ? (
-                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
-                    ) : (
-                      <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
-                    )}
-
-                    <div className="nodule-accordion-item-title-column">
-                      <div className="nodule-accordion-item-title-location">
-                        <Cascader
-                          className="nodule-accordion-item-title-cascader"
-                          bordered={false}
-                          suffixIcon={null}
-                          allowClear={false}
-                          value={locationValues}
-                          options={this.config.segment}
-                          dropdownRender={(menus) => {
-                            return <div onClick={this.onSelectPlaceClick.bind(this)}>{menus}</div>
-                          }}
-                          onChange={this.onSelectPlace.bind(this, idx)}
-                          onClick={this.onSelectPlaceClick.bind(this)}
-                        />
+                      <div className="nodule-accordion-item-title-column">
+                        <Checkbox
+                          className="nodule-accordion-item-title-checkbox"
+                          checked={inside.checked}
+                          onChange={this.onHandleNoduleCheckChange.bind(this, idx)}
+                          onClick={this.onHandleNoduleCheckClick.bind(this)}>
+                          {parseInt(inside.slice_idx) + 1}
+                        </Checkbox>
                       </div>
 
-                      <div className="nodule-accordion-item-title-mal">
+                      <div className="nodule-accordion-item-title-type nodule-accordion-item-title-column">
                         <Select
-                          className={'nodule-accordion-item-title-select ' + ` nodule-accordion-item-title-select-${inside.malignancy}`}
-                          defaultValue={inside.malignancy}
-                          value={inside.malignancy}
+                          className="nodule-accordion-item-title-select"
+                          dropdownMatchSelectWidth={false}
+                          defaultValue={inside.texture}
+                          value={inside.texture}
                           bordered={false}
                           showArrow={false}
                           dropdownClassName={'corner-select-dropdown'}
-                          onChange={this.onSelectMal.bind(this, idx)}
-                          onClick={this.onSelectMalClick.bind(this)}>
-                          <Option className={'nodule-accordion-item-title-select-option'} value={-1}>
+                          onChange={this.onSelectTex.bind(this, idx)}
+                          onClick={this.onSelectTexClick.bind(this)}>
+                          <Option className="nodule-accordion-item-title-select-option" value={-1}>
                             未知
                           </Option>
-                          <Option className={'nodule-accordion-item-title-select-option'} value={1}>
-                            低危
+                          <Option className="nodule-accordion-item-title-select-option" value={1}>
+                            磨玻璃
                           </Option>
-                          <Option className={'nodule-accordion-item-title-select-option'} value={2}>
-                            中危
+                          <Option className="nodule-accordion-item-title-select-option" value={2}>
+                            实性
                           </Option>
-                          <Option className={'nodule-accordion-item-title-select-option'} value={3}>
-                            高危
+                          <Option className="nodule-accordion-item-title-select-option" value={3}>
+                            半实性
                           </Option>
                         </Select>
                       </div>
+
+                      {ll === 0 && sl === 0 ? (
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
+                      ) : (
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
+                      )}
+
+                      <div className="nodule-accordion-item-title-column">
+                        <div className="nodule-accordion-item-title-location">
+                          <Cascader
+                            className="nodule-accordion-item-title-cascader"
+                            bordered={false}
+                            suffixIcon={null}
+                            allowClear={false}
+                            value={locationValues}
+                            options={this.config.segment}
+                            dropdownRender={(menus) => {
+                              return <div onClick={this.onSelectPlaceClick.bind(this)}>{menus}</div>
+                            }}
+                            onChange={this.onSelectPlace.bind(this, idx)}
+                            onClick={this.onSelectPlaceClick.bind(this)}
+                          />
+                        </div>
+
+                        <div className="nodule-accordion-item-title-mal">
+                          <Select
+                            className={'nodule-accordion-item-title-select ' + ` nodule-accordion-item-title-select-${inside.malignancy}`}
+                            defaultValue={inside.malignancy}
+                            value={inside.malignancy}
+                            bordered={false}
+                            showArrow={false}
+                            dropdownClassName={'corner-select-dropdown'}
+                            onChange={this.onSelectMal.bind(this, idx)}
+                            onClick={this.onSelectMalClick.bind(this)}>
+                            <Option className={'nodule-accordion-item-title-select-option'} value={-1}>
+                              未知
+                            </Option>
+                            <Option className={'nodule-accordion-item-title-select-option'} value={1}>
+                              低危
+                            </Option>
+                            <Option className={'nodule-accordion-item-title-select-option'} value={2}>
+                              中危
+                            </Option>
+                            <Option className={'nodule-accordion-item-title-select-option'} value={3}>
+                              高危
+                            </Option>
+                          </Select>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </Accordion.Title>
-                <Accordion.Content active={listsActiveIndex === idx}>
-                  <div className="nodule-accordion-item-content">
-                    <div className="nodule-accordion-item-content-info">
-                      {/* <Grid.Column widescreen={6} computer={6}>
+                  </Accordion.Title>
+                  <Accordion.Content active={listsActiveIndex === idx}>
+                    <div className="nodule-accordion-item-content">
+                      <div className="nodule-accordion-item-content-info">
+                        {/* <Grid.Column widescreen={6} computer={6}>
                 {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
               </Grid.Column> */}
-                      <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}</div>
-                      <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
-                    </div>
-                    {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
+                        <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}</div>
+                        <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
+                      </div>
+                      {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
                                           <select id={texId} style={selectStyle} defaultValue="" disabled>
                                           <option value="" disabled="disabled">选择亚型</option>
                                           </select>
                                       </Grid.Column> */}
 
-                    <div className="nodule-accordion-item-content-char">
-                      <div className="nodule-accordion-item-content-char-title">表征：</div>
-                      <div className="nodule-accordion-item-content-char-content">
-                        <Select
-                          className={'nodule-accordion-item-content-select'}
-                          mode="multiple"
-                          dropdownMatchSelectWidth={false}
-                          defaultValue={inside.malignancy}
-                          dropdownMatchSelectWidth={false}
-                          value={representArray}
-                          placeholder="请选择表征"
-                          bordered={false}
-                          showArrow={false}
-                          dropdownClassName={'corner-select-dropdown'}
-                          onChange={this.representChange.bind(this, idx)}>
-                          <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
-                            分叶
-                          </Option>
-                          <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
-                            毛刺
-                          </Option>
-                          <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
-                            钙化
-                          </Option>
-                          <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
-                            胸膜凹陷
-                          </Option>
-                          <Option className={'nodule-accordion-item-content-select-option'} value={'血管集束'}>
-                            血管集束
-                          </Option>
-                          <Option className={'nodule-accordion-item-content-select-option'} value={'空泡'}>
-                            空泡
-                          </Option>
-                          <Option className={'nodule-accordion-item-content-select-option'} value={'空洞'}>
-                            空洞
-                          </Option>
-                          <Option className={'nodule-accordion-item-content-select-option'} value={'支气管充气'}>
-                            支气管充气
-                          </Option>
-                        </Select>
+                      <div className="nodule-accordion-item-content-char">
+                        <div className="nodule-accordion-item-content-char-title">表征：</div>
+                        <div className="nodule-accordion-item-content-char-content">
+                          <Select
+                            className={'nodule-accordion-item-content-select'}
+                            mode="multiple"
+                            dropdownMatchSelectWidth={false}
+                            defaultValue={inside.malignancy}
+                            dropdownMatchSelectWidth={false}
+                            value={representArray}
+                            placeholder="请选择表征"
+                            bordered={false}
+                            showArrow={false}
+                            dropdownClassName={'corner-select-dropdown'}
+                            onChange={this.representChange.bind(this, idx)}>
+                            <Option className={'nodule-accordion-item-content-select-option'} value={'分叶'}>
+                              分叶
+                            </Option>
+                            <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
+                              毛刺
+                            </Option>
+                            <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
+                              钙化
+                            </Option>
+                            <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
+                              胸膜凹陷
+                            </Option>
+                            <Option className={'nodule-accordion-item-content-select-option'} value={'血管集束'}>
+                              血管集束
+                            </Option>
+                            <Option className={'nodule-accordion-item-content-select-option'} value={'空泡'}>
+                              空泡
+                            </Option>
+                            <Option className={'nodule-accordion-item-content-select-option'} value={'空洞'}>
+                              空洞
+                            </Option>
+                            <Option className={'nodule-accordion-item-content-select-option'} value={'支气管充气'}>
+                              支气管充气
+                            </Option>
+                          </Select>
+                        </div>
                       </div>
-                    </div>
 
-                    <div className="nodule-accordion-item-content-button">
-                      <div>
-                        <Button size="mini" circular inverted icon="chart bar" title="特征分析" value={idx} onClick={this.featureAnalysis.bind(this, idx)}></Button>
-                      </div>
-                      <div>
-                        <Button.Group size="mini" className="measureBtnGroup" style={show3DVisualization ? { display: 'none' } : {}}>
-                          <Button basic icon title="擦除测量" active color="green" onClick={this.eraseMeasures.bind(this, idx)}>
-                            <Icon inverted color="green" name="eraser"></Icon>
-                          </Button>
-                          {showMeasure ? (
-                            <Button basic icon title="隐藏测量" active color="blue" onClick={this.toHideMeasures.bind(this, idx)}>
-                              <Icon inverted color="blue" name="eye slash"></Icon>
+                      <div className="nodule-accordion-item-content-button">
+                        <div>
+                          <Button size="mini" circular inverted icon="chart bar" title="特征分析" value={idx} onClick={this.featureAnalysis.bind(this, idx)}></Button>
+                        </div>
+                        <div>
+                          <Button.Group size="mini" className="measureBtnGroup" style={show3DVisualization ? { display: 'none' } : {}}>
+                            <Button basic icon title="擦除测量" active color="green" onClick={this.eraseMeasures.bind(this, idx)}>
+                              <Icon inverted color="green" name="eraser"></Icon>
                             </Button>
-                          ) : (
-                            <Button basic icon title="显示测量" active color="blue" onClick={this.toHideMeasures.bind(this, idx)}>
-                              <Icon inverted color="blue" name="eye"></Icon>
-                            </Button>
-                          )}
-                          <Popup
-                            on="click"
-                            trigger={
-                              <Button basic icon title="删除结节" active color="grey" style={show3DVisualization ? { display: 'none' } : {}}>
-                                <Icon inverted color="grey" name="trash alternate"></Icon>
+                            {showMeasure ? (
+                              <Button basic icon title="隐藏测量" active color="blue" onClick={this.toHideMeasures.bind(this, idx)}>
+                                <Icon inverted color="blue" name="eye slash"></Icon>
                               </Button>
-                            }
-                            onOpen={this.setDelNodule.bind(this, idx, true)}
-                            onClose={this.setDelNodule.bind(this, idx, false)}
-                            open={inside.delOpen}>
-                            <div className="general-confirm-block">
-                              <div className="general-confirm-info">是否删除该结节？</div>
-                              <div className="general-confirm-operation">
-                                <Button inverted size="mini" onClick={this.setDelNodule.bind(this, idx, false)}>
-                                  取消
+                            ) : (
+                              <Button basic icon title="显示测量" active color="blue" onClick={this.toHideMeasures.bind(this, idx)}>
+                                <Icon inverted color="blue" name="eye"></Icon>
+                              </Button>
+                            )}
+                            <Popup
+                              on="click"
+                              trigger={
+                                <Button basic icon title="删除结节" active color="grey" style={show3DVisualization ? { display: 'none' } : {}}>
+                                  <Icon inverted color="grey" name="trash alternate"></Icon>
                                 </Button>
-                                <Button inverted size="mini" onClick={this.onConfirmDelNodule.bind(this, idx)}>
-                                  确认
-                                </Button>
+                              }
+                              onOpen={this.setDelNodule.bind(this, idx, true)}
+                              onClose={this.setDelNodule.bind(this, idx, false)}
+                              open={inside.delOpen}>
+                              <div className="general-confirm-block">
+                                <div className="general-confirm-info">是否删除该结节？</div>
+                                <div className="general-confirm-operation">
+                                  <Button inverted size="mini" onClick={this.setDelNodule.bind(this, idx, false)}>
+                                    取消
+                                  </Button>
+                                  <Button inverted size="mini" onClick={this.onConfirmDelNodule.bind(this, idx)}>
+                                    确认
+                                  </Button>
+                                </div>
                               </div>
-                            </div>
-                          </Popup>
-                        </Button.Group>
+                            </Popup>
+                          </Button.Group>
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {/* <div id={visualId} className='histogram'></div> */}
-                </Accordion.Content>
-              </div>
-            )
-          } else {
-            return null
-          }
-          // }
-        })
+                    {/* <div id={visualId} className='histogram'></div> */}
+                  </Accordion.Content>
+                </div>
+              )
+            } else {
+              return null
+            }
+            // }
+          })
+      }
 
       const noduleOrderOption = [
         {
@@ -6771,6 +6773,10 @@ class CornerstoneElement extends Component {
 
   template() {
     const boxes = this.state.boxes
+    if (!(boxes && boxes.length)) {
+      return
+    }
+
     const reportImageType = this.state.reportImageType
     const reportGuideType = this.state.reportGuideType
     let reportImageText = ''

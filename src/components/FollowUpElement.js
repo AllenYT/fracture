@@ -3435,6 +3435,9 @@ class FollowUpElement extends Component {
     const places = nodulePlaces
     const segments = lungLoc
     const boxes = this.state.curBoxes
+    if (!(boxes && boxes.length)) {
+      return
+    }
     let reportImageText = []
     boxes.forEach((item, index) => {
       let texts = ''
@@ -3544,6 +3547,9 @@ class FollowUpElement extends Component {
   }
   templateReportGuide(dealchoose) {
     const boxes = this.state.curBoxes
+    if (!(boxes && boxes.length)) {
+      return
+    }
     if (dealchoose === '中华共识') {
       let weight = 0
 
