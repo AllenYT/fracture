@@ -3390,18 +3390,18 @@ class CornerstoneElement extends Component {
                                   this.viewerMask = ref
                                 }}
                               />
-                            ) : (
-                              <div id="lobe-func-container">
-                                <div className="lobe-func-header">肺功能</div>
-                                <div className="lobe-func-content">
-                                  <div className="lobe-func-item">第1秒用力呼气容积(fev1)：2.24</div>
-                                  <div className="lobe-func-item">第1秒用力呼气的容积占预计值的百分比(fev1%pred)：95%</div>
-                                  <div className="lobe-func-item">用力肺活量(fvc)：3.38</div>
-                                  <div className="lobe-func-item">用力肺活量占预测值的百分比（fvc%pred)：115%</div>
-                                  <div className="lobe-func-item">第一秒用力呼气量占所有呼气量的比例(fev1/fvc%)：66.7%</div>
-                                </div>
-                              </div>
-                            )}
+                            ) : null
+                            // <div id="lobe-func-container">
+                            //   <div className="lobe-func-header">肺功能</div>
+                            //   <div className="lobe-func-content">
+                            //     <div className="lobe-func-item">第1秒用力呼气容积(fev1)：2.24</div>
+                            //     <div className="lobe-func-item">第1秒用力呼气的容积占预计值的百分比(fev1%pred)：95%</div>
+                            //     <div className="lobe-func-item">用力肺活量(fvc)：3.38</div>
+                            //     <div className="lobe-func-item">用力肺活量占预测值的百分比（fvc%pred)：115%</div>
+                            //     <div className="lobe-func-item">第一秒用力呼气量占所有呼气量的比例(fev1/fvc%)：66.7%</div>
+                            //   </div>
+                            // </div>
+                            }
                           </div>
                         ) : (
                           <div id="report" className={'report-tab-container' + (verticalMode ? ' report-tab-container-vertical' : ' report-tab-container-horizontal')}>
