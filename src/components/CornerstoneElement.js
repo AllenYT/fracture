@@ -3335,7 +3335,7 @@ class CornerstoneElement extends Component {
                                 )}
                               </Tabs>
                             </TabPane>
-                            <TabPane tab={'淋巴结'} key="2">
+                            <TabPane tab={'纵隔病灶'} key="2">
                               <Tabs type="card" defaultActiveKey="1" size="small">
                                 <TabPane tab={`淋巴结 ${lymphs.length}个`} key="1">
                                   <div id="elec-table">

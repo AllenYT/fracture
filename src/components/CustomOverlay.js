@@ -88,11 +88,11 @@ class CustomOverlay extends PureComponent {
     }
     // console.log('studyDate', studyDate, this.props.curDate, this.props.preDate)
     if (this.props.preDate === this.props.curDate) {
-      imageState = 'Same'
+      imageState = '相同CT'
     } else if (this.props.curDate === studyDate) {
-      imageState = 'New'
+      imageState = '近期CT'
     } else if (studyDate === this.props.preDate) {
-      imageState = 'Previous'
+      imageState = '早期CT'
     } else {
       imageState = 'Unknown'
     }
