@@ -334,11 +334,13 @@
 #chart-current {
   height: 150px;
   width: 100%;
+  text-align: start;
   /* margin: 0 auto; */
 }
 #chart-previous {
   height: 150px;
   width: 100%;
+  text-align: start;
   /* margin: 0 auto; */
 }
 #analysis-table {
@@ -353,5 +355,9 @@
   border: 1px solid rgb(13, 19, 41);
 }
 .histogram-title {
-  padding-left: 10px;
+  text-align: center;
+  white-space: nowrap;
+  position: relative;
+  left: 15px;
+  font-weight: bold;
 }

@@ -114,10 +114,8 @@ class FollowUpElement extends Component {
       preImageIds: props.preInfo.preImageIds,
       preCaseId: props.preInfo.preCaseId,
       preBoxes: props.preInfo.preBoxes,
-      currentIdx: 0,
       isOverlayVisible: true,
       isAnnoVisible: true,
-      previousIdx: 0,
       clicked: false,
       clickedArea: {},
       curImageIdsLoadingCompleted: false,
@@ -282,12 +280,15 @@ class FollowUpElement extends Component {
     this.resizeScreen()
     this.template()
     window.addEventListener('resize', this.resizeScreen.bind(this))
+    window.addEventListener('mousedown', this.mousedownFunc.bind(this), false)
   }
 
   componentWillMount() {
-    document.getElementById('header').style.display = 'none'
+    // document.getElementById('header').style.display = 'none'
   }
   componentWillUnmount() {
+    window.removeEventListener('resize', this.resizeScreen.bind(this))
+    window.removeEventListener('mousedown', this.mousedownFunc.bind(this))
     //阻止异步操作
     this.setState = (state, callback) => {
       return
@@ -611,38 +612,36 @@ class FollowUpElement extends Component {
       const newIndex = curListsActiveIndex === index ? -1 : index
       // console.log('curidx', index, curListsActiveIndex)
       const targets = document.getElementsByClassName('viewport-element')
+      this.startAnnos()
       this.setState(
         {
           curListsActiveIndex: newIndex,
           curImageIdIndex: currentIdx - 1,
-          currentIdx: currentIdx,
         },
         () => {
           const { curBoxes, curImageIds, sortChanged } = this.state
           const currentTarget = targets[sortChanged ? 1 : 0]
-          var toolData = cornerstoneTools.getToolState(currentTarget, 'RectangleRoi')
-          console.log('toolData before', toolData)
           for (let i = 0; i < curBoxes.length; i++) {
             if (curBoxes[i].slice_idx === currentIdx) {
               if (curBoxes[i].uuid === undefined) {
-                cornerstone.loadImage(curImageIds[curBoxes[i].slice_idx - 1]).then(() => {
+                cornerstone.loadImage(curImageIds[currentIdx - 1]).then(() => {
                   // cornerstone.updateImage(currentTarget)
                   const measurementData = {
                     visible: true,
-                    active: true,
+                    active: i === newIndex,
                     color: undefined,
                     invalidated: true,
                     handles: {
                       start: {
                         x: curBoxes[i].x1,
                         y: curBoxes[i].y1,
-                        highlight: true,
+                        highlight: false,
                         active: false,
                       },
                       end: {
                         x: curBoxes[i].x2,
                         y: curBoxes[i].y2,
-                        highlight: true,
+                        highlight: false,
                         active: false,
                       },
                       textBox: {
@@ -656,13 +655,38 @@ class FollowUpElement extends Component {
                     },
                   }
                   cornerstoneTools.addToolState(currentTarget, 'RectangleRoi', measurementData)
-                  toolData = cornerstoneTools.getToolState(currentTarget, 'RectangleRoi')
-                  console.log('toolData after', toolData)
-                  curBoxes[i].uuid = toolData.data[0].uuid
-                  this.startAnnos()
+                  let toolData = cornerstoneTools.getToolState(currentTarget, 'RectangleRoi')
+                  const toolDataIndex = _.findIndex(toolData.data, function (o) {
+                    let isEqual = false
+                    const oHandles = o.handles
+                    if (oHandles) {
+                      if (oHandles.start.x === curBoxes[i].x1 && oHandles.start.y === curBoxes[i].y1 && oHandles.end.x === curBoxes[i].x2 && oHandles.end.y === curBoxes[i].y2) {
+                        isEqual = true
+                      }
+                    }
+                    return isEqual
+                  })
+                  if (toolDataIndex !== -1) {
+                    curBoxes[i].uuid = toolData.data[toolDataIndex].uuid
+                  }
                   // cornerstoneTools.setToolEnabledForElement(currentTarget, 'RectangleRoi')
                 })
-                break
+              } else {
+                if (i === newIndex) {
+                  cornerstone.loadImage(curImageIds[currentIdx - 1]).then(() => {
+                    let toolData = cornerstoneTools.getToolState(currentTarget, 'RectangleRoi')
+                    if (toolData && toolData.data && toolData.data.length) {
+                      console.log('cur addToolState')
+                      const toolDataIndex = _.findIndex(toolData.data, { uuid: curBoxes[i].uuid })
+                      const savedData = [].concat(toolData.data)
+                      cornerstoneTools.clearToolState(currentTarget, 'RectangleRoi')
+                      savedData.forEach((savedDataItem, savedDataItemIndex) => {
+                        savedDataItem.active = toolDataIndex === savedDataItemIndex
+                        cornerstoneTools.addToolState(currentTarget, 'RectangleRoi', savedDataItem)
+                      })
+                    }
+                  })
+                }
               }
             }
             // }
@@ -674,40 +698,37 @@ class FollowUpElement extends Component {
       const { preListsActiveIndex } = this.state
       const newIndex = preListsActiveIndex === index ? -1 : index
       const targets = document.getElementsByClassName('viewport-element')
-      console.log('curidx', index, preListsActiveIndex)
+      this.startAnnos()
       this.setState(
         {
           preListsActiveIndex: newIndex,
           preImageIdIndex: currentIdx - 1,
-          previousIdx: currentIdx,
         },
         () => {
           const { preBoxes, preImageIds, sortChanged } = this.state
           const that = this
           const previousTarget = targets[sortChanged ? 0 : 1]
-          var toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
-          console.log('toolData before', toolData)
           for (let i = 0; i < preBoxes.length; i++) {
             if (preBoxes[i].slice_idx === currentIdx) {
               if (preBoxes[i].uuid === undefined) {
-                cornerstone.loadImage(preImageIds[preBoxes[i].slice_idx - 1]).then(() => {
+                cornerstone.loadImage(preImageIds[currentIdx - 1]).then(() => {
                   // cornerstone.updateImage(previousTarget)
                   const measurementData = {
                     visible: true,
-                    active: true,
+                    active: i === newIndex,
                     color: undefined,
                     invalidated: true,
                     handles: {
                       start: {
                         x: preBoxes[i].x1,
                         y: preBoxes[i].y1,
-                        highlight: true,
+                        highlight: false,
                         active: false,
                       },
                       end: {
                         x: preBoxes[i].x2,
                         y: preBoxes[i].y2,
-                        highlight: true,
+                        highlight: false,
                         active: false,
                       },
                       textBox: {
@@ -721,13 +742,38 @@ class FollowUpElement extends Component {
                     },
                   }
                   cornerstoneTools.addToolState(previousTarget, 'RectangleRoi', measurementData)
-                  toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
-                  console.log('toolData after', toolData)
-                  preBoxes[i].uuid = toolData.data[0].uuid
-                  this.startAnnos()
+                  let toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
+                  const toolDataIndex = _.findIndex(toolData.data, function (o) {
+                    let isEqual = false
+                    const oHandles = o.handles
+                    if (oHandles) {
+                      if (oHandles.start.x === preBoxes[i].x1 && oHandles.start.y === preBoxes[i].y1 && oHandles.end.x === preBoxes[i].x2 && oHandles.end.y === preBoxes[i].y2) {
+                        isEqual = true
+                      }
+                    }
+                    return isEqual
+                  })
+                  if (toolDataIndex !== -1) {
+                    preBoxes[i].uuid = toolData.data[toolDataIndex].uuid
+                  }
                   // cornerstoneTools.setToolEnabledForElement(previousTarget, 'RectangleRoi')
                 })
-                break
+              } else {
+                if (i === newIndex) {
+                  cornerstone.loadImage(preImageIds[currentIdx - 1]).then(() => {
+                    let toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
+                    if (toolData && toolData.data && toolData.data.length) {
+                      console.log('pre addToolState')
+                      const toolDataIndex = _.findIndex(toolData.data, { uuid: preBoxes[i].uuid })
+                      const savedData = [].concat(toolData.data)
+                      cornerstoneTools.clearToolState(previousTarget, 'RectangleRoi')
+                      savedData.forEach((savedDataItem, savedDataItemIndex) => {
+                        savedDataItem.active = toolDataIndex === savedDataItemIndex
+                        cornerstoneTools.addToolState(previousTarget, 'RectangleRoi', savedDataItem)
+                      })
+                    }
+                  })
+                }
               }
             }
             // }
@@ -752,6 +798,7 @@ class FollowUpElement extends Component {
   }
 
   onNewNoduleChange(noduleNo, idx) {
+    this.startAnnos()
     if (typeof idx !== undefined || idx !== null) {
       const newListsActiveIndex = this.state.newListsActiveIndex
       this.setState({
@@ -769,13 +816,20 @@ class FollowUpElement extends Component {
           const sortChanged = this.state.sortChanged
           const targets = document.getElementsByClassName('viewport-element')
           const currentTarget = targets[sortChanged ? 1 : 0]
+          const curImageIds = this.state.curImageIds
           if (curBoxes[curIndex].uuid === undefined) {
-            const curImageIds = this.state.curImageIds
             const curNodule_uuid = this.drawCustomRectangleRoi(currentTarget, curBoxes[curIndex], curImageIds)
             curBoxes[curIndex] = curNodule_uuid
-            this.setState({
-              curBoxes,
-            })
+            this.setState(
+              {
+                curBoxes,
+              },
+              () => {
+                this.setCustomRetangleActive(currentTarget, curBoxes[curIndex], curImageIds)
+              }
+            )
+          } else {
+            this.setCustomRetangleActive(currentTarget, curBoxes[curIndex], curImageIds)
           }
         }
       )
@@ -783,6 +837,7 @@ class FollowUpElement extends Component {
   }
 
   onPreNoduleChange(noduleNo, idx) {
+    this.startAnnos()
     if (typeof idx !== undefined || idx !== null) {
       const vanishListsActiveIndex = this.state.vanishListsActiveIndex
 
@@ -801,13 +856,21 @@ class FollowUpElement extends Component {
           const sortChanged = this.state.sortChanged
           const targets = document.getElementsByClassName('viewport-element')
           const currentTarget = targets[sortChanged ? 0 : 1]
+          const preImageIds = this.state.preImageIds
           if (preBoxes[preIndex].uuid === undefined) {
-            const preImageIds = this.state.preImageIds
             const preNodule_uuid = this.drawCustomRectangleRoi(currentTarget, preBoxes[preIndex], preImageIds)
+            this.setCustomRetangleActive(currentTarget, preBoxes[preIndex], preImageIds)
             preBoxes[preIndex] = preNodule_uuid
-            this.setState({
-              preBoxes,
-            })
+            this.setState(
+              {
+                preBoxes,
+              },
+              () => {
+                this.setCustomRetangleActive(currentTarget, preBoxes[preIndex], preImageIds)
+              }
+            )
+          } else {
+            this.setCustomRetangleActive(currentTarget, preBoxes[preIndex], preImageIds)
           }
         }
       )
@@ -847,14 +910,37 @@ class FollowUpElement extends Component {
       }
       cornerstoneTools.addToolState(target, 'RectangleRoi', measurementData)
       const toolData = cornerstoneTools.getToolState(target, 'RectangleRoi')
-      console.log('toolData after', toolData)
-      nodule.uuid = toolData.data[0].uuid
-      this.startAnnos()
+      const toolDataIndex = _.findIndex(toolData.data, function (o) {
+        let isEqual = false
+        const oHandles = o.handles
+        if (oHandles) {
+          if (oHandles.start.x === nodule.x1 && oHandles.start.y === nodule.y1 && oHandles.end.x === nodule.x2 && oHandles.end.y === nodule.y2) {
+            isEqual = true
+          }
+        }
+        return isEqual
+      })
+      if (toolDataIndex !== -1) {
+        nodule.uuid = toolData.data[toolDataIndex].uuid
+      }
       // cornerstoneTools.setToolEnabledForElement(target, 'RectangleRoi')
     })
     return nodule
   }
-
+  setCustomRetangleActive(target, nodule, imageIds) {
+    cornerstone.loadImage(imageIds[nodule.slice_idx - 1]).then(() => {
+      let toolData = cornerstoneTools.getToolState(target, 'RectangleRoi')
+      if (toolData && toolData.data && toolData.data.length) {
+        const toolDataIndex = _.findIndex(toolData.data, { uuid: nodule.uuid })
+        const savedData = [].concat(toolData.data)
+        cornerstoneTools.clearToolState(target, 'RectangleRoi')
+        savedData.forEach((savedDataItem, savedDataItemIndex) => {
+          savedDataItem.active = toolDataIndex === savedDataItemIndex
+          cornerstoneTools.addToolState(target, 'RectangleRoi', savedDataItem)
+        })
+      }
+    })
+  }
   noduleTblCheckboxChange(checkedValues) {
     this.setState({ noduleTblCheckedValue: checkedValues })
     console.log('checkedValues', checkedValues)
@@ -2414,7 +2500,7 @@ class FollowUpElement extends Component {
         <div className="content">
           <Row justify="center" align="middle">
             <Col className="histogram-title" span={1}>
-              当前
+              近期
             </Col>
             <Col span={23}>
               <div id="chart-current"></div>
@@ -2422,7 +2508,7 @@ class FollowUpElement extends Component {
           </Row>
           <Row justify="center" align="middle">
             <Col className="histogram-title" span={1}>
-              历史
+              早期
             </Col>
             <Col span={23}>
               <div id="chart-previous"></div>
@@ -2624,7 +2710,7 @@ class FollowUpElement extends Component {
                 </Col> */}
               </Row>
               <Row align="middle" justify="start" id="structured-report-operation">
-                <Col span={3}>
+                <Col span={8} style={{ textAlign: 'start' }}>
                   {noduleTblCheckedValue.includes('match') && !noduleTblCheckedValue.includes('new') && !noduleTblCheckedValue.includes('vanish') ? (
                     <Checkbox
                       className="nodule-filter-desc-checkbox"
@@ -2635,8 +2721,7 @@ class FollowUpElement extends Component {
                     </Checkbox>
                   ) : null}
                 </Col>
-                <Col span={14}></Col>
-                <Col span={7}>
+                <Col span={16} style={{ textAlign: 'end' }}>
                   <Checkbox.Group
                     // style={{ width: "100%" }}
                     className="match-checkbox"
@@ -4054,6 +4139,42 @@ class FollowUpElement extends Component {
       }
     }
   }
+  mousedownFunc = (e) => {
+    let path = e.path
+    if (path && path.length > 2) {
+      if (
+        document.getElementById('followup-histogram-header') &&
+        document.getElementsByClassName('followup-histogram-float-active') &&
+        document.getElementsByClassName('followup-histogram-float-active').length
+      ) {
+        if (path[1] === document.getElementById('followup-histogram-header')) {
+          let initX,
+            initY,
+            element_float = document.getElementsByClassName('followup-histogram-float-active')[0],
+            wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
+            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+          const mousemoveFunc = (mousemoveEvent) => {
+            var nowX = mousemoveEvent.clientX,
+              nowY = mousemoveEvent.clientY,
+              disX = nowX - initX,
+              disY = nowY - initY
+            element_float.style.left = wrapLeft + disX + 'px'
+            element_float.style.top = wrapRight + disY + 'px'
+          }
+          const mouseupFunc = (mouseupEvent) => {
+            wrapLeft = parseInt(window.getComputedStyle(element_float)['left'])
+            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+            window.removeEventListener('mousemove', mousemoveFunc)
+            window.removeEventListener('mouseup', mouseupFunc)
+          }
+          initX = e.clientX
+          initY = e.clientY
+          window.addEventListener('mousemove', mousemoveFunc, false)
+          window.addEventListener('mouseup', mouseupFunc, false)
+        }
+      }
+    }
+  }
   featureAnalysis(idx, e) {
     const activeMatchNewNoduleNo = this.state.registerBoxes.match[idx].later.nodule_no
     const activeMatchPreNoduleNo = this.state.registerBoxes.match[idx].earlier.nodule_no
@@ -4070,47 +4191,6 @@ class FollowUpElement extends Component {
       var histogram_float = document.getElementsByClassName('followup-histogram-float')
       if (histogram_float[0] !== undefined) {
         histogram_float[0].className = 'followup-histogram-float-active'
-        var initX,
-          initY,
-          dragable = false,
-          element_float = document.getElementsByClassName('followup-histogram-float-active')[0],
-          element_drag = document.getElementById('followup-histogram-header'),
-          wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
-          wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
-        console.log('element_drag', element_drag)
-        document.addEventListener(
-          'mousedown',
-          function (e) {
-            let path = e.path
-            if (path && e.path) {
-              if (path[1] === element_drag) {
-                dragable = true
-                initX = e.clientX
-                initY = e.clientY
-              }
-            }
-          },
-          false
-        )
-        document.addEventListener('mousemove', function (e) {
-          if (dragable === true) {
-            var nowX = e.clientX,
-              nowY = e.clientY,
-              disX = nowX - initX,
-              disY = nowY - initY
-            element_float.style.left = wrapLeft + disX + 'px'
-            element_float.style.top = wrapRight + disY + 'px'
-          }
-        })
-        document.addEventListener(
-          'mouseup',
-          function (e) {
-            dragable = false
-            wrapLeft = parseInt(window.getComputedStyle(element_float)['left'])
-            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
-          },
-          false
-        )
       }
       this.plotHistogram(activeMatchNewBox, 'chart-current', maxHU, minHU)
       this.plotHistogram(activeMatchPreBox, 'chart-previous', maxHU, minHU)

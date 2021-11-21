@@ -221,7 +221,99 @@ let modalBtnStyle = {
 }
 
 const { Option } = Select
-
+const boxProtoType = {
+  rect_no: '',
+  patho: '',
+  place: 0,
+  segment: 'None',
+  slice_idx: 0,
+  nodule_no: '',
+  x1: 0,
+  x2: 0,
+  y1: 0,
+  y2: 0,
+  mask_array: [[], [], []],
+  measure: {
+    x1: 0,
+    x2: 0,
+    x3: 0,
+    x4: 0,
+    y1: 0,
+    y2: 0,
+    y3: 0,
+    y4: 0,
+    intersec_x: 0,
+    intersec_y: 0,
+  },
+  diameter: 0,
+  volume: 0,
+  huMax: 0,
+  huMean: 0,
+  huMin: 0,
+  nodule_hist: {
+    n: [],
+    bins: [],
+    mean: 0,
+    var: 0,
+  },
+  '10Percentile': 0,
+  '90Percentile': 0,
+  Energy: 0,
+  Entropy: 0,
+  InterquartileRange: 0,
+  Kurtosis: 0,
+  Maximum: 0,
+  MeanAbsoluteDeviation: 0,
+  Mean: 0,
+  Median: 0,
+  Minimum: 0,
+  Range: 0,
+  RobustMeanAbsoluteDeviation: 0,
+  RootMeanSquared: 0,
+  Skewness: 0,
+  TotalEnergy: 0,
+  Uniformity: 0,
+  Variance: 0,
+  Elongation: 0,
+  Flatness: 0,
+  LeastAxisLength: 0,
+  MajorAxisLength: 0,
+  Maximum2DDiameterColumn: 0,
+  Maximum2DDiameterRow: 0,
+  Maximum2DDiameterSlice: 0,
+  Maximum3DDiameter: 0,
+  MeshVolume: 0,
+  MinorAxisLength: 0,
+  Sphericity: 0,
+  SurfaceArea: 0,
+  SurfaceVolumeRatio: 0,
+  VoxelVolume: 0,
+  Compactness2: 0,
+  density: 0,
+  'IM Number': 0,
+  probability: 0,
+  malignancy: -1,
+  calcification: 1,
+  spiculation: 1,
+  texture: -1,
+  lobulation: 1,
+  pin: 1,
+  cav: 1,
+  vss: 1,
+  bea: 1,
+  bro: 1,
+  malProb: 0,
+  calProb: 0,
+  spiProb: 0,
+  texProb: 0,
+  lobProb: 0,
+  pinProb: 0,
+  cavProb: 0,
+  vssProb: 0,
+  beaProb: 0,
+  broProb: 0,
+  status: 1,
+}
 let buttonflag = 0
 
 class CornerstoneElement extends Component {
@@ -316,7 +408,6 @@ class CornerstoneElement extends Component {
       date: '',
       age: 0,
       temp: 0,
-      dealchoose: '中华共识',
 
       /*新加变量 */
       nodules: [],
@@ -456,8 +547,6 @@ class CornerstoneElement extends Component {
     // this.toPage = this
     //     .toPage
     //     .bind(this)
-    this.highlightNodule = this.highlightNodule.bind(this)
-    this.dehighlightNodule = this.dehighlightNodule.bind(this)
     this.toCurrentModel = this.toCurrentModel.bind(this)
     this.toNewModel = this.toNewModel.bind(this)
     // this.handleClick = this
@@ -470,7 +559,6 @@ class CornerstoneElement extends Component {
     this.closeModalNew = this.closeModalNew.bind(this)
     this.closeModalCur = this.closeModalCur.bind(this)
     this.toMyAnno = this.toMyAnno.bind(this)
-    this.checkHash = this.checkHash.bind(this)
     this.disableAllTools = this.disableAllTools.bind(this)
     this.featureAnalysis = this.featureAnalysis.bind(this)
     this.eraseLabel = this.eraseLabel.bind(this)
@@ -506,8 +594,6 @@ class CornerstoneElement extends Component {
     this.updateDisplay = this.updateDisplay.bind(this)
     //StudyBrowser
     //MiniReport
-
-    this.dealChoose = this.dealChoose.bind(this)
   }
 
   handleSliderChange = (e, { name, value }) => {
@@ -737,8 +823,10 @@ class CornerstoneElement extends Component {
     })
   }
   onConfirmDelNodule(idx) {
-    this.setDelNodule(idx, false)
     const boxes = this.state.boxes
+    boxes.forEach((boxItem) => {
+      boxItem.delOpen = false
+    })
     const measureStateList = this.state.measureStateList
     const listsActiveIndex = this.state.listsActiveIndex
 
@@ -759,39 +847,6 @@ class CornerstoneElement extends Component {
     })
     this.refreshImage(false, this.state.imageIds[boxes[currentActiveIdx].slice_idx], boxes[currentActiveIdx].slice_idx)
     message.success('结节删除成功')
-  }
-
-  highlightNodule(event) {
-    // console.log('in', event.target.textContent)
-    // let boxes = this.state.selectBoxes
-    const boxes = this.state.boxes
-    for (let i = 0; i < boxes.length; i++) {
-      if (parseInt(boxes[i].nodule_no) === event.target.textContent - 1) {
-        boxes[i].highlight = true
-      }
-    }
-    // this.setState({selectBoxes: boxes})
-    this.setState({ boxes: boxes })
-    if (!this.state.show3DVisualization) {
-      this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
-    }
-  }
-
-  dehighlightNodule(event) {
-    // console.log('out', event.target.textContent)
-    // let boxes = this.state.selectBoxes
-    const boxes = this.state.boxes
-    for (let i = 0; i < boxes.length; i++) {
-      if (parseInt(boxes[i].nodule_no) === event.target.textContent - 1) {
-        boxes[i].highlight = false
-      }
-    }
-    // console.log(this.state.boxes, boxes)
-    // this.setState({selectBoxes: boxes})
-    this.setState({ boxes: boxes })
-    if (!this.state.show3DVisualization) {
-      this.refreshImage(false, this.state.imageIds[this.state.currentIdx], this.state.currentIdx)
-    }
   }
 
   closeModalNew() {
@@ -1046,6 +1101,38 @@ class CornerstoneElement extends Component {
       this.disableAllTools(element)
     }
   }
+  mousedownFunc = (e) => {
+    let path = e.path
+    if (path && path.length > 2) {
+      if (document.getElementById('histogram-header') && document.getElementsByClassName('histogram-float-active') && document.getElementsByClassName('histogram-float-active').length) {
+        if (path[1] === document.getElementById('histogram-header')) {
+          let initX,
+            initY,
+            element_float = document.getElementsByClassName('histogram-float-active')[0],
+            wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
+            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+          const mousemoveFunc = (mousemoveEvent) => {
+            var nowX = mousemoveEvent.clientX,
+              nowY = mousemoveEvent.clientY,
+              disX = nowX - initX,
+              disY = nowY - initY
+            element_float.style.left = wrapLeft + disX + 'px'
+            element_float.style.top = wrapRight + disY + 'px'
+          }
+          const mouseupFunc = (mouseupEvent) => {
+            wrapLeft = parseInt(window.getComputedStyle(element_float)['left'])
+            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+            window.removeEventListener('mousemove', mousemoveFunc)
+            window.removeEventListener('mouseup', mouseupFunc)
+          }
+          initX = e.clientX
+          initY = e.clientY
+          window.addEventListener('mousemove', mousemoveFunc, false)
+          window.addEventListener('mouseup', mouseupFunc, false)
+        }
+      }
+    }
+  }
 
   featureAnalysis(idx, e) {
     console.log('特征分析')
@@ -1056,48 +1143,6 @@ class CornerstoneElement extends Component {
     var histogram_float = document.getElementsByClassName('histogram-float')
     if (histogram_float[0] !== undefined) {
       histogram_float[0].className = 'histogram-float-active'
-      var initX,
-        initY,
-        dragable = false,
-        element_float = document.getElementsByClassName('histogram-float-active')[0],
-        element_drag = document.getElementById('histogram-header'),
-        wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
-        wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
-      console.log('element_drag', element_drag)
-      window.addEventListener(
-        'mousedown',
-        function (e) {
-          console.log('e', e)
-          let path = e.path
-          if (path && path.length) {
-            if (path[1] === element_drag) {
-              dragable = true
-              initX = e.clientX
-              initY = e.clientY
-            }
-          }
-        },
-        false
-      )
-      window.addEventListener('mousemove', function (e) {
-        if (dragable === true) {
-          var nowX = e.clientX,
-            nowY = e.clientY,
-            disX = nowX - initX,
-            disY = nowY - initY
-          element_float.style.left = wrapLeft + disX + 'px'
-          element_float.style.top = wrapRight + disY + 'px'
-        }
-      })
-      window.addEventListener(
-        'mouseup',
-        function (e) {
-          dragable = false
-          wrapLeft = parseInt(window.getComputedStyle(element_float)['left'])
-          wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
-        },
-        false
-      )
 
       this.setState({ HUSliderRange: HUSliderRange }, () => {
         this.plotHistogram(idx)
@@ -1273,6 +1318,15 @@ class CornerstoneElement extends Component {
           bottom: '3%',
           top: '10%',
           containLabel: true,
+        },
+        visualMap: {
+          show: false,
+          type: 'piecewise',
+          dimension: 0,
+          pieces,
+          outOfRange: {
+            color: '#59A2E6',
+          },
         },
         xAxis: [
           {
@@ -1969,12 +2023,7 @@ class CornerstoneElement extends Component {
                   <Accordion.Title onClick={this.handleListClick.bind(this, inside.slice_idx, idx)} active={listsActiveIndex === idx}>
                     <div className="nodule-accordion-item-title">
                       <div className="nodule-accordion-item-title-index nodule-accordion-item-title-column">
-                        <div
-                          // onMouseEnter={this.highlightNodule}
-                          // onMouseLeave={this.dehighlightNodule}
-                          style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>
-                          {inside.visibleIdx + 1}
-                        </div>
+                        <div style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>{inside.visibleIdx + 1}</div>
                       </div>
                       <div className="nodule-accordion-item-title-column">
                         <Checkbox
@@ -2291,7 +2340,7 @@ class CornerstoneElement extends Component {
 
                   <div className="threed-accordion-item-content-operation">
                     <div className="threed-accordion-item-content-operation-hist">
-                      <Button size="mini" circular inverted icon="chart bar" title="特征分析"></Button>
+                      <Button size="mini" circular inverted icon="chart bar" title="特征分析" hidden={true}></Button>
                     </div>
                     <div>
                       {lobesController.lobesVisible[index] ? (
@@ -2367,7 +2416,7 @@ class CornerstoneElement extends Component {
                   </div>
                   <div className="threed-accordion-item-content-operation">
                     <div className="threed-accordion-item-content-operation-hist">
-                      <Button size="mini" circular inverted icon="chart bar" title="特征分析"></Button>
+                      <Button size="mini" circular inverted icon="chart bar" title="特征分析" hidden={true}></Button>
                     </div>
                     <div>
                       {tubularController.tubularVisible[index] ? (
@@ -2408,7 +2457,7 @@ class CornerstoneElement extends Component {
           )
         })
       }
-      var range1 = 0,
+      let range1 = 0,
         range1_volume = 0,
         range2 = 0,
         range2_volume = 0,
@@ -2423,13 +2472,22 @@ class CornerstoneElement extends Component {
         quality3_percent = 0,
         overall_quality = 0
 
-      var CT_max = 0,
+      let CT_max = 0,
         CT_min = 0,
         CT_mean = 0,
         CT_std = 0,
-        slice_idx = 0,
+        Sphericity = 0
+      let slice_idx = 0,
+        Maximum = 0,
+        SurfaceArea = 0,
+        Maximum3DDiameter = 0,
         apsidal_mean = 0
-      var marks
+      let Kurtosis = 0,
+        Skewness = 0,
+        Energy = 0,
+        Compactness2 = 0,
+        Entropy = 0
+      let marks
       let searchLE = function (arr, x) {
         var flag = 0
         for (let i = 0; i < arr.length; i++) {
@@ -2510,13 +2568,30 @@ class CornerstoneElement extends Component {
         CT_max = boxes[listsActiveIndex].huMax ? boxes[listsActiveIndex].huMax : 0
         CT_min = boxes[listsActiveIndex].huMin ? boxes[listsActiveIndex].huMin : 0
         CT_mean = boxes[listsActiveIndex].huMean ? boxes[listsActiveIndex].huMean : 0
+        CT_std = boxes[listsActiveIndex].Variance.toFixed(1)
+        Sphericity = boxes[listsActiveIndex].Sphericity.toFixed(1)
+
         slice_idx = boxes[listsActiveIndex].slice_idx + 1
+        Maximum = boxes[listsActiveIndex].Maximum.toFixed(2)
+        SurfaceArea = boxes[listsActiveIndex].SurfaceArea.toFixed(2)
+        Maximum3DDiameter = boxes[listsActiveIndex].Maximum3DDiameter.toFixed(2)
         if (boxes[listsActiveIndex].measure !== null && boxes[listsActiveIndex].measure !== undefined) {
           let measureCoord = boxes[listsActiveIndex].measure
           let ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2))
           let sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2))
           apsidal_mean = ((ll + sl) / 2).toFixed(2)
         }
+
+        Kurtosis = boxes[listsActiveIndex].Kurtosis.toFixed(2)
+        Skewness = boxes[listsActiveIndex].Skewness.toFixed(2)
+        if (boxes[listsActiveIndex].Energy) {
+          let EnergyValue = boxes[listsActiveIndex].Energy
+          let EnergyP = Math.floor(Math.log(EnergyValue) / Math.LN10)
+          let EnergyN = (EnergyValue * Math.pow(10, -EnergyP)).toFixed(0)
+          Energy = EnergyN + 'E' + EnergyP
+        }
+        Compactness2 = boxes[listsActiveIndex].Compactness2.toFixed(2)
+        Entropy = boxes[listsActiveIndex].Entropy.toFixed(2)
       }
 
       histogramFloatWindow = (
@@ -2588,27 +2663,27 @@ class CornerstoneElement extends Component {
                 <tr>
                   <td>{'CT最大值：' + CT_max.toFixed(1) + 'HU'}</td>
                   <td>{'最大层位置：' + 'IM ' + slice_idx}</td>
-                  <td>{'峰度：'}</td>
+                  <td>{`峰度：${Kurtosis}`}</td>
                 </tr>
                 <tr>
                   <td>{'CT最小值：' + CT_min.toFixed(1) + 'HU'}</td>
-                  <td>{'最大面面积：'}</td>
-                  <td>{'偏度：'}</td>
+                  <td>{`最大面面积：${Maximum}mm²`}</td>
+                  <td>{`偏度：${Skewness}`}</td>
                 </tr>
                 <tr>
                   <td>{'CT平均值：' + CT_mean.toFixed(1) + 'HU'}</td>
-                  <td>{'表面积：'}</td>
-                  <td>{'能量：'}</td>
+                  <td>{`表面积：${SurfaceArea}mm²`}</td>
+                  <td>{`能量：${Energy}`}</td>
                 </tr>
                 <tr>
-                  <td>{'CT值方差：'}</td>
-                  <td>{'3D长径：'}</td>
-                  <td>{'紧凑度：'}</td>
+                  <td>{`CT值方差：${CT_std}HU`}</td>
+                  <td>{`3D长径：${Maximum3DDiameter}mm`}</td>
+                  <td>{`紧凑度：${Compactness2}`}</td>
                 </tr>
                 <tr>
-                  <td>{'球型度：'}</td>
-                  <td>{'长短径平均值：' + apsidal_mean + 'mm'}</td>
-                  <td>{'熵：'}</td>
+                  <td>{`球型度：${Sphericity}`}</td>
+                  <td>{`长短径平均值：${apsidal_mean}mm`}</td>
+                  <td>{`熵：${Entropy}`}</td>
                 </tr>
               </tbody>
             </table>
@@ -3372,35 +3447,36 @@ class CornerstoneElement extends Component {
 
                         {show3DVisualization ? (
                           <div id="threed-mask-container" className={verticalMode ? ' threed-mask-container-vertical' : ' threed-mask-container-horizontal'}>
-                            {MPR && painting && maskVolumes && maskVolumes.length ? (
-                              <VTKMaskViewer
-                                viewerStyle={{
-                                  width: `${maskWidth}px`,
-                                  height: `${maskHeight}px`,
-                                  border: '1px solid rgb(103, 118, 173)',
-                                }}
-                                volumes={maskVolumes}
-                                maskWidth={maskWidth}
-                                maskHeight={maskHeight}
-                                paintFilterBackgroundImageData={maskImageData}
-                                paintFilterLabelMapImageData={maskLabelMap}
-                                painting={painting}
-                                parallelScale={maskYLength / 2}
-                                onRef={(ref) => {
-                                  this.viewerMask = ref
-                                }}
-                              />
-                            ) : null
-                            // <div id="lobe-func-container">
-                            //   <div className="lobe-func-header">肺功能</div>
-                            //   <div className="lobe-func-content">
-                            //     <div className="lobe-func-item">第1秒用力呼气容积(fev1)：2.24</div>
-                            //     <div className="lobe-func-item">第1秒用力呼气的容积占预计值的百分比(fev1%pred)：95%</div>
-                            //     <div className="lobe-func-item">用力肺活量(fvc)：3.38</div>
-                            //     <div className="lobe-func-item">用力肺活量占预测值的百分比（fvc%pred)：115%</div>
-                            //     <div className="lobe-func-item">第一秒用力呼气量占所有呼气量的比例(fev1/fvc%)：66.7%</div>
-                            //   </div>
-                            // </div>
+                            {
+                              MPR && painting && maskVolumes && maskVolumes.length ? (
+                                <VTKMaskViewer
+                                  viewerStyle={{
+                                    width: `${maskWidth}px`,
+                                    height: `${maskHeight}px`,
+                                    border: '1px solid rgb(103, 118, 173)',
+                                  }}
+                                  volumes={maskVolumes}
+                                  maskWidth={maskWidth}
+                                  maskHeight={maskHeight}
+                                  paintFilterBackgroundImageData={maskImageData}
+                                  paintFilterLabelMapImageData={maskLabelMap}
+                                  painting={painting}
+                                  parallelScale={maskYLength / 2}
+                                  onRef={(ref) => {
+                                    this.viewerMask = ref
+                                  }}
+                                />
+                              ) : null
+                              // <div id="lobe-func-container">
+                              //   <div className="lobe-func-header">肺功能</div>
+                              //   <div className="lobe-func-content">
+                              //     <div className="lobe-func-item">第1秒用力呼气容积(fev1)：2.24</div>
+                              //     <div className="lobe-func-item">第1秒用力呼气的容积占预计值的百分比(fev1%pred)：95%</div>
+                              //     <div className="lobe-func-item">用力肺活量(fvc)：3.38</div>
+                              //     <div className="lobe-func-item">用力肺活量占预测值的百分比（fvc%pred)：115%</div>
+                              //     <div className="lobe-func-item">第一秒用力呼气量占所有呼气量的比例(fev1/fvc%)：66.7%</div>
+                              //   </div>
+                              // </div>
                             }
                           </div>
                         ) : (
@@ -3931,14 +4007,9 @@ class CornerstoneElement extends Component {
     const yCenter = box.y1 + (box.y2 - box.y1) / 2
     const width = box.x2 - box.x1
     const height = box.y2 - box.y1
-    if (box.highlight === false || box.highlight === undefined) {
-      context.setLineDash([])
-      context.strokeStyle = 'rgb(255, 255, 0)'
-      context.fillStyle = 'rgb(255, 255, 0)'
-    } else {
-      context.strokeStyle = 'blue'
-      context.fillStyle = 'blue'
-    }
+    context.setLineDash([])
+    context.strokeStyle = 'rgb(255, 255, 0)'
+    context.fillStyle = 'rgb(255, 255, 0)'
     context.beginPath()
     const new_y1 = yCenter - height / 2
     context.rect(box.x1, box.y1, width, height)
@@ -4267,8 +4338,10 @@ class CornerstoneElement extends Component {
     const huMax = _.max(data)
     const huMean = _.mean(data)
     const huMin = _.min(data)
+    let huStdSum = 0
     var map = {}
     for (var i = 0; i < data.length; i++) {
+      huStdSum += Math.pow(data[i] - huMean, 2)
       var key = data[i]
       if (map[key]) {
         map[key] += 1
@@ -4276,6 +4349,7 @@ class CornerstoneElement extends Component {
         map[key] = 1
       }
     }
+    const huStd = huStdSum / data.length
     Object.keys(map).sort(function (a, b) {
       return map[b] - map[a]
     })
@@ -4300,43 +4374,39 @@ class CornerstoneElement extends Component {
     var obj = {}
     obj.bins = bins
     obj.n = ns
-    return [obj, huMax, huMean, huMin]
+    return [obj, huMax, huMean, huMin, huStd]
   }
 
   createBox(x1, x2, y1, y2, slice_idx) {
     const imageId = this.state.imageIds[slice_idx]
     // console.log('image', imageId)
-    const [nodule_hist, huMax, huMean, huMin] = this.noduleHist(x1, y1, x2, y2)
+    const [nodule_hist, huMax, huMean, huMin, huStd] = this.noduleHist(x1, y1, x2, y2)
     console.log('coor', x1, x2, y1, y2)
     const volume = Math.abs(x1 - x2) * Math.abs(y1 - y2) * Math.pow(10, -4)
-    const boxes = this.state.boxes
+    let boxes = this.state.boxes
     let visibleIdx
-    if (boxes && boxes.length) {
+    if (this.state.boxes && this.state.boxes.length) {
+      boxes = this.state.boxes
       visibleIdx = _.maxBy(boxes, 'visibleIdx').visibleIdx + 1
     } else {
+      boxes = []
       visibleIdx = 0
     }
     const newBox = {
-      malignancy: -1,
-      texture: -1,
-      patho: '',
+      ...boxProtoType,
       probability: 1,
       slice_idx: slice_idx,
       nodule_hist,
       huMax,
       huMean,
       huMin,
+      Variance: huStd,
       volume,
       x1: x1,
       x2: x2,
       y1: y1,
       y2: y2,
-      highlight: false,
-      diameter: 0.0,
-      place: 0,
-      segment: 'None',
       modified: 1,
-      nodule_no: '',
       prevIdx: '',
       visibleIdx,
       visible: true,
@@ -4410,7 +4480,6 @@ class CornerstoneElement extends Component {
   //         "x2": x2,
   //         "y1": y1,
   //         "y2": y2,
-  //         "highlight": false,
   //         "diameter":0.00,
   //         "place":0,
   //     }
@@ -5093,7 +5162,6 @@ class CornerstoneElement extends Component {
       const x2 = this.state.tmpBox.x2
       const y2 = this.state.tmpBox.y2
       // const boxes = this.state.selectBoxes
-      let boxes = this.state.boxes
       this.createBox(x1, x2, y1, y2, this.state.currentIdx)
       // this.createBox(this.state.tmpBox, this.state.currentIdx, (1+newNodule_no).toString())
     }
@@ -5976,31 +6044,6 @@ class CornerstoneElement extends Component {
       this.refreshImage(false, this.state.imageIds[i], i)
       // console.log('info',cornerstone.imageCache.getCacheInfo())
     }
-  }
-
-  checkHash() {
-    const noduleNo = this.state.noduleNo
-    if (this.state.boxes[noduleNo] !== undefined) {
-      const boxes = this.state.boxes
-      const toIdx = this.state.boxes[noduleNo].slice_idx
-      boxes[noduleNo].highlight = true
-      console.log('noduleNo:', noduleNo)
-
-      this.setState({
-        boxes: boxes,
-        currentIdx: toIdx,
-        // autoRefresh: true
-      })
-    }
-    // if (this.state.boxes[noduleNo] !== undefined) {
-    //   const boxes = this.state.boxes;
-
-    // }
-  }
-
-  dealChoose(e) {
-    // console.log('list',e)
-    this.setState({ dealchoose: e.currentTarget.innerHTML })
   }
 
   exportPDF() {
@@ -7570,6 +7613,7 @@ class CornerstoneElement extends Component {
     }
     this.apis = []
     window.addEventListener('resize', this.resizeScreen.bind(this))
+    window.addEventListener('mousedown', this.mousedownFunc.bind(this), false)
     // this.getNoduleIfos()
 
     if (localStorage.getItem('token') == null) {
@@ -7752,10 +7796,10 @@ class CornerstoneElement extends Component {
             let type
             let order = 0
             if (originType === 'lobe') {
-              order = Math.round(urlItem[urlItem.length - 5])
+              order = Math.round(urlItem.split('_')[2].split('.')[0])
               type = originType + order
             } else if (originType === 'nodule') {
-              order = Math.round(urlItem[urlItem.length - 5])
+              order = Math.round(urlItem.split('_')[3].split('.')[0])
               type = originType
             } else {
               type = originType
@@ -8014,6 +8058,7 @@ class CornerstoneElement extends Component {
     // window.removeEventListener("resize", this.onWindowResize)
     document.removeEventListener('keydown', this.onKeydown)
     window.removeEventListener('resize', this.resizeScreen.bind(this))
+    window.removeEventListener('mousedown', this.mousedownFunc.bind(this))
     // cornerstone.disable(element)
     if (document.getElementById('main')) {
       document.getElementById('main').setAttribute('style', '')
@@ -9314,7 +9359,7 @@ class CornerstoneElement extends Component {
         order: parseInt(this.state.nodules[idx].nodule_no) + 1,
       })
       if (segmentIndex === -1) {
-        message.error('用户新增结节，没有分割结果')
+        message.error('没有分割结果')
         return
       }
       const segment = this.state.segments[segmentIndex]
