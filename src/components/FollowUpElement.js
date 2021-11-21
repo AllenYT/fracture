@@ -2512,6 +2512,10 @@ class FollowUpElement extends Component {
       preMinCT = activeMatchPreBox.huMin
       maxHU = Math.max(curMaxCT, preMaxCT)
       minHU = Math.min(curMinCT, preMinCT)
+      var absHU = Math.ceil((maxHU - minHU) / 150) * 150
+      maxHU = Math.ceil(maxHU / 50) * 50
+      minHU = maxHU - absHU
+
       if (activeMatchNewBox.measure !== null && activeMatchNewBox.measure !== undefined) {
         let newMeasureCoord = activeMatchNewBox.measure
         let new_ll = Math.sqrt(Math.pow(newMeasureCoord.x1 - newMeasureCoord.x2, 2) + Math.pow(newMeasureCoord.y1 - newMeasureCoord.y2, 2))
@@ -2578,9 +2582,10 @@ class FollowUpElement extends Component {
           </Row>
           <Row justify="center">
             <Col span={1}></Col>
-            <Col span={23}>
+            <Col span={22}>
               <Slider range onChange={this.onHUValueChange.bind(this)} value={HUSliderRange} step={50} max={maxHU} min={minHU} />
             </Col>
+            <Col span={1}></Col>
           </Row>
 
           <table id="analysis-table">
@@ -3055,54 +3060,58 @@ class FollowUpElement extends Component {
       firstDocumentId: curMatchBox.documentId,
       secondDocumentId: preMatchBox.documentId,
     }
-    axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
-      let status = matchRes.data.status
-      let earlierBox, laterBox
-      if (status === 'okay') {
-        for (let i = 0; i < registerBoxes['new'].length; i++) {
-          if (curMatchBox.nodule_no === registerBoxes['new'][i].nodule_no) {
-            laterBox = registerBoxes['new'][i]
-            registerBoxes['new'].splice(i, 1)
-            break
+    if (curMatchBox.documentId === preMatchBox.documentId) {
+      message.warning('无法匹配同一结节')
+    } else {
+      axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
+        let status = matchRes.data.status
+        let earlierBox, laterBox
+        if (status === 'okay') {
+          for (let i = 0; i < registerBoxes['new'].length; i++) {
+            if (curMatchBox.nodule_no === registerBoxes['new'][i].nodule_no) {
+              laterBox = registerBoxes['new'][i]
+              registerBoxes['new'].splice(i, 1)
+              break
+            }
+          }
+          for (let i = 0; i < registerBoxes['vanish'].length; i++) {
+            if (preMatchBox.nodule_no === registerBoxes['vanish'][i].nodule_no) {
+              earlierBox = registerBoxes['vanish'][i]
+              registerBoxes['vanish'].splice(i, 1)
+              break
+            }
+          }
+          console.log('earlierBox', earlierBox, laterBox)
+          // registerBoxes['new'].splice(selectedNewIdx, 1)
+          // registerBoxes['vanish'].splice(selectedVanishIdx, 1)
+          // selectedVanishBox[0].checked = false
+          // selectedNewBox[0].checked = false
+          let matchBox = {
+            earlier: earlierBox,
+            later: laterBox,
+          }
+          console.log('matchbox', matchBox)
+          // matchBox.earlier = selectedVanishBox
+          // matchBox['later'] = selectedNewBox
+          registerBoxes['match'].push(matchBox)
+          // registerBoxes['new'].forEach((item) => {
+          //   item.disabled = false
+          // })
+          // registerBoxes['vanish'].forEach((item) => {
+          //   item.disabled = false
+          // })
+          // console.log('onRegisterClick', registerBoxes)
+          this.setState({ registerBoxes })
+          message.success('结节匹配成功')
+        } else if (status === 'failed') {
+          if (matchRes.data.errorCode === 'Match-0001' || matchRes.data.errorCode === 'Match-0002') {
+            message.error('该结节已与其他结节绑定')
+          } else if (matchRes.data.errorCode === 'Match-0003') {
+            message.error('结节在数据库未找到')
           }
         }
-        for (let i = 0; i < registerBoxes['vanish'].length; i++) {
-          if (preMatchBox.nodule_no === registerBoxes['vanish'][i].nodule_no) {
-            earlierBox = registerBoxes['vanish'][i]
-            registerBoxes['vanish'].splice(i, 1)
-            break
-          }
-        }
-        console.log('earlierBox', earlierBox, laterBox)
-        // registerBoxes['new'].splice(selectedNewIdx, 1)
-        // registerBoxes['vanish'].splice(selectedVanishIdx, 1)
-        // selectedVanishBox[0].checked = false
-        // selectedNewBox[0].checked = false
-        let matchBox = {
-          earlier: earlierBox,
-          later: laterBox,
-        }
-        console.log('matchbox', matchBox)
-        // matchBox.earlier = selectedVanishBox
-        // matchBox['later'] = selectedNewBox
-        registerBoxes['match'].push(matchBox)
-        // registerBoxes['new'].forEach((item) => {
-        //   item.disabled = false
-        // })
-        // registerBoxes['vanish'].forEach((item) => {
-        //   item.disabled = false
-        // })
-        // console.log('onRegisterClick', registerBoxes)
-        this.setState({ registerBoxes })
-        message.success('结节匹配成功')
-      } else if (status === 'failed') {
-        if (matchRes.data.errorCode === 'Match-0001' || matchRes.data.errorCode === 'Match-0002') {
-          message.error('该结节已与其他结节绑定')
-        } else if (matchRes.data.errorCode === 'Match-0003') {
-          message.error('结节在数据库未找到')
-        }
-      }
-    })
+      })
+    }
   }
   onHandleMatchNoduleAllCheckChange() {
     const registerBoxes = this.state.registerBoxes
@@ -4248,36 +4257,40 @@ class FollowUpElement extends Component {
           firstDocumentId: selectedNewBox[0].documentId,
           secondDocumentId: selectedVanishBox[0].documentId,
         }
-        axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
-          let status = matchRes.data.status
-          if (status === 'okay') {
-            registerBoxes['new'].splice(selectedNewIdx, 1)
-            registerBoxes['vanish'].splice(selectedVanishIdx, 1)
-            selectedVanishBox[0].checked = false
-            selectedNewBox[0].checked = false
-            let matchBox = {
-              earlier: selectedVanishBox[0],
-              later: selectedNewBox[0],
+        if (selectedNewBox[0].documentId === selectedVanishBox[0].documentId) {
+          message.warning('无法匹配同一结节')
+        } else {
+          axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
+            let status = matchRes.data.status
+            if (status === 'okay') {
+              registerBoxes['new'].splice(selectedNewIdx, 1)
+              registerBoxes['vanish'].splice(selectedVanishIdx, 1)
+              selectedVanishBox[0].checked = false
+              selectedNewBox[0].checked = false
+              let matchBox = {
+                earlier: selectedVanishBox[0],
+                later: selectedNewBox[0],
+              }
+              // matchBox.earlier = selectedVanishBox
+              // matchBox['later'] = selectedNewBox
+              registerBoxes['match'].push(matchBox)
+              registerBoxes['new'].forEach((item) => {
+                item.disabled = false
+              })
+              registerBoxes['vanish'].forEach((item) => {
+                item.disabled = false
+              })
+              console.log('onRegisterClick', registerBoxes)
+              this.setState({ registerBoxes })
+            } else if (status === 'failed') {
+              if (matchRes.data.errorCode === 'Match-0001' || matchRes.data.errorCode === 'Match-0002') {
+                message.error('该结节已与其他结节绑定')
+              } else if (matchRes.data.errorCode === 'Match-0003') {
+                message.error('结节不存在')
+              }
             }
-            // matchBox.earlier = selectedVanishBox
-            // matchBox['later'] = selectedNewBox
-            registerBoxes['match'].push(matchBox)
-            registerBoxes['new'].forEach((item) => {
-              item.disabled = false
-            })
-            registerBoxes['vanish'].forEach((item) => {
-              item.disabled = false
-            })
-            console.log('onRegisterClick', registerBoxes)
-            this.setState({ registerBoxes })
-          } else if (status === 'failed') {
-            if (matchRes.data.errorCode === 'Match-0001' || matchRes.data.errorCode === 'Match-0002') {
-              message.error('该结节已与其他结节绑定')
-            } else if (matchRes.data.errorCode === 'Match-0003') {
-              message.error('结节不存在')
-            }
-          }
-        })
+          })
+        }
       }
     }
   }
@@ -4322,7 +4335,7 @@ class FollowUpElement extends Component {
     const activeMatchPreNoduleNo = this.state.registerBoxes.match[idx].earlier.nodule_no
     console.log('activeMatchNewNoduleNo', activeMatchNewNoduleNo, activeMatchPreNoduleNo)
     if (activeMatchNewNoduleNo !== -1 && activeMatchPreNoduleNo !== -1) {
-      this.setState({ activeMatchNewNoduleNo, activeMatchPreNoduleNo })
+      this.setState({ activeMatchNewNoduleNo, activeMatchPreNoduleNo, activeMatchPreNoduleNo: activeMatchPreNoduleNo })
       const { curBoxes, preBoxes } = this.state
       let curIndex = _.findIndex(curBoxes, { nodule_no: activeMatchNewNoduleNo })
       let activeMatchNewBox = curBoxes[curIndex]
@@ -4330,10 +4343,15 @@ class FollowUpElement extends Component {
       let activeMatchPreBox = preBoxes[preIndex]
       let maxHU = Math.max(activeMatchNewBox.huMax, activeMatchPreBox.huMax)
       let minHU = Math.min(activeMatchNewBox.huMin, activeMatchPreBox.huMin)
+      console.log('featureAna', activeMatchNewBox, activeMatchPreBox, maxHU, minHU)
       var histogram_float = document.getElementsByClassName('followup-histogram-float')
       if (histogram_float[0] !== undefined) {
         histogram_float[0].className = 'followup-histogram-float-active'
       }
+      var absHU = Math.ceil((maxHU - minHU) / 150) * 150
+      let range_maxHU = Math.ceil(maxHU / 50) * 50
+      let range_minHU = range_maxHU - absHU
+      this.setState({ HUSliderRange: [range_minHU, range_maxHU] })
       this.plotHistogram(activeMatchNewBox, 'chart-current', maxHU, minHU)
       this.plotHistogram(activeMatchPreBox, 'chart-previous', maxHU, minHU)
     }
@@ -4344,7 +4362,21 @@ class FollowUpElement extends Component {
     let abs = maxHU - minHU
     let min = 0
     let max = 100
-    console.log('HU', (minHU / box.huMin) * 100, (maxHU / box.huMax) * 100)
+    let searchBetween = function (arr, arr_n, min, max) {
+      var flag = 0
+      for (let i = 0; i < arr.length; i++) {
+        if (arr[i] < max && arr[i] >= min) {
+          if (i === arr.length - 1) {
+            flag = flag + 0
+          } else {
+            flag = flag + arr_n[i]
+          }
+        } else if (arr[i] >= max) {
+          return flag
+        }
+      }
+      return flag
+    }
     var bins = box.nodule_hist.bins
     var ns = box.nodule_hist.n
     const { HUSliderRange } = this.state
@@ -4352,6 +4384,27 @@ class FollowUpElement extends Component {
     let range_max = HUSliderRange[1] * a + b
     var chartDom = document.getElementById(dom)
     console.log('chartdom', chartDom, dom)
+    let series_data = []
+    let axis_data = []
+    for (let i = 0; i <= abs / 10; i++) {
+      // console.log('HUSliderRange', HUSliderRange[0], HUSliderRange[1], min + 1100 * i, min + 1100 * (i + 1))
+      if (HUSliderRange[1] - HUSliderRange[0] <= 10) {
+        if (HUSliderRange[0] >= minHU + 10 * i && HUSliderRange[0] < minHU + 10 * (i + 1)) {
+          range_min = i
+          range_max = i + 1
+        }
+      } else {
+        if (HUSliderRange[0] >= minHU + 10 * i && HUSliderRange[0] < minHU + 10 * (i + 1)) {
+          range_min = i
+        }
+        if (HUSliderRange[1] >= minHU + 10 * i && HUSliderRange[1] < minHU + 10 * (i + 1)) {
+          range_max = i
+        }
+      }
+      let series = searchBetween(bins, ns, minHU + 10 * i, minHU + 10 * (i + 1))
+      series_data.push(series)
+      axis_data.push(minHU + 10 * i)
+    }
     if (echarts.getInstanceByDom(chartDom)) {
       console.log('dispose')
       echarts.dispose(chartDom)
@@ -4377,7 +4430,7 @@ class FollowUpElement extends Component {
           scale: 'true',
           min: min,
           max: max,
-          data: bins,
+          data: axis_data,
           axisTick: {
             alignWithLabel: true,
           },
@@ -4393,7 +4446,7 @@ class FollowUpElement extends Component {
         {
           name: 'count',
           type: 'bar',
-          data: ns,
+          data: series_data,
         },
       ],
       visualMap: {
@@ -4402,7 +4455,7 @@ class FollowUpElement extends Component {
         dimension: 0,
         pieces: [
           {
-            gt: min,
+            // gt: min,
             lte: range_min,
             color: '#447DF1',
           },
@@ -4413,7 +4466,7 @@ class FollowUpElement extends Component {
           },
           {
             gt: range_max,
-            lte: max,
+            // lte: max,
             color: '#46E6FE',
           },
         ],

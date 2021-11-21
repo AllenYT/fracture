@@ -1207,7 +1207,6 @@ class CornerstoneElement extends Component {
           range_max = i
         }
       }
-
       let series = searchBetween(bins, ns, minHU + 150 * i, minHU + 150 * (i + 1))
       series_data.push(series)
       axis_data.push(minHU + 150 * i)
@@ -1285,30 +1284,35 @@ class CornerstoneElement extends Component {
         echarts.dispose(barDom)
       }
       var barChart = echarts.init(barDom)
-      // var minValue = bins[0] - 50
-      // var maxValue = bins[bins.length - 1] + 50
-      // console.log(bins, bins[0] - 50, bins[bins.length - 1] + 50)
-      // var histogram = []
-      // var line = []
-      // for (var i = 0; i < bins.length - 1; i++) {
-      //   var obj = {}
-      //   if (bins[i] >= HUSliderRange[0] && bins[i] < HUSliderRange[1]) {
-      //     // obj.value = [bins[i], bins[i + 1]]
-      //     // obj.count = ns[i]
-      //     // histogram.push(obj)
-      //     histogram.push(bins[i])
-      //     line.push(ns[i])
-      //   }
-      // }
+      series_data = []
+      axis_data = []
+      for (let i = 0; i <= absHU / 10; i++) {
+        // console.log('HUSliderRange', HUSliderRange[0], HUSliderRange[1], min + 1100 * i, min + 1100 * (i + 1))
+        if (HUSliderRange[1] - HUSliderRange[0] <= 10) {
+          if (HUSliderRange[0] >= minHU + 10 * i && HUSliderRange[0] < minHU + 10 * (i + 1)) {
+            range_min = i
+            range_max = i + 1
+          }
+        } else {
+          if (HUSliderRange[0] >= minHU + 10 * i && HUSliderRange[0] < minHU + 10 * (i + 1)) {
+            range_min = i
+          }
+          if (HUSliderRange[1] >= minHU + 10 * i && HUSliderRange[1] < minHU + 10 * (i + 1)) {
+            range_max = i
+          }
+        }
+        let series = searchBetween(bins, ns, minHU + 10 * i, minHU + 10 * (i + 1))
+        series_data.push(series)
+        axis_data.push(minHU + 10 * i)
+      }
 
-      let a = 100 / (maxHU - minHU)
-      let b = 100 - a * maxHU
-      range_min = HUSliderRange[0] * a + b
-      range_max = HUSliderRange[1] * a + b
+      // let a = 100 / (maxHU - minHU)
+      // let b = 100 - a * maxHU
+      // range_min = HUSliderRange[0] * a + b
+      // range_max = HUSliderRange[1] * a + b
       barChart.setOption({
         visualMap: {
           show: false,
-          type: 'piecewise',
           dimension: 0,
           pieces: [
             {
@@ -1346,20 +1350,11 @@ class CornerstoneElement extends Component {
           top: '10%',
           containLabel: true,
         },
-        visualMap: {
-          show: false,
-          type: 'piecewise',
-          dimension: 0,
-          pieces,
-          outOfRange: {
-            color: '#59A2E6',
-          },
-        },
         xAxis: [
           {
             type: 'category',
             scale: 'true',
-            data: bins,
+            data: axis_data,
             axisTick: {
               alignWithLabel: true,
             },
@@ -1378,7 +1373,7 @@ class CornerstoneElement extends Component {
           {
             name: 'count',
             type: 'bar',
-            data: ns,
+            data: series_data,
           },
         ],
       })
@@ -2556,16 +2551,16 @@ class CornerstoneElement extends Component {
       } else if (boxes && boxes.length) {
         // console.log('.bins', boxes[listsActiveIndex].nodule_hist.bins[0])
         var nodule_hist = boxes[listsActiveIndex].nodule_hist.bins
-        if (nodule_hist[nodule_hist.length - 1] > 0) {
-          var maxHU = Math.ceil(nodule_hist[nodule_hist.length - 1] / 50) * 50
-        } else {
-          var maxHU = Math.floor(nodule_hist[nodule_hist.length - 1] / 50) * 50
-        }
-        if (nodule_hist[0] > 0) {
-          var minHU = Math.floor(nodule_hist[0] / 50) * 50
-        } else {
-          var minHU = Math.ceil(nodule_hist[0] / 50) * 50
-        }
+        // if (nodule_hist[nodule_hist.length - 1] > 0) {
+        var maxHU = Math.ceil(nodule_hist[nodule_hist.length - 1] / 50) * 50
+        // } else {
+        //   var maxHU = Math.ceil(nodule_hist[nodule_hist.length - 1] / 50) * 50
+        // }
+        // if (nodule_hist[0] > 0) {
+        var minHU = Math.floor(nodule_hist[0] / 50) * 50
+        // } else {
+        //   var minHU = Math.floor(nodule_hist[0] / 50) * 50
+        // }
         overall_volume = (boxes[listsActiveIndex].volume * Math.pow(10, 3)).toFixed(2)
         range1 = (searchLE(nodule_hist, HUSliderRange[0]) / nodule_hist.length).toFixed(3)
         range1_volume = (range1 * overall_volume).toFixed(2)
