@@ -1167,9 +1167,9 @@ class CornerstoneElement extends Component {
     }
     var bins = boxes[idx].nodule_hist.bins
     var ns = boxes[idx].nodule_hist.n
-    var max = bins[bins.length - 1]
-    var min = bins[0]
-    var abs = Math.ceil((max - min) / 150) * 150
+    var maxHU = bins[bins.length - 1]
+    var minHU = bins[0]
+    var absHU = Math.ceil((maxHU - minHU) / 150) * 150
     // console.log('plotHistogram', idx, boxes[idx], HUSliderRange)
     let searchBetween = function (arr, arr_n, min, max) {
       var flag = 0
@@ -1186,31 +1186,31 @@ class CornerstoneElement extends Component {
       }
       return flag
     }
-    max = Math.ceil(max / 50) * 50
-    min = max - abs
+    maxHU = Math.ceil(maxHU / 50) * 50
+    minHU = maxHU - absHU
     let axis_data = []
     let series_data = []
     let range_min = 0,
       range_max = 0
-    for (let i = 0; i <= abs / 150; i++) {
+    for (let i = 0; i <= absHU / 150; i++) {
       // console.log('HUSliderRange', HUSliderRange[0], HUSliderRange[1], min + 150 * i, min + 150 * (i + 1))
       if (HUSliderRange[1] - HUSliderRange[0] <= 150) {
-        if (HUSliderRange[0] >= min + 150 * i && HUSliderRange[0] < min + 150 * (i + 1)) {
+        if (HUSliderRange[0] >= minHU + 150 * i && HUSliderRange[0] < minHU + 150 * (i + 1)) {
           range_min = i
           range_max = i + 1
         }
       } else {
-        if (HUSliderRange[0] >= min + 150 * i && HUSliderRange[0] < min + 150 * (i + 1)) {
+        if (HUSliderRange[0] >= minHU + 150 * i && HUSliderRange[0] < minHU + 150 * (i + 1)) {
           range_min = i
         }
-        if (HUSliderRange[1] >= min + 150 * i && HUSliderRange[1] < min + 150 * (i + 1)) {
+        if (HUSliderRange[1] >= minHU + 150 * i && HUSliderRange[1] < minHU + 150 * (i + 1)) {
           range_max = i
         }
       }
 
-      let series = searchBetween(bins, ns, min + 150 * i, min + 150 * (i + 1))
+      let series = searchBetween(bins, ns, minHU + 150 * i, minHU + 150 * (i + 1))
       series_data.push(series)
-      axis_data.push(min + 150 * i)
+      axis_data.push(minHU + 150 * i)
     }
     if (range_min === 0 && range_max === 0) {
       range_max = 1
@@ -1285,23 +1285,50 @@ class CornerstoneElement extends Component {
         echarts.dispose(barDom)
       }
       var barChart = echarts.init(barDom)
-      var minValue = bins[0] - 50
-      var maxValue = bins[bins.length - 1] + 50
-      console.log(bins, bins[0] - 50, bins[bins.length - 1] + 50)
-      var histogram = []
-      var line = []
-      for (var i = 0; i < bins.length - 1; i++) {
-        var obj = {}
-        if (bins[i] >= HUSliderRange[0] && bins[i] < HUSliderRange[1]) {
-          // obj.value = [bins[i], bins[i + 1]]
-          // obj.count = ns[i]
-          // histogram.push(obj)
-          histogram.push(bins[i])
-          line.push(ns[i])
-        }
-      }
+      // var minValue = bins[0] - 50
+      // var maxValue = bins[bins.length - 1] + 50
+      // console.log(bins, bins[0] - 50, bins[bins.length - 1] + 50)
+      // var histogram = []
+      // var line = []
+      // for (var i = 0; i < bins.length - 1; i++) {
+      //   var obj = {}
+      //   if (bins[i] >= HUSliderRange[0] && bins[i] < HUSliderRange[1]) {
+      //     // obj.value = [bins[i], bins[i + 1]]
+      //     // obj.count = ns[i]
+      //     // histogram.push(obj)
+      //     histogram.push(bins[i])
+      //     line.push(ns[i])
+      //   }
+      // }
+
+      let a = 100 / (maxHU - minHU)
+      let b = 100 - a * maxHU
+      range_min = HUSliderRange[0] * a + b
+      range_max = HUSliderRange[1] * a + b
       barChart.setOption({
-        // color: ['#00FFFF'],
+        visualMap: {
+          show: false,
+          type: 'piecewise',
+          dimension: 0,
+          pieces: [
+            {
+              lte: range_min,
+              color: '#447DF1',
+            },
+            {
+              gt: range_min,
+              lte: range_max,
+              color: '#59A2E6',
+            },
+            {
+              gt: range_max,
+              color: '#46E6FE',
+            },
+          ],
+          outOfRange: {
+            color: '#59A2E6',
+          },
+        },
         tooltip: {
           trigger: 'axis',
           axisPointer: {
@@ -1332,7 +1359,7 @@ class CornerstoneElement extends Component {
           {
             type: 'category',
             scale: 'true',
-            data: histogram,
+            data: bins,
             axisTick: {
               alignWithLabel: true,
             },
@@ -1351,7 +1378,7 @@ class CornerstoneElement extends Component {
           {
             name: 'count',
             type: 'bar',
-            data: line,
+            data: ns,
           },
         ],
       })
@@ -7526,11 +7553,13 @@ class CornerstoneElement extends Component {
       this.setState({
         sliderMarks,
       })
+      this.toPulmonary()
     } else if (activeKey === '2') {
       const sliderMarks = this.state.lymphMarks
       this.setState({
         sliderMarks,
       })
+      this.toMedia()
     }
   }
   async componentDidMount() {

@@ -285,7 +285,10 @@
 .followup-histogram-float {
   display: none;
 }
-
+.VDTText .VDTText-highlight {
+  color: #fcaf17;
+  font-weight: bold;
+}
 .followup-histogram-float-active {
   position: absolute;
   left: 5%;
@@ -360,4 +363,9 @@
   position: relative;
   left: 15px;
   font-weight: bold;
+}
+.antd-tag-custom-color {
+  background: transparent !important;
+  border: 1px solid white !important;
+  color: white !important;
 }

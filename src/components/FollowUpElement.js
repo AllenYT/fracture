@@ -1242,6 +1242,7 @@ class FollowUpElement extends Component {
         }
         let representArray = []
         let locationValues = ''
+        let matchInfo = ''
         const visualId = 'visual-' + idx
         let ll = 0
         let sl = 0
@@ -1305,7 +1306,20 @@ class FollowUpElement extends Component {
             locationValues = ['无法定位']
           }
         }
-
+        var matchFlag = false
+        if (registerBoxes.match && registerBoxes.match.length) {
+          for (let i = 0; i < registerBoxes.match.length; i++) {
+            if (registerBoxes.match[i].later.nodule_no === inside.nodule_no) {
+              const previousIdx = _.findIndex(preBoxes, { nodule_no: registerBoxes.match[i].earlier.nodule_no })
+              matchInfo = <Tag className="antd-tag-custom-color">{`P${previousIdx + 1}匹配`}</Tag>
+              matchFlag = true
+              break
+            }
+          }
+        }
+        if (!matchFlag) {
+          matchInfo = <Tag className="antd-tag-custom-color">未匹配</Tag>
+        }
         // if(this.state.readonly){
         if (inside.visible) {
           return (
@@ -1327,7 +1341,7 @@ class FollowUpElement extends Component {
                   <div className="nodule-accordion-item-title-type nodule-accordion-item-title-column">
                     <Select
                       className="nodule-accordion-item-title-select"
-                      dropdownMatchSelectWidth={true}
+                      dropdownMatchSelectWidth={false}
                       defaultValue={inside.texture}
                       value={inside.texture}
                       bordered={false}
@@ -1377,6 +1391,7 @@ class FollowUpElement extends Component {
                       <Select
                         className={'nodule-accordion-item-title-select ' + ` nodule-accordion-item-title-select-${inside.malignancy}`}
                         defaultValue={inside.malignancy}
+                        dropdownMatchSelectWidth={false}
                         value={inside.malignancy}
                         bordered={false}
                         showArrow={false}
@@ -1407,7 +1422,17 @@ class FollowUpElement extends Component {
               {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
             </Grid.Column> */}
                     <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}</div>
-                    <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
+                    <div className="nodule-accordion-item-content-info-hu">
+                      <div className="nodule-accordion-item-content-info-hublock">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
+                      <div className="nodule-accordion-item-content-info-mblock">
+                        <div className="nodule-accordion-item-content-info-match">{matchInfo}</div>
+                        {matchFlag ? (
+                          <div className="nodule-accordion-item-content-info-match-delete">
+                            <Icon inverted color="grey" name="trash alternate" onClick={this.onConfirmDelNodule.bind(this, idx, 'current')}></Icon>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
                   {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
                                         <select id={texId} style={selectStyle} defaultValue="" disabled>
@@ -1476,6 +1501,7 @@ class FollowUpElement extends Component {
         }
         let representArray = []
         let locationValues = ''
+        let matchInfo = ''
         const visualId = 'visual-' + idx
         let ll = 0
         let sl = 0
@@ -1539,6 +1565,20 @@ class FollowUpElement extends Component {
             locationValues = ['无法定位']
           }
         }
+        var matchFlag = false
+        if (registerBoxes.match && registerBoxes.match.length) {
+          for (let i = 0; i < registerBoxes.match.length; i++) {
+            if (registerBoxes.match[i].earlier.nodule_no === inside.nodule_no) {
+              const currentIdx = _.findIndex(curBoxes, { nodule_no: registerBoxes.match[i].later.nodule_no })
+              matchInfo = <Tag className="antd-tag-custom-color">{`N${currentIdx + 1}匹配`}</Tag>
+              matchFlag = true
+              break
+            }
+          }
+        }
+        if (!matchFlag) {
+          matchInfo = <Tag className="antd-tag-custom-color">未匹配</Tag>
+        }
 
         // if(this.state.readonly){
         if (inside.visible) {
@@ -1558,10 +1598,10 @@ class FollowUpElement extends Component {
                     <div className="nodule-accordion-item-title-slice-idx">{parseInt(inside.slice_idx)}</div>
                     {/* </Checkbox> */}
                   </div>
-                  <div className="nodule-accordion-item-title-type">
+                  <div className="nodule-accordion-item-title-type nodule-accordion-item-title-column">
                     <Select
-                      className="nodule-accordion-item-title-select nodule-accordion-item-title-column"
-                      dropdownMatchSelectWidth={true}
+                      className="nodule-accordion-item-title-select"
+                      dropdownMatchSelectWidth={false}
                       defaultValue={inside.texture}
                       value={inside.texture}
                       bordered={false}
@@ -1610,6 +1650,7 @@ class FollowUpElement extends Component {
                       <Select
                         className={'nodule-accordion-item-title-select ' + ` nodule-accordion-item-title-select-${inside.malignancy}`}
                         defaultValue={inside.malignancy}
+                        dropdownMatchSelectWidth={false}
                         value={inside.malignancy}
                         bordered={false}
                         showArrow={false}
@@ -1640,7 +1681,17 @@ class FollowUpElement extends Component {
               {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
             </Grid.Column> */}
                     <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}</div>
-                    <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
+                    <div className="nodule-accordion-item-content-info-hu">
+                      <div className="nodule-accordion-item-content-info-hublock">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
+                      <div className="nodule-accordion-item-content-info-mblock">
+                        <div className="nodule-accordion-item-content-info-match">{matchInfo}</div>
+                        {matchFlag ? (
+                          <div className="nodule-accordion-item-content-info-match-delete">
+                            <Icon inverted color="grey" name="trash alternate" onClick={this.onConfirmDelNodule.bind(this, idx, 'previous')}></Icon>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
                   {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
                                         <select id={texId} style={selectStyle} defaultValue="" disabled>
@@ -1885,7 +1936,10 @@ class FollowUpElement extends Component {
                   倍增时间: <p className="doublingTypeText">{doublingType}</p>
                 </Col>
                 <Col span={3} className="register-nodule-card-content-first">
-                  <p className="VDTText">{'VDT : ' + VDT}</p>
+                  <p className="VDTText">
+                    {'VDT : '}
+                    <span className={VDT > 400 ? 'VDTText-highlight' : ''}>{VDT}</span>
+                  </p>
                 </Col>
                 <Col span={3} className="register-nodule-card-content-first">
                   <p className="MDTText">{'MDT : ' + MDT}</p>
@@ -1905,7 +1959,7 @@ class FollowUpElement extends Component {
                   密度：
                   <Select
                     className="nodule-accordion-item-title-select"
-                    dropdownMatchSelectWidth={true}
+                    dropdownMatchSelectWidth={false}
                     defaultValue={newNodule.texture}
                     value={newNodule.texture}
                     bordered={false}
@@ -2001,7 +2055,7 @@ class FollowUpElement extends Component {
                   密度：
                   <Select
                     className="nodule-accordion-item-title-select"
-                    dropdownMatchSelectWidth={true}
+                    dropdownMatchSelectWidth={false}
                     defaultValue={previousNodule.texture}
                     value={previousNodule.texture}
                     bordered={false}
@@ -2189,7 +2243,7 @@ class FollowUpElement extends Component {
                   密度：
                   <Select
                     className="nodule-accordion-item-title-select"
-                    dropdownMatchSelectWidth={true}
+                    dropdownMatchSelectWidth={false}
                     defaultValue={value.texture}
                     value={value.texture}
                     bordered={false}
@@ -2358,7 +2412,7 @@ class FollowUpElement extends Component {
                   密度：
                   <Select
                     className="nodule-accordion-item-title-select"
-                    dropdownMatchSelectWidth={true}
+                    dropdownMatchSelectWidth={false}
                     defaultValue={value.texture}
                     value={value.texture}
                     bordered={false}
@@ -2440,7 +2494,8 @@ class FollowUpElement extends Component {
       new_apsidal_mean = 0,
       pre_apsidal_mean = 0,
       newArea = 0,
-      preArea = 0
+      preArea = 0,
+      noduleMatchStatus = false
 
     if (activeMatchNewNoduleNo !== -1 && activeMatchPreNoduleNo !== -1) {
       let curIndex = _.findIndex(curBoxes, { nodule_no: activeMatchNewNoduleNo })
@@ -2469,6 +2524,13 @@ class FollowUpElement extends Component {
         let pre_sl = Math.sqrt(Math.pow(preMeasureCoord.x3 - preMeasureCoord.x4, 2) + Math.pow(preMeasureCoord.y3 - preMeasureCoord.y4, 2))
         pre_apsidal_mean = ((pre_ll + pre_sl) / 2).toFixed(2)
       }
+      if (registerBoxes.match && registerBoxes.match.length) {
+        registerBoxes.match.map((value, index) => {
+          if (value.later.nodule_no === activeMatchNewNo && value.earlier.nodule_no === activeMatchPreNo) {
+            noduleMatchStatus = true
+          }
+        })
+      }
     }
 
     // if (activeMatchNewNoduleNo !== -1 && activeMatchPreNoduleNo !== -1) {
@@ -2480,7 +2542,7 @@ class FollowUpElement extends Component {
             <p>随访病灶特征分析</p>
           </div>
           <div id="followup-title-2">
-            <p>{`当前N${activeMatchNewNo}结节 & 历史P${activeMatchPreNo}号结节`}</p>
+            <p>{`近期N${activeMatchNewNo}结节 & 早期P${activeMatchPreNo}号结节`}</p>
           </div>
           <div id="followup-icon">
             <Icon
@@ -2857,41 +2919,121 @@ class FollowUpElement extends Component {
     })
   }
   onConfirmDelNodule(idx, status) {
-    this.setDelNodule(idx, status, false)
-    //cancel register api：caseId, idx
-    const registerBoxes = this.state.registerBoxes
+    const { curBoxes, preBoxes, registerBoxes } = this.state
     var selectedBox, unselectedBox
-    if (status === 'later') {
-      selectedBox = registerBoxes['match'][idx]['later']
-      unselectedBox = registerBoxes['match'][idx]['earlier']
-    } else {
-      selectedBox = registerBoxes['match'][idx]['earlier']
-      unselectedBox = registerBoxes['match'][idx]['later']
-    }
-
-    const deleteMatchParams = {
-      patientId: registerBoxes.patientId,
-      noduleDocumentId: registerBoxes['match'][idx][status].documentId,
-    }
-    axios.post(this.config.nodule.deleteNoduleMatch, qs.stringify(deleteMatchParams)).then((deleteRes) => {
-      if (deleteRes.data.status === 'okay') {
-        selectedBox.checked = false
-        unselectedBox.checked = false
-        selectedBox.disabled = false
-        unselectedBox.disabled = false
-        selectedBox.cancelOpen = false
-        registerBoxes['match'].splice(idx, 1)
-        registerBoxes['vanish'].push(unselectedBox)
-        registerBoxes['new'].push(selectedBox)
-        this.setState({
-          registerBoxes,
-          matchListsActiveIndex: -1,
+    if (status === 'current') {
+      let matchIdx = -1
+      selectedBox = curBoxes[idx]
+      if (registerBoxes.match && registerBoxes.match.length) {
+        registerBoxes.match.map((value, index) => {
+          if (value.later.nodule_no === selectedBox.nodule_no) {
+            unselectedBox = value.earlier
+            matchIdx = index
+          }
         })
-        message.success('P' + unselectedBox.nodule_no + '和N' + selectedBox.nodule_no + '号结节取消配准成功')
-      } else {
-        message.success('取消匹配失败，未找到该结节！')
       }
-    })
+      const previousIdx = _.findIndex(preBoxes, { nodule_no: unselectedBox.nodule_no })
+      const deleteMatchParams = {
+        patientId: registerBoxes.patientId,
+        noduleDocumentId: selectedBox.documentId,
+      }
+      axios.post(this.config.nodule.deleteNoduleMatch, qs.stringify(deleteMatchParams)).then((deleteRes) => {
+        if (deleteRes.data.status === 'okay') {
+          if (matchIdx !== -1) {
+            selectedBox.checked = false
+            unselectedBox.checked = false
+            selectedBox.disabled = false
+            unselectedBox.disabled = false
+            selectedBox.cancelOpen = false
+            registerBoxes['match'].splice(matchIdx, 1)
+            registerBoxes['vanish'].push(unselectedBox)
+            registerBoxes['new'].push(selectedBox)
+            this.setState({
+              registerBoxes,
+              matchListsActiveIndex: -1,
+            })
+            message.success(`P${previousIdx}和N${idx}号结节取消配准成功`)
+          } else {
+            message.warning('取消匹配失败，未找到该匹配结节！')
+          }
+        } else {
+          message.warning('取消匹配失败，未找到该结节！')
+        }
+      })
+    } else if (status === 'previous') {
+      let matchIdx = -1
+      selectedBox = preBoxes[idx]
+      if (registerBoxes.match && registerBoxes.match.length) {
+        registerBoxes.match.map((value, index) => {
+          if (value.earlier.nodule_no === selectedBox.nodule_no) {
+            unselectedBox = value.later
+            matchIdx = index
+          }
+        })
+      }
+      const currentIdx = _.findIndex(curBoxes, { nodule_no: unselectedBox.nodule_no })
+      const deleteMatchParams = {
+        patientId: registerBoxes.patientId,
+        noduleDocumentId: selectedBox.documentId,
+      }
+      axios.post(this.config.nodule.deleteNoduleMatch, qs.stringify(deleteMatchParams)).then((deleteRes) => {
+        if (deleteRes.data.status === 'okay') {
+          if (matchIdx !== -1) {
+            selectedBox.checked = false
+            unselectedBox.checked = false
+            selectedBox.disabled = false
+            unselectedBox.disabled = false
+            selectedBox.cancelOpen = false
+            registerBoxes['match'].splice(matchIdx, 1)
+            registerBoxes['vanish'].push(selectedBox)
+            registerBoxes['new'].push(unselectedBox)
+            this.setState({
+              registerBoxes,
+              matchListsActiveIndex: -1,
+            })
+            message.success(`P${idx}和N${currentIdx}号结节取消配准成功`)
+          } else {
+            message.warning('取消匹配失败，未找到该匹配结节！')
+          }
+        } else {
+          message.warning('取消匹配失败，未找到该结节！')
+        }
+      })
+    } else {
+      this.setDelNodule(idx, status, false)
+      //cancel register api：caseId, idx
+      if (status === 'later') {
+        selectedBox = registerBoxes['match'][idx]['later']
+        unselectedBox = registerBoxes['match'][idx]['earlier']
+      } else {
+        selectedBox = registerBoxes['match'][idx]['earlier']
+        unselectedBox = registerBoxes['match'][idx]['later']
+      }
+
+      const deleteMatchParams = {
+        patientId: registerBoxes.patientId,
+        noduleDocumentId: registerBoxes['match'][idx][status].documentId,
+      }
+      axios.post(this.config.nodule.deleteNoduleMatch, qs.stringify(deleteMatchParams)).then((deleteRes) => {
+        if (deleteRes.data.status === 'okay') {
+          selectedBox.checked = false
+          unselectedBox.checked = false
+          selectedBox.disabled = false
+          unselectedBox.disabled = false
+          selectedBox.cancelOpen = false
+          registerBoxes['match'].splice(idx, 1)
+          registerBoxes['vanish'].push(unselectedBox)
+          registerBoxes['new'].push(selectedBox)
+          this.setState({
+            registerBoxes,
+            matchListsActiveIndex: -1,
+          })
+          message.success('P' + unselectedBox.nodule_no + '和N' + selectedBox.nodule_no + '号结节取消配准成功')
+        } else {
+          message.success('取消匹配失败，未找到该结节！')
+        }
+      })
+    }
   }
   onNoduleMatch() {
     const { curBoxes, preBoxes, curListsActiveIndex, preListsActiveIndex, registerBoxes } = this.state
@@ -4199,6 +4341,7 @@ class FollowUpElement extends Component {
   plotHistogram(box, dom, maxHU, minHU) {
     let a = 100 / (maxHU - minHU)
     let b = 100 - a * maxHU
+    let abs = maxHU - minHU
     let min = 0
     let max = 100
     console.log('HU', (minHU / box.huMin) * 100, (maxHU / box.huMax) * 100)
