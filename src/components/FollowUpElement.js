@@ -188,7 +188,7 @@ class FollowUpElement extends Component {
         //   // toolColors: "white",
         // },
       ],
-      activeTool: 'Wwwc',
+      activeTool: props.followUpActiveTool,
       curVoi: {
         windowCenter: -600,
         windowWidth: 1600,
@@ -240,6 +240,7 @@ class FollowUpElement extends Component {
     this.props.onRef(this)
     console.log('followup props', this.props)
     this.props.setFollowUpLoadingCompleted(false)
+    this.props.setFollowUpActiveTool('Wwwc')
     const curInfo = this.props.curInfo
     if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
       const curImagePromise = curInfo.curImageIds.map((curImageId) => cornerstone.loadAndCacheImage(curImageId))
@@ -279,6 +280,7 @@ class FollowUpElement extends Component {
 
     this.resizeScreen()
     this.template()
+
     window.addEventListener('resize', this.resizeScreen.bind(this))
     window.addEventListener('mousedown', this.mousedownFunc.bind(this), false)
   }
@@ -287,6 +289,11 @@ class FollowUpElement extends Component {
     // document.getElementById('header').style.display = 'none'
   }
   componentWillUnmount() {
+    const targets = document.getElementsByClassName('viewport-element')
+    cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
+    cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
+    console.log("componentWillUnmount", cornerstoneTools.getToolState(targets[0], 'RectangleRoi'))
+    console.log("componentWillUnmount", cornerstoneTools.getToolState(targets[1], 'RectangleRoi'))
     window.removeEventListener('resize', this.resizeScreen.bind(this))
     window.removeEventListener('mousedown', this.mousedownFunc.bind(this))
     //阻止异步操作
@@ -426,6 +433,9 @@ class FollowUpElement extends Component {
         this.setState({
           curImageIdsLoadingCompleted: false,
         })
+        const targets = document.getElementsByClassName('viewport-element')
+        cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
+        cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
         const curImagePromise = curInfo.curImageIds.map((curImageId) => cornerstone.loadAndCacheImage(curImageId))
         Promise.all(curImagePromise).then(() => {
           this.setState({ curImageIdsLoadingCompleted: true })
@@ -450,6 +460,9 @@ class FollowUpElement extends Component {
         this.setState({
           preImageIdsLoadingCompleted: false,
         })
+        const targets = document.getElementsByClassName('viewport-element')
+        cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
+        cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
         const preImagePromise = preInfo.preImageIds.map((preImageId) => cornerstone.loadAndCacheImage(preImageId))
         Promise.all(preImagePromise).then(() => {
           this.setState({ preImageIdsLoadingCompleted: true })
@@ -676,13 +689,14 @@ class FollowUpElement extends Component {
                   cornerstone.loadImage(curImageIds[currentIdx - 1]).then(() => {
                     let toolData = cornerstoneTools.getToolState(currentTarget, 'RectangleRoi')
                     if (toolData && toolData.data && toolData.data.length) {
-                      console.log('cur addToolState')
                       const toolDataIndex = _.findIndex(toolData.data, { uuid: curBoxes[i].uuid })
                       const savedData = [].concat(toolData.data)
                       cornerstoneTools.clearToolState(currentTarget, 'RectangleRoi')
                       savedData.forEach((savedDataItem, savedDataItemIndex) => {
-                        savedDataItem.active = toolDataIndex === savedDataItemIndex
-                        cornerstoneTools.addToolState(currentTarget, 'RectangleRoi', savedDataItem)
+                        if(_.findIndex(curBoxes, {uuid:savedDataItem.uuid}) !== -1){
+                          savedDataItem.active = toolDataIndex === savedDataItemIndex
+                          cornerstoneTools.addToolState(currentTarget, 'RectangleRoi', savedDataItem)
+                        }
                       })
                     }
                   })
@@ -763,13 +777,14 @@ class FollowUpElement extends Component {
                   cornerstone.loadImage(preImageIds[currentIdx - 1]).then(() => {
                     let toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
                     if (toolData && toolData.data && toolData.data.length) {
-                      console.log('pre addToolState')
                       const toolDataIndex = _.findIndex(toolData.data, { uuid: preBoxes[i].uuid })
                       const savedData = [].concat(toolData.data)
                       cornerstoneTools.clearToolState(previousTarget, 'RectangleRoi')
                       savedData.forEach((savedDataItem, savedDataItemIndex) => {
-                        savedDataItem.active = toolDataIndex === savedDataItemIndex
-                        cornerstoneTools.addToolState(previousTarget, 'RectangleRoi', savedDataItem)
+                        if(_.findIndex(preBoxes, {uuid:savedDataItem.uuid}) !== -1){
+                          savedDataItem.active = toolDataIndex === savedDataItemIndex
+                          cornerstoneTools.addToolState(previousTarget, 'RectangleRoi', savedDataItem)
+                        }
                       })
                     }
                   })
@@ -825,11 +840,11 @@ class FollowUpElement extends Component {
                 curBoxes,
               },
               () => {
-                this.setCustomRetangleActive(currentTarget, curBoxes[curIndex], curImageIds)
+                this.setCustomRetangleActive(currentTarget, curBoxes[curIndex], curImageIds, curBoxes)
               }
             )
           } else {
-            this.setCustomRetangleActive(currentTarget, curBoxes[curIndex], curImageIds)
+            this.setCustomRetangleActive(currentTarget, curBoxes[curIndex], curImageIds, curBoxes)
           }
         }
       )
@@ -859,18 +874,17 @@ class FollowUpElement extends Component {
           const preImageIds = this.state.preImageIds
           if (preBoxes[preIndex].uuid === undefined) {
             const preNodule_uuid = this.drawCustomRectangleRoi(currentTarget, preBoxes[preIndex], preImageIds)
-            this.setCustomRetangleActive(currentTarget, preBoxes[preIndex], preImageIds)
             preBoxes[preIndex] = preNodule_uuid
             this.setState(
               {
                 preBoxes,
               },
               () => {
-                this.setCustomRetangleActive(currentTarget, preBoxes[preIndex], preImageIds)
+                this.setCustomRetangleActive(currentTarget, preBoxes[preIndex], preImageIds, preBoxes)
               }
             )
           } else {
-            this.setCustomRetangleActive(currentTarget, preBoxes[preIndex], preImageIds)
+            this.setCustomRetangleActive(currentTarget, preBoxes[preIndex], preImageIds, preBoxes)
           }
         }
       )
@@ -927,7 +941,7 @@ class FollowUpElement extends Component {
     })
     return nodule
   }
-  setCustomRetangleActive(target, nodule, imageIds) {
+  setCustomRetangleActive(target, nodule, imageIds, boxes) {
     cornerstone.loadImage(imageIds[nodule.slice_idx - 1]).then(() => {
       let toolData = cornerstoneTools.getToolState(target, 'RectangleRoi')
       if (toolData && toolData.data && toolData.data.length) {
@@ -935,8 +949,11 @@ class FollowUpElement extends Component {
         const savedData = [].concat(toolData.data)
         cornerstoneTools.clearToolState(target, 'RectangleRoi')
         savedData.forEach((savedDataItem, savedDataItemIndex) => {
-          savedDataItem.active = toolDataIndex === savedDataItemIndex
-          cornerstoneTools.addToolState(target, 'RectangleRoi', savedDataItem)
+          if(_.findIndex(boxes, {uuid: savedDataItem.uuid}) !== -1){
+            savedDataItem.active = toolDataIndex === savedDataItemIndex
+            cornerstoneTools.addToolState(target, 'RectangleRoi', savedDataItem)
+          }
+
         })
       }
     })
@@ -1952,7 +1969,7 @@ class FollowUpElement extends Component {
                 <Col span={2}>{'IM' + newNodule.slice_idx}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{newNoduleLength.toFixed(1) + '*' + newNoduleWidth.toFixed(1) + 'mm'}</div>
-                  <div className="register-nodule-card-text register-nodule-card-text-volume">{newNodule.volume !== undefined ? Math.floor(newNodule.volume * 1000).toFixed(1) + '\xa0mm³' : null}</div>
+                  <div className="register-nodule-card-text register-nodule-card-text-volume">{newNodule.volume !== undefined ? Math.floor(newNodule.volume * 1000).toFixed(1) + 'mm³' : null}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-hu">{newNodule.huMin + '~' + newNodule.huMax + 'HU'}</div>
                 </Col>
                 <Col span={4} className="register-nodule-card-select-center">
@@ -2047,7 +2064,7 @@ class FollowUpElement extends Component {
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{preNoduleLength.toFixed(1) + '*' + preNoduleWidth.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">
-                    {previousNodule.volume !== undefined ? Math.floor(previousNodule.volume * 1000).toFixed(1) + '\xa0mm³' : null}
+                    {previousNodule.volume !== undefined ? Math.floor(previousNodule.volume * 1000).toFixed(1) + 'mm³' : null}
                   </div>
                   <div className="register-nodule-card-text register-nodule-card-text-hu">{previousNodule.huMin + '~' + previousNodule.huMax + 'HU'}</div>
                 </Col>
@@ -2236,7 +2253,7 @@ class FollowUpElement extends Component {
                 <Col span={2}>{'IM ' + value['slice_idx']}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{ll.toFixed(1) + '*' + sl.toFixed(1) + 'mm'}</div>
-                  <div className="register-nodule-card-text register-nodule-card-text-volume">{value.volume !== undefined ? Math.floor(value.volume * 1000).toFixed(1) + '\xa0mm³' : null}</div>
+                  <div className="register-nodule-card-text register-nodule-card-text-volume">{value.volume !== undefined ? Math.floor(value.volume * 1000).toFixed(1) + 'mm³' : null}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-hu">{value.huMin + '~' + value.huMax + 'HU'}</div>
                 </Col>
                 <Col span={4} className="register-nodule-card-select-center">
@@ -2405,7 +2422,7 @@ class FollowUpElement extends Component {
                 <Col span={2}>{'IM ' + value['slice_idx']}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{ll.toFixed(1) + '*' + sl.toFixed(1) + 'mm'}</div>
-                  <div className="register-nodule-card-text register-nodule-card-text-volume">{value.volume !== undefined ? Math.floor(value.volume * 1000).toFixed(1) + '\xa0mm³' : null}</div>
+                  <div className="register-nodule-card-text register-nodule-card-text-volume">{value.volume !== undefined ? Math.floor(value.volume * 1000).toFixed(1) + 'mm³' : null}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-hu">{value.huMin + '~' + value.huMax + 'HU'}</div>
                 </Col>
                 <Col span={4} className="register-nodule-card-select-center">
@@ -3060,8 +3077,8 @@ class FollowUpElement extends Component {
       firstDocumentId: curMatchBox.documentId,
       secondDocumentId: preMatchBox.documentId,
     }
-    if (curMatchBox.documentId === preMatchBox.documentId) {
-      message.warning('无法匹配同一结节')
+    if (this.state.curCaseId === this.state.preCaseId) {
+      message.error('同一CT的结节无法匹配')
     } else {
       axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
         let status = matchRes.data.status
@@ -4247,8 +4264,10 @@ class FollowUpElement extends Component {
         selectedVanishIdx = index
       }
     })
-    if (selectedNewBox.length === 0 || selectedVanishBox.length === 0) {
-      message.warning('请选择需要匹配的结节！')
+    if(this.state.curCaseId === this.state.preCaseId){
+      message.error('同一CT的结节无法匹配')
+    }else if (selectedNewBox.length === 0 || selectedVanishBox.length === 0) {
+      message.warning('请选择需要匹配的结节')
     } else if (selectedNewBox.length === 1 && selectedVanishBox.length === 1) {
       //api,caseId-nodule_no*2
       if (selectedNewIdx !== -1 && selectedVanishIdx !== -1) {
@@ -4257,9 +4276,6 @@ class FollowUpElement extends Component {
           firstDocumentId: selectedNewBox[0].documentId,
           secondDocumentId: selectedVanishBox[0].documentId,
         }
-        if (selectedNewBox[0].documentId === selectedVanishBox[0].documentId) {
-          message.warning('无法匹配同一结节')
-        } else {
           axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
             let status = matchRes.data.status
             if (status === 'okay') {
@@ -4290,7 +4306,7 @@ class FollowUpElement extends Component {
               }
             }
           })
-        }
+        
       }
     }
   }
@@ -4487,6 +4503,7 @@ export default connect(
     return {
       isDragging: state.dataCenter.isDragging,
       followUpIsPlaying: state.dataCenter.isPlaying,
+      // followUpActiveTool: state.dataCenter.followUpActiveTool
     }
   },
   (dispatch) => {
