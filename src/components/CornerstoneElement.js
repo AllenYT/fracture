@@ -7637,7 +7637,7 @@ class CornerstoneElement extends Component {
     }
     this.apis = []
     window.addEventListener('resize', this.resizeScreen.bind(this))
-    window.addEventListener('mousedown', this.mousedownFunc.bind(this), false)
+    window.addEventListener('mousedown', this.mousedownFunc.bind(this))
     // this.getNoduleIfos()
 
     if (localStorage.getItem('token') == null) {
