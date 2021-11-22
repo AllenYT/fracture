@@ -637,6 +637,7 @@ class FollowUpElement extends Component {
           for (let i = 0; i < curBoxes.length; i++) {
             if (curBoxes[i].slice_idx === currentIdx) {
               if (curBoxes[i].uuid === undefined) {
+                console.log('cur addToolState init', i)
                 cornerstone.loadImage(curImageIds[currentIdx - 1]).then(() => {
                   // cornerstone.updateImage(currentTarget)
                   const measurementData = {
@@ -686,18 +687,21 @@ class FollowUpElement extends Component {
                 })
               } else {
                 if (i === newIndex) {
+                  console.log('cur addToolState inited', curBoxes[i].uuid)
                   cornerstone.loadImage(curImageIds[currentIdx - 1]).then(() => {
                     let toolData = cornerstoneTools.getToolState(currentTarget, 'RectangleRoi')
                     if (toolData && toolData.data && toolData.data.length) {
                       const toolDataIndex = _.findIndex(toolData.data, { uuid: curBoxes[i].uuid })
                       const savedData = [].concat(toolData.data)
                       cornerstoneTools.clearToolState(currentTarget, 'RectangleRoi')
+                      console.log('cur addToolState', savedData, toolData.data)
                       savedData.forEach((savedDataItem, savedDataItemIndex) => {
                         if(_.findIndex(curBoxes, {uuid:savedDataItem.uuid}) !== -1){
                           savedDataItem.active = toolDataIndex === savedDataItemIndex
                           cornerstoneTools.addToolState(currentTarget, 'RectangleRoi', savedDataItem)
                         }
                       })
+                      console.log("cur addToolState", cornerstoneTools.getToolState(currentTarget, 'RectangleRoi'))
                     }
                   })
                 }
@@ -725,6 +729,7 @@ class FollowUpElement extends Component {
           for (let i = 0; i < preBoxes.length; i++) {
             if (preBoxes[i].slice_idx === currentIdx) {
               if (preBoxes[i].uuid === undefined) {
+                console.log('pre addToolState init', i)
                 cornerstone.loadImage(preImageIds[currentIdx - 1]).then(() => {
                   // cornerstone.updateImage(previousTarget)
                   const measurementData = {
@@ -774,11 +779,14 @@ class FollowUpElement extends Component {
                 })
               } else {
                 if (i === newIndex) {
+                console.log('pre addToolState init', preBoxes[i].uuid)
                   cornerstone.loadImage(preImageIds[currentIdx - 1]).then(() => {
                     let toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
                     if (toolData && toolData.data && toolData.data.length) {
                       const toolDataIndex = _.findIndex(toolData.data, { uuid: preBoxes[i].uuid })
                       const savedData = [].concat(toolData.data)
+                      console.log('pre addToolState', savedData, toolData.data)
+
                       cornerstoneTools.clearToolState(previousTarget, 'RectangleRoi')
                       savedData.forEach((savedDataItem, savedDataItemIndex) => {
                         if(_.findIndex(preBoxes, {uuid:savedDataItem.uuid}) !== -1){
