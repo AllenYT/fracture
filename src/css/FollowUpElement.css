@@ -77,9 +77,16 @@
 }
 .register-nodule-card-text-length {
   /* margin-right: 10px; */
+  width: 28%;
+  margin-right: 2%;
 }
 .register-nodule-card-text-volume {
   /* margin-right: 10px; */
+  width: 28%;
+  margin-right: 2%;
+}
+.register-nodule-card-text-hu{
+  width: 40%;
 }
 .register-nodule-card-text {
   display: flex;
@@ -88,7 +95,6 @@
   align-items: center;
   white-space: nowrap;
   text-overflow: ellipsis;
-  width: 33%;
 }
 .register-nodule-card-select-center {
   display: flex !important;

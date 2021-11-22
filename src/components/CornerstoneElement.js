@@ -3003,7 +3003,7 @@ class CornerstoneElement extends Component {
           {registering ? (
             <div title="配准" className={'func-btn'} onClick={this.setRegistering.bind(this)}>
               <Icon className="func-btn-icon" name="window restore outline" size="large"></Icon>
-              <div className="func-btn-desc">取消配准</div>
+              <div className="func-btn-desc">结束配准</div>
             </div>
           ) : (
             <div title="配准" className={'func-btn'} onClick={this.setRegistering.bind(this)}>
