@@ -4182,9 +4182,11 @@ class CornerstoneElement extends Component {
     const lineOffset = 2
     // for (var i = 0; i < this.state.selectBoxes.length; i++) {
     //     const box = this.state.selectBoxes[i]
-    for (var i = 0; i < this.state.boxes.length; i++) {
-      const box = this.state.boxes[i]
-      if (box.slice_idx == this.state.currentIdx) {
+    const boxes = this.state.boxes
+    for (let i = 0; i < boxes.length; i++) {
+      let box = this.state.boxes[i]
+      if (box.slice_idx === this.state.currentIdx) {
+        const box = boxes[i]
         const xCenter = box.x1 + (box.x2 - box.x1) / 2
         const yCenter = box.y1 + (box.y2 - box.y1) / 2
         const width = box.x2 - box.x1
@@ -4224,19 +4226,24 @@ class CornerstoneElement extends Component {
           if (y1 - lineOffset < y && y < y2 + lineOffset) {
             return { box: i, pos: 'i' }
           }
+        } else {
+          console.log('?')
         }
       }
     }
+    // const i = _.findIndex(boxes, { slice_idx: this.state.currentIdx, visibleIdx: this.state.listsActiveIndex })
+    // if (i !== -1) {
+    // }
     return { box: -1, pos: 'o' }
   }
 
   findMeasureArea(x, y) {
     const lineOffset = 2
-    for (var i = 0; i < this.state.boxes.length; i++) {
-      const box = this.state.boxes[i]
-      // for (var i = 0; i < this.state.selectBoxes.length; i++) {
-      //     const box = this.state.selectBoxes[i]
-      if (box.slice_idx == this.state.currentIdx) {
+    const boxes = this.state.boxes
+    for (let i = 0; i < boxes.length; i++) {
+      let box = this.state.boxes[i]
+      if (box.slice_idx === this.state.currentIdx) {
+        const box = boxes[i]
         const xCenter = box.x1 + (box.x2 - box.x1) / 2
         const yCenter = box.y1 + (box.y2 - box.y1) / 2
         const width = box.x2 - box.x1
@@ -4246,7 +4253,6 @@ class CornerstoneElement extends Component {
         const y2 = box.y2
         const x2 = box.x2
         if (x1 - lineOffset < x && x < x2 + lineOffset && y1 - lineOffset < y && y < y2 + lineOffset) {
-          // console.log('measure',box.measure.x == undefined)
           if (box.measure && box.measure.x1 != undefined) {
             if (box.measure.x1 - lineOffset < x && x < box.measure.x1 + lineOffset && box.measure.y1 - lineOffset < y && y < box.measure.y1 + lineOffset) {
               return { box: i, pos: 'ib', m_pos: 'sl' }
@@ -4258,6 +4264,8 @@ class CornerstoneElement extends Component {
               return { box: i, pos: 'ib', m_pos: 'es' }
             } else if (box.measure.intersec_x - lineOffset < x && x < box.measure.intersec_x + lineOffset && box.measure.intersec_y - lineOffset < y && y < box.measure.intersec_y + lineOffset) {
               return { box: i, pos: 'ib', m_pos: 'cm' }
+            } else {
+              console.log('?')
             }
           } else {
             console.log('om')
@@ -4266,6 +4274,10 @@ class CornerstoneElement extends Component {
         }
       }
     }
+    // const i = _.findIndex(boxes, { slice_idx: this.state.currentIdx, visibleIdx: this.state.listsActiveIndex })
+    // if (i !== -1) {
+
+    // }
     return { box: -1, pos: 'ob', m_pos: 'om' }
   }
 
@@ -4428,6 +4440,7 @@ class CornerstoneElement extends Component {
       x2: x2,
       y1: y1,
       y2: y2,
+      measure: undefined,
       modified: 1,
       prevIdx: '',
       visibleIdx,
@@ -5107,6 +5120,8 @@ class CornerstoneElement extends Component {
           y2: y,
         }
         let content = this.findCurrentArea(x, y)
+        console.log('cotnt', content)
+
         if (content.pos === 'o') {
           document.getElementById('canvas').style.cursor = 'crosshair'
         } else {
