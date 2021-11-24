@@ -240,7 +240,7 @@ class FollowUpElement extends Component {
     this.props.onRef(this)
     console.log('followup props', this.props)
     this.props.setFollowUpLoadingCompleted(false)
-    this.props.setFollowUpActiveTool('Wwwc')
+    this.props.setFollowUpActiveTool('StackScroll')
     const curInfo = this.props.curInfo
     if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
       const curImagePromise = curInfo.curImageIds.map((curImageId) => cornerstone.loadAndCacheImage(curImageId))
@@ -289,11 +289,12 @@ class FollowUpElement extends Component {
     // document.getElementById('header').style.display = 'none'
   }
   componentWillUnmount() {
+    this.props.setFollowUpActiveTool('')
     const targets = document.getElementsByClassName('viewport-element')
     cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
     cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
-    console.log("componentWillUnmount", cornerstoneTools.getToolState(targets[0], 'RectangleRoi'))
-    console.log("componentWillUnmount", cornerstoneTools.getToolState(targets[1], 'RectangleRoi'))
+    console.log('componentWillUnmount', cornerstoneTools.getToolState(targets[0], 'RectangleRoi'))
+    console.log('componentWillUnmount', cornerstoneTools.getToolState(targets[1], 'RectangleRoi'))
     window.removeEventListener('resize', this.resizeScreen.bind(this))
     window.removeEventListener('mousedown', this.mousedownFunc.bind(this))
     //阻止异步操作
@@ -696,12 +697,12 @@ class FollowUpElement extends Component {
                       cornerstoneTools.clearToolState(currentTarget, 'RectangleRoi')
                       console.log('cur addToolState', savedData, toolData.data)
                       savedData.forEach((savedDataItem, savedDataItemIndex) => {
-                        if(_.findIndex(curBoxes, {uuid:savedDataItem.uuid}) !== -1){
+                        if (_.findIndex(curBoxes, { uuid: savedDataItem.uuid }) !== -1) {
                           savedDataItem.active = toolDataIndex === savedDataItemIndex
                           cornerstoneTools.addToolState(currentTarget, 'RectangleRoi', savedDataItem)
                         }
                       })
-                      console.log("cur addToolState", cornerstoneTools.getToolState(currentTarget, 'RectangleRoi'))
+                      console.log('cur addToolState', cornerstoneTools.getToolState(currentTarget, 'RectangleRoi'))
                     }
                   })
                 }
@@ -779,7 +780,7 @@ class FollowUpElement extends Component {
                 })
               } else {
                 if (i === newIndex) {
-                console.log('pre addToolState init', preBoxes[i].uuid)
+                  console.log('pre addToolState init', preBoxes[i].uuid)
                   cornerstone.loadImage(preImageIds[currentIdx - 1]).then(() => {
                     let toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
                     if (toolData && toolData.data && toolData.data.length) {
@@ -789,7 +790,7 @@ class FollowUpElement extends Component {
 
                       cornerstoneTools.clearToolState(previousTarget, 'RectangleRoi')
                       savedData.forEach((savedDataItem, savedDataItemIndex) => {
-                        if(_.findIndex(preBoxes, {uuid:savedDataItem.uuid}) !== -1){
+                        if (_.findIndex(preBoxes, { uuid: savedDataItem.uuid }) !== -1) {
                           savedDataItem.active = toolDataIndex === savedDataItemIndex
                           cornerstoneTools.addToolState(previousTarget, 'RectangleRoi', savedDataItem)
                         }
@@ -957,11 +958,10 @@ class FollowUpElement extends Component {
         const savedData = [].concat(toolData.data)
         cornerstoneTools.clearToolState(target, 'RectangleRoi')
         savedData.forEach((savedDataItem, savedDataItemIndex) => {
-          if(_.findIndex(boxes, {uuid: savedDataItem.uuid}) !== -1){
+          if (_.findIndex(boxes, { uuid: savedDataItem.uuid }) !== -1) {
             savedDataItem.active = toolDataIndex === savedDataItemIndex
             cornerstoneTools.addToolState(target, 'RectangleRoi', savedDataItem)
           }
-
         })
       }
     })
@@ -4272,9 +4272,9 @@ class FollowUpElement extends Component {
         selectedVanishIdx = index
       }
     })
-    if(this.state.curCaseId === this.state.preCaseId){
+    if (this.state.curCaseId === this.state.preCaseId) {
       message.error('同一CT的结节无法匹配')
-    }else if (selectedNewBox.length === 0 || selectedVanishBox.length === 0) {
+    } else if (selectedNewBox.length === 0 || selectedVanishBox.length === 0) {
       message.warning('请选择需要匹配的结节')
     } else if (selectedNewBox.length === 1 && selectedVanishBox.length === 1) {
       //api,caseId-nodule_no*2
@@ -4284,37 +4284,36 @@ class FollowUpElement extends Component {
           firstDocumentId: selectedNewBox[0].documentId,
           secondDocumentId: selectedVanishBox[0].documentId,
         }
-          axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
-            let status = matchRes.data.status
-            if (status === 'okay') {
-              registerBoxes['new'].splice(selectedNewIdx, 1)
-              registerBoxes['vanish'].splice(selectedVanishIdx, 1)
-              selectedVanishBox[0].checked = false
-              selectedNewBox[0].checked = false
-              let matchBox = {
-                earlier: selectedVanishBox[0],
-                later: selectedNewBox[0],
-              }
-              // matchBox.earlier = selectedVanishBox
-              // matchBox['later'] = selectedNewBox
-              registerBoxes['match'].push(matchBox)
-              registerBoxes['new'].forEach((item) => {
-                item.disabled = false
-              })
-              registerBoxes['vanish'].forEach((item) => {
-                item.disabled = false
-              })
-              console.log('onRegisterClick', registerBoxes)
-              this.setState({ registerBoxes })
-            } else if (status === 'failed') {
-              if (matchRes.data.errorCode === 'Match-0001' || matchRes.data.errorCode === 'Match-0002') {
-                message.error('该结节已与其他结节绑定')
-              } else if (matchRes.data.errorCode === 'Match-0003') {
-                message.error('结节不存在')
-              }
+        axios.post(this.config.nodule.noduleMatch, qs.stringify(matchParams)).then((matchRes) => {
+          let status = matchRes.data.status
+          if (status === 'okay') {
+            registerBoxes['new'].splice(selectedNewIdx, 1)
+            registerBoxes['vanish'].splice(selectedVanishIdx, 1)
+            selectedVanishBox[0].checked = false
+            selectedNewBox[0].checked = false
+            let matchBox = {
+              earlier: selectedVanishBox[0],
+              later: selectedNewBox[0],
             }
-          })
-        
+            // matchBox.earlier = selectedVanishBox
+            // matchBox['later'] = selectedNewBox
+            registerBoxes['match'].push(matchBox)
+            registerBoxes['new'].forEach((item) => {
+              item.disabled = false
+            })
+            registerBoxes['vanish'].forEach((item) => {
+              item.disabled = false
+            })
+            console.log('onRegisterClick', registerBoxes)
+            this.setState({ registerBoxes })
+          } else if (status === 'failed') {
+            if (matchRes.data.errorCode === 'Match-0001' || matchRes.data.errorCode === 'Match-0002') {
+              message.error('该结节已与其他结节绑定')
+            } else if (matchRes.data.errorCode === 'Match-0003') {
+              message.error('结节不存在')
+            }
+          }
+        })
       }
     }
   }

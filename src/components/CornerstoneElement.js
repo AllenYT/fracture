@@ -3083,7 +3083,7 @@ class CornerstoneElement extends Component {
           <div
             title="窗宽窗位"
             onClick={this.wwwcCustom.bind(this)}
-            className={'func-btn' + (menuTools === 'wwwc' || followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '')}
+            className={'func-btn' + (!showFollowUp && menuTools === 'wwwc' ? ' func-btn-active' : '') + (showFollowUp && followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '')}
             hidden={show3DVisualization && !MPR}>
             <Icon className="func-btn-icon icon-custom icon-custom-wwwc" size="large"></Icon>
             <div className="func-btn-desc">
@@ -5084,6 +5084,7 @@ class CornerstoneElement extends Component {
   }
 
   onMouseDown(event) {
+    console.log("corner onMouseDown", event)
     if (event.button == 0) {
       const clickX = event.offsetX
       const clickY = event.offsetY
