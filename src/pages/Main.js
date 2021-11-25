@@ -33,7 +33,7 @@ import md5 from 'js-md5'
 
 message.config({
   duration: 3,
-  prefixCls: 'all-message-block',
+  // prefixCls: 'all-message-block',
 })
 
 class Main extends Component {

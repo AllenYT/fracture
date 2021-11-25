@@ -4410,23 +4410,34 @@ class FollowUpElement extends Component {
     let series_data = []
     let axis_data = []
     for (let i = 0; i <= abs / 10; i++) {
-      // console.log('HUSliderRange', HUSliderRange[0], HUSliderRange[1], min + 1100 * i, min + 1100 * (i + 1))
-      if (HUSliderRange[1] - HUSliderRange[0] <= 10) {
-        if (HUSliderRange[0] >= minHU + 10 * i && HUSliderRange[0] < minHU + 10 * (i + 1)) {
-          range_min = i
-          range_max = i + 1
-        }
-      } else {
-        if (HUSliderRange[0] >= minHU + 10 * i && HUSliderRange[0] < minHU + 10 * (i + 1)) {
-          range_min = i
-        }
-        if (HUSliderRange[1] >= minHU + 10 * i && HUSliderRange[1] < minHU + 10 * (i + 1)) {
-          range_max = i
+      let series = searchBetween(bins, ns, minHU + 10 * i, minHU + 10 * (i + 1))
+      if (series !== 0) {
+        series_data.push(series)
+        axis_data.push(minHU + 10 * i)
+      }
+    }
+    if (axis_data && axis_data.length) {
+      range_min = 0
+      range_max = axis_data.length
+      for (let i = 0; i < axis_data.length - 1; i++) {
+        if (HUSliderRange[1] - HUSliderRange[0] <= 10) {
+          if (HUSliderRange[0] >= axis_data[i] && HUSliderRange[0] < axis_data[i + 1]) {
+            range_min = i
+            range_max = i + 1
+          }
+        } else {
+          if (HUSliderRange[0] === axis_data[axis_data.length - 1]) {
+            range_min = axis_data.length
+          } else if (HUSliderRange[0] >= axis_data[i] && HUSliderRange[0] < axis_data[i + 1]) {
+            range_min = i
+          }
+          if (HUSliderRange[1] === axis_data[axis_data.length - 1]) {
+            range_max = axis_data.length
+          } else if (HUSliderRange[1] >= axis_data[i] && HUSliderRange[1] < axis_data[i + 1]) {
+            range_max = i
+          }
         }
       }
-      let series = searchBetween(bins, ns, minHU + 10 * i, minHU + 10 * (i + 1))
-      series_data.push(series)
-      axis_data.push(minHU + 10 * i)
     }
     if (echarts.getInstanceByDom(chartDom)) {
       console.log('dispose')
@@ -4451,8 +4462,8 @@ class FollowUpElement extends Component {
         {
           type: 'category',
           scale: 'true',
-          min: min,
-          max: max,
+          // min: min,
+          // max: max,
           data: axis_data,
           axisTick: {
             alignWithLabel: true,
