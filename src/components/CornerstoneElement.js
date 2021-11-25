@@ -845,6 +845,8 @@ class CornerstoneElement extends Component {
       boxes,
       measureStateList,
       listsActiveIndex: currentActiveIdx,
+    },()=>{
+      this.template()
     })
     this.refreshImage(false, this.state.imageIds[boxes[currentActiveIdx].slice_idx], boxes[currentActiveIdx].slice_idx)
     message.success('结节删除成功')
