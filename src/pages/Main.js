@@ -32,7 +32,9 @@ import AdminManagePanel from '../panels/AdminManagePanel'
 import md5 from 'js-md5'
 
 message.config({
-  duration: 3,
+  duration: 2,
+  maxCount: 3,
+  top: 75,
   // prefixCls: 'all-message-block',
 })
 

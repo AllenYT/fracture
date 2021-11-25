@@ -1609,6 +1609,7 @@ class CornerstoneElement extends Component {
       mode,
       segRange,
       airwayPicking,
+      airwayVolumes,
       airwayCenterVolumes,
       maskVolumes,
       maskYLength,
@@ -1967,6 +1968,63 @@ class CornerstoneElement extends Component {
               this.viewerSagittal = ref
             }}
           />
+          {/* {airwayVolumes.length > 0 ? (
+            <>
+              <View2D
+                viewerStyle={CPRStyles.axial}
+                viewerType={0}
+                volumes={airwayVolumes}
+                onCreated={this.storeApi(0)}
+                onDestroyed={this.deleteApi(0)}
+                orientation={{
+                  sliceNormal: [0, 0, 1],
+                  viewUp: [0, -1, 0],
+                }}
+                showRotation={true}
+                sliderMax={0}
+                sliderMin={0}
+                onRef={(ref) => {
+                  this.viewerAxial = ref
+                }}
+              />
+              <View2D
+                //coronal
+                viewerStyle={CPRStyles.coronal}
+                viewerType={1}
+                volumes={airwayVolumes}
+                onCreated={this.storeApi(1)}
+                onDestroyed={this.deleteApi(1)}
+                orientation={{
+                  sliceNormal: [0, 1, 0],
+                  viewUp: [0, 0, 1],
+                }}
+                showRotation={true}
+                sliderMax={0}
+                sliderMin={0}
+                onRef={(ref) => {
+                  this.viewerCoronal = ref
+                }}
+              />
+              <View2D
+                //sagittal
+                viewerStyle={CPRStyles.sagittal}
+                volumes={airwayVolumes}
+                onCreated={this.storeApi(2)}
+                onDestroyed={this.deleteApi(2)}
+                orientation={{
+                  sliceNormal: [-1, 0, 0],
+                  viewUp: [0, 0, 1],
+                }}
+                showRotation={true}
+                sliderMax={0}
+                sliderMin={0}
+                onRef={(ref) => {
+                  this.viewerSagittal = ref
+                }}
+              />
+            </>
+          ) : null} */}
+
           <VTK2DViewer
             viewerStyle={CPRStyles.airway}
             volumes={airwayCenterVolumes}
@@ -3299,7 +3357,11 @@ class CornerstoneElement extends Component {
                       className={'corner-list-block' + (studyListShowed ? ' corner-list-contract-block' : '') + (verticalMode ? ' corner-list-vertical-block' : ' corner-list-horizontal-block')}
                       style={verticalMode ? { paddingLeft: `${ctInfoPadding}px` } : {}}>
                       <div className={'ct-list-container'}>
-                        <div id="nodule-card-container" className={verticalMode ? 'nodule-card-container-vertical' : 'nodule-card-container-horizontal'}>
+                        <div
+                          id="nodule-card-container"
+                          className={
+                            (verticalMode ? 'nodule-card-container-vertical' : 'nodule-card-container-horizontal') + (show3DVisualization && !painting ? ' nodule-card-container-not-lung' : '')
+                          }>
                           <Tabs type="card" defaultActiveKey="1" size="small" onChange={this.onHandleFirstTabChange.bind(this)}>
                             <TabPane tab={'肺病灶'} key="1">
                               <Tabs type="card" defaultActiveKey="1" size="small">
@@ -3487,7 +3549,11 @@ class CornerstoneElement extends Component {
                         </div>
 
                         {show3DVisualization ? (
-                          <div id="threed-mask-container" className={verticalMode ? ' threed-mask-container-vertical' : ' threed-mask-container-horizontal'}>
+                          <div
+                            id="threed-mask-container"
+                            className={
+                              (verticalMode ? ' threed-mask-container-vertical' : ' threed-mask-container-horizontal') + (show3DVisualization && !painting ? ' threed-mask-container-not-lung' : '')
+                            }>
                             {
                               MPR && painting && maskVolumes && maskVolumes.length ? (
                                 <VTKMaskViewer
@@ -5337,11 +5403,11 @@ class CornerstoneElement extends Component {
       this.hideFollowUpOp()
     } else {
       const hide = message.loading('正在加载图像，稍后关闭随访', 0)
-      closeFollowUpInterval = setInterval(() => {
+      const newCloseFollowUpInterval = setInterval(() => {
         if (this.props.followUpLoadingCompleted) {
           hide()
           this.hideFollowUpOp()
-          clearInterval(closeFollowUpInterval)
+          clearInterval(newCloseFollowUpInterval)
         }
       }, 500)
     }
@@ -6548,10 +6614,10 @@ class CornerstoneElement extends Component {
         const newBoxes = _.sortBy(
           boxes,
           function (o) {
-            if(item === 'malignancy'){
-              return nodulesOrder[item] * -o[item] 
-            }else{
-              return nodulesOrder[item] * o[item] 
+            if (item === 'malignancy') {
+              return nodulesOrder[item] * -o[item]
+            } else {
+              return nodulesOrder[item] * o[item]
             }
           },
           function (o) {
@@ -9281,10 +9347,10 @@ class CornerstoneElement extends Component {
         }
         if (mode === 3) {
           const CPRStyles = this.getCPRStyles()
-          this.viewerAxial.setContainerSize(CPRStyles.axial.width, CPRStyles.axial.height)
-          this.viewerCoronal.setContainerSize(CPRStyles.coronal.width, CPRStyles.coronal.height)
-          this.viewerSagittal.setContainerSize(CPRStyles.sagittal.width, CPRStyles.sagittal.height)
-          this.viewerAirway.setContainerSize(CPRStyles.airway.width, CPRStyles.airway.height)
+          // this.viewerAxial.setContainerSize(CPRStyles.axial.width, CPRStyles.axial.height)
+          // this.viewerCoronal.setContainerSize(CPRStyles.coronal.width, CPRStyles.coronal.height)
+          // this.viewerSagittal.setContainerSize(CPRStyles.sagittal.width, CPRStyles.sagittal.height)
+          // this.viewerAirway.setContainerSize(CPRStyles.airway.width, CPRStyles.airway.height)
         }
       }
     )
@@ -9789,7 +9855,6 @@ class CornerstoneElement extends Component {
           }
         })
       }
-      console.log('points', points)
       this.setState(
         {
           points,
@@ -9817,9 +9882,9 @@ class CornerstoneElement extends Component {
     const points = this.state.points
     const outputExtent = [512, 512]
     const outputSpacing = [0.7, 0.7]
-    const number = points.length
+    const number = points.length > 30 ? 30 : points.length
     const { tangents, normals } = frenet(points)
-
+    console.log('seleted points', number)
     const fullAirwayImageData = vtkImageData.newInstance()
     const fullAirwayPixelArray = new Float32Array(outputExtent[0] * outputExtent[1] * number).fill(-1024)
     const imageReslice = vtkImageReslice.newInstance()
@@ -9921,6 +9986,9 @@ class CornerstoneElement extends Component {
     centerAirwayImageReslice.setOutputDimensionality(2)
     const centerAirwayAxes = mat4.create()
     mat4.rotateX(centerAirwayAxes, centerAirwayAxes, Math.PI / 2)
+    // mat4.rotateX(centerAirwayAxes, centerAirwayAxes, Math.PI)
+    // mat4.rotateY(centerAirwayAxes, centerAirwayAxes, Math.PI)
+    // mat4.rotateZ(centerAirwayAxes, centerAirwayAxes, Math.PI / 2)
     // centerAirwayAxes[12] = fullAirwayDimensions[0] * outputSpacing[0] / 2
     centerAirwayAxes[13] = (fullAirwayDimensions[1] * outputSpacing[1]) / 2
     // centerAirwayAxes[14] = fullAirwayDimensions[2] / 2
@@ -9950,17 +10018,10 @@ class CornerstoneElement extends Component {
 
     // this.generateLines()
 
-    this.setState(
-      {
-        airwayVolumes: [],
-      },
-      () => {
-        this.setState({
-          airwayVolumes: [fullAirwayActor],
-          airwayCenterVolumes: [centerAirwayActor],
-        })
-      }
-    )
+    this.setState({
+      airwayVolumes: [fullAirwayActor],
+      airwayCenterVolumes: [centerAirwayActor],
+    })
   }
   generateLines() {
     const p1 = [180, 0, 0]

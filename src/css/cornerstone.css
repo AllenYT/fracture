@@ -359,6 +359,8 @@
 #nodule-card-container {
   background-color: rgb(5, 10, 29);
 }
+.nodule-card-container-not-lung {
+}
 .nodule-card-container-horizontal {
   /* transition: transform 1.5s;
   transform-style: perserve-3d;
@@ -962,6 +964,8 @@
 #threed-mask-container {
   background-color: rgba(5, 10, 29, 1);
   color: whitesmoke;
+}
+.threed-mask-container-not-lung {
 }
 .threed-mask-container-horizontal {
   padding: 5px 2px 0px 0;
