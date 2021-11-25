@@ -511,6 +511,7 @@ class CornerstoneElement extends Component {
       tubularAllVisible: true,
       airwayPicking: false,
       displayCrosshairs: false,
+      crosshairsTool: false,
       editing: false,
       painting: false,
       erasing: false,
@@ -1039,6 +1040,7 @@ class CornerstoneElement extends Component {
       if (this.followUpComponent) {
         this.followUpComponent.wwwcCustom()
       }
+    } else if (this.state.show3DVisualization) {
     } else {
       this.setState({ leftButtonTools: 2, menuTools: 'wwwc' })
       const element = document.querySelector('#origin-canvas')
@@ -1621,6 +1623,7 @@ class CornerstoneElement extends Component {
       menuNowPage,
       menuTransform,
       show3DVisualization,
+      crosshairsTool,
       studyListShowed,
       renderLoading,
       showFollowUp,
@@ -2273,12 +2276,12 @@ class CornerstoneElement extends Component {
         {
           desc: '结节类型',
           key: 'texture',
-          sortable: false,
+          sortable: true,
         },
         {
           desc: '良恶性',
           key: 'malignancy',
-          sortable: false,
+          sortable: true,
         },
       ]
       const noduleOrderContent = noduleOrderOption.map((item, idx) => {
@@ -3095,7 +3098,11 @@ class CornerstoneElement extends Component {
           <div
             title="窗宽窗位"
             onClick={this.wwwcCustom.bind(this)}
-            className={'func-btn' + (showFollowUp ? (followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '') : menuTools === 'wwwc' ? ' func-btn-active' : '')}
+            className={
+              'func-btn' +
+              (showFollowUp ? (followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '') : menuTools === 'wwwc' ? ' func-btn-active' : '') +
+              (show3DVisualization ? (crosshairsTool ? '' : ' func-btn-active') : '')
+            }
             hidden={show3DVisualization && !MPR}>
             <Icon className="func-btn-icon icon-custom icon-custom-wwwc" size="large"></Icon>
             <div className="func-btn-desc">
@@ -6494,7 +6501,7 @@ class CornerstoneElement extends Component {
       })
       nodulesOrder[type] = 1
     } else {
-      if (type === 'slice_idx' || type === 'diameter') {
+      if (type === 'slice_idx' || type === 'diameter' || type === 'texture' || type === 'malignancy') {
         nodulesOrder[type] = -nodulesOrder[type]
       } else {
         nodulesOrder[type] = 1
@@ -6519,7 +6526,7 @@ class CornerstoneElement extends Component {
       })
       nodulesOrder[type] = 1
     } else {
-      if (type === 'slice_idx' || type === 'diameter') {
+      if (type === 'slice_idx' || type === 'diameter' || type === 'texture' || type === 'malignancy') {
         nodulesOrder[type] = -nodulesOrder[type]
       }
     }
@@ -6541,7 +6548,11 @@ class CornerstoneElement extends Component {
         const newBoxes = _.sortBy(
           boxes,
           function (o) {
-            return nodulesOrder[item] * o[item]
+            if(item === 'malignancy'){
+              return nodulesOrder[item] * -o[item] 
+            }else{
+              return nodulesOrder[item] * o[item] 
+            }
           },
           function (o) {
             return nodulesOrder[item] * o.visibleIdx
@@ -6875,7 +6886,7 @@ class CornerstoneElement extends Component {
     const reportGuideType = this.state.reportGuideType
     let reportImageText = ''
     boxes.forEach((item, index) => {
-      if (item.checked) {
+      if (item.checked && item.visible) {
         reportImageText += this.templateReportImage(reportImageType, index) + '\n'
       }
     })

@@ -771,9 +771,10 @@
 .nodule-accordion-item-content {
   display: flex;
   flex-direction: column;
+  text-align: left;
 }
 .nodule-accordion-item-content-select {
-  /* width: 100px; */
+  min-width: 100px;
   color: whitesmoke !important;
 }
 .nodule-accordion-item-content-select .ant-select-selection-item {
@@ -836,6 +837,7 @@
 }
 .nodule-accordion-item-content-char-content {
   padding-left: 10px;
+  width: 80%;
 }
 .nodule-accordion-item-content-button {
   display: flex;

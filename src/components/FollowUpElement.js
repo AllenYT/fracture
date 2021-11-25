@@ -1472,6 +1472,7 @@ class FollowUpElement extends Component {
                         className={'nodule-accordion-item-content-select'}
                         mode="multiple"
                         dropdownMatchSelectWidth={false}
+                        placeholder="请选择表征"
                         defaultValue={inside.malignancy}
                         value={representArray}
                         bordered={false}
@@ -1731,6 +1732,7 @@ class FollowUpElement extends Component {
                         className={'nodule-accordion-item-content-select'}
                         mode="multiple"
                         dropdownMatchSelectWidth={false}
+                        placeholder="请选择表征"
                         defaultValue={inside.malignancy}
                         value={representArray}
                         bordered={false}
@@ -2013,6 +2015,7 @@ class FollowUpElement extends Component {
                     mode="multiple"
                     maxTagCount={3}
                     dropdownMatchSelectWidth={false}
+                    placeholder="请选择表征"
                     defaultValue={newNodule.malignancy}
                     value={newRepresentArray}
                     bordered={false}
@@ -2109,6 +2112,7 @@ class FollowUpElement extends Component {
                     mode="multiple"
                     maxTagCount={3}
                     dropdownMatchSelectWidth={false}
+                    placeholder="请选择表征"
                     defaultValue={previousNodule.malignancy}
                     value={preRepresentArray}
                     bordered={false}
@@ -2297,6 +2301,7 @@ class FollowUpElement extends Component {
                     mode="multiple"
                     maxTagCount={3}
                     dropdownMatchSelectWidth={false}
+                    placeholder="请选择表征"
                     defaultValue={value.malignancy}
                     value={representArray}
                     bordered={false}
@@ -2466,6 +2471,7 @@ class FollowUpElement extends Component {
                     mode="multiple"
                     maxTagCount={3}
                     dropdownMatchSelectWidth={false}
+                    placeholder="请选择表征"
                     defaultValue={value.malignancy}
                     value={representArray}
                     bordered={false}
