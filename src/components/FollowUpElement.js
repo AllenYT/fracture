@@ -188,7 +188,7 @@ class FollowUpElement extends Component {
         //   // toolColors: "white",
         // },
       ],
-      activeTool: props.followUpActiveTool,
+      activeTool: 'StackScroll',
       curVoi: {
         windowCenter: -600,
         windowWidth: 1600,

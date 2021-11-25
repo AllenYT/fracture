@@ -1039,19 +1039,20 @@ class CornerstoneElement extends Component {
       if (this.followUpComponent) {
         this.followUpComponent.wwwcCustom()
       }
+    } else {
+      this.setState({ leftButtonTools: 2, menuTools: 'wwwc' })
+      const element = document.querySelector('#origin-canvas')
+      this.disableAllTools(element)
+      cornerstoneTools.addToolForElement(element, wwwc)
+      cornerstoneTools.setToolActiveForElement(
+        element,
+        'Wwwc',
+        {
+          mouseButtonMask: 1, //middle mouse button
+        },
+        ['Mouse']
+      )
     }
-    this.setState({ leftButtonTools: 2, menuTools: 'wwwc' })
-    const element = document.querySelector('#origin-canvas')
-    this.disableAllTools(element)
-    cornerstoneTools.addToolForElement(element, wwwc)
-    cornerstoneTools.setToolActiveForElement(
-      element,
-      'Wwwc',
-      {
-        mouseButtonMask: 1, //middle mouse button
-      },
-      ['Mouse']
-    )
   }
 
   saveTest() {
@@ -3094,7 +3095,7 @@ class CornerstoneElement extends Component {
           <div
             title="窗宽窗位"
             onClick={this.wwwcCustom.bind(this)}
-            className={'func-btn' + (!showFollowUp && menuTools === 'wwwc' ? ' func-btn-active' : '') + (showFollowUp && followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '')}
+            className={'func-btn' + (showFollowUp ? (followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '') : menuTools === 'wwwc' ? ' func-btn-active' : '')}
             hidden={show3DVisualization && !MPR}>
             <Icon className="func-btn-icon icon-custom icon-custom-wwwc" size="large"></Icon>
             <div className="func-btn-desc">
@@ -5349,6 +5350,7 @@ class CornerstoneElement extends Component {
       },
       () => {
         this.resizeScreen()
+        this.slide()
       }
     )
   }
