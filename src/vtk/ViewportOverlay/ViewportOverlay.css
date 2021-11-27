@@ -5,15 +5,25 @@
 .ViewportOverlay {
   color: #9ccef9;
 }
+#dicomTag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
 
-.ViewportOverlay .overlay-element {
+.ViewportOverlay .overlay-element,
+#dicomTag .overlay-element {
   position: absolute;
   font-weight: 400;
   text-shadow: 1px 1px black;
   pointer-events: none;
+  color: white;
 }
 
-.ViewportOverlay .top-left {
+.ViewportOverlay .top-left,
+#dicomTag .top-left {
   top: var(--viewport-tag-padding);
   left: var(--viewport-tag-padding);
 }
@@ -25,18 +35,21 @@
   text-align: center;
 }
 
-.ViewportOverlay .top-right {
+.ViewportOverlay .top-right,
+#dicomTag .top-right {
   top: var(--viewport-tag-padding);
   right: var(--viewport-tag-padding);
   text-align: right;
 }
 
-.ViewportOverlay .bottom-left {
+.ViewportOverlay .bottom-left,
+#dicomTag .bottom-left {
   bottom: var(--viewport-tag-padding);
   left: var(--viewport-tag-padding);
 }
 
-.ViewportOverlay .bottom-right {
+.ViewportOverlay .bottom-right,
+#dicomTag .bottom-right {
   bottom: var(--viewport-tag-padding);
   right: var(--viewport-tag-padding);
   text-align: right;
@@ -50,4 +63,8 @@
   margin: 2px;
   width: 18px;
   height: 18px;
+}
+
+.ViewportOverlay .top-left .follow-state {
+  font-size: 16px;
 }

@@ -9,10 +9,7 @@ body {
 #login-container {
     /* margin-top: 200px; */
     position: relative;
-    /* display: flex; */
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
+    height: 100%;
     padding-top: 3rem;
     padding-bottom: 3rem;
     background: url(../images/app-bg.jpg) center center/cover no-repeat;

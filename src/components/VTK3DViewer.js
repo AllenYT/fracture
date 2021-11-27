@@ -32,6 +32,7 @@ class VTK3DViewer extends Component {
       moving: false,
       range: {},
       functions: {},
+      needReset: false,
     }
     this.subs = {
       pickStart: createSub(),
@@ -53,6 +54,7 @@ class VTK3DViewer extends Component {
     this.renderer = this.genericRenderWindow.getRenderer()
     this.renderer.setBackground([0, 0, 0])
     // this.renderer.setBackground([0.59, 0.6, 0.81])
+    this.renderer.resetCamera()
 
     this.camera = this.renderer.getActiveCamera()
     this.camera.elevation(-90)
@@ -106,7 +108,6 @@ class VTK3DViewer extends Component {
       } else {
         // TODO: Remove all volumes
       }
-      this.renderer.resetCamera()
       this.renderWindow.render()
     }
 
@@ -116,7 +117,12 @@ class VTK3DViewer extends Component {
       } else {
         // TODO: Remove all volumes
       }
-      this.renderer.resetCamera()
+      if (this.state.needReset) {
+        this.renderer.resetCamera()
+        this.setState({
+          needReset: false,
+        })
+      }
       this.renderWindow.render()
     }
 
@@ -138,10 +144,22 @@ class VTK3DViewer extends Component {
       this.renderWindow.render()
     }
   }
-
+  zoomIn() {
+    this.camera.zoom(1.1)
+    this.renderWindow.render()
+  }
+  zoomOut() {
+    this.camera.zoom(0.9)
+    this.renderWindow.render()
+  }
   resetView() {
     this.renderer.resetCamera()
     this.renderWindow.render()
+  }
+  setNeedReset() {
+    this.setState({
+      needReset: true,
+    })
   }
   getPicked(x, y) {
     const movePicker = vtkPicker.newInstance()

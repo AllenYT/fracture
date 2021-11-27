@@ -42,7 +42,7 @@ class VTK2DViewer extends Component {
       if (this.props.volumes.length) {
         this.renderer.removeAllVolumes()
         this.props.volumes.forEach(this.renderer.addVolume)
-        // console.log('channel volumes', this.renderer.getVolumes())
+        console.log('airways cpr', this.renderer.getVolumes())
       } else {
         // TODO: Remove all volumes
       }

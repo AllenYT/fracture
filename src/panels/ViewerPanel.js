@@ -48,7 +48,6 @@ import StudyBrowserList from "../components/StudyBrowserList";
 import VTK2DViewer from "../components/VTK2DViewer";
 import VTK3DViewer from "../components/VTK3DViewer";
 import { frenet } from "../lib/frenet";
-import { handleConfig } from "../lib/handleConfig";
 import { loadAndCacheImagePlus } from "../lib/cornerstoneImageRequest";
 import { executeTask } from "../lib/taskHelper";
 // import centerLine from '../center_line.json'

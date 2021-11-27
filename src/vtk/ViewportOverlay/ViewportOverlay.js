@@ -6,19 +6,14 @@
  * @Description: In User Settings Edit
  * @FilePath: \deepln-dazhou-new\src\vtk\ViewportOverlay\ViewportOverlay.js
  */
-import { PureComponent } from 'react';
-import React from 'react';
-import PropTypes from 'prop-types';
-import { helpers } from '../helpers/index.js';
-import './ViewportOverlay.css';
+import { PureComponent } from "react";
+import React from "react";
+import PropTypes from "prop-types";
+import { helpers } from "../helpers/index.js";
+import "./ViewportOverlay.css";
 
-const {
-  formatPN,
-  formatDA,
-  formatNumberPrecision,
-  formatTM,
-  isValidNumber,
-} = helpers;
+const { formatPN, formatDA, formatNumberPrecision, formatTM, isValidNumber } =
+  helpers;
 
 class ViewportOverlay extends PureComponent {
   static propTypes = {
@@ -53,7 +48,9 @@ class ViewportOverlay extends PureComponent {
       rotation,
     } = this.props;
     const { windowWidth, windowCenter } = voi;
-    const wwwc = `W: ${windowWidth.toFixed(0)} L: ${(windowCenter - 1024).toFixed(0)}`;
+    const wwwc = `W: ${windowWidth.toFixed(0)} L: ${(
+      windowCenter - 1024
+    ).toFixed(0)}`;
     const rotationString = rotation
       ? `\u03B8: ${rotation.theta.toFixed(1)} \u03D5: ${rotation.phi.toFixed(
           1
@@ -77,7 +74,7 @@ class ViewportOverlay extends PureComponent {
           <div>{rotationString}</div>
         </div>
         <div className="bottom-left overlay-element">
-          <div>{seriesNumber >= 0 ? `Ser: ${seriesNumber}` : ''}</div>
+          <div>{seriesNumber >= 0 ? `Ser: ${seriesNumber}` : ""}</div>
           <div>
             <div>{seriesDescription}</div>
           </div>

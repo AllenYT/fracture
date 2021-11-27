@@ -14,8 +14,19 @@ const style = {
 class DownloadPanel extends Component {
   delCase = (event) => {
     const del_id = event.currentTarget.dataset.id;
+    console.log("delCase", del_id);
     let currentCart = this.state.cart;
-    currentCart.delete(del_id);
+    let deleteItem = -1;
+    currentCart.forEach((v) => {
+      if (v.caseId === del_id) {
+        deleteItem = v;
+      }
+    });
+    console.log("delCase", deleteItem);
+
+    if (deleteItem !== -1) {
+      currentCart.delete(deleteItem);
+    }
     this.setState({ cart: currentCart, random: Math.random() });
   };
 
@@ -172,7 +183,7 @@ class DownloadPanel extends Component {
                         <Table.Cell>{value["description"]}</Table.Cell>
                         <Table.Cell>{value["date"]}</Table.Cell>
                         <Table.Cell>
-                          <a onClick={this.delCase} data-id={value}>
+                          <a onClick={this.delCase} data-id={value.caseId}>
                             删除
                           </a>
                         </Table.Cell>

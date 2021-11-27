@@ -265,7 +265,11 @@ class MyQueuePanel extends Component {
       axios
         .post(this.config.subset.createQueue, qs.stringify(params))
         .then((res) => {
-          if (res.data.status === "ok") {
+          let responseStatus;
+          if (res.data && res.data.status) {
+            responseStatus = res.data.status;
+          }
+          if (responseStatus === "ok") {
             document.getElementById("queue-popup").style.display = "none";
             console.log("submit");
             //调用queue query,update queue list
@@ -311,6 +315,12 @@ class MyQueuePanel extends Component {
               bro: -1,
               diameterContainer: "0_5",
             });
+          } else if (responseStatus === "failed") {
+            alert("创建失败");
+          } else if (responseStatus === "existed") {
+            alert("队列名已存在");
+          } else if (responseStatus === "no patient") {
+            alert("未选中患者");
           }
         })
         .catch((err) => {

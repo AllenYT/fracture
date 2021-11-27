@@ -3,10 +3,10 @@ import axios from 'axios'
 import qs from 'qs'
 import _ from 'lodash'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTimesCircle, faChevronCircleUp, faChevronCircleDown, faUser, faLock, faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons'
+import { faTimesCircle, faChevronCircleUp, faChevronCircleDown, faUser, faLock, faSortUp, faSortDown } from '@fortawesome/free-solid-svg-icons'
 
-import { Form, Input, Button as AntdButton, Select, Pagination, notification } from 'antd'
-import { Button, Table, Modal, Message } from 'semantic-ui-react'
+import { Form, Input, Button as AntdButton, Select, notification } from 'antd'
+import { Button, Table, Modal, Message, Pagination } from 'semantic-ui-react'
 import md5 from 'js-md5'
 import LowerAuth from '../components/LowerAuth'
 
@@ -48,6 +48,8 @@ class AdminManagePanel extends Component {
     this.config = JSON.parse(localStorage.getItem('config'))
   }
   async componentDidMount() {
+    const mainElement = document.getElementById('main')
+    mainElement.setAttribute('style', 'height:100%')
     const pagePromise = new Promise((resolve, reject) => {
       return axios.get(this.config.user.getTotalUserPages).then((res) => {
         console.log('getTotalUserPage request', res)
@@ -78,6 +80,10 @@ class AdminManagePanel extends Component {
       }
     })
     this.updateUserInfoByPage(1)
+  }
+  componentWillUnmount() {
+    const mainElement = document.getElementById('main')
+    mainElement.setAttribute('style', '')
   }
   updateUserInfoByPage(page) {
     axios
@@ -400,13 +406,13 @@ class AdminManagePanel extends Component {
       editRole: value,
     })
   }
-  onPageChange(page) {
+  onPageChange(e, { activePage }) {
     this.setState(
       {
-        currentPage: page,
+        currentPage: activePage,
       },
       () => {
-        this.updateUserInfoByPage(page)
+        this.updateUserInfoByPage(activePage)
       }
     )
   }
@@ -429,7 +435,7 @@ class AdminManagePanel extends Component {
     const orderBy = this.state.orderBy
     const orderByList = orderBy.split(',')
     let firstOrderBy = ''
-    let remainOrderByList = [] 
+    let remainOrderByList = []
     for (let i = 0; i < orderByList.length; i++) {
       const orderByItem = orderByList[i]
       const orderByItemList = orderByItem.split(' ')
@@ -440,13 +446,13 @@ class AdminManagePanel extends Component {
           orderByItemList[1] = 'asc'
         }
         firstOrderBy = orderByItemList.join(' ')
-      }else{
+      } else {
         remainOrderByList.push(orderByItem)
       }
     }
-    if(remainOrderByList.length > 0){
+    if (remainOrderByList.length > 0) {
       resultOrderBy = firstOrderBy + ',' + remainOrderByList.join(',')
-    }else{
+    } else {
       resultOrderBy = firstOrderBy
     }
     this.setState({
@@ -550,7 +556,7 @@ class AdminManagePanel extends Component {
               {/* <Modal.Header>Select a Photo</Modal.Header> */}
               <div className={'admin-manage-log-block ' + (editUserModalToggleds[index] ? 'admin-manage-log-block-toggled' : '')}>
                 <div className={'admin-manage-log-heading'}>
-                  修改用户信息
+                  编辑用户信息
                   <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={faTimesCircle} onClick={this.setEditUserModalOpen.bind(this, index, false)} />
                   <FontAwesomeIcon
                     className={'admin-manage-log-heading-icon'}
@@ -602,7 +608,7 @@ class AdminManagePanel extends Component {
               {/* <Modal.Header>Select a Photo</Modal.Header> */}
               <div className={'admin-manage-log-block ' + (deleteUserModalToggleds[index] ? 'admin-manage-log-block-toggled' : '')}>
                 <div className={'admin-manage-log-heading'}>
-                  删除该用户
+                  删除用户
                   <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={faTimesCircle} onClick={this.setDeleteUserModalOpen.bind(this, index, false)} />
                   <FontAwesomeIcon
                     className={'admin-manage-log-heading-icon'}
@@ -655,7 +661,7 @@ class AdminManagePanel extends Component {
             {/* <Modal.Header>Select a Photo</Modal.Header> */}
             <div className={'admin-manage-log-block ' + (addUserModalToggled ? 'admin-manage-log-block-toggled' : '')}>
               <div className={'admin-manage-log-heading'}>
-                添加新用户
+                新增用户
                 <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={faTimesCircle} onClick={this.setAddUserModalOpen.bind(this, false)} />
                 <FontAwesomeIcon className={'admin-manage-log-heading-icon'} icon={addUserModalToggled ? faChevronCircleDown : faChevronCircleUp} onClick={this.setAddUserModalToggled.bind(this)} />
               </div>
@@ -698,8 +704,8 @@ class AdminManagePanel extends Component {
                 <div className={'admin-manage-table-header-cell-order'}>
                   <span>用户名</span>
                   <span className={'admin-manage-table-header-cell-order-right'} onClick={this.orderUsersList.bind(this, 'username')}>
-                    <FontAwesomeIcon className={(usernameDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faCaretUp} />
-                    <FontAwesomeIcon className={(usernameDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faCaretDown} />
+                    <FontAwesomeIcon className={(usernameDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faSortUp} />
+                    <FontAwesomeIcon className={(usernameDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faSortDown} />
                   </span>
                 </div>
               </Table.HeaderCell>
@@ -708,8 +714,8 @@ class AdminManagePanel extends Component {
                 <div className={'admin-manage-table-header-cell-order'}>
                   <span>添加日期</span>
                   <span className={'admin-manage-table-header-cell-order-right'} onClick={this.orderUsersList.bind(this, 'createTime')}>
-                    <FontAwesomeIcon className={(createTimeDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faCaretUp} />
-                    <FontAwesomeIcon className={(createTimeDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faCaretDown} />
+                    <FontAwesomeIcon className={(createTimeDirection === 'desc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-up'} icon={faSortUp} />
+                    <FontAwesomeIcon className={(createTimeDirection === 'asc' ? 'admin-manage-table-header-icon-hide' : '') + ' admin-manage-table-header-icon-down'} icon={faSortDown} />
                   </span>
                 </div>
               </Table.HeaderCell>
@@ -719,7 +725,7 @@ class AdminManagePanel extends Component {
           <Table.Body>{usersInfo}</Table.Body>
         </Table>
         <div className="admin-manage-container-bottom">
-          <Pagination current={currentPage} defaultCurrent={currentPage} total={totalPage * 10} onChange={this.onPageChange.bind(this)} />
+          <Pagination onPageChange={this.onPageChange.bind(this)} activePage={currentPage} totalPages={totalPage} />
         </div>
       </div>
     ) : (

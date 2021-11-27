@@ -1,29 +1,27 @@
-.main-list-menu-item{
-    display: flex;
-    flex-direction: row;
-    
+.main-list-menu-item {
+  display: flex;
+  flex-direction: row;
+}
+.main-list-menu-item-one {
+  width: 50%;
+  overflow: hidden;
+  /* margin:auto; */
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.main-list-menu-item-one{
-    width: 50%;
-    overflow: hidden;
-    /* margin:auto; */
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.main-list-menu-item-two {
+  width: 20%;
+  margin: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.main-list-menu-item-two{
-    width: 20%;
-    margin:auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.main-list-menu-item-three{
-    width: 5%;
-    margin:auto;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+.main-list-menu-item-three {
+  width: 5%;
+  margin: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

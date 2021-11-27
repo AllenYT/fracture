@@ -31,3 +31,16 @@ p {
 .ui.button .searchCase_tooltip_button {
   background-color: transparent;
 }
+
+.seriesidlist-popup-item {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+.seriesidlist-popup-item-left {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
