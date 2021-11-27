@@ -26,7 +26,6 @@ import src3 from '../images/scu-logo.png'
 
 import HomepagePanel from '../panels/HomepagePanel'
 import preprocess from '../panels/preprocess'
-import ViewerPanel from '../panels/ViewerPanel'
 import AdminManagePanel from '../panels/AdminManagePanel'
 
 import md5 from 'js-md5'
