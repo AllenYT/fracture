@@ -600,6 +600,7 @@
   /* table-layout: fixed; */
   margin-top: 0px;
   overflow-y: auto;
+  overflow-x: hidden;
   height: 100%;
   background-color: rgb(23, 28, 47);
   /* background-color:rgba(0, 77, 160, 0.363) !important; */
@@ -1496,7 +1497,7 @@ table#nodule-table {
   opacity: 1;
 }
 .corner-report-modal-header {
-  background-color: rgb(49, 56, 82) !important;
+  background-color: rgb(23, 28, 47) !important;
   border-bottom: 2px solid rgb(5, 10, 29) !important;
   color: whitesmoke !important;
 }
@@ -1510,16 +1511,13 @@ table#nodule-table {
   flex-direction: row;
   justify-content: flex-end;
 }
-#main .ant-cascader-picker-label {
-  padding: 0 !important;
-}
 #pdf {
-  background-color: rgb(49, 56, 82) !important;
+  background-color: rgb(23, 28, 47) !important;
   color: whitesmoke;
   padding: 0 !important;
 }
 #pdf .description {
-  background-color: rgb(49, 56, 82) !important;
+  background-color: rgb(23, 28, 47) !important;
   padding: 20px;
   height: 100%;
 }
@@ -1537,14 +1535,33 @@ table#nodule-table {
   border-color: rgb(110, 110, 110) !important;
 }
 #pdf th {
-  background-color: rgb(39, 46, 72) !important;
+  background-color: rgb(34, 39, 58) !important;
   color: whitesmoke !important;
   border-color: rgb(110, 110, 110) !important;
 }
 #pdf td {
-  background-color: rgb(23, 28, 47) !important;
+  background-color: rgb(34, 39, 58) !important;
   color: whitesmoke !important;
   border-color: rgb(110, 110, 110) !important;
+}
+.pdf-form {
+}
+.pdf-form-col {
+  padding: 0 20px 0 0;
+}
+.pdf-form-col label {
+  width: 100px;
+  justify-content: flex-end;
+}
+.pdf-form-col label::after {
+  color: whitesmoke;
+}
+.pdf-form-label {
+  color: whitesmoke;
+}
+.pdf-form-input {
+  background-color: rgb(34, 39, 58) !important;
+  color: whitesmoke !important;
 }
 #invisiblePDF {
   /* position: absolute;
@@ -1647,4 +1664,11 @@ table#nodule-table {
 .invisiblePDF-nodule-corner {
   width: 300px;
   height: 250px;
+}
+
+#main .ant-cascader-picker-label {
+  padding: 0 !important;
+}
+.ant-cascader-dropdown {
+  background-color: rgb(39, 46, 72) !important;
 }

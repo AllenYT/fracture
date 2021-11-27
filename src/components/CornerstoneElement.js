@@ -13,11 +13,11 @@ import * as cornerstoneTools from 'cornerstone-tools'
 import Hammer from 'hammerjs'
 import * as cornerstoneWadoImageLoader from 'cornerstone-wado-image-loader'
 import { withRouter } from 'react-router-dom'
-import { Grid, Icon, Button, Accordion, Modal, Dropdown, Menu, Label, Header, Popup, Table, Sidebar, Loader, Divider, Form, Card } from 'semantic-ui-react'
+import { Icon, Button, Accordion, Modal, Dropdown, Menu, Label, Header, Popup, Table, Sidebar, Loader, Divider, Form, Card } from 'semantic-ui-react'
 import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
 import qs from 'qs'
 import axios from 'axios'
-import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Cascader, Radio, Row, Col } from 'antd'
+import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Cascader, Radio, Row, Col, Form as AntdForm, Input } from 'antd'
 import * as echarts from 'echarts'
 import html2pdf from 'html2pdf.js'
 import copy from 'copy-to-clipboard'
@@ -345,6 +345,7 @@ class CornerstoneElement extends Component {
       imageIds: [],
       sliderMarks: {},
       boxes: [],
+      needReloadBoxes: false,
       noduleMarks: {},
       listsActiveIndex: -1, //右方list活动item
       currentIdx: 0, //当前所在切片号
@@ -370,7 +371,9 @@ class CornerstoneElement extends Component {
       wcDefine: 500,
       dicomTag: null,
       pdfContent: null,
+      pdfFormValues: {},
       invisiblePdfContent: null,
+
       pdfReading: false,
       pdfLoadingCompleted: false,
       showInfo: true,
@@ -878,16 +881,12 @@ class CornerstoneElement extends Component {
       currentActiveIdx = listsActiveIndex
     }
 
-    this.setState(
-      {
-        boxes,
-        measureStateList,
-        listsActiveIndex: currentActiveIdx,
-      },
-      () => {
-        this.template()
-      }
-    )
+    this.setState({
+      boxes,
+      needReloadBoxes: true,
+      measureStateList,
+      listsActiveIndex: currentActiveIdx,
+    })
     this.refreshImage(false, this.state.imageIds[boxes[currentActiveIdx].slice_idx], boxes[currentActiveIdx].slice_idx)
     message.success('结节删除成功')
   }
@@ -917,8 +916,8 @@ class CornerstoneElement extends Component {
     const boxes = this.state.boxes
     boxes[index].malignancy = parseInt(value)
     this.setState({
-      // selectBoxes: boxes,
       boxes: boxes,
+      needReloadBoxes: true
       // random: Math.random()
     })
   }
@@ -932,8 +931,8 @@ class CornerstoneElement extends Component {
     const boxes = this.state.boxes
     boxes[index].texture = parseInt(value)
     this.setState({
-      selectBoxes: boxes,
       boxes: boxes,
+      needReloadBoxes: true
       // random: Math.random()
     })
   }
@@ -967,6 +966,7 @@ class CornerstoneElement extends Component {
     }
     this.setState({
       boxes: boxes,
+      needReloadBoxes: true
       // random: Math.random()
     })
   }
@@ -3740,7 +3740,7 @@ class CornerstoneElement extends Component {
             </Sidebar.Pushable>
           </div>
           {histogramFloatWindow}
-          {pdfReading ? invisiblePdfContent : null}
+          {invisiblePdfContent}
         </div>
       )
       // }
@@ -4360,6 +4360,7 @@ class CornerstoneElement extends Component {
     measureStateList.push(false)
     this.setState({
       boxes,
+      needReloadBoxes: true,
       measureStateList,
     })
     console.log('Boxes', boxes, measureStateList)
@@ -6043,206 +6044,48 @@ class CornerstoneElement extends Component {
     e.stopPropagation()
     const boxes = this.state.boxes
     const imageIds = this.state.imageIds
-    const reportImageText = this.state.reportImageText
-    const visibleNodules = boxes.map((item, index) => {
-      const pdfNodulePosition = item.place === 0 ? nodulePlaces[item.place] : noduleSegments[item.segment]
-      const pdfNoduleRepresents = []
-      if (item.lobulation === 2) {
-        pdfNoduleRepresents.push('分叶')
-      }
-      if (item.spiculation === 2) {
-        pdfNoduleRepresents.push('毛刺')
-      }
-      if (item.calcification === 2) {
-        pdfNoduleRepresents.push('钙化')
-      }
-      if (item.pin === 2) {
-        pdfNoduleRepresents.push('胸膜凹陷')
-      }
-      if (item.cav === 2) {
-        pdfNoduleRepresents.push('空洞')
-      }
-      if (item.vss === 2) {
-        pdfNoduleRepresents.push('血管集束')
-      }
-      if (item.bea === 2) {
-        pdfNoduleRepresents.push('空泡')
-      }
-      if (item.bro === 2) {
-        pdfNoduleRepresents.push('支气管充气')
-      }
-      let pdfNoduleRepresentText = ''
-      pdfNoduleRepresents.forEach((representItem, representIndex) => {
-        if (representIndex !== 0) {
-          pdfNoduleRepresentText += '/' + representItem
-        } else {
-          pdfNoduleRepresentText += representItem
-        }
-      })
-      if (!pdfNoduleRepresentText) {
-        pdfNoduleRepresentText = '无'
-      }
-      return (
-        <div className="invisiblePDF-nodule-corner-item" key={index}>
-          <div id={`pdf-nodule-${index}`} className="invisiblePDF-nodule-corner"></div>
-          <div className="invisiblePDF-nodule-info">
-            <div>切片号:{item.slice_idx + 1}</div>
-            <div>位置:{pdfNodulePosition}</div>
-            <div>危险程度:{magName[item.malignancy]}</div>
-            <div>性质:{texName[item.texture]}</div>
-            <div>表征:{pdfNoduleRepresentText}</div>
-            <div>直径:{`${(item.diameter / 10).toFixed(2)}cm`}</div>
-            <div>体积:{item.volume === undefined ? null : `${(item.volume * 1e3).toFixed(2)}mm³`}</div>
-            <div>HU(均值/最大值/最小值):{item.huMean === undefined ? null : Math.round(item.huMean) + ' / ' + item.huMax + ' / ' + item.huMin}</div>
-          </div>
-        </div>
-      )
-    })
-    const invisiblePdfContent = (
-      <div id="invisiblePDF">
-        <div id="invisiblePDF-container">
-          <div className="invisiblePDF-header">图文报告</div>
-          <div className="invisiblePDF-content">
-            <div className="invisiblePDF-content-top">
-              <div className="invisiblePDF-content-title">胸部CT检查报告单</div>
-              <div className="invisiblePDF-content-description">
-                <div className="invisiblePDF-content-description-info">
-                  <Row wrap={false}>
-                    <Col span={6}>
-                      <div>
-                        <div>姓名：</div>
-                        <div>影像号：{this.state.patientId}</div>
-                      </div>
-                    </Col>
-                    <Col span={6}>
-                      <div>
-                        <div>性别：{this.state.patientSex}</div>
-                        <div>送检科室：</div>
-                      </div>
-                    </Col>
-                    <Col span={6}>
-                      <div>
-                        <div>年龄：</div>
-                        <div>送检医生：</div>
-                      </div>
-                    </Col>
-                    <Col span={6}>
-                      <div>
-                        <div>检查号：</div>
-                        <div>检查日期：</div>
-                      </div>
-                    </Col>
-                  </Row>
-                </div>
-                <div className="invisiblePDF-content-description-nodules">
-                  <div className="invisiblePDF-content-description-nodules-title">影像所见</div>
-                  <div className="invisiblePDF-content-description-nodules-list">{visibleNodules}</div>
-                </div>
-                <div className="invisiblePDF-content-description-text">{reportImageText}</div>
-              </div>
-            </div>
-            <div className="invisiblePDF-content-bottom">
-              <div className="invisiblePDF-content-report">
-                <Row wrap={false}>
-                  <Col span={8}>报告日期：</Col>
-                  <Col span={8}>报告医师：</Col>
-                  <Col span={8}>审核医师：</Col>
-                </Row>
-              </div>
-              <div className="invisiblePDF-content-note">注：本筛查报告仅供参考，详情请咨询医师。</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+    const pdfFormValues = _.assign({ patientId: '', name: '', diagDoctor: '', instanceId: '', sex: '', auditDoctor: '', studyDate: '', age: '', reportDate: '' }, this.state.pdfFormValues)
     const pdfContent = (
       <>
-        <Row>
-          <Col span={12}>
-            <Row>
-              <Col span={8}>
-                <span>病人编号:</span>
-              </Col>
-              <Col span={16}> {this.state.patientId}</Col>
-            </Row>
-            <Row>
-              <Col span={8}>
-                <span>出生日期:</span>
-              </Col>
-              <Col span={16}> {this.state.patientBirth}</Col>
-            </Row>
-            <Row>
-              <Col span={8}>
-                <span>检查编号:</span>
-              </Col>
-              <Col span={16}> 12580359</Col>
-            </Row>
-            <Row>
-              <Col span={8}>
-                <span>入库编号:</span>
-              </Col>
-              <Col span={16}></Col>
-            </Row>
-            <Row>
-              <Col span={8}>
-                <span>检查日期:</span>
-              </Col>
-              <Col span={16}></Col>
-            </Row>
-            <Row>
-              <Col span={8}>
-                <span>报告撰写日期:</span>
-              </Col>
-              <Col span={16}></Col>
-            </Row>
-            <Row>
-              <Col span={8}>
-                <span>请求过程描述:</span>
-              </Col>
-              <Col span={16}></Col>
-            </Row>
-          </Col>
-          <Col span={12}>
-            <Row>
-              <Col span={6}>
-                <span>姓名:</span>
-              </Col>
-              <Col span={18}></Col>
-            </Row>
-            <Row>
-              <Col span={6}>
-                <span>年龄:</span>
-              </Col>
-              <Col span={18}></Col>
-            </Row>
-            <Row>
-              <Col span={6}>
-                <span>性别:</span>
-              </Col>
-              <Col span={18}>{this.state.patientSex}</Col>
-            </Row>
-            <Row>
-              <Col span={6}>
-                <span>身高:</span>
-              </Col>
-              <Col span={18}></Col>
-            </Row>
-            <Row>
-              <Col span={6}>
-                <span>体重:</span>
-              </Col>
-              <Col span={18}></Col>
-            </Row>
-            <Row>
-              <Col span={6}>
-                <span>体重系数:</span>
-              </Col>
-              <Col span={18}></Col>
-            </Row>
-          </Col>
-        </Row>
+        <AntdForm labelAlign="right" className="pdf-form" initialValues={pdfFormValues} onValuesChange={this.onPdfFormValuesChange.bind(this)}>
+          <Row>
+            <Col span={8} className="pdf-form-col">
+              <AntdForm.Item name={`patientId`} label={<div className="pdf-form-label">病例号</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入病例号" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`name`} label={<div className="pdf-form-label">姓名</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入姓名" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`diagDoctor`} label={<div className="pdf-form-label">诊断医师</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入诊断医师" />
+              </AntdForm.Item>
+            </Col>
+            <Col span={8} className="pdf-form-col">
+              <AntdForm.Item name={`instanceId`} label={<div className="pdf-form-label">检查号</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入检查号" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`sex`} label={<div className="pdf-form-label">性别</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入性别" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`auditDoctor`} label={<div className="pdf-form-label">审核医师</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入审核医师" />
+              </AntdForm.Item>
+            </Col>
+            <Col span={8} className="pdf-form-col">
+              <AntdForm.Item name={`studyDate`} label={<div className="pdf-form-label">检查日期</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入检查日期" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`age`} label={<div className="pdf-form-label">年龄</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入年龄" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`reportDate`} label={<div className="pdf-form-label">报告日期</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入报告日期" />
+              </AntdForm.Item>
+            </Col>
+          </Row>
+        </AntdForm>
         <Divider />
-        <div className="corner-report-modal-title">扫描参数</div>
+        {/* <div className="corner-report-modal-title">扫描参数</div>
         <Table celled>
           <Table.Header>
             <Table.Row>
@@ -6252,7 +6095,6 @@ class CornerstoneElement extends Component {
               <Table.HeaderCell>kV</Table.HeaderCell>
               <Table.HeaderCell>mA</Table.HeaderCell>
               <Table.HeaderCell>mAs</Table.HeaderCell>
-              {/* <Table.HeaderCell>Recon Name</Table.HeaderCell> */}
               <Table.HeaderCell>厂商</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
@@ -6268,7 +6110,7 @@ class CornerstoneElement extends Component {
             </Table.Row>
           </Table.Header>
           <Table.Body></Table.Body>
-        </Table>
+        </Table> */}
         {boxes && boxes.length
           ? boxes.map((nodule, index) => {
               let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
@@ -6378,24 +6220,19 @@ class CornerstoneElement extends Component {
           : null}{' '}
       </>
     )
+
     this.setState(
       {
         pdfContent,
-        invisiblePdfContent,
-        pdfLoadingCompleted: false,
+        pdfFormValues,
       },
       () => {
-        buttonflag = 0
-        const that = this
         boxes.map((nodule, index) => {
           // console.log('nodules1',nodule)
           const nodule_id1 = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
           const element1 = document.getElementById(nodule_id1)
-          const nodule_id2 = `pdf-nodule-${index}`
-          const element2 = document.getElementById(nodule_id2)
           let imageId = imageIds[nodule.slice_idx]
           cornerstone.enable(element1)
-          cornerstone.enable(element2)
           cornerstone.loadAndCacheImage(imageId).then(function (image) {
             // console.log('cache')
             var viewport = cornerstone.getDefaultViewportForImage(element1, image)
@@ -6409,12 +6246,162 @@ class CornerstoneElement extends Component {
             viewport.translation.y = 250 - yCenter
             // console.log('viewport',viewport)
             cornerstone.setViewport(element1, viewport)
-            cornerstone.setViewport(element2, viewport)
             cornerstone.displayImage(element1, image)
+
+            // console.log('buttonflag',buttonflag)
+          })
+        })
+      }
+    )
+  }
+  updateForm() {
+    const boxes = this.state.boxes
+    const imageIds = this.state.imageIds
+    const pdfFormValues = this.state.pdfFormValues
+    const reportImageText = this.state.reportImageText
+    const pdfReading = this.state.pdfReading
+    const visibleNodules = boxes.map((item, index) => {
+      const pdfNodulePosition = item.place === 0 ? nodulePlaces[item.place] : noduleSegments[item.segment]
+      const pdfNoduleRepresents = []
+      if (item.lobulation === 2) {
+        pdfNoduleRepresents.push('分叶')
+      }
+      if (item.spiculation === 2) {
+        pdfNoduleRepresents.push('毛刺')
+      }
+      if (item.calcification === 2) {
+        pdfNoduleRepresents.push('钙化')
+      }
+      if (item.pin === 2) {
+        pdfNoduleRepresents.push('胸膜凹陷')
+      }
+      if (item.cav === 2) {
+        pdfNoduleRepresents.push('空洞')
+      }
+      if (item.vss === 2) {
+        pdfNoduleRepresents.push('血管集束')
+      }
+      if (item.bea === 2) {
+        pdfNoduleRepresents.push('空泡')
+      }
+      if (item.bro === 2) {
+        pdfNoduleRepresents.push('支气管充气')
+      }
+      let pdfNoduleRepresentText = ''
+      pdfNoduleRepresents.forEach((representItem, representIndex) => {
+        if (representIndex !== 0) {
+          pdfNoduleRepresentText += '/' + representItem
+        } else {
+          pdfNoduleRepresentText += representItem
+        }
+      })
+      if (!pdfNoduleRepresentText) {
+        pdfNoduleRepresentText = '无'
+      }
+      return (
+        <div className="invisiblePDF-nodule-corner-item" key={index}>
+          <div id={`pdf-nodule-${index}`} className="invisiblePDF-nodule-corner"></div>
+          <div className="invisiblePDF-nodule-info">
+            <div>切片号:{item.slice_idx + 1}</div>
+            <div>位置:{pdfNodulePosition}</div>
+            <div>危险程度:{magName[item.malignancy]}</div>
+            <div>性质:{texName[item.texture]}</div>
+            <div>表征:{pdfNoduleRepresentText}</div>
+            <div>直径:{`${(item.diameter / 10).toFixed(2)}cm`}</div>
+            <div>体积:{item.volume === undefined ? null : `${(item.volume * 1e3).toFixed(2)}mm³`}</div>
+            <div>HU(均值/最大值/最小值):{item.huMean === undefined ? null : Math.round(item.huMean) + ' / ' + item.huMax + ' / ' + item.huMin}</div>
+          </div>
+        </div>
+      )
+    })
+    const invisiblePdfContent = (
+      <div id="invisiblePDF" style={pdfReading ? {} : { display: 'none' }}>
+        <div id="invisiblePDF-container">
+          <div className="invisiblePDF-header">图文报告</div>
+          <div className="invisiblePDF-content">
+            <div className="invisiblePDF-content-top">
+              <div className="invisiblePDF-content-title">胸部CT检查报告单</div>
+              <div className="invisiblePDF-content-description">
+                <div className="invisiblePDF-content-description-info">
+                  <Row wrap={false}>
+                    <Col span={6}>
+                      <div>
+                        <div>姓名：{pdfFormValues.name}</div>
+                        <div>影像号：{pdfFormValues.patientId}</div>
+                      </div>
+                    </Col>
+                    <Col span={6}>
+                      <div>
+                        <div>性别：{pdfFormValues.sex}</div>
+                        <div>送检科室：</div>
+                      </div>
+                    </Col>
+                    <Col span={6}>
+                      <div>
+                        <div>年龄：{pdfFormValues.age}</div>
+                        <div>送检医生：</div>
+                      </div>
+                    </Col>
+                    <Col span={6}>
+                      <div>
+                        <div>检查号：{pdfFormValues.instanceId}</div>
+                        <div>检查日期：{pdfFormValues.studyDate}</div>
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+                <div className="invisiblePDF-content-description-nodules">
+                  <div className="invisiblePDF-content-description-nodules-title">影像所见</div>
+                  <div className="invisiblePDF-content-description-nodules-list">{visibleNodules}</div>
+                </div>
+                <div className="invisiblePDF-content-description-text">{reportImageText}</div>
+              </div>
+            </div>
+            <div className="invisiblePDF-content-bottom">
+              <div className="invisiblePDF-content-report">
+                <Row wrap={false}>
+                  <Col span={8}>报告日期：</Col>
+                  <Col span={8}>报告医师：</Col>
+                  <Col span={8}>审核医师：</Col>
+                </Row>
+              </div>
+              <div className="invisiblePDF-content-note">注：本筛查报告仅供参考，详情请咨询医师。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+    this.setState(
+      {
+        invisiblePdfContent,
+        pdfLoadingCompleted: false,
+      },
+      () => {
+        let boxesLoadCount = 0
+        const that = this
+        boxes.map((nodule, index) => {
+          // console.log('nodules1',nodule)
+          const nodule_id2 = `pdf-nodule-${index}`
+          const element2 = document.getElementById(nodule_id2)
+          let imageId = imageIds[nodule.slice_idx]
+          cornerstone.enable(element2)
+          cornerstone.loadAndCacheImage(imageId).then(function (image) {
+            // console.log('cache')
+            var viewport = cornerstone.getDefaultViewportForImage(element2, image)
+            viewport.voi.windowWidth = 1600
+            viewport.voi.windowCenter = -600
+            viewport.scale = 2
+            // console.log('nodules2',nodule)
+            const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
+            const yCenter = nodule.y1 + (nodule.y2 - nodule.y1) / 2
+            viewport.translation.x = 250 - xCenter
+            viewport.translation.y = 250 - yCenter
+            // console.log('viewport',viewport)
+            cornerstone.setViewport(element2, viewport)
             cornerstone.displayImage(element2, image)
 
-            buttonflag += 1
-            if (buttonflag === boxes.length) {
+            boxesLoadCount += 1
+            if (boxesLoadCount === boxes.length) {
               that.setState({
                 pdfLoadingCompleted: true,
               })
@@ -6425,21 +6412,22 @@ class CornerstoneElement extends Component {
       }
     )
   }
+  onPdfFormValuesChange(changedValues, allValues) {
+    this.setState({
+      pdfFormValues: allValues,
+    })
+  }
   onHandleNoduleAllCheckChange() {
     const boxes = this.state.boxes
     const nodulesAllChecked = !this.state.nodulesAllChecked
     boxes.forEach((item, index) => {
       item.checked = nodulesAllChecked
     })
-    this.setState(
-      {
-        boxes,
-        nodulesAllChecked,
-      },
-      () => {
-        this.template()
-      }
-    )
+    this.setState({
+      boxes,
+      nodulesAllChecked,
+      needReloadBoxes: true,
+    })
   }
   onHandleNoduleAllCheckClick(e) {
     e.stopPropagation()
@@ -6450,10 +6438,10 @@ class CornerstoneElement extends Component {
     this.setState(
       {
         boxes,
+        needReloadBoxes: true,
       },
       () => {
         this.isAllCheck(2)
-        this.template()
       }
     )
   }
@@ -6986,6 +6974,7 @@ class CornerstoneElement extends Component {
     })
     this.setState({
       boxes,
+      needReloadBoxes: true,
     })
   }
   isSelectAllCheck() {
@@ -7685,10 +7674,10 @@ class CornerstoneElement extends Component {
                 measureStateList: measureArr,
                 maskStateList: maskArr,
                 imageCaching: true,
+                needReloadBoxes: true,
               },
               () => {
                 this.reportImageTopCalc()
-                this.template()
               }
             )
           })
@@ -8338,7 +8327,20 @@ class CornerstoneElement extends Component {
         this.plotHistogram(this.state.listsActiveIndex)
       }
     }
-
+    if (prevState.pdfFormValues !== this.state.pdfFormValues) {
+      if (this.state.boxes && this.state.boxes.length) {
+        this.updateForm()
+      }
+    }
+    //boxes change
+    if (!prevState.needReloadBoxes && this.state.needReloadBoxes) {
+      if (this.state.boxes && this.state.boxes.length) {
+        this.template()
+        this.setState({
+          needReloadBoxes: false,
+        })
+      }
+    }
     this.updateDisplay(prevProps, prevState)
     this.updateStudyBrowser(prevProps, prevState)
     this.updateReport(prevProps, prevState)
