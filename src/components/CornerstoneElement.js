@@ -175,6 +175,18 @@ const lobeName = {
   4: '左肺上叶',
   5: '左肺下叶',
 }
+const texName = {
+  '-1': '未知',
+  1: '磨玻璃',
+  2: '实性',
+  3: '半实性',
+}
+const magName = {
+  '-1': '未知',
+  1: '低危',
+  2: '中危',
+  3: '中危',
+}
 const immersiveStyle = {
   width: '1280px',
   height: '1280px',
@@ -357,6 +369,10 @@ class CornerstoneElement extends Component {
       wwDefine: 500,
       wcDefine: 500,
       dicomTag: null,
+      pdfContent: null,
+      invisiblePdfContent: null,
+      pdfReading: false,
+      pdfLoadingCompleted: false,
       showInfo: true,
       newAnno: true,
       isbidirectionnal: false,
@@ -407,24 +423,45 @@ class CornerstoneElement extends Component {
       patientId: '',
       date: '',
       age: 0,
-      temp: 0,
 
       /*新加变量 */
       nodules: [],
       nodulesAllChecked: false,
       nodulesOrder: {
         slice_idx: 1,
-        diameter: 0,
+        long_length: 0,
         texture: 0,
         malignancy: 0,
       },
+      noduleOrderOption: [
+        {
+          desc: '层面数',
+          key: 'slice_idx',
+          sortable: true,
+        },
+        {
+          desc: '长径大小',
+          key: 'long_length',
+          sortable: true,
+        },
+        {
+          desc: '结节类型',
+          key: 'texture',
+          sortable: true,
+        },
+        {
+          desc: '良恶性',
+          key: 'malignancy',
+          sortable: true,
+        },
+      ],
       nodulesSelect: [
         {
           key: 0,
           options: ['实性', '半实性', '磨玻璃', '毛刺征', '分叶征', '钙化征', '胸膜凹陷征', '空洞征', '血管集束征', '空泡征', '支气管充气征', '未知'],
           checked: new Array(12).fill(true),
         },
-        { key: 1, desc: '直径大小', options: ['<=0.3cm', '0.3cm-0.5cm', '0.5cm-1cm', '1cm-1.3cm', '1.3cm-3cm', '>=3cm'], checked: new Array(6).fill(true) },
+        { key: 1, desc: '长径大小', options: ['<=0.3cm', '0.3cm-0.5cm', '0.5cm-1cm', '1cm-1.3cm', '1.3cm-3cm', '>=3cm'], checked: new Array(6).fill(true) },
         { key: 2, desc: '良恶性', options: ['高危', '中危', '低危', '未知'], checked: new Array(4).fill(true) },
       ],
       nodulesAllSelected: true,
@@ -841,13 +878,16 @@ class CornerstoneElement extends Component {
       currentActiveIdx = listsActiveIndex
     }
 
-    this.setState({
-      boxes,
-      measureStateList,
-      listsActiveIndex: currentActiveIdx,
-    },()=>{
-      this.template()
-    })
+    this.setState(
+      {
+        boxes,
+        measureStateList,
+        listsActiveIndex: currentActiveIdx,
+      },
+      () => {
+        this.template()
+      }
+    )
     this.refreshImage(false, this.state.imageIds[boxes[currentActiveIdx].slice_idx], boxes[currentActiveIdx].slice_idx)
     message.success('结节删除成功')
   }
@@ -1541,6 +1581,10 @@ class CornerstoneElement extends Component {
       wwDefine,
       wcDefine,
       dicomTag,
+      pdfContent,
+      invisiblePdfContent,
+      pdfReading,
+      pdfLoadingCompleted,
       menuTools,
       cacheModal,
       windowWidth,
@@ -1557,6 +1601,7 @@ class CornerstoneElement extends Component {
 
       nodulesAllChecked,
       nodulesOrder,
+      noduleOrderOption,
       nodulesSelect,
       nodulesAllSelected,
       reportImageActive,
@@ -1646,7 +1691,6 @@ class CornerstoneElement extends Component {
     let canvas
     let slideLabel
     let dicomTagPanel
-    const places = nodulePlaces
     // const noduleSegments = noduleSegments 引用了全局变量
 
     // let noduleNumTab = '结节(' + this.state.selectBoxes.length + ')'
@@ -2107,7 +2151,7 @@ class CornerstoneElement extends Component {
               locationValues = noduleSegments[inside.segment].split('-')
             } else {
               if (inside.place) {
-                locationValues = [places[inside.place]]
+                locationValues = [nodulePlaces[inside.place]]
               } else {
                 locationValues = ['无法定位']
               }
@@ -2159,9 +2203,9 @@ class CornerstoneElement extends Component {
                       </div>
 
                       {ll === 0 && sl === 0 ? (
-                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(diameter / 10).toFixed(2) + '\xa0cm'}</div>
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(diameter / 10).toFixed(1)}cm`}</div>
                       ) : (
-                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{(ll / 10).toFixed(2) + '×' + (sl / 10).toFixed(2) + '\xa0cm'}</div>
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(ll / 10).toFixed(1)}x${(sl / 10).toFixed(1)}cm`}</div>
                       )}
 
                       <div className="nodule-accordion-item-title-column">
@@ -2214,7 +2258,7 @@ class CornerstoneElement extends Component {
                         {/* <Grid.Column widescreen={6} computer={6}>
                 {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
               </Grid.Column> */}
-                        <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? (Math.floor(inside.volume * 100) / 100).toFixed(2) + '\xa0cm³' : null}</div>
+                        <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? `${(inside.volume * 1e3).toFixed(2)}mm³` : null}</div>
                         <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
                       </div>
                       {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
@@ -2322,28 +2366,6 @@ class CornerstoneElement extends Component {
           })
       }
 
-      const noduleOrderOption = [
-        {
-          desc: '层面数',
-          key: 'slice_idx',
-          sortable: true,
-        },
-        {
-          desc: '半径大小',
-          key: 'diameter',
-          sortable: true,
-        },
-        {
-          desc: '结节类型',
-          key: 'texture',
-          sortable: true,
-        },
-        {
-          desc: '良恶性',
-          key: 'malignancy',
-          sortable: true,
-        },
-      ]
       const noduleOrderContent = noduleOrderOption.map((item, idx) => {
         return (
           <div
@@ -2665,13 +2687,13 @@ class CornerstoneElement extends Component {
         CT_max = boxes[listsActiveIndex].huMax ? boxes[listsActiveIndex].huMax : 0
         CT_min = boxes[listsActiveIndex].huMin ? boxes[listsActiveIndex].huMin : 0
         CT_mean = boxes[listsActiveIndex].huMean ? boxes[listsActiveIndex].huMean : 0
-        CT_std = boxes[listsActiveIndex].Variance.toFixed(1)
-        Sphericity = boxes[listsActiveIndex].Sphericity.toFixed(1)
+        CT_std = boxes[listsActiveIndex].Variance ? boxes[listsActiveIndex].Variance.toFixed(1) : 0
+        Sphericity = boxes[listsActiveIndex].Sphericity ? boxes[listsActiveIndex].Sphericity.toFixed(1) : 0
 
         slice_idx = boxes[listsActiveIndex].slice_idx + 1
-        Maximum = boxes[listsActiveIndex].Maximum.toFixed(2)
-        SurfaceArea = boxes[listsActiveIndex].SurfaceArea.toFixed(2)
-        Maximum3DDiameter = boxes[listsActiveIndex].Maximum3DDiameter.toFixed(2)
+        Maximum = boxes[listsActiveIndex].Maximum ? boxes[listsActiveIndex].Maximum.toFixed(2) : 0
+        SurfaceArea = boxes[listsActiveIndex].SurfaceArea ? boxes[listsActiveIndex].SurfaceArea.toFixed(2) : 0
+        Maximum3DDiameter = boxes[listsActiveIndex].Maximum3DDiameter ? boxes[listsActiveIndex].Maximum3DDiameter.toFixed(2) : 0
         if (boxes[listsActiveIndex].measure !== null && boxes[listsActiveIndex].measure !== undefined) {
           let measureCoord = boxes[listsActiveIndex].measure
           let ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2))
@@ -2679,16 +2701,16 @@ class CornerstoneElement extends Component {
           apsidal_mean = ((ll + sl) / 2).toFixed(2)
         }
 
-        Kurtosis = boxes[listsActiveIndex].Kurtosis.toFixed(2)
-        Skewness = boxes[listsActiveIndex].Skewness.toFixed(2)
+        Kurtosis = boxes[listsActiveIndex].Kurtosis ? boxes[listsActiveIndex].Kurtosis.toFixed(2) : 0
+        Skewness = boxes[listsActiveIndex].Skewness ? boxes[listsActiveIndex].Skewness.toFixed(2) : 0
         if (boxes[listsActiveIndex].Energy) {
           let EnergyValue = boxes[listsActiveIndex].Energy
           let EnergyP = Math.floor(Math.log(EnergyValue) / Math.LN10)
           let EnergyN = (EnergyValue * Math.pow(10, -EnergyP)).toFixed(0)
           Energy = EnergyN + 'E' + EnergyP
         }
-        Compactness2 = boxes[listsActiveIndex].Compactness2.toFixed(2)
-        Entropy = boxes[listsActiveIndex].Entropy.toFixed(2)
+        Compactness2 = boxes[listsActiveIndex].Compactness2 ? boxes[listsActiveIndex].Compactness2.toFixed(2) : 0
+        Entropy = boxes[listsActiveIndex].Entropy ? boxes[listsActiveIndex].Entropy.toFixed(2) : 0
       }
 
       histogramFloatWindow = (
@@ -3667,6 +3689,9 @@ class CornerstoneElement extends Component {
                                   <div className="report-title-operation">
                                     <Modal
                                       className="corner-report-modal"
+                                      open={pdfReading}
+                                      onOpen={this.setPdfReading.bind(this, true)}
+                                      onClose={this.setPdfReading.bind(this, false)}
                                       trigger={<Icon name="expand arrows alternate" title="放大" className="inverted blue button" onClick={this.showImages.bind(this)}></Icon>}>
                                       <Modal.Header className="corner-report-modal-header">
                                         <Row>
@@ -3674,7 +3699,7 @@ class CornerstoneElement extends Component {
                                             影像诊断报告
                                           </Col>
                                           <Col span={12} className="corner-report-modal-header-button">
-                                            {this.state.temp === 1 ? (
+                                            {pdfLoadingCompleted ? (
                                               <Button color="blue" onClick={this.exportPDF.bind(this)}>
                                                 导出pdf
                                               </Button>
@@ -3687,213 +3712,7 @@ class CornerstoneElement extends Component {
                                         </Row>
                                       </Modal.Header>
                                       <Modal.Content image scrolling id="pdf">
-                                        <Modal.Description>
-                                          <Row>
-                                            <Col span={12}>
-                                              <Row>
-                                                <Col span={8}>
-                                                  <span>病人编号:</span>
-                                                </Col>
-                                                <Col span={16}> {this.state.patientId}</Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={8}>
-                                                  <span>出生日期:</span>
-                                                </Col>
-                                                <Col span={16}> {this.state.patientBirth}</Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={8}>
-                                                  <span>检查编号:</span>
-                                                </Col>
-                                                <Col span={16}> 12580359</Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={8}>
-                                                  <span>入库编号:</span>
-                                                </Col>
-                                                <Col span={16}></Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={8}>
-                                                  <span>检查日期:</span>
-                                                </Col>
-                                                <Col span={16}></Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={8}>
-                                                  <span>报告撰写日期:</span>
-                                                </Col>
-                                                <Col span={16}></Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={8}>
-                                                  <span>请求过程描述:</span>
-                                                </Col>
-                                                <Col span={16}></Col>
-                                              </Row>
-                                            </Col>
-                                            <Col span={12}>
-                                              <Row>
-                                                <Col span={6}>
-                                                  <span>姓名:</span>
-                                                </Col>
-                                                <Col span={18}></Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={6}>
-                                                  <span>年龄:</span>
-                                                </Col>
-                                                <Col span={18}></Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={6}>
-                                                  <span>性别:</span>
-                                                </Col>
-                                                <Col span={18}>{this.state.patientSex}</Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={6}>
-                                                  <span>身高:</span>
-                                                </Col>
-                                                <Col span={18}></Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={6}>
-                                                  <span>体重:</span>
-                                                </Col>
-                                                <Col span={18}></Col>
-                                              </Row>
-                                              <Row>
-                                                <Col span={6}>
-                                                  <span>体重系数:</span>
-                                                </Col>
-                                                <Col span={18}></Col>
-                                              </Row>
-                                            </Col>
-                                          </Row>
-                                          <Divider />
-
-                                          <div className="corner-report-modal-title">扫描参数</div>
-                                          <Table celled>
-                                            <Table.Header>
-                                              <Table.Row>
-                                                <Table.HeaderCell>检查日期</Table.HeaderCell>
-                                                <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
-                                                <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
-                                                <Table.HeaderCell>kV</Table.HeaderCell>
-                                                <Table.HeaderCell>mA</Table.HeaderCell>
-                                                <Table.HeaderCell>mAs</Table.HeaderCell>
-                                                {/* <Table.HeaderCell>Recon Name</Table.HeaderCell> */}
-                                                <Table.HeaderCell>厂商</Table.HeaderCell>
-                                              </Table.Row>
-                                            </Table.Header>
-                                            <Table.Body></Table.Body>
-                                          </Table>
-                                          <div className="corner-report-modal-title">肺部详情</div>
-                                          <Table celled>
-                                            <Table.Header>
-                                              <Table.Row>
-                                                <Table.HeaderCell>检查日期</Table.HeaderCell>
-                                                <Table.HeaderCell>体积</Table.HeaderCell>
-                                                <Table.HeaderCell>结节总体积</Table.HeaderCell>
-                                              </Table.Row>
-                                            </Table.Header>
-                                            <Table.Body></Table.Body>
-                                          </Table>
-                                          {boxes && boxes.length
-                                            ? boxes.map((nodule, index) => {
-                                                let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
-                                                let visualId = 'visual' + index
-                                                // console.log('visualId',visualId)
-                                                return (
-                                                  <div key={index}>
-                                                    <div>&nbsp;</div>
-                                                    <div className="corner-report-modal-title" id="noduleDivide">
-                                                      结节 {index + 1}
-                                                    </div>
-                                                    <Table celled textAlign="center">
-                                                      <Table.Header>
-                                                        <Table.Row>
-                                                          <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
-                                                          <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
-                                                        </Table.Row>
-                                                      </Table.Header>
-                                                      <Table.Body>
-                                                        <Table.Row>
-                                                          <Table.Cell>切片号</Table.Cell>
-                                                          <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>肺叶位置</Table.Cell>
-                                                          <Table.Cell>{nodule['place'] === undefined || nodule['place'] === 0 ? '' : places[nodule['place']]}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>肺段位置</Table.Cell>
-                                                          <Table.Cell>{nodule['segment'] === undefined ? '' : noduleSegments[nodule['segment']]}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>危险程度</Table.Cell>
-                                                          <Table.Cell>{nodule['malignancy'] === 2 ? '高危' : '低危'}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>毛刺</Table.Cell>
-                                                          <Table.Cell>{nodule['spiculation'] === 2 ? '毛刺' : '非毛刺'}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>分叶</Table.Cell>
-                                                          <Table.Cell>{nodule['lobulation'] === 2 ? '分叶' : '非分叶'}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>钙化</Table.Cell>
-                                                          <Table.Cell>{nodule['calcification'] === 2 ? '钙化' : '非钙化'}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>密度</Table.Cell>
-                                                          <Table.Cell>{nodule['texture'] === 2 ? '实性' : '磨玻璃'}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>直径</Table.Cell>
-                                                          <Table.Cell>
-                                                            {Math.floor(nodule['diameter'] * 10) / 100}
-                                                            厘米
-                                                          </Table.Cell>
-                                                        </Table.Row>
-
-                                                        <Table.Row>
-                                                          <Table.Cell>体积</Table.Cell>
-                                                          <Table.Cell>{nodule['volume'] === undefined ? null : Math.floor(nodule['volume'] * 100) / 100 + 'cm³'}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>HU(最小值/均值/最大值)</Table.Cell>
-                                                          <Table.Cell>{nodule['huMin'] === undefined ? null : nodule['huMin'] + ' / ' + nodule['huMean'] + ' / ' + nodule['huMax']}</Table.Cell>
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>结节部分</Table.Cell>
-                                                          <Table.Cell>
-                                                            <div
-                                                              id={nodule_id}
-                                                              style={{
-                                                                width: '300px',
-                                                                height: '250px',
-                                                                margin: '0 auto',
-                                                              }}></div>
-                                                          </Table.Cell>
-                                                          {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
-                                                        </Table.Row>
-                                                        <Table.Row>
-                                                          <Table.Cell>直方图</Table.Cell>
-                                                          <Table.Cell>
-                                                            <div id={visualId} style={{ margin: '0 auto' }}></div>
-                                                          </Table.Cell>
-                                                        </Table.Row>
-                                                      </Table.Body>
-                                                    </Table>
-                                                  </div>
-                                                )
-                                              })
-                                            : null}
-                                        </Modal.Description>
+                                        <Modal.Description>{pdfContent}</Modal.Description>
                                       </Modal.Content>
                                     </Modal>
 
@@ -3921,6 +3740,7 @@ class CornerstoneElement extends Component {
             </Sidebar.Pushable>
           </div>
           {histogramFloatWindow}
+          {pdfReading ? invisiblePdfContent : null}
         </div>
       )
       // }
@@ -6173,14 +5993,16 @@ class CornerstoneElement extends Component {
   }
 
   exportPDF() {
-    const element = document.getElementById('pdf')
+    const element = document.getElementById('invisiblePDF')
+    const eleHeight = element.clientHeight
     const opt = {
-      margin: [1, 1, 1, 1],
+      // margin: [1, 1, 1, 1],
       filename: 'minireport.pdf',
-      pagebreak: { before: '#noduleDivide', avoid: 'canvas' },
-      image: { type: 'jpeg', quality: 0.98 }, // 导出的图片质量和格式
-      html2canvas: { scale: 2, useCORS: true }, // useCORS很重要，解决文档中图片跨域问题
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+      // pagebreak: { after: ['.invisiblePDF-nodule-corner-item'] },
+      image: { type: 'jpeg', quality: 1 }, // 导出的图片质量和格式
+      html2canvas: { scale: 1, useCORS: true, width: 1100, height: eleHeight + 10 }, // useCORS很重要，解决文档中图片跨域问题
+      jsPDF: { unit: 'mm', format: [1100, eleHeight + 10], orientation: 'portrait', precision: 25 },
+      //
     }
     if (element) {
       html2pdf().set(opt).from(element).save() // 导出
@@ -6212,96 +6034,371 @@ class CornerstoneElement extends Component {
       menuTransform: menuTransform + menuButtonsWidth,
     })
   }
+  setPdfReading(pdfReading) {
+    this.setState({
+      pdfReading,
+    })
+  }
   showImages(e) {
     e.stopPropagation()
     const boxes = this.state.boxes
     const imageIds = this.state.imageIds
-    if (boxes.length === 0) {
-      return
-    }
-    // console.log('imagesid',imageIds)
-    let nodule_id = 'nodule-' + boxes[0].nodule_no + '-' + boxes[0].slice_idx
-    let that = this
-    var timer = setInterval(function () {
-      if (document.getElementById(nodule_id) != null) {
+    const reportImageText = this.state.reportImageText
+    const visibleNodules = boxes.map((item, index) => {
+      const pdfNodulePosition = item.place === 0 ? nodulePlaces[item.place] : noduleSegments[item.segment]
+      const pdfNoduleRepresents = []
+      if (item.lobulation === 2) {
+        pdfNoduleRepresents.push('分叶')
+      }
+      if (item.spiculation === 2) {
+        pdfNoduleRepresents.push('毛刺')
+      }
+      if (item.calcification === 2) {
+        pdfNoduleRepresents.push('钙化')
+      }
+      if (item.pin === 2) {
+        pdfNoduleRepresents.push('胸膜凹陷')
+      }
+      if (item.cav === 2) {
+        pdfNoduleRepresents.push('空洞')
+      }
+      if (item.vss === 2) {
+        pdfNoduleRepresents.push('血管集束')
+      }
+      if (item.bea === 2) {
+        pdfNoduleRepresents.push('空泡')
+      }
+      if (item.bro === 2) {
+        pdfNoduleRepresents.push('支气管充气')
+      }
+      let pdfNoduleRepresentText = ''
+      pdfNoduleRepresents.forEach((representItem, representIndex) => {
+        if (representIndex !== 0) {
+          pdfNoduleRepresentText += '/' + representItem
+        } else {
+          pdfNoduleRepresentText += representItem
+        }
+      })
+      if (!pdfNoduleRepresentText) {
+        pdfNoduleRepresentText = '无'
+      }
+      return (
+        <div className="invisiblePDF-nodule-corner-item" key={index}>
+          <div id={`pdf-nodule-${index}`} className="invisiblePDF-nodule-corner"></div>
+          <div className="invisiblePDF-nodule-info">
+            <div>切片号:{item.slice_idx + 1}</div>
+            <div>位置:{pdfNodulePosition}</div>
+            <div>危险程度:{magName[item.malignancy]}</div>
+            <div>性质:{texName[item.texture]}</div>
+            <div>表征:{pdfNoduleRepresentText}</div>
+            <div>直径:{`${(item.diameter / 10).toFixed(2)}cm`}</div>
+            <div>体积:{item.volume === undefined ? null : `${(item.volume * 1e3).toFixed(2)}mm³`}</div>
+            <div>HU(均值/最大值/最小值):{item.huMean === undefined ? null : Math.round(item.huMean) + ' / ' + item.huMax + ' / ' + item.huMin}</div>
+          </div>
+        </div>
+      )
+    })
+    const invisiblePdfContent = (
+      <div id="invisiblePDF">
+        <div id="invisiblePDF-container">
+          <div className="invisiblePDF-header">图文报告</div>
+          <div className="invisiblePDF-content">
+            <div className="invisiblePDF-content-top">
+              <div className="invisiblePDF-content-title">胸部CT检查报告单</div>
+              <div className="invisiblePDF-content-description">
+                <div className="invisiblePDF-content-description-info">
+                  <Row wrap={false}>
+                    <Col span={6}>
+                      <div>
+                        <div>姓名：</div>
+                        <div>影像号：{this.state.patientId}</div>
+                      </div>
+                    </Col>
+                    <Col span={6}>
+                      <div>
+                        <div>性别：{this.state.patientSex}</div>
+                        <div>送检科室：</div>
+                      </div>
+                    </Col>
+                    <Col span={6}>
+                      <div>
+                        <div>年龄：</div>
+                        <div>送检医生：</div>
+                      </div>
+                    </Col>
+                    <Col span={6}>
+                      <div>
+                        <div>检查号：</div>
+                        <div>检查日期：</div>
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+                <div className="invisiblePDF-content-description-nodules">
+                  <div className="invisiblePDF-content-description-nodules-title">影像所见</div>
+                  <div className="invisiblePDF-content-description-nodules-list">{visibleNodules}</div>
+                </div>
+                <div className="invisiblePDF-content-description-text">{reportImageText}</div>
+              </div>
+            </div>
+            <div className="invisiblePDF-content-bottom">
+              <div className="invisiblePDF-content-report">
+                <Row wrap={false}>
+                  <Col span={8}>报告日期：</Col>
+                  <Col span={8}>报告医师：</Col>
+                  <Col span={8}>审核医师：</Col>
+                </Row>
+              </div>
+              <div className="invisiblePDF-content-note">注：本筛查报告仅供参考，详情请咨询医师。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+    const pdfContent = (
+      <>
+        <Row>
+          <Col span={12}>
+            <Row>
+              <Col span={8}>
+                <span>病人编号:</span>
+              </Col>
+              <Col span={16}> {this.state.patientId}</Col>
+            </Row>
+            <Row>
+              <Col span={8}>
+                <span>出生日期:</span>
+              </Col>
+              <Col span={16}> {this.state.patientBirth}</Col>
+            </Row>
+            <Row>
+              <Col span={8}>
+                <span>检查编号:</span>
+              </Col>
+              <Col span={16}> 12580359</Col>
+            </Row>
+            <Row>
+              <Col span={8}>
+                <span>入库编号:</span>
+              </Col>
+              <Col span={16}></Col>
+            </Row>
+            <Row>
+              <Col span={8}>
+                <span>检查日期:</span>
+              </Col>
+              <Col span={16}></Col>
+            </Row>
+            <Row>
+              <Col span={8}>
+                <span>报告撰写日期:</span>
+              </Col>
+              <Col span={16}></Col>
+            </Row>
+            <Row>
+              <Col span={8}>
+                <span>请求过程描述:</span>
+              </Col>
+              <Col span={16}></Col>
+            </Row>
+          </Col>
+          <Col span={12}>
+            <Row>
+              <Col span={6}>
+                <span>姓名:</span>
+              </Col>
+              <Col span={18}></Col>
+            </Row>
+            <Row>
+              <Col span={6}>
+                <span>年龄:</span>
+              </Col>
+              <Col span={18}></Col>
+            </Row>
+            <Row>
+              <Col span={6}>
+                <span>性别:</span>
+              </Col>
+              <Col span={18}>{this.state.patientSex}</Col>
+            </Row>
+            <Row>
+              <Col span={6}>
+                <span>身高:</span>
+              </Col>
+              <Col span={18}></Col>
+            </Row>
+            <Row>
+              <Col span={6}>
+                <span>体重:</span>
+              </Col>
+              <Col span={18}></Col>
+            </Row>
+            <Row>
+              <Col span={6}>
+                <span>体重系数:</span>
+              </Col>
+              <Col span={18}></Col>
+            </Row>
+          </Col>
+        </Row>
+        <Divider />
+        <div className="corner-report-modal-title">扫描参数</div>
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>检查日期</Table.HeaderCell>
+              <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
+              <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
+              <Table.HeaderCell>kV</Table.HeaderCell>
+              <Table.HeaderCell>mA</Table.HeaderCell>
+              <Table.HeaderCell>mAs</Table.HeaderCell>
+              {/* <Table.HeaderCell>Recon Name</Table.HeaderCell> */}
+              <Table.HeaderCell>厂商</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body></Table.Body>
+        </Table>
+        <div className="corner-report-modal-title">肺部详情</div>
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>检查日期</Table.HeaderCell>
+              <Table.HeaderCell>体积</Table.HeaderCell>
+              <Table.HeaderCell>结节总体积</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body></Table.Body>
+        </Table>
+        {boxes && boxes.length
+          ? boxes.map((nodule, index) => {
+              let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
+              let visualId = 'visual' + index
+              // console.log('visualId',visualId)
+              const pdfNodulePosition = nodule.place === 0 ? nodulePlaces[nodule.place] : noduleSegments[nodule.segment]
+              const pdfNoduleRepresents = []
+              if (nodule.lobulation === 2) {
+                pdfNoduleRepresents.push('分叶')
+              }
+              if (nodule.spiculation === 2) {
+                pdfNoduleRepresents.push('毛刺')
+              }
+              if (nodule.calcification === 2) {
+                pdfNoduleRepresents.push('钙化')
+              }
+              if (nodule.pin === 2) {
+                pdfNoduleRepresents.push('胸膜凹陷')
+              }
+              if (nodule.cav === 2) {
+                pdfNoduleRepresents.push('空洞')
+              }
+              if (nodule.vss === 2) {
+                pdfNoduleRepresents.push('血管集束')
+              }
+              if (nodule.bea === 2) {
+                pdfNoduleRepresents.push('空泡')
+              }
+              if (nodule.bro === 2) {
+                pdfNoduleRepresents.push('支气管充气')
+              }
+              let pdfNoduleRepresentText = ''
+              pdfNoduleRepresents.forEach((representItem, representIndex) => {
+                if (representIndex !== 0) {
+                  pdfNoduleRepresentText += '/' + representItem
+                } else {
+                  pdfNoduleRepresentText += representItem
+                }
+              })
+              if (!pdfNoduleRepresentText) {
+                pdfNoduleRepresentText = '无'
+              }
+              return (
+                <div key={index}>
+                  <div>&nbsp;</div>
+                  <div className="corner-report-modal-title" id="noduleDivide">
+                    结节 {index + 1}
+                  </div>
+                  <Table celled textAlign="center">
+                    <Table.Header>
+                      <Table.Row>
+                        <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
+                        <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
+                      </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                      <Table.Row>
+                        <Table.Cell>切片号</Table.Cell>
+                        <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>结节位置</Table.Cell>
+                        <Table.Cell>{pdfNodulePosition}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>危险程度</Table.Cell>
+                        <Table.Cell>{magName[nodule.malignancy]}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>性质</Table.Cell>
+                        <Table.Cell>{texName[nodule.texture]}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>表征</Table.Cell>
+                        <Table.Cell>{pdfNoduleRepresentText}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>直径</Table.Cell>
+                        <Table.Cell>{`${(nodule.diameter / 10).toFixed(2)}cm`}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>体积</Table.Cell>
+                        <Table.Cell>{nodule['volume'] === undefined ? null : `${(nodule.volume * 1e3).toFixed(2)}mm³`}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>HU(均值/最大值/最小值)</Table.Cell>
+                        <Table.Cell>{nodule['huMean'] === undefined ? null : Math.round(nodule['huMean']) + ' / ' + nodule['huMax'] + ' / ' + nodule['huMin']}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>结节部分</Table.Cell>
+                        <Table.Cell>
+                          <div
+                            id={nodule_id}
+                            style={{
+                              width: '300px',
+                              height: '250px',
+                              margin: '0 auto',
+                            }}></div>
+                        </Table.Cell>
+                        {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
+                      </Table.Row>
+                    </Table.Body>
+                  </Table>
+                </div>
+              )
+            })
+          : null}{' '}
+      </>
+    )
+    this.setState(
+      {
+        pdfContent,
+        invisiblePdfContent,
+        pdfLoadingCompleted: false,
+      },
+      () => {
+        buttonflag = 0
+        const that = this
         boxes.map((nodule, index) => {
           // console.log('nodules1',nodule)
-          const visId = 'visual' + index
-          var dom = document.getElementById(visId)
-          dom.style.display = ''
-          dom.style.height = '300px'
-          dom.style.width = '450px'
-          let myChart = echarts.init(dom)
-          // console.log(visId)
-          // document.getElementById(visId).innerHTML=''
-          const hist_data = nodule.nodule_hist
-          if (hist_data !== undefined) {
-            let bins = hist_data.bins
-            let ns = hist_data.n
-
-            myChart.setOption({
-              color: ['#00FFFF'],
-              tooltip: {
-                trigger: 'axis',
-                axisPointer: {
-                  // 坐标轴指示器，坐标轴触发有效
-                  type: 'shadow', // 默认为直线，可选为：'line' | 'shadow'
-                },
-              },
-              toolbox: {
-                feature: {
-                  saveAsImage: {},
-                },
-              },
-              grid: {
-                left: '15%',
-                right: '4%',
-                bottom: '3%',
-                top: '10%',
-                containLabel: true,
-              },
-              xAxis: [
-                {
-                  type: 'category',
-                  scale: 'true',
-                  data: bins,
-                  // min: minValue,
-                  // max: maxValue,
-                  axisTick: {
-                    alignWithLabel: true,
-                  },
-                  axisLabel: {
-                    color: 'rgb(191,192,195)',
-                  },
-                },
-              ],
-              yAxis: [
-                {
-                  type: 'value',
-
-                  axisLabel: {
-                    color: 'rgb(191,192,195)',
-                  },
-                  minInterval: 1,
-                },
-              ],
-              series: [
-                {
-                  name: 'count',
-                  type: 'bar',
-                  barWidth: '60%',
-                  data: ns,
-                },
-              ],
-            })
-          }
-          nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
-          const element = document.getElementById(nodule_id)
+          const nodule_id1 = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
+          const element1 = document.getElementById(nodule_id1)
+          const nodule_id2 = `pdf-nodule-${index}`
+          const element2 = document.getElementById(nodule_id2)
           let imageId = imageIds[nodule.slice_idx]
-          cornerstone.enable(element)
+          cornerstone.enable(element1)
+          cornerstone.enable(element2)
           cornerstone.loadAndCacheImage(imageId).then(function (image) {
             // console.log('cache')
-            var viewport = cornerstone.getDefaultViewportForImage(element, image)
+            var viewport = cornerstone.getDefaultViewportForImage(element1, image)
             viewport.voi.windowWidth = 1600
             viewport.voi.windowCenter = -600
             viewport.scale = 2
@@ -6311,18 +6408,22 @@ class CornerstoneElement extends Component {
             viewport.translation.x = 250 - xCenter
             viewport.translation.y = 250 - yCenter
             // console.log('viewport',viewport)
-            cornerstone.setViewport(element, viewport)
-            cornerstone.displayImage(element, image)
+            cornerstone.setViewport(element1, viewport)
+            cornerstone.setViewport(element2, viewport)
+            cornerstone.displayImage(element1, image)
+            cornerstone.displayImage(element2, image)
+
             buttonflag += 1
-            // console.log('buttonflag',buttonflag)
             if (buttonflag === boxes.length) {
-              that.setState({ temp: 1 })
+              that.setState({
+                pdfLoadingCompleted: true,
+              })
             }
+            // console.log('buttonflag',buttonflag)
           })
         })
-        clearInterval(timer)
       }
-    }, 100)
+    )
   }
   onHandleNoduleAllCheckChange() {
     const boxes = this.state.boxes
@@ -6569,7 +6670,7 @@ class CornerstoneElement extends Component {
       })
       nodulesOrder[type] = 1
     } else {
-      if (type === 'slice_idx' || type === 'diameter' || type === 'texture' || type === 'malignancy') {
+      if (type === 'slice_idx' || type === 'long_length' || type === 'texture' || type === 'malignancy') {
         nodulesOrder[type] = -nodulesOrder[type]
       } else {
         nodulesOrder[type] = 1
@@ -6594,7 +6695,7 @@ class CornerstoneElement extends Component {
       })
       nodulesOrder[type] = 1
     } else {
-      if (type === 'slice_idx' || type === 'diameter' || type === 'texture' || type === 'malignancy') {
+      if (type === 'slice_idx' || type === 'long_length' || type === 'texture' || type === 'malignancy') {
         nodulesOrder[type] = -nodulesOrder[type]
       }
     }
@@ -6618,6 +6719,12 @@ class CornerstoneElement extends Component {
           function (o) {
             if (item === 'malignancy') {
               return nodulesOrder[item] * -o[item]
+            } else if (item === 'long_length') {
+              let ll = 0
+              if (o.measure) {
+                ll = Math.sqrt(Math.pow(o.measure.x1 - o.measure.x2, 2) + Math.pow(o.measure.y1 - o.measure.y2, 2))
+              }
+              return nodulesOrder[item] * ll
             } else {
               return nodulesOrder[item] * o[item]
             }
@@ -6663,9 +6770,8 @@ class CornerstoneElement extends Component {
   }
   onHandleSelectNoduleComplete() {
     const boxes = this.state.boxes
-    console.log('onHandleSelectNoduleComplete', boxes)
     const selectedPro = []
-    const selectedDiam = []
+    const selectedLong = []
     const selectedMal = []
     const nodulesSelect = this.state.nodulesSelect
     nodulesSelect.forEach((item, index) => {
@@ -6758,38 +6864,38 @@ class CornerstoneElement extends Component {
           if (chItem) {
             switch (chIndex) {
               case 0:
-                selectedDiam.push({
+                selectedLong.push({
                   min: 0,
-                  max: 0.3,
-                })
-                break
-              case 1:
-                selectedDiam.push({
-                  min: 0.3,
-                  max: 0.5,
-                })
-                break
-              case 2:
-                selectedDiam.push({
-                  min: 0.5,
-                  max: 1,
-                })
-                break
-              case 3:
-                selectedDiam.push({
-                  min: 1,
-                  max: 1.3,
-                })
-                break
-              case 4:
-                selectedDiam.push({
-                  min: 1.3,
                   max: 3,
                 })
                 break
-              case 5:
-                selectedDiam.push({
+              case 1:
+                selectedLong.push({
                   min: 3,
+                  max: 5,
+                })
+                break
+              case 2:
+                selectedLong.push({
+                  min: 5,
+                  max: 10,
+                })
+                break
+              case 3:
+                selectedLong.push({
+                  min: 10,
+                  max: 13,
+                })
+                break
+              case 4:
+                selectedLong.push({
+                  min: 13,
+                  max: 30,
+                })
+                break
+              case 5:
+                selectedLong.push({
+                  min: 30,
                   max: Infinity,
                 })
                 break
@@ -6833,14 +6939,14 @@ class CornerstoneElement extends Component {
         })
       }
     })
-    boxes.forEach((boItem, boIndex) => {
+    boxes.forEach((boxItem, boIndex) => {
       let boProSelected = false
       let boDiamSelected = false
       let boMalSelected = false
 
       if (selectedPro.length) {
         selectedPro.forEach((proItem, proIndex) => {
-          if (boItem[proItem.key] === proItem.val) {
+          if (boxItem[proItem.key] === proItem.val) {
             boProSelected = true
           }
         })
@@ -6848,9 +6954,13 @@ class CornerstoneElement extends Component {
         boProSelected = true
       }
 
-      if (selectedDiam.length) {
-        selectedDiam.forEach((diaItem, diaIndex) => {
-          if (boItem.diameter / 10 <= diaItem.max && boItem.diameter / 10 >= diaItem.min) {
+      if (selectedLong.length) {
+        let boxItemLL = 0
+        if (boxItem.measure) {
+          boxItemLL = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+        }
+        selectedLong.forEach((longItem, diaIndex) => {
+          if (boxItemLL <= longItem.max && boxItemLL >= longItem.min) {
             boDiamSelected = true
           }
         })
@@ -6860,7 +6970,7 @@ class CornerstoneElement extends Component {
 
       if (selectedMal.length) {
         selectedMal.forEach((proItem, proIndex) => {
-          if (boItem[proItem.key] === proItem.val) {
+          if (boxItem[proItem.key] === proItem.val) {
             boMalSelected = true
           }
         })

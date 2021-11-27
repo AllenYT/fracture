@@ -1510,7 +1510,9 @@ table#nodule-table {
   flex-direction: row;
   justify-content: flex-end;
 }
-
+#main .ant-cascader-picker-label {
+  padding: 0 !important;
+}
 #pdf {
   background-color: rgb(49, 56, 82) !important;
   color: whitesmoke;
@@ -1544,6 +1546,105 @@ table#nodule-table {
   color: whitesmoke !important;
   border-color: rgb(110, 110, 110) !important;
 }
-#main .ant-cascader-picker-label {
-  padding: 0 !important;
+#invisiblePDF {
+  /* position: absolute;
+  z-index: -1; */
+  display: flex;
+  flex-direction: column;
+  width: 1100px;
+  /* height: 1550px; */
+}
+#invisiblePDF-container {
+  position: relative;
+  /* height: 100%; */
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background-color: white;
+  color: black;
+  padding-bottom: 20px;
+}
+.invisiblePDF-header {
+  font-weight: bolder;
+  padding: 10px 0 10px 20px;
+  font-size: 16px;
+}
+.invisiblePDF-content {
+  /* height: calc(100% - 40px); */
+  width: 100%;
+  border-top: 1px solid rgb(232, 232, 232);
+  /* border-bottom: 1px solid rgb(232, 232, 232); */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 0 20px;
+}
+.invisiblePDF-content-top {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 75px;
+}
+.invisiblePDF-content-title {
+  width: 100%;
+  font-weight: bolder;
+  text-align: center;
+  font-size: 16px;
+  padding: 20px 0;
+}
+.invisiblePDF-content-description {
+  width: 100%;
+  border-top: 2px solid rgb(151, 151, 151);
+}
+.invisiblePDF-content-description-info {
+  width: 100%;
+  padding: 5px 0;
+}
+.invisiblePDF-content-description-nodules {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px;
+}
+.invisiblePDF-content-description-nodules-title {
+  width: 100%;
+  font-weight: bolder;
+  font-size: 16px;
+  padding: 5px 0 5px 10px;
+  background-color: rgb(238, 238, 238);
+}
+.invisiblePDF-content-description-nodules-list {
+  width: 100%;
+  margin-top: 30px;
+  padding: 0 20px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.invisiblePDF-content-description-text {
+  width: 100%;
+}
+.invisiblePDF-content-bottom {
+  margin-bottom: 5px;
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  padding: 0 20px;
+}
+.invisiblePDF-content-report {
+  padding: 5px 0;
+}
+.invisiblePDF-content-note {
+  border-top: 2px solid rgb(151, 151, 151);
+  padding: 5px 0;
+}
+.invisiblePDF-nodule-corner-item {
+  margin: 0 20px 20px 20px;
+}
+.invisiblePDF-nodule-corner {
+  width: 300px;
+  height: 250px;
 }
