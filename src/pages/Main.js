@@ -445,8 +445,8 @@ class Main extends Component {
                     <Route path="/homepage/" component={HomepagePanel} />
                     <Route path="/preprocess/" component={preprocess} />
                     <Route path="/adminManage" component={AdminManagePanel} />
-                    {/* <Route path="/test" component={TestPanel} />
-                    <Route path="/ct" component={CTPanel} /> */}
+                    {/* <Route path="/test" component={TestPanel} /> */}
+                    <Route path="/ct" component={CTPanel} />
                   </Switch>
                 </>
               ) : (

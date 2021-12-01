@@ -446,7 +446,7 @@ class HomepagePanel extends Component {
               </div>
               <div id="myAbout">
                 <span>
-                  产品名称：肺结节检测定性系统（DeepLN）
+                  产品名称：肺结节CT影像辅助检测软件
                   <br />
                   版本：V1.0.1.0
                   <br />
