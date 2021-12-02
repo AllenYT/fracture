@@ -27,8 +27,9 @@ import src3 from '../images/scu-logo.png'
 import HomepagePanel from '../panels/HomepagePanel'
 import preprocess from '../panels/preprocess'
 import AdminManagePanel from '../panels/AdminManagePanel'
-
 import md5 from 'js-md5'
+
+// axios.defaults.withCredentials = true
 
 message.config({
   duration: 2,
