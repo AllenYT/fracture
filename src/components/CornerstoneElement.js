@@ -441,23 +441,28 @@ class CornerstoneElement extends Component {
           options: ['实性', '半实性', '磨玻璃', '毛刺征', '分叶征', '钙化征', '胸膜凹陷征', '空洞征', '血管集束征', '空泡征', '支气管充气征', '未知'],
           checked: new Array(12).fill(true),
         },
-        { key: 1, desc: '长径大小', options: ['<=0.3cm', '0.3cm-0.5cm', '0.5cm-1cm', '1cm-1.3cm', '1.3cm-3cm', '>=3cm'], checked: new Array(6).fill(true) },
-        { key: 2, desc: '良恶性', options: ['高危', '中危', '低危', '未知'], checked: new Array(4).fill(true) },
+        {
+          key: 1,
+          desc: '长径大小',
+          options: ['<=0.3cm', '0.3cm-0.5cm', '0.5cm-1cm', '1cm-1.3cm', '1.3cm-3cm', '>=3cm'],
+          checked: new Array(6).fill(true),
+        },
+        {
+          key: 2,
+          desc: '良恶性',
+          options: ['高危', '中危', '低危', '未知'],
+          checked: new Array(4).fill(true),
+        },
       ],
       nodulesAllSelected: true,
       ctImagePadding: 0,
       menuButtonsWidth: 1540,
       menuScrollable: false,
       menuTransform: 0,
-      show3DVisualization: false,
-      studyListShowed: false,
       renderLoading: false,
-      showFollowUp: false,
       registering: false,
 
       /*显示变量*/
-      windowWidth: window.screen.width,
-      windowHeight: window.screen.height,
       bottomRowHeight: 0,
       viewerWidth: 0,
       viewerHeight: 0,
@@ -637,6 +642,7 @@ class CornerstoneElement extends Component {
     this.resizeScreen()
     window.addEventListener('resize', this.resizeScreen.bind(this))
     window.addEventListener('mousedown', this.mousedownFunc.bind(this))
+    window.addEventListener('keydown', this.onKeydown.bind(this))
     // this.getNoduleIfos()
 
     if (localStorage.getItem('token') == null) {
@@ -1091,7 +1097,7 @@ class CornerstoneElement extends Component {
       this.subs[k].unsubscribe()
     })
 
-    document.removeEventListener('keydown', this.onKeydown)
+    document.removeEventListener('keydown', this.onKeydown.bind(this))
     window.removeEventListener('resize', this.resizeScreen.bind(this))
     window.removeEventListener('mousedown', this.mousedownFunc.bind(this))
   }
@@ -1161,7 +1167,9 @@ class CornerstoneElement extends Component {
     if (toolData && toolData.data && toolData.data.length) {
       let toolDataIndex = -1
       if (listsActiveIndex !== -1) {
-        toolDataIndex = _.findIndex(toolData.data, { uuid: boxes[listsActiveIndex].uuid })
+        toolDataIndex = _.findIndex(toolData.data, {
+          uuid: boxes[listsActiveIndex].uuid,
+        })
       }
       const savedData = [].concat(toolData.data)
       cornerstoneTools.clearToolState(cornerElement, toolName)
@@ -3957,7 +3965,7 @@ class CornerstoneElement extends Component {
                             <Button basic icon title="擦除测量" active color="green" onClick={this.clearNoduleMeasure.bind(this, idx)}>
                               <Icon inverted color="green" name="eraser"></Icon>
                             </Button>
-                            {(inside.recVisible || inside.biVisible) ? (
+                            {inside.recVisible || inside.biVisible ? (
                               <Button basic icon title="隐藏测量" active color="blue" onClick={this.onSetNoduleMeasureVisible.bind(this, idx, false)}>
                                 <Icon inverted color="blue" name="eye slash"></Icon>
                               </Button>
@@ -4904,7 +4912,17 @@ class CornerstoneElement extends Component {
                     <div id="ct-image-block" style={studyListShowed ? { paddingLeft: `${ctImagePadding}px` } : {}}>
                       {show3DVisualization ? (
                         <div className="center-viewport-panel" id="segment-container">
-                          {renderLoading ? loadingPanel : <div style={{ width: viewerWidth, height: viewerHeight }}>{panel}</div>}
+                          {renderLoading ? (
+                            loadingPanel
+                          ) : (
+                            <div
+                              style={{
+                                width: viewerWidth,
+                                height: viewerHeight,
+                              }}>
+                              {panel}
+                            </div>
+                          )}
                         </div>
                       ) : (
                         <>
@@ -4912,22 +4930,66 @@ class CornerstoneElement extends Component {
                             <CornerstoneViewport
                               tools={[
                                 // Mouse
-                                { name: 'Wwwc', mode: 'active', modeOptions: { mouseButtonMask: 1 } },
-                                { name: 'Zoom', mode: 'active', modeOptions: { mouseButtonMask: 2 } },
-                                { name: 'Pan', mode: 'active', modeOptions: { mouseButtonMask: 4 } },
+                                {
+                                  name: 'Wwwc',
+                                  mode: 'active',
+                                  modeOptions: { mouseButtonMask: 1 },
+                                },
+                                {
+                                  name: 'Zoom',
+                                  mode: 'active',
+                                  modeOptions: { mouseButtonMask: 2 },
+                                },
+                                {
+                                  name: 'Pan',
+                                  mode: 'active',
+                                  modeOptions: { mouseButtonMask: 4 },
+                                },
                                 // Scroll
-                                { name: 'StackScrollMouseWheel', mode: 'active' },
-                                { name: 'StackScroll', mode: 'active', mouseButtonMask: 1 },
+                                {
+                                  name: 'StackScrollMouseWheel',
+                                  mode: 'active',
+                                },
+                                {
+                                  name: 'StackScroll',
+                                  mode: 'active',
+                                  mouseButtonMask: 1,
+                                },
                                 // Touch
                                 { name: 'PanMultiTouch', mode: 'active' },
                                 { name: 'ZoomTouchPinch', mode: 'active' },
-                                { name: 'StackScrollMultiTouch', mode: 'active' },
+                                {
+                                  name: 'StackScrollMultiTouch',
+                                  mode: 'active',
+                                },
                                 // Draw
-                                { name: 'RectangleRoi', mode: 'active', mouseButtonMask: 1, props: { mouseMoveCallback: this.rectangleRoiMouseMoveCallback.bind(this) } },
-                                { name: 'Bidirectional', mode: 'active', mouseButtonMask: 1 },
-                                { name: 'Length', mode: 'active', mouseButtonMask: 1 },
+                                {
+                                  name: 'RectangleRoi',
+                                  mode: 'active',
+                                  mouseButtonMask: 1,
+                                  props: {
+                                    mouseMoveCallback: this.rectangleRoiMouseMoveCallback.bind(this),
+                                  },
+                                },
+                                {
+                                  name: 'Bidirectional',
+                                  mode: 'active',
+                                  mouseButtonMask: 1,
+                                },
+                                {
+                                  name: 'Length',
+                                  mode: 'active',
+                                  mouseButtonMask: 1,
+                                },
                                 //erase
-                                { name: 'Eraser', mode: 'active', mouseButtonMask: 1, props: { mouseUpCallback: this.eraserMouseUpCallback.bind(this) } },
+                                {
+                                  name: 'Eraser',
+                                  mode: 'active',
+                                  mouseButtonMask: 1,
+                                  props: {
+                                    mouseUpCallback: this.eraserMouseUpCallback.bind(this),
+                                  },
+                                },
                               ]}
                               imageIds={imageIds}
                               imageIdIndex={cornerImageIdIndex}
@@ -4943,11 +5005,11 @@ class CornerstoneElement extends Component {
 
                                 this.subs.cornerImageRendered.sub(
                                   cornerElement.addEventListener('cornerstoneimagerendered', (imageRenderedEvent) => {
-                                    if(this.state.cornerImage !== imageRenderedEvent.detail.image){
+                                    if (this.state.cornerImage !== imageRenderedEvent.detail.image) {
                                       this.setState(
                                         {
                                           cornerImage: imageRenderedEvent.detail.image,
-                                          cornerImageIdIndex: _.indexOf(this.state.imageIds, imageRenderedEvent.detail.image.imageId)
+                                          cornerImageIdIndex: _.indexOf(this.state.imageIds, imageRenderedEvent.detail.image.imageId),
                                         },
                                         () => {
                                           if (!this.state.drawingCompleted) {
@@ -5055,10 +5117,17 @@ class CornerstoneElement extends Component {
                                           <div className="nodule-filter-desc-text">已筛选{noduleNumber}个病灶</div>
                                         </div>
                                         <div className="nodule-filter-operation">
-                                          <Popup on="click" style={{ backgroundColor: 'rgb(39, 46, 72)' }} trigger={<FontAwesomeIcon className="nodule-filter-operation-icon" icon={faFilter} />}>
+                                          <Popup
+                                            on="click"
+                                            style={{
+                                              backgroundColor: 'rgb(39, 46, 72)',
+                                            }}
+                                            trigger={<FontAwesomeIcon className="nodule-filter-operation-icon" icon={faFilter} />}>
                                             <div className="nodule-filter-operation-select">
                                               <div className="nodule-filter-operation-select-header">
-                                                已筛选<span>{noduleNumber}</span>个病灶
+                                                已筛选
+                                                <span>{noduleNumber}</span>
+                                                个病灶
                                               </div>
                                               <div className="nodule-filter-operation-select-content">
                                                 <div className="nodule-filter-operation-select-content-block">
@@ -5093,7 +5162,9 @@ class CornerstoneElement extends Component {
 
                                           <Popup
                                             on="click"
-                                            style={{ backgroundColor: 'rgb(39, 46, 72)' }}
+                                            style={{
+                                              backgroundColor: 'rgb(39, 46, 72)',
+                                            }}
                                             trigger={<FontAwesomeIcon className="nodule-filter-operation-icon" icon={faSortAmountDownAlt} />}>
                                             <div className="nodule-filter-operation-sort">
                                               <div className="nodule-filter-operation-sort-header">排序</div>
@@ -5297,7 +5368,12 @@ class CornerstoneElement extends Component {
                             </Accordion.Content>
                           </Accordion>
 
-                          <Accordion id="report-accordion-image" style={{ top: `${reportImageTop}px`, height: `${reportImageHeight}px` }}>
+                          <Accordion
+                            id="report-accordion-image"
+                            style={{
+                              top: `${reportImageTop}px`,
+                              height: `${reportImageHeight}px`,
+                            }}>
                             <Accordion.Title id="report-accordion-image-header" active={reportImageActive} onClick={this.onSetReportImageActive.bind(this)}>
                               <div className="report-title">
                                 <div className="report-title-desc">
@@ -5355,7 +5431,11 @@ class CornerstoneElement extends Component {
                                 </div>
                               </div>
                             </Accordion.Title>
-                            <Accordion.Content active={reportImageActive} style={{ height: `${reportImageContentHeight}px` }}>
+                            <Accordion.Content
+                              active={reportImageActive}
+                              style={{
+                                height: `${reportImageContentHeight}px`,
+                              }}>
                               <Form.TextArea
                                 id="report-image-textarea"
                                 className="report-textarea"
@@ -5387,7 +5467,7 @@ class CornerstoneElement extends Component {
     const newIndex = lymphsActiveIndex === index ? -1 : index
     this.setState({
       lymphsActiveIndex: newIndex,
-      currentIdx: currentIdx,
+      cornerImageIdIndex: currentIdx,
     })
   }
   keyDownListSwitch(activeIdx) {
@@ -5397,7 +5477,7 @@ class CornerstoneElement extends Component {
     // console.log('cur', sliceIdx)
     this.setState({
       listsActiveIndex: activeIdx,
-      currentIdx: sliceIdx,
+      cornerImageIdIndex: sliceIdx,
     })
   }
 
@@ -5479,6 +5559,7 @@ class CornerstoneElement extends Component {
       this.setState({ immersive: false })
     }
     if (event.which == 37) {
+      // arrowLeft
       // console.log('active item',document.activeElement,document.getElementsByClassName("ant-slider-handle")[0])
       if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
         event.preventDefault()
@@ -5488,7 +5569,7 @@ class CornerstoneElement extends Component {
       }
     }
     if (event.which == 38) {
-      //切换结节list
+      // arrowUp
       event.preventDefault()
       const boxes = this.state.boxes
       const listsActiveIndex = this.state.listsActiveIndex
@@ -5503,6 +5584,7 @@ class CornerstoneElement extends Component {
       }
     }
     if (event.which == 39) {
+      // arrowRight
       if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
         event.preventDefault()
         let newCurrentIdx = this.state.currentIdx + 1
@@ -5512,7 +5594,7 @@ class CornerstoneElement extends Component {
       }
     }
     if (event.which == 40) {
-      //切换结节list
+      // arrowDown
       event.preventDefault()
       const boxes = this.state.boxes
       const listsActiveIndex = this.state.listsActiveIndex
@@ -5894,7 +5976,9 @@ class CornerstoneElement extends Component {
           this.setState({ reportGuideText: '6个月内低剂量胸部CT筛查' })
           break
         case 0:
-          this.setState({ reportGuideText: '12个月内继续年度低剂量胸部CT筛查' })
+          this.setState({
+            reportGuideText: '12个月内继续年度低剂量胸部CT筛查',
+          })
           break
       }
     } else if (dealchoose === '亚洲共识') {
@@ -5961,7 +6045,9 @@ class CornerstoneElement extends Component {
           })
           break
         case 0:
-          this.setState({ reportGuideText: '根据临床判断，考虑每年进行CT监测' })
+          this.setState({
+            reportGuideText: '根据临床判断，考虑每年进行CT监测',
+          })
           break
       }
     }
@@ -6012,8 +6098,18 @@ class CornerstoneElement extends Component {
       filename: 'minireport.pdf',
       // pagebreak: { after: ['.invisiblePDF-nodule-corner-item'] },
       image: { type: 'jpeg', quality: 1 }, // 导出的图片质量和格式
-      html2canvas: { scale: 1, useCORS: true, width: 1100, height: eleHeight + 10 }, // useCORS很重要，解决文档中图片跨域问题
-      jsPDF: { unit: 'mm', format: [1100, eleHeight + 10], orientation: 'portrait', precision: 25 },
+      html2canvas: {
+        scale: 1,
+        useCORS: true,
+        width: 1100,
+        height: eleHeight + 10,
+      }, // useCORS很重要，解决文档中图片跨域问题
+      jsPDF: {
+        unit: 'mm',
+        format: [1100, eleHeight + 10],
+        orientation: 'portrait',
+        precision: 25,
+      },
       //
     }
     if (element) {
@@ -6054,7 +6150,20 @@ class CornerstoneElement extends Component {
     e.stopPropagation()
     const boxes = this.state.boxes
     const imageIds = this.state.imageIds
-    const pdfFormValues = _.assign({ patientId: '', name: '', diagDoctor: '', instanceId: '', sex: '', auditDoctor: '', studyDate: '', age: '', reportDate: '' }, this.state.pdfFormValues)
+    const pdfFormValues = _.assign(
+      {
+        patientId: '',
+        name: '',
+        diagDoctor: '',
+        instanceId: '',
+        sex: '',
+        auditDoctor: '',
+        studyDate: '',
+        age: '',
+        reportDate: '',
+      },
+      this.state.pdfFormValues
+    )
     const pdfContent = (
       <>
         <AntdForm labelAlign="right" className="pdf-form" initialValues={pdfFormValues} onValuesChange={this.onPdfFormValuesChange.bind(this)}>
@@ -6318,8 +6427,14 @@ class CornerstoneElement extends Component {
             <div>性质:{texName[item.texture]}</div>
             <div>表征:{pdfNoduleRepresentText}</div>
             <div>直径:{`${(item.diameter / 10).toFixed(2)}cm`}</div>
-            <div>体积:{item.volume === undefined ? null : `${(item.volume * 1e3).toFixed(2)}mm³`}</div>
-            <div>HU(均值/最大值/最小值):{item.huMean === undefined ? null : Math.round(item.huMean) + ' / ' + item.huMax + ' / ' + item.huMin}</div>
+            <div>
+              体积:
+              {item.volume === undefined ? null : `${(item.volume * 1e3).toFixed(2)}mm³`}
+            </div>
+            <div>
+              HU(均值/最大值/最小值):
+              {item.huMean === undefined ? null : Math.round(item.huMean) + ' / ' + item.huMax + ' / ' + item.huMin}
+            </div>
           </div>
         </div>
       )
@@ -6574,44 +6689,44 @@ class CornerstoneElement extends Component {
             _.has(measure, 'y4')
           ) {
             const getHandle = (x, y, index, extraAttributes = {}) =>
-  Object.assign(
-    {
-      x,
-      y,
-      index,
-      drawnIndependently: false,
-      allowedOutsideImage: false,
-      highlight: false,
-      active: false,
-    },
-    extraAttributes
-  )
-  const measurementData = {
-    toolName: 'Bidirectional',
-    toolType: 'Bidirectional', // Deprecation notice: toolType will be replaced by toolName
-    isCreating: true,
-    visible: true,
-    // active: boxIndex === listsActiveIndex,
-    active: false,
-    invalidated: true,
-    handles: {
-      start: getHandle(measure.x1, measure.y1, 0),
-      end: getHandle(measure.x2, measure.y2, 1),
-      perpendicularStart: getHandle(measure.x3, measure.y3, 2),
-      perpendicularEnd: getHandle(measure.x4, measure.y4, 3),
-      textBox: getHandle(measure.x1, measure.y1 - 30, null, {
-        highlight: false,
-        hasMoved: true,
-        active: false,
-        movesIndependently: false,
-        drawnIndependently: true,
-        allowedOutsideImage: true,
-        hasBoundingBox: true,
-      }),
-    },
-    longestDiameter: Math.sqrt(Math.pow(measure.x1 - measure.x2, 2) + Math.pow(measure.y1 - measure.y2, 2)),
-    shortestDiameter: Math.sqrt(Math.pow(measure.x3 - measure.x4, 2) + Math.pow(measure.y3 - measure.y4, 2)),
-  };
+              Object.assign(
+                {
+                  x,
+                  y,
+                  index,
+                  drawnIndependently: false,
+                  allowedOutsideImage: false,
+                  highlight: false,
+                  active: false,
+                },
+                extraAttributes
+              )
+            const measurementData = {
+              toolName: 'Bidirectional',
+              toolType: 'Bidirectional', // Deprecation notice: toolType will be replaced by toolName
+              isCreating: true,
+              visible: true,
+              // active: boxIndex === listsActiveIndex,
+              active: false,
+              invalidated: true,
+              handles: {
+                start: getHandle(measure.x1, measure.y1, 0),
+                end: getHandle(measure.x2, measure.y2, 1),
+                perpendicularStart: getHandle(measure.x3, measure.y3, 2),
+                perpendicularEnd: getHandle(measure.x4, measure.y4, 3),
+                textBox: getHandle(measure.x1, measure.y1 - 30, null, {
+                  highlight: false,
+                  hasMoved: true,
+                  active: false,
+                  movesIndependently: false,
+                  drawnIndependently: true,
+                  allowedOutsideImage: true,
+                  hasBoundingBox: true,
+                }),
+              },
+              longestDiameter: Math.sqrt(Math.pow(measure.x1 - measure.x2, 2) + Math.pow(measure.y1 - measure.y2, 2)),
+              shortestDiameter: Math.sqrt(Math.pow(measure.x3 - measure.x4, 2) + Math.pow(measure.y3 - measure.y4, 2)),
+            }
 
             cornerstoneTools.addToolState(cornerElement, 'Bidirectional', measurementData)
             const toolData = cornerstoneTools.getToolState(cornerElement, 'Bidirectional')
@@ -6670,24 +6785,24 @@ class CornerstoneElement extends Component {
   cornerToolMouseUpCallback(e) {
     console.log('cornerToolMouseUpCallback', e)
   }
-  cornerToolMeasurementAdd(e){
+  cornerToolMeasurementAdd(e) {
     // console.log("cornerToolMeasurementAdd", e.detail)
   }
   cornerToolMeasurementModify(e) {
     const { boxes, cornerActiveTool, cornerElement } = this.state
     const measureData = e.detail.measurementData
     let boxIndex
-    console.log("cornerToolMeasurementModify", e.detail)
+    console.log('cornerToolMeasurementModify', e.detail)
     switch (e.detail.toolName) {
       case 'RectangleRoi':
-        boxIndex =  _.findIndex(boxes, { uuid: measureData.uuid })
-        if (boxIndex !== -1){
+        boxIndex = _.findIndex(boxes, { uuid: measureData.uuid })
+        if (boxIndex !== -1) {
           this.modifyExistingBox(boxIndex, measureData)
         }
         break
       case 'Bidirectional':
-        boxIndex =  _.findIndex(boxes, { biuuid: measureData.uuid })
-        if(boxIndex !== -1){
+        boxIndex = _.findIndex(boxes, { biuuid: measureData.uuid })
+        if (boxIndex !== -1) {
           this.modifyExistingBi(boxIndex, measureData)
         }
         break
