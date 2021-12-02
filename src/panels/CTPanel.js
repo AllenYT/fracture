@@ -16,6 +16,7 @@ import { vec3, vec4, mat4 } from 'gl-matrix'
 import html2pdf from 'html2pdf.js'
 import copy from 'copy-to-clipboard'
 import * as echarts from 'echarts'
+import CornerstoneViewport from 'react-cornerstone-viewport'
 
 import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor'
 import vtkMapper from 'vtk.js/Sources/Rendering/Core/Mapper'
@@ -34,11 +35,12 @@ import HttpDataAccessHelper from 'vtk.js/Sources/IO/Core/DataAccessHelper/HttpDa
 import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpPlaying } from '../actions'
 import { loadAndCacheImagePlus } from '../lib/cornerstoneImageRequest'
 import { executeTask } from '../lib/taskHelper'
+import { createSub } from '../vtk/lib/createSub.js'
 
 import CornerElement from '../components/CornerElement'
 import SegmentElement from '../components/SegmentElement'
-
 import PreviewElement from '../components/PreviewElement'
+import LoadingComponent from '../components/LoadingComponent'
 import '../css/ct.css'
 import '../initCornerstone.js'
 
@@ -151,7 +153,99 @@ const noduleSegments = {
   S17: '左肺下叶-外基底段',
   S18: '左肺下叶-后基底段',
 }
-
+const boxProtoType = {
+  rect_no: '',
+  patho: '',
+  place: 0,
+  segment: 'None',
+  slice_idx: 0,
+  nodule_no: '',
+  x1: 0,
+  x2: 0,
+  y1: 0,
+  y2: 0,
+  mask_array: [[], [], []],
+  measure: {
+    x1: 0,
+    x2: 0,
+    x3: 0,
+    x4: 0,
+    y1: 0,
+    y2: 0,
+    y3: 0,
+    y4: 0,
+    intersec_x: 0,
+    intersec_y: 0,
+  },
+  diameter: 0,
+  volume: 0,
+  huMax: 0,
+  huMean: 0,
+  huMin: 0,
+  nodule_hist: {
+    n: [],
+    bins: [],
+    mean: 0,
+    var: 0,
+  },
+  '10Percentile': 0,
+  '90Percentile': 0,
+  Energy: 0,
+  Entropy: 0,
+  InterquartileRange: 0,
+  Kurtosis: 0,
+  Maximum: 0,
+  MeanAbsoluteDeviation: 0,
+  Mean: 0,
+  Median: 0,
+  Minimum: 0,
+  Range: 0,
+  RobustMeanAbsoluteDeviation: 0,
+  RootMeanSquared: 0,
+  Skewness: 0,
+  TotalEnergy: 0,
+  Uniformity: 0,
+  Variance: 0,
+  Elongation: 0,
+  Flatness: 0,
+  LeastAxisLength: 0,
+  MajorAxisLength: 0,
+  Maximum2DDiameterColumn: 0,
+  Maximum2DDiameterRow: 0,
+  Maximum2DDiameterSlice: 0,
+  Maximum3DDiameter: 0,
+  MeshVolume: 0,
+  MinorAxisLength: 0,
+  Sphericity: 0,
+  SurfaceArea: 0,
+  SurfaceVolumeRatio: 0,
+  VoxelVolume: 0,
+  Compactness2: 0,
+  density: 0,
+  'IM Number': 0,
+  probability: 0,
+  malignancy: -1,
+  calcification: 1,
+  spiculation: 1,
+  texture: -1,
+  lobulation: 1,
+  pin: 1,
+  cav: 1,
+  vss: 1,
+  bea: 1,
+  bro: 1,
+  malProb: 0,
+  calProb: 0,
+  spiProb: 0,
+  texProb: 0,
+  lobProb: 0,
+  pinProb: 0,
+  cavProb: 0,
+  vssProb: 0,
+  beaProb: 0,
+  broProb: 0,
+  status: 1,
+}
 let leftSlideTimer = undefined
 
 class CTpanel extends Component {
@@ -167,7 +261,7 @@ class CTpanel extends Component {
       windowHeight: 0,
       verticalMode: false,
       bottomRowHeight: 0,
-      ctInfoPadding: 0,
+      ctImagePadding: 0,
 
       studyListShowed: false,
       showFollowUp: false,
@@ -179,13 +273,32 @@ class CTpanel extends Component {
       previewVisible: [],
 
       imageIds: [],
+      cornerImageIdIndex: 0,
+      cornerImage: null,
+      cornerIsPlaying: false,
+      cornerFrameRate: 30,
+      cornerActiveTool: 'StackScroll',
+      cornerIsOverlayVisible: true,
+      cornerElement: null,
+      cornerViewport: {
+        scale: 1,
+        invert: false,
+        pixelReplication: false,
+        voi: {
+          windowWidth: 1600,
+          windowCenter: -600
+        },
+        translation: {
+          x: 0,
+          y: 0,
+        }
+      },
+
       nodules: [],
       noduleMarks: {},
       sliderMarks: {},
       boxes: [],
-      currentIdx: 0,
-      listsActiveIndex: -1,
-
+      needReloadBoxes: false,
       lymphs: [],
       lymphMarks: {},
       lymphsActiveIndex: -1,
@@ -227,6 +340,13 @@ class CTpanel extends Component {
       dicomTag: {},
 
       mode: 0,
+    }
+    this.subs = {
+      cornerMouseUp: createSub(),
+      cornerMeasureAdd: createSub(),
+      cornerMeasureModify: createSub(),
+      cornerMeasureComplete: createSub(),
+      cornerMeasureRemove: createSub()
     }
     this.config = JSON.parse(localStorage.getItem('config'))
   }
@@ -274,8 +394,7 @@ class CTpanel extends Component {
       nodules = this.props.caseData[caseDataIndex].nodules
     }
 
-    let currentIdx = 0
-    let listsActiveIndex = -1
+    let cornerImageIdIndex = 0
     let noduleMarks = {}
     if (nodules && nodules.length) {
       //sort and save previous index
@@ -297,8 +416,7 @@ class CTpanel extends Component {
       if (noduleNo !== -1) {
         nodules.forEach((item, index) => {
           if (item.prevIdx === noduleNo) {
-            currentIdx = item.slice_idx
-            listsActiveIndex = index
+            cornerImageIdIndex = item.slice_idx
           }
         })
       }
@@ -308,13 +426,12 @@ class CTpanel extends Component {
       nodules,
       noduleMarks,
       sliderMarks: noduleMarks,
-      currentIdx,
-      listsActiveIndex,
+      cornerImageIdIndex,
     })
 
-    loadAndCacheImagePlus(imageIds[currentIdx], 1)
+    loadAndCacheImagePlus(imageIds[cornerImageIdIndex], 1)
     executeTask()
-    this.loadDisplay(currentIdx)
+    this.loadDisplay(imageIds[cornerImageIdIndex])
     this.loadStudyBrowser()
 
     const boxes = nodules
@@ -631,10 +748,22 @@ class CTpanel extends Component {
     if (document.getElementById('footer')) {
       document.getElementById('footer').style.display = ''
     }
-
+    Object.keys(this.subs).forEach((k) => {
+      this.subs[k].unsubscribe()
+    })
     window.removeEventListener('resize', this.resizeScreen.bind(this))
+
   }
-  componentDidUpdate(prevState, prevProps) {}
+  componentDidUpdate(prevState, prevProps) {
+    if(prevState.boxes !== this.state.boxes){
+    }
+    if(!prevState.needReloadBoxes && this.state.needReloadBoxes){
+      console.log("boxes", [].concat(this.state.boxes))
+      this.setState({
+        needReloadBoxes: false,
+      })
+    }
+  }
 
   async login() {
     if (localStorage.getItem('username') === null && window.location.pathname !== '/') {
@@ -716,7 +845,7 @@ class CTpanel extends Component {
       }
     }
   }
-  loadDisplay(currentIdx) {
+  loadDisplay(imageId) {
     // first let's check the status to display the proper contents.
     // send our token to the server, combined with the current pathname
     const token = localStorage.getItem('token')
@@ -725,7 +854,7 @@ class CTpanel extends Component {
     }
     const imageIds = this.state.imageIds
     if (this.state.modelName === 'origin') {
-      loadAndCacheImagePlus(imageIds[currentIdx], 1).then((image) => {
+      loadAndCacheImagePlus(imageId, 1).then((image) => {
         const dicomTag = image.data
         const boxes = []
         const draftStatus = -1
@@ -752,7 +881,7 @@ class CTpanel extends Component {
           console.log('readonly', readonly)
           console.log('load display response', readonlyResponse)
           // const readonly = false
-          loadAndCacheImagePlus(imageIds[currentIdx], 1).then((image) => {
+          loadAndCacheImagePlus(imageId, 1).then((image) => {
             // console.log('image info', image.data)
             const dicomTag = image.data
 
@@ -760,12 +889,6 @@ class CTpanel extends Component {
             draftStatus = readonlyResponse.data.status
             const boxes = this.state.nodules
             // this.refreshImage(true, imageIds[currentIdx], undefined)
-
-            const okParams = {
-              caseId: this.state.caseId,
-              username: window.location.pathname.split('/')[3],
-            }
-            console.log('okParams', okParams)
 
             const stateListLength = boxes.length
             const measureArr = new Array(stateListLength).fill(false)
@@ -889,7 +1012,7 @@ class CTpanel extends Component {
         leftSlideTimer = setTimeout(() => {
           this.setState(
             {
-              ctInfoPadding: studyListShowed ? 150 : 0,
+              ctImagePadding: studyListShowed ? 150 : 0,
             },
             () => {
               this.resizeScreen()
@@ -1089,24 +1212,9 @@ class CTpanel extends Component {
     }
   }
   createPipeline(binary, color, opacity, cl) {
-    // console.log("createPipeline")
     const vtpReader = vtkXMLPolyDataReader.newInstance()
     vtpReader.parseAsArrayBuffer(binary)
     const source = vtpReader.getOutputData()
-
-    // const lookupTable = vtkColorTransferFunction.newInstance()
-    // const scalars = source.getPointData().getScalars();
-    // const dataRange = [].concat(scalars ? scalars.getRange() : [0, 1]);
-    // lookupTable.addRGBPoint(200.0,1.0,1.0,1.0)
-    // lookupTable.applyColorMap(vtkColorMaps.getPresetByName('erdc_rainbow_bright'))
-    // lookupTable.setMappingRange(dataRange[0], dataRange[1]);
-    // lookupTable.updateRange();
-    // const mapper = vtkMapper.newInstance({
-    //   interpolateScalarsBeforeMapping: false, //颜色插值
-    //   useLookupTableScalarRange: true,
-    //   lookupTable,
-    //   scalarVisibility: false,
-    // })
 
     const mapper = vtkMapper.newInstance({
       scalarVisibility: false,
@@ -1118,19 +1226,11 @@ class CTpanel extends Component {
 
     actor.getProperty().setColor(color.c1 / 255, color.c2 / 255, color.c3 / 255)
 
-    // let color="";
-    // function Viewcolor(item){
-    //      if(colorName==item.name){
-    //       actor.getProperty().setColor(item.colorvalue)
-    //      }
-    // }
-
     actor.getProperty().setDiffuse(0.75)
     actor.getProperty().setAmbient(0.2)
     actor.getProperty().setSpecular(0)
     actor.getProperty().setSpecularPower(1)
     mapper.setInputData(source)
-    // console.log("actor:", actor)
     return actor
   }
   DownloadSegment(idx) {
@@ -1213,12 +1313,6 @@ class CTpanel extends Component {
       lobesOpacityChangeable,
       lobesChecked,
     }
-    // lobesData.forEach((item, index) => {
-    //   lobesData[index].volume = item.volumn;
-    //   lobesData[index].percent = item.precent;
-    //   delete lobesData[index].volumn;
-    //   delete lobesData[index].precent;
-    // });
     this.setState({
       lobesData,
       lobesController,
@@ -1260,45 +1354,132 @@ class CTpanel extends Component {
     this.setState({
       centerLinePoints,
     })
-    //local test
-    // const coos = centerLine.coos
-    // const regions = centerLine.regions
-    // for (let i = 0; i < regions.length; i++) {
-    //   const region = regions[i]
-    //   let zMax, zMin, yMax, yMin, xMax, xMin
-    //   if (region[0][0] < region[1][0]) {
-    //     zMin = region[0][0]
-    //     zMax = region[1][0]
-    //   } else {
-    //     zMin = region[1][0]
-    //     zMax = region[0][0]
-    //   }
-    //   if (region[0][1] < region[1][1]) {
-    //     yMin = region[0][1]
-    //     yMax = region[1][1]
-    //   } else {
-    //     yMin = region[1][1]
-    //     yMax = region[0][1]
-    //   }
-    //   if (region[0][2] < region[1][2]) {
-    //     xMin = region[0][2]
-    //     xMax = region[1][2]
-    //   } else {
-    //     xMin = region[1][2]
-    //     xMax = region[0][2]
-    //   }
-    //   const regionPoints = []
-    //   coos.forEach((item, index) => {
-    //     const z = item[0]
-    //     const y = item[1]
-    //     const x = item[2]
-    //     if (z <= zMax && z >= zMin && y <= yMax && y >= yMin && x <= xMax && x >= xMin) {
-    //       regionPoints.push(vec3.fromValues(Math.floor(x * 0.7 + xOffset), Math.floor(y * 0.7 + yOffset), z + zOffset))
-    //     }
-    //   })
-    //   centerLine.regions[i].points = regionPoints
   }
 
+  // menu
+  onZoomIn(){
+    const {cornerViewport} = this.state
+    cornerViewport.scale *= 1.1
+    this.setState({
+      cornerViewport
+    })
+  }
+  onZoomOut(){
+    const {cornerViewport} = this.state
+    cornerViewport.scale *= 0.9
+    this.setState({
+      cornerViewport
+    })
+  }
+  onResetView(){
+    const {cornerViewport} = this.state
+    cornerViewport.scale = 1
+    this.setState({
+      cornerViewport
+    })
+  }
+
+  onSetWwwcFlip(){
+    const {cornerViewport} = this.state
+    cornerViewport.invert = !cornerViewport.invert
+    this.setState({
+      cornerViewport
+    })
+  }
+  onSetWwwcToPulmonary(){
+    const {cornerViewport} = this.state
+    const voi = {
+      windowWidth: 1600,
+      windowCenter: -600
+    }
+    cornerViewport.voi = voi
+    this.setState({
+      cornerViewport
+    })
+  }
+  onSetWwwcToBone(){
+    const {cornerViewport} = this.state
+    const voi = {
+      windowWidth: 1000,
+      windowCenter: 300
+    }
+    cornerViewport.voi = voi
+    this.setState({
+      cornerViewport
+    })
+  }  
+  onSetWwwcToVentral(){
+    const {cornerViewport} = this.state
+    const voi = {
+      windowWidth: 400,
+      windowCenter: 40
+    }
+    cornerViewport.voi = voi
+    this.setState({
+      cornerViewport
+    })
+  }  
+  onSetWwwcToMedia(){
+    const {cornerViewport} = this.state
+    const voi = {
+      windowWidth: 500,
+      windowCenter: 50
+    }
+    cornerViewport.voi = voi
+    this.setState({
+      cornerViewport
+    })
+  }
+  onSetAnimationPlaying(playing){
+    this.setState({
+      cornerIsPlaying: playing
+    })
+  }
+  onSetAnnoVisible(visible){
+    this.setState({
+      cornerAnnoVisible: visible
+    })
+  }
+  onSetOverlayVisible(visible){
+    this.setState({
+      cornerIsOverlayVisible: visible
+    })
+  }
+  onSetCornerActiveTool(tool){
+    this.setState({
+      cornerActiveTool: tool
+    })
+  }
+  onSetToolForWwwc(){
+    this.setState({
+      cornerActiveTool: 'Wwwc'
+    })
+  }
+  onSetToolForStackScroll(){
+    this.setState({
+      cornerActiveTool: 'StackScroll'
+    })
+  }
+  onSetToolForRectangleRoi(){
+    this.setState({
+      cornerActiveTool: 'RectangleRoi'
+    })
+  }
+  onSetToolForBidirectional(){
+    this.setState({
+      cornerActiveTool: 'Bidirectional'
+    })
+  }
+  onSetToolForLength(){
+    this.setState({
+      cornerActiveTool: 'Length'
+    })
+  }
+  onSetToolForEraser(){
+    this.setState({
+      cornerActiveTool: 'Eraser'
+    })
+  }
   onSetPreviewActive(idx) {
     const previewVisible = this.state.previewVisible
     previewVisible[idx] = !previewVisible[idx]
@@ -1306,35 +1487,197 @@ class CTpanel extends Component {
       previewVisible,
     })
   }
-  setMode() {
-    const { show3DVisualization, showFollowUp, showMPR, showCPR } = this.state
+
+  //callback
+  cornerToolMouseUpCallback(e){
+    console.log("cornerToolMouseUpCallback", e)
+
   }
-  getAllStyles() {
-    /* 
-    for mode parameter:
-    0:normal-h (2D, 3D)
-    1:normal-v (2D, 3D)
-    2:fu (follow up)
-    3.mpr
-    4.cpr
-    */
-    const { mode } = this.state
-    let containerCN
-    let childrenCNs = []
-    switch (mode) {
-      case 0:
-        containerCN = 'ct-n-h'
-        childrenCNs.push('ct-n-h-l')
-        childrenCNs.push('ct-n-h-r')
-        break
-      case 1:
-        containerCN = 'ct-n-v'
-        childrenCNs.push('ct-n-v-l')
-        childrenCNs.push('ct-n-v-r')
-        break
+  cornerToolMeasurementModify(e){
+    const measureData = e.detail.measurementData
+    const {boxes, cornerActiveTool, cornerElement} = this.state
+    switch(e.detail.toolName){
+      case 'RectangleRoi':
+        break;
+      case 'Bidirectional':
+        break;
+      case 'Length':
+        break;
+      case 'Eraser':
+        break;
       default:
-        break
+         break;
     }
+  }
+  cornerToolMeasurementComplete(e){
+    const measureData = e.detail.measurementData
+    const {boxes, cornerActiveTool, cornerElement} = this.state
+    // console.log("cornerToolMeasurementComplete", e)
+    switch(e.detail.toolName){
+      case 'RectangleRoi':
+        let stackData = cornerstoneTools.getToolState(cornerElement, 'stack')
+        const measurement = e.detail.measurementData
+        console.log("cornerToolMeasurementComplete", e, stackData.data)
+        let boxIndex = _.findIndex(boxes, {uuid: measurement.uuid})
+        if(boxIndex !== -1 ){
+          this.modifyExistingBox(boxIndex, measurement)
+        }else{
+          this.createNewBox(stackData.data.currentImageIdIndex, measurement)
+        }
+        break;
+      case 'Bidirectional':
+        break;
+      case 'Length':
+        break;
+      case 'Eraser':
+        break;
+      default:
+         break;
+    }
+  }
+  createNewBox(imageIndex, data){
+    const {boxes} = this.state
+    let visibleIdx
+    if (boxes && boxes.length) {
+      visibleIdx = _.maxBy(boxes, 'visibleIdx').visibleIdx + 1
+    } else {
+      boxes = []
+      visibleIdx = 0
+    }
+    const newBoxItem = {
+      ...boxProtoType,
+      probability: 1,
+      slice_idx: imageIndex,
+      nodule_hist: [],
+      huMax: data.cachedStats.max,
+      huMean: data.cachedStats.mean,
+      huMin: data.cachedStats.min,
+      Variance: data.cachedStats.variance,
+      volume: data.cachedStats.area * 1e-4,
+      x1: data.handles.start.x,
+      x2: data.handles.end.x,
+      y1: data.handles.start.y,
+      y2: data.handles.end.y,
+      measure: undefined,
+      modified: 1,
+      uuid: data.uuid,
+      prevIdx: '',
+      visibleIdx,
+      visible: true,
+      checked: false,
+    }
+    boxes.push(newBoxItem)
+    this.setState({
+      boxes,
+      needReloadBoxes: true,
+    })
+  }
+  noduleHist(x1, y1, x2, y2) {
+    const {cornerImage} = this.state
+    // console.log('currentImage', cornerImage)
+    let pixelArray = []
+    const imageTag = cornerImage.data
+    const pixeldata = cornerImage.getPixelData()
+    const intercept = imageTag.string('x00281052')
+    const slope = imageTag.string('x00281053')
+
+    for (var i = ~~x1; i <= x2; i++) {
+      for (var j = ~~y1; j <= y2; j++) {
+        pixelArray.push(parseInt(slope) * parseInt(pixeldata[512 * j + i]) + parseInt(intercept))
+      }
+    }
+    pixelArray.sort(this.pixeldataSort)
+    const data = pixelArray
+    var map = {}
+    for (var i = 0; i < data.length; i++) {
+      var key = data[i]
+      if (map[key]) {
+        map[key] += 1
+      } else {
+        map[key] = 1
+      }
+    }
+    
+    Object.keys(map).sort(function (a, b) {
+      return map[b] - map[a]
+    })
+    // console.log('map', map)
+
+    var ns = []
+    var bins = []
+    for (var key in map) {
+      bins.push(parseInt(key))
+      // ns.push(map[key])
+    }
+    bins.sort(this.pixeldataSort)
+
+    for (var i = 0; i < bins.length; i++) {
+      ns.push(map[bins[i]])
+    }
+
+    // for(var key in map){
+    //     bins.push(parseInt(key))
+    //     ns.push(map[key])
+    // }
+    var obj = {}
+    obj.bins = bins
+    obj.n = ns
+    return obj
+  }
+  modifyExistingBox(boxIndex, data){
+    const {boxes} = this.state
+    const box = boxes[boxIndex]
+    box = {
+      ...box,
+      huMax: data.cachedStats.max,
+      huMean: data.cachedStats.mean,
+      huMin: data.cachedStats.min,
+      Variance: data.cachedStats.variance,
+      volume: data.cachedStats.area * 1e-4,
+      x1: data.handles.start.x,
+      x2: data.handles.end.x,
+      y1: data.handles.start.y,
+      y2: data.handles.end.y,
+    }
+    this.setState({
+      boxes,
+      needReloadBoxes: true,
+    })
+  }
+  cornerToolMeasurementRemove(e){
+    console.log("cornerToolMeasurementRemove", e)
+    const {boxes, cornerActiveTool, cornerElement} = this.state
+    switch(e.detail.toolName){
+      case 'RectangleRoi':
+        const measurement = e.detail.measurementData
+        let boxIndex = _.findIndex(boxes, {uuid: measurement.uuid})
+        if(boxIndex !== -1){
+          this.removeExistingBox(boxIndex)
+        }     
+        break;
+      case 'Bidirectional':
+        break;
+      case 'Length':
+        break;
+      case 'Eraser':
+        break;
+      default:
+         break;
+    }
+  }
+  removeExistingBox(boxIndex){
+    const {boxes} = this.state
+    boxes.splice(boxIndex, 1)
+    this.setState({
+      boxes,
+      needReloadBoxes: true,
+    })
+  }
+  rectangleRoiMouseMoveCallback(e){
+    console.log('rectangleRoiMouseMoveCallback', e)
+  }
+  eraserMouseUpCallback(e){
+    console.log('eraserMouseUpCallback', e)
   }
   render() {
     const {
@@ -1347,7 +1690,7 @@ class CTpanel extends Component {
       windowHeight,
       verticalMode,
       bottomRowHeight,
-      ctInfoPadding,
+      ctImagePadding,
 
       studyListShowed,
       showFollowUp,
@@ -1357,11 +1700,13 @@ class CTpanel extends Component {
       previewVisible,
 
       imageIds,
-      sliderMarks,
-      boxes,
-      currentIdx,
-      listsActiveIndex,
-      mode,
+      cornerImageIdIndex,
+      cornerIsPlaying,
+      cornerFrameRate,
+      cornerActiveTool,
+      cornerIsOverlayVisible,
+      cornerViewport,
+      cornerAnnoVisible,
     } = this.state
     let previewContent
 
@@ -1447,6 +1792,112 @@ class CTpanel extends Component {
               <div className="func-btn-desc"> 序列</div>
             </div>
             <span className="menu-line"></span>
+            <div className="func-btn">
+            <Dropdown
+              icon={null}
+              trigger={
+                <>
+                  <Icon className="func-btn-icon" name="search" size="large"></Icon>
+                  <div className="func-btn-desc">
+                    缩放
+                    <FontAwesomeIcon icon={faCaretDown} />
+                  </div>
+                </>
+              }>
+              <Dropdown.Menu>
+                <Dropdown.Item text="放大" icon="search plus" onClick={this.onZoomIn.bind(this)} />
+                <Dropdown.Item text="缩小" icon="search minus" onClick={this.onZoomOut.bind(this)} />
+              </Dropdown.Menu>
+            </Dropdown>
+          </div>
+          <div onClick={this.onResetView.bind(this)} className="func-btn" title="刷新">
+            <Icon className="func-btn-icon" name="repeat" size="large"></Icon>
+            <div className="func-btn-desc">刷新</div>
+          </div>
+          <div
+            title="窗宽窗位"
+            onClick={this.onSetCornerActiveTool.bind(this, "Wwwc")}
+            className={
+              'func-btn'
+            }
+            hidden={show3DVisualization}>
+            <Icon className="func-btn-icon icon-custom icon-custom-wwwc" size="large"></Icon>
+            <div className="func-btn-desc">
+              <Dropdown
+                icon={null}
+                trigger={
+                  <>
+                    窗宽窗位
+                    <FontAwesomeIcon icon={faCaretDown} />
+                  </>
+                }>
+                <Dropdown.Menu>
+                  <Dropdown.Item text="反色" onClick={this.onSetWwwcFlip.bind(this)} />
+                  <Dropdown.Item text="肺窗" onClick={this.onSetWwwcToPulmonary.bind(this)} />
+                  <Dropdown.Item text="骨窗" onClick={this.onSetWwwcToBone.bind(this)} />
+                  <Dropdown.Item text="腹窗" onClick={this.onSetWwwcToVentral.bind(this)} />
+                  <Dropdown.Item text="纵隔窗" onClick={this.onSetWwwcToMedia.bind(this)} />
+                </Dropdown.Menu>
+              </Dropdown>
+            </div>
+          </div>
+          {cornerIsPlaying ? (
+            <div onClick={this.onSetAnimationPlaying.bind(this, false)} className="func-btn" title="暂停动画">
+              <Icon className="func-btn-icon" name="pause" size="large"></Icon>
+              <div className="func-btn-desc">暂停</div>
+            </div>
+          )  : (
+            <div onClick={this.onSetAnimationPlaying.bind(this, true)} className="func-btn" title="播放动画">
+              <Icon className="func-btn-icon" name="play" size="large"></Icon>
+              <div className="func-btn-desc">播放</div>
+            </div>
+          )}
+
+          {cornerAnnoVisible ? (
+            <div onClick={this.onSetAnnoVisible.bind(this, false)} className="func-btn" title="隐藏结节">
+              <Icon className="func-btn-icon" id="cache-button" name="eye slash" size="large"></Icon>
+              <div className="func-btn-desc">隐藏结节</div>
+            </div>
+          ) : (
+            <div onClick={this.onSetAnnoVisible.bind(this, true)} className="func-btn" title="显示结节">
+              <Icon className="func-btn-icon" id="cache-button" name="eye" size="large"></Icon>
+              <div className="func-btn-desc">显示结节</div>
+            </div>
+          )}
+          {cornerIsOverlayVisible ? (
+            <div onClick={this.onSetOverlayVisible.bind(this, false)} className="func-btn" title="隐藏信息">
+              <Icon className="func-btn-icon" id="cache-button" name="delete calendar" size="large"></Icon>
+              <div className="func-btn-desc">隐藏信息</div>
+            </div>
+          ) : (
+            <div onClick={this.onSetOverlayVisible.bind(this, true)} className="func-btn" title="显示信息">
+              <Icon className="func-btn-icon" id="cache-button" name="content" size="large"></Icon>
+              <div className="func-btn-desc">显示信息</div>
+            </div>
+          )}
+          <div title="切换切片" onClick={this.onSetCornerActiveTool.bind(this, 'StackScroll')} className={'func-btn' + (cornerActiveTool === 'StackScroll' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="sort" size="large"></Icon>
+            <div className="func-btn-desc">滚动</div>
+          </div>
+          <div onClick={this.onSetCornerActiveTool.bind(this, 'RectangleRoi')} title="标注" className={'func-btn' + (cornerActiveTool === 'RectangleRoi' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="edit" size="large"></Icon>
+            <div className="func-btn-desc">标注</div>
+          </div>
+
+          <div onClick={this.onSetCornerActiveTool.bind(this, 'Bidirectional')} title="测量" className={'func-btn' + (cornerActiveTool === 'Bidirectional' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
+            <div className="func-btn-desc">测量</div>
+          </div>
+          <div onClick={this.onSetCornerActiveTool.bind(this, 'Length')} title="长度" className={'func-btn' + (cornerActiveTool === 'Length' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
+            <div className="func-btn-desc">长度</div>
+          </div>
+          <div onClick={this.onSetCornerActiveTool.bind(this, 'Eraser')} title="擦除" className={'func-btn' + (cornerActiveTool === 'Eraser' ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon" name="eraser" size="large"></Icon>
+            <div className="func-btn-desc">擦除</div>
+          </div>
+
+
           </div>
           <div id="menu-item-user">
             <Dropdown text={`欢迎您，${realname}`}>
@@ -1468,7 +1919,84 @@ class CTpanel extends Component {
             <Sidebar visible={studyListShowed} animation={'overlay'} width="thin">
               <div className="preview">{previewContent}</div>
             </Sidebar>
-            <Sidebar.Pusher style={{ height: '100%' }}></Sidebar.Pusher>
+            <Sidebar.Pusher style={{ height: '100%' }}>
+              <div id="ct-container">
+                <div id="ct-image-block" style={studyListShowed ? {paddingLeft: `${ctImagePadding}px`} : {}}>
+                  {imageIds && imageIds.length ? (
+                    <CornerstoneViewport
+                      tools={[
+                        // Mouse
+                        { name: 'Wwwc', mode: 'active', modeOptions: { mouseButtonMask: 1 } },
+                        { name: 'Zoom', mode: 'active', modeOptions: { mouseButtonMask: 2 } },
+                        { name: 'Pan', mode: 'active', modeOptions: { mouseButtonMask: 4 } },
+                        // Scroll
+                        { name: 'StackScrollMouseWheel', mode: 'active' },
+                        { name: 'StackScroll', mode: 'active', mouseButtonMask: 1 },
+                        // Touch
+                        { name: 'PanMultiTouch', mode: 'active' },
+                        { name: 'ZoomTouchPinch', mode: 'active' },
+                        { name: 'StackScrollMultiTouch', mode: 'active' },
+                        // Draw
+                        { name: 'RectangleRoi', mode: 'active', mouseButtonMask: 1, props: { mouseMoveCallback: this.rectangleRoiMouseMoveCallback.bind(this) } },
+                        { name: 'Bidirectional', mode: 'active', mouseButtonMask: 1 },
+                        { name: 'Length', mode: 'active', mouseButtonMask: 1 },
+                        //erase
+                        { name: 'Eraser', mode: 'active', mouseButtonMask: 1, props: { mouseUpCallback: this.eraserMouseUpCallback.bind(this)} },
+                      ]}
+                      imageIds={imageIds}
+                      imageIdIndex={cornerImageIdIndex}
+                      isPlaying={cornerIsPlaying}
+                      frameRate={cornerFrameRate}
+                      activeTool={cornerActiveTool}
+                      isOverlayVisible={cornerIsOverlayVisible}
+                      onElementEnabled={(elementEnabledEvt) => {
+                        const cornerElement = elementEnabledEvt.detail.element
+                        this.setState({
+                          cornerElement,
+                        })
+                        cornerElement.addEventListener('cornerstoneimagerendered', (imageRenderedEvent) => {
+                          const viewport = imageRenderedEvent.detail.viewport
+                          const invertedViewport = Object.assign({}, viewport, cornerViewport)
+
+                          cornerstone.setViewport(cornerElement, invertedViewport)
+                        })
+                        this.subs.cornerMouseUp.sub(
+                          cornerElement.addEventListener('cornerstonetoolsmouseup', (e) => {
+                            // this.cornerToolMouseUpCallback(e)
+                          })
+                        )
+                        this.subs.cornerMeasureAdd.sub(
+                          cornerElement.addEventListener('cornerstonetoolsmeasurementadded', (e) => {
+                            // console.log("cornerstonetoolsmeasurementadded", e)
+                          })
+                        )
+                        this.subs.cornerMeasureModify.sub(
+                          cornerElement.addEventListener('cornerstonetoolsmeasurementmodified', (e) => {
+                            this.cornerToolMeasurementModify(e)
+                          })
+                        )
+                        this.subs.cornerMeasureComplete.sub(
+                          cornerElement.addEventListener('cornerstonetoolsmeasurementcompleted', (e) => {
+                            this.cornerToolMeasurementComplete(e)
+                          })
+                        )
+                        this.subs.cornerMeasureRemove.sub(
+                          cornerElement.addEventListener('cornerstonetoolsmeasurementremoved', (e) => {
+                            this.cornerToolMeasurementRemove(e)
+                          })
+                        )
+                      }}
+                    
+                    />
+                  ) : (
+                    <LoadingComponent />
+                  )}
+                </div>
+                <div id="ct-info-block">
+                  
+                  </div>
+              </div>
+            </Sidebar.Pusher>
           </Sidebar.Pushable>
         </div>
       </div>
