@@ -16,7 +16,6 @@ import { Link } from 'react-router-dom/cjs/react-router-dom.min'
 class SeriesIdList extends Component {
   constructor(props) {
     super(props)
-    this.displayStudy = this.displayStudy.bind(this)
     this.state = {
       contextRef: props.contextRef,
       popupHovers: [],

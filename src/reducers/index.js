@@ -105,7 +105,7 @@ const dataCenterReducer = (state = { caseData: [], caseId: null }, action) => {
     case 'SET_FOLLOW_UP_PLAYING':
       return {
         ...state,
-        isPlaying: action.isPlaying,
+        followUpisPlaying: action.isPlaying,
       }
     default:
       return state

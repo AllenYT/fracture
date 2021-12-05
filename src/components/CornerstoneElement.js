@@ -31,7 +31,7 @@ import CornerstoneViewport from 'react-cornerstone-viewport'
 
 import { faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faCaretDown, faFilter, faSortAmountDownAlt, faSortUp, faSortDown, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import { connect } from 'react-redux'
-import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpPlaying } from '../actions'
+import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpPlaying, setFollowUpActiveTool } from '../actions'
 import { DropTarget } from 'react-dnd'
 
 import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor'
@@ -311,6 +311,25 @@ const boxProtoType = {
   broProb: 0,
   status: 1,
 }
+const lymphProtoType = {
+  lymph: {
+    nodule_no: '',
+    rect_no: '',
+    slice_idx: 0,
+    probability: 0,
+    y1: 0,
+    x1: 0,
+    y2: 0,
+    x2: 0,
+  },
+  documentId: 'deepln#1.3.12.2.1107.5.1.4.73473.30000017100600124127900084258#0@lymph',
+  type: 'lymph',
+  status: 1,
+  slice_idx: 0,
+  volume: 0,
+  name: '淋巴结1',
+  uuid: '44beb47c-b328-416d-920a-3953bf93840f',
+}
 let buttonflag = 0
 
 class CornerstoneElement extends Component {
@@ -322,6 +341,9 @@ class CornerstoneElement extends Component {
       username: localStorage.getItem('username'),
       modelName: window.location.pathname.split('/')[3],
       realname: localStorage.realname ? localStorage.realname : '',
+      patientId: null,
+
+      firstTabActiveIndex: 1,
 
       //cornerstoneElement
       imageIds: [],
@@ -353,12 +375,17 @@ class CornerstoneElement extends Component {
 
       sliderMarks: {},
       boxes: [],
-      drawingCompleted: false,
+      drawingNodulesCompleted: false,
 
       needReloadBoxes: false,
       needRedrawBoxes: false,
       noduleMarks: {},
       listsActiveIndex: -1, //右方list活动item
+
+      lymphs: [],
+      drawingLymphsCompleted: false,
+      lymphMarks: {},
+      lymphsActiveIndex: -1,
 
       immersive: false,
       readonly: true,
@@ -385,9 +412,6 @@ class CornerstoneElement extends Component {
       dateSeries: [],
       previewVisible: [],
       dataValidContnt: [],
-      lymphs: [],
-      lymphMarks: {},
-      lymphsActiveIndex: -1,
 
       //MiniReport
       reportGuideActive: true,
@@ -402,7 +426,6 @@ class CornerstoneElement extends Component {
       patientName: '',
       patientBirth: '',
       patientSex: '',
-      patientId: '',
 
       /*新加变量 */
       nodules: [],
@@ -715,7 +738,13 @@ class CornerstoneElement extends Component {
       },
       () => {}
     )
-    loadAndCacheImagePlus(imageIds[cornerImageIdIndex], 1)
+    loadAndCacheImagePlus(imageIds[cornerImageIdIndex], 1).then((image) => {
+      const imageData = image.data
+      const patientId = imageData.string('x00100020')
+      this.setState({
+        patientId,
+      })
+    })
     executeTask()
     this.loadDisplay()
     const annoImageIds = []
@@ -742,7 +771,7 @@ class CornerstoneElement extends Component {
       console.log('annoRoundPromises', value.length)
     })
 
-    this.loadStudyBrowser()
+    // this.loadStudyBrowser()
     this.loadReport()
 
     axios
@@ -769,6 +798,7 @@ class CornerstoneElement extends Component {
           data.forEach((item, index) => {
             item.name = `淋巴结${index + 1}`
             item.visibleIdx = index
+            item.recVisible = true
           })
           this.setState({
             lymphMarks,
@@ -1105,18 +1135,22 @@ class CornerstoneElement extends Component {
   componentDidUpdate(prevProps, prevState) {
     if (prevState.immersive !== this.state.immersive) {
     }
-
+    if (!prevState.patientId && this.state.patientId) {
+      this.loadStudyBrowser()
+    }
     // this.saveToDB()
+
+    // nodules active index modified
     if (this.state.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
       if (this.state.boxes && this.state.boxes.length) {
-        const { boxes, imageIds, listsActiveIndex } = this.state
+        const { boxes, listsActiveIndex } = this.state
         this.setState(
           {
             cornerImageIdIndex: boxes[listsActiveIndex].slice_idx,
           },
           () => {
-            cornerstone.loadAndCacheImage(imageIds[boxes[listsActiveIndex].slice_idx]).then((image) => {
-              this.redrawNodules()
+            cornerstone.loadAndCacheImage(this.state.imageIds[boxes[listsActiveIndex].slice_idx]).then((image) => {
+              this.redrawCorner()
             })
           }
         )
@@ -1139,7 +1173,24 @@ class CornerstoneElement extends Component {
         this.updateForm()
       }
     }
-    //boxes modified
+
+    // lymphs active index modified
+    if (this.state.lymphsActiveIndex !== -1 && prevState.lymphsActiveIndex !== this.state.lymphsActiveIndex) {
+      if (this.state.lymphs && this.state.lymphs.length) {
+        const { lymphs, lymphsActiveIndex } = this.state
+        this.setState(
+          {
+            cornerImageIdIndex: lymphs[lymphsActiveIndex].slice_idx,
+          },
+          () => {
+            cornerstone.loadAndCacheImage(this.state.imageIds[lymphs[lymphsActiveIndex].slice_idx]).then((image) => {
+              this.redrawCorner()
+            })
+          }
+        )
+      }
+    }
+    // boxes modified
     if (!prevState.needReloadBoxes && this.state.needReloadBoxes) {
       if (this.state.boxes && this.state.boxes.length) {
         this.template()
@@ -1150,19 +1201,19 @@ class CornerstoneElement extends Component {
     }
     if (!prevState.needRedrawBoxes && this.state.needRedrawBoxes) {
       if (this.state.boxes && this.state.boxes.length) {
-        this.redrawNodules()
+        this.redrawCorner()
         this.setState({
           needRedrawBoxes: false,
         })
       }
     }
   }
-  redrawNodules() {
+  redrawCorner() {
     this.redrawForToolName('RectangleRoi')
     this.redrawForToolName('Bidirectional')
   }
   redrawForToolName(toolName) {
-    const { boxes, cornerElement, listsActiveIndex } = this.state
+    const { boxes, listsActiveIndex, lymphs, lymphsActiveIndex, cornerElement } = this.state
     let toolData = cornerstoneTools.getToolState(cornerElement, toolName)
     if (toolData && toolData.data && toolData.data.length) {
       let toolDataIndex = -1
@@ -1174,10 +1225,12 @@ class CornerstoneElement extends Component {
       const savedData = [].concat(toolData.data)
       cornerstoneTools.clearToolState(cornerElement, toolName)
       savedData.forEach((savedDataItem, savedDataItemIndex) => {
-        let boxIndex
+        let boxIndex = -1
+        let lymphIndex = -1
         switch (toolName) {
           case 'RectangleRoi':
             boxIndex = _.findIndex(boxes, { uuid: savedDataItem.uuid })
+            lymphIndex = _.findIndex(lymphs, { uuid: savedDataItem.uuid })
             break
           case 'Bidirectional':
             boxIndex = _.findIndex(boxes, { biuuid: savedDataItem.uuid })
@@ -1199,10 +1252,23 @@ class CornerstoneElement extends Component {
           savedDataItem.active = toolDataIndex === savedDataItemIndex
           cornerstoneTools.addToolState(cornerElement, toolName, savedDataItem)
         }
+        if (lymphIndex !== -1) {
+          switch (toolName) {
+            case 'RectangleRoi':
+              savedDataItem.visible = lymphs[lymphIndex].recVisible
+              break
+            case 'Bidirectional':
+              break
+            default:
+              break
+          }
+          savedDataItem.color = 'rgb(0,0,255)'
+          savedDataItem.active = toolDataIndex === savedDataItemIndex
+          cornerstoneTools.addToolState(cornerElement, toolName, savedDataItem)
+        }
       })
     }
   }
-
   loadDisplay() {
     // first let's check the status to display the proper contents.
     // send our token to the server, combined with the current pathname
@@ -1248,7 +1314,7 @@ class CornerstoneElement extends Component {
   loadStudyBrowser() {
     const token = localStorage.getItem('token')
     const params = {
-      mainItem: this.state.caseId.split('_')[0],
+      mainItem: this.state.patientId,
       type: 'pid',
       otherKeyword: '',
     }
@@ -1350,9 +1416,6 @@ class CornerstoneElement extends Component {
         this.setState(
           {
             // nodules: data.nodules === undefined ? [] : data.nodules,
-            patientBirth: data.patientBirth,
-            patientId: data.patientID,
-            patientSex: data.patientSex === 'M' ? '男' : '女',
           },
           () => {}
         )
@@ -1881,21 +1944,33 @@ class CornerstoneElement extends Component {
   }
 
   onZoomIn() {
-    const { cornerViewport } = this.state
+    const { showFollowUp, cornerViewport } = this.state
+    if (showFollowUp && this.followUpComponent) {
+      this.followUpComponent.ZoomIn()
+      return
+    }
     cornerViewport.scale *= 1.1
     this.setState({
       cornerViewport,
     })
   }
   onZoomOut() {
-    const { cornerViewport } = this.state
+    const { showFollowUp, cornerViewport } = this.state
+    if (showFollowUp && this.followUpComponent) {
+      this.followUpComponent.ZoomOut()
+      return
+    }
     cornerViewport.scale *= 0.9
     this.setState({
       cornerViewport,
     })
   }
   onResetView() {
-    const { cornerViewport } = this.state
+    const { showFollowUp, cornerViewport } = this.state
+    if (showFollowUp && this.followUpComponent) {
+      this.followUpComponent.reset()
+      return
+    }
     cornerViewport.scale = 1
     this.setState({
       cornerViewport,
@@ -1903,14 +1978,22 @@ class CornerstoneElement extends Component {
   }
 
   onSetWwwcFlip() {
-    const { cornerViewport } = this.state
+    const { showFollowUp, cornerViewport } = this.state
+    if (showFollowUp && this.followUpComponent) {
+      this.followUpComponent.imagesFlip()
+      return
+    }
     cornerViewport.invert = !cornerViewport.invert
     this.setState({
       cornerViewport,
     })
   }
   onSetWwwcToPulmonary() {
-    const { cornerViewport } = this.state
+    const { showFollowUp, cornerViewport } = this.state
+    if (showFollowUp && this.followUpComponent) {
+      this.followUpComponent.toPulmonary()
+      return
+    }
     const voi = {
       windowWidth: 1600,
       windowCenter: -600,
@@ -1921,7 +2004,11 @@ class CornerstoneElement extends Component {
     })
   }
   onSetWwwcToBone() {
-    const { cornerViewport } = this.state
+    const { showFollowUp, cornerViewport } = this.state
+    if (showFollowUp && this.followUpComponent) {
+      this.followUpComponent.toBoneWindow()
+      return
+    }
     const voi = {
       windowWidth: 1000,
       windowCenter: 300,
@@ -1932,7 +2019,11 @@ class CornerstoneElement extends Component {
     })
   }
   onSetWwwcToVentral() {
-    const { cornerViewport } = this.state
+    const { showFollowUp, cornerViewport } = this.state
+    if (showFollowUp && this.followUpComponent) {
+      this.followUpComponent.toVentralWindow()
+      return
+    }
     const voi = {
       windowWidth: 400,
       windowCenter: 40,
@@ -1943,7 +2034,11 @@ class CornerstoneElement extends Component {
     })
   }
   onSetWwwcToMedia() {
-    const { cornerViewport } = this.state
+    const { showFollowUp, cornerViewport } = this.state
+    if (showFollowUp && this.followUpComponent) {
+      this.followUpComponent.toMedia()
+      return
+    }
     const voi = {
       windowWidth: 500,
       windowCenter: 50,
@@ -1954,6 +2049,11 @@ class CornerstoneElement extends Component {
     })
   }
   onSetAnimationPlaying(playing) {
+    const { showFollowUp } = this.state
+    if (showFollowUp) {
+      this.props.setFollowUpPlaying(playing)
+      return
+    }
     this.setState({
       cornerIsPlaying: playing,
     })
@@ -1969,6 +2069,11 @@ class CornerstoneElement extends Component {
     })
   }
   onSetCornerActiveTool(tool) {
+    const { showFollowUp } = this.state
+    if (showFollowUp) {
+      this.props.setFollowUpActiveTool(tool)
+      return
+    }
     this.setState({
       cornerActiveTool: tool,
     })
@@ -2004,9 +2109,6 @@ class CornerstoneElement extends Component {
     })
   }
 
-  temporaryStorage() {
-    message.success('已保存当前结果')
-  }
   nextPath(path) {
     this.props.history.push(path)
   }
@@ -2027,6 +2129,7 @@ class CornerstoneElement extends Component {
       .post(this.config.draft.updateRects, qs.stringify(params), { headers })
       .then((res) => {
         if (res.data.status === 'okay') {
+          message.success('已保存当前结果')
           const content = res.data.allDrafts
           // this.setState({ content: content })
         }
@@ -2169,6 +2272,7 @@ class CornerstoneElement extends Component {
 
   showFollowUp() {
     this.onSetStudyList(true)
+    this.onSetAnimationPlaying(false)
     this.setState({
       showFollowUp: true,
     })
@@ -3266,15 +3370,14 @@ class CornerstoneElement extends Component {
   }
 
   render() {
+    const { curCaseId, preCaseId, followUpActiveTool, followUpIsPlaying } = this.props
     const {
       realname,
       username,
-      activeIndex,
       pdfContent,
       invisiblePdfContent,
       pdfReading,
       pdfLoadingCompleted,
-      cacheModal,
       windowWidth,
       windowHeight,
       verticalMode,
@@ -3293,7 +3396,8 @@ class CornerstoneElement extends Component {
       cornerIsOverlayVisible,
       cornerViewport,
       cornerAnnoVisible,
-      drawingCompleted,
+      drawingNodulesCompleted,
+      drawingLymphsCompleted,
 
       nodulesAllChecked,
       nodulesOrder,
@@ -3360,6 +3464,7 @@ class CornerstoneElement extends Component {
       maskLabelMap,
       lineActors,
 
+      readonly,
       registering,
       menuButtonsWidth,
       menuScrollable,
@@ -3372,7 +3477,6 @@ class CornerstoneElement extends Component {
       renderLoading,
       showFollowUp,
     } = this.state
-    const { curCaseId, preCaseId, followUpActiveTool } = this.props
     let tableContent
     let lymphContent
     let noduleNumber = 0
@@ -4213,7 +4317,7 @@ class CornerstoneElement extends Component {
                     <div className="lymph-accordion-item-title-name">{item.name}</div>
                   </div>
                   <div className="lymph-accordion-item-title-center">
-                    <div className="lymph-accordion-item-title-volume">{`${(Math.floor(item.volume * 100) / 100).toFixed(2)} cm³`}</div>
+                    <div className="lymph-accordion-item-title-volume">{item.volume !== undefined ? `${(item.volume * 1e3).toFixed(2)}mm³` : null}</div>
                   </div>
                 </div>
               </Accordion.Title>
@@ -4541,19 +4645,19 @@ class CornerstoneElement extends Component {
           >
             <Icon name="expand arrows alternate" size="large"></Icon>
           </Button> */}
-          {this.state.readonly ? (
+          {readonly ? (
             <div title="提交" onClick={this.submit.bind(this)} className="func-btn">
               <Icon className="func-btn-icon" name="upload" size="large"></Icon>
               <div className="func-btn-desc">提交</div>
             </div>
           ) : (
             // <Button icon title='暂存' onClick={this.temporaryStorage} className='funcbtn'><Icon name='inbox' size='large'></Icon></Button>
-            <div title="暂存" onClick={this.temporaryStorage.bind(this)} className="func-btn">
+            <div title="暂存" onClick={this.saveToDB.bind(this)} className="func-btn">
               <Icon className="func-btn-icon" name="upload" size="large"></Icon>
               <div className="func-btn-desc">暂存</div>
             </div>
           )}
-          {this.state.readonly ? null : (
+          {readonly ? null : (
             <Popup
               on="click"
               trigger={
@@ -4761,66 +4865,85 @@ class CornerstoneElement extends Component {
               </Dropdown>
             </div>
           </div>
-          {cornerIsPlaying ? (
-            <div onClick={this.onSetAnimationPlaying.bind(this, false)} className="func-btn" title="暂停动画">
+          {show3DVisualization ? threedMenus : null}
+          {showFollowUp ? followUpMenus : null}
+
+          {cornerIsPlaying || followUpIsPlaying ? (
+            <div onClick={this.onSetAnimationPlaying.bind(this, false)} className="func-btn" title="暂停动画" hidden={show3DVisualization}>
               <Icon className="func-btn-icon" name="pause" size="large"></Icon>
               <div className="func-btn-desc">暂停</div>
             </div>
           ) : (
-            <div onClick={this.onSetAnimationPlaying.bind(this, true)} className="func-btn" title="播放动画">
+            <div onClick={this.onSetAnimationPlaying.bind(this, true)} className="func-btn" title="播放动画" hidden={show3DVisualization}>
               <Icon className="func-btn-icon" name="play" size="large"></Icon>
               <div className="func-btn-desc">播放</div>
             </div>
           )}
 
           {cornerAnnoVisible ? (
-            <div onClick={this.onSetAnnoVisible.bind(this, false)} className="func-btn" title="隐藏结节">
+            <div onClick={this.onSetAnnoVisible.bind(this, false)} className="func-btn" title="隐藏结节" hidden={show3DVisualization}>
               <Icon className="func-btn-icon" id="cache-button" name="eye slash" size="large"></Icon>
               <div className="func-btn-desc">隐藏结节</div>
             </div>
           ) : (
-            <div onClick={this.onSetAnnoVisible.bind(this, true)} className="func-btn" title="显示结节">
+            <div onClick={this.onSetAnnoVisible.bind(this, true)} className="func-btn" title="显示结节" hidden={show3DVisualization}>
               <Icon className="func-btn-icon" id="cache-button" name="eye" size="large"></Icon>
               <div className="func-btn-desc">显示结节</div>
             </div>
           )}
           {cornerIsOverlayVisible ? (
-            <div onClick={this.onSetOverlayVisible.bind(this, false)} className="func-btn" title="隐藏信息">
+            <div onClick={this.onSetOverlayVisible.bind(this, false)} className="func-btn" title="隐藏信息" hidden={show3DVisualization}>
               <Icon className="func-btn-icon" id="cache-button" name="delete calendar" size="large"></Icon>
               <div className="func-btn-desc">隐藏信息</div>
             </div>
           ) : (
-            <div onClick={this.onSetOverlayVisible.bind(this, true)} className="func-btn" title="显示信息">
+            <div onClick={this.onSetOverlayVisible.bind(this, true)} className="func-btn" title="显示信息" hidden={show3DVisualization}>
               <Icon className="func-btn-icon" id="cache-button" name="content" size="large"></Icon>
               <div className="func-btn-desc">显示信息</div>
             </div>
           )}
-          <div title="切换切片" onClick={this.onSetCornerActiveTool.bind(this, 'StackScroll')} className={'func-btn' + (cornerActiveTool === 'StackScroll' ? ' func-btn-active' : '')}>
+          <div
+            title="切换切片"
+            onClick={this.onSetCornerActiveTool.bind(this, 'StackScroll')}
+            hidden={show3DVisualization}
+            className={'func-btn' + (!showFollowUp ? (cornerActiveTool === 'StackScroll' ? ' func-btn-active' : '') : followUpActiveTool === 'StackScroll' ? ' func-btn-active' : '')}>
             <Icon className="func-btn-icon" name="sort" size="large"></Icon>
             <div className="func-btn-desc">滚动</div>
           </div>
-          <div onClick={this.onSetCornerActiveTool.bind(this, 'RectangleRoi')} title="标注" className={'func-btn' + (cornerActiveTool === 'RectangleRoi' ? ' func-btn-active' : '')}>
+          <div
+            onClick={this.onSetCornerActiveTool.bind(this, 'RectangleRoi')}
+            title="标注"
+            hidden={show3DVisualization}
+            className={'func-btn' + (!showFollowUp ? (cornerActiveTool === 'RectangleRoi' ? ' func-btn-active' : '') : followUpActiveTool === 'RectangleRoi' ? ' func-btn-active' : '')}>
             <Icon className="func-btn-icon" name="edit" size="large"></Icon>
             <div className="func-btn-desc">标注</div>
           </div>
-
-          <div onClick={this.onSetCornerActiveTool.bind(this, 'Bidirectional')} title="测量" className={'func-btn' + (cornerActiveTool === 'Bidirectional' ? ' func-btn-active' : '')}>
+          <div
+            onClick={this.onSetCornerActiveTool.bind(this, 'Bidirectional')}
+            title="测量"
+            hidden={show3DVisualization}
+            className={'func-btn' + (!showFollowUp ? (cornerActiveTool === 'Bidirectional' ? ' func-btn-active' : '') : followUpActiveTool === 'Bidirectional' ? ' func-btn-active' : '')}>
             <Icon className="func-btn-icon" name="crosshairs" size="large"></Icon>
             <div className="func-btn-desc">测量</div>
           </div>
-          <div onClick={this.onSetCornerActiveTool.bind(this, 'Length')} title="长度" className={'func-btn' + (cornerActiveTool === 'Length' ? ' func-btn-active' : '')}>
+          <div
+            onClick={this.onSetCornerActiveTool.bind(this, 'Length')}
+            title="长度"
+            hidden={show3DVisualization}
+            className={'func-btn' + (!showFollowUp ? (cornerActiveTool === 'Length' ? ' func-btn-active' : '') : followUpActiveTool === 'Length' ? ' func-btn-active' : '')}>
             <Icon className="func-btn-icon" name="arrows alternate vertical" size="large"></Icon>
             <div className="func-btn-desc">长度</div>
           </div>
-          <div onClick={this.onSetCornerActiveTool.bind(this, 'Eraser')} title="擦除" className={'func-btn' + (cornerActiveTool === 'Eraser' ? ' func-btn-active' : '')}>
+          <div
+            onClick={this.onSetCornerActiveTool.bind(this, 'Eraser')}
+            title="擦除"
+            hidden={show3DVisualization}
+            className={'func-btn' + (!showFollowUp ? (cornerActiveTool === 'Eraser' ? ' func-btn-active' : '') : followUpActiveTool === 'Eraser' ? ' func-btn-active' : '')}>
             <Icon className="func-btn-icon" name="eraser" size="large"></Icon>
             <div className="func-btn-desc">擦除</div>
           </div>
 
-          {/* {!(show3DVisualization || showFollowUp) ? twodMenus : null}
-          {show3DVisualization ? threedMenus : null}
-          {showFollowUp ? followUpMenus : null} */}
-
+          {!show3DVisualization && !showFollowUp ? twodMenus : null}
           {show3DVisualization ? (
             <div className="func-btn" onClick={this.hide3D.bind(this)} hidden={showFollowUp}>
               <Icon className="func-btn-icon icon-custom icon-custom-hide-3d" size="large"></Icon>
@@ -5012,8 +5135,11 @@ class CornerstoneElement extends Component {
                                           cornerImageIdIndex: _.indexOf(this.state.imageIds, imageRenderedEvent.detail.image.imageId),
                                         },
                                         () => {
-                                          if (!this.state.drawingCompleted) {
+                                          if (!this.state.drawingNodulesCompleted) {
                                             this.drawNodules()
+                                          }
+                                          if (!this.state.drawingLymphsCompleted) {
+                                            this.drawLymphs()
                                           }
                                         }
                                       )
@@ -6556,14 +6682,16 @@ class CornerstoneElement extends Component {
       const sliderMarks = this.state.noduleMarks
       this.setState({
         sliderMarks,
+        firstTabActiveIndex: 1,
       })
-      this.toPulmonary()
+      this.onSetWwwcToPulmonary()
     } else if (activeKey === '2') {
       const sliderMarks = this.state.lymphMarks
       this.setState({
         sliderMarks,
+        firstTabActiveIndex: 2,
       })
-      this.toMedia()
+      this.onSetWwwcToMedia()
     }
   }
 
@@ -6664,7 +6792,7 @@ class CornerstoneElement extends Component {
                 boxes,
               },
               () => {
-                this.checkDrawingCompleted()
+                this.checkNodulesDrawingCompleted()
               }
             )
           }
@@ -6757,7 +6885,7 @@ class CornerstoneElement extends Component {
                   boxes,
                 },
                 () => {
-                  this.checkDrawingCompleted()
+                  this.checkNodulesDrawingCompleted()
                 }
               )
             }
@@ -6766,7 +6894,70 @@ class CornerstoneElement extends Component {
       })
     }
   }
-  checkDrawingCompleted() {
+  drawLymphs() {
+    const { lymphs, imageIds, cornerElement, cornerImage, lymphsActiveIndex } = this.state
+    if (lymphs && lymphs.length) {
+      lymphs.forEach((lymphItem, lymphIndex) => {
+        if (imageIds[lymphItem.slice_idx] === cornerImage.imageId && lymphItem.recVisible && lymphItem.uuid === undefined) {
+          const measurementData = {
+            visible: true,
+            active: false,
+            // active: lymphIndex === lymphsActiveIndex,
+            color: 'rgb(0, 0, 255)',
+            // color: undefined,
+            invalidated: true,
+            handles: {
+              start: {
+                x: lymphItem.lymph.x1,
+                y: lymphItem.lymph.y1,
+                highlight: false,
+                active: false,
+              },
+              end: {
+                x: lymphItem.lymph.x2,
+                y: lymphItem.lymph.y2,
+                highlight: false,
+                active: false,
+              },
+              textBox: {
+                active: false,
+                hasMoved: false,
+                movesIndependently: false,
+                drawnIndependently: true,
+                allowedOutsideImage: true,
+                hasBoundingBox: true,
+              },
+            },
+          }
+          cornerstoneTools.addToolState(cornerElement, 'RectangleRoi', measurementData)
+          const toolData = cornerstoneTools.getToolState(cornerElement, 'RectangleRoi')
+
+          const toolDataIndex = _.findIndex(toolData.data, function (o) {
+            let isEqual = false
+            const oHandles = o.handles
+            if (oHandles) {
+              if (oHandles.start.x === lymphItem.lymph.x1 && oHandles.start.y === lymphItem.lymph.y1 && oHandles.end.x === lymphItem.lymph.x2 && oHandles.end.y === lymphItem.lymph.y2) {
+                isEqual = true
+              }
+            }
+            return isEqual
+          })
+          if (toolDataIndex !== -1) {
+            lymphItem.uuid = toolData.data[toolDataIndex].uuid
+            this.setState(
+              {
+                lymphs,
+              },
+              () => {
+                this.checkLymphsDrawingCompleted()
+              }
+            )
+          }
+        }
+      })
+    }
+  }
+  checkNodulesDrawingCompleted() {
     const { boxes } = this.state
     let count = 0
     let biCount = 0
@@ -6779,7 +6970,19 @@ class CornerstoneElement extends Component {
       }
     })
     this.setState({
-      drawingCompleted: count === boxes.length && biCount === boxes.length,
+      drawingNodulesCompleted: count === boxes.length && biCount === boxes.length,
+    })
+  }
+  checkLymphsDrawingCompleted() {
+    const { lymphs } = this.state
+    let count = 0
+    lymphs.forEach((lymphItem, lymphIndex) => {
+      if (lymphItem.uuid) {
+        count += 1
+      }
+    })
+    this.setState({
+      drawingLymphsCompleted: count === lymphs.length,
     })
   }
   cornerToolMouseUpCallback(e) {
@@ -6789,15 +6992,20 @@ class CornerstoneElement extends Component {
     // console.log("cornerToolMeasurementAdd", e.detail)
   }
   cornerToolMeasurementModify(e) {
-    const { boxes, cornerActiveTool, cornerElement } = this.state
+    const { boxes, lymphs, cornerActiveTool, cornerElement } = this.state
     const measureData = e.detail.measurementData
     let boxIndex
+    let lymphIndex
     console.log('cornerToolMeasurementModify', e.detail)
     switch (e.detail.toolName) {
       case 'RectangleRoi':
         boxIndex = _.findIndex(boxes, { uuid: measureData.uuid })
         if (boxIndex !== -1) {
           this.modifyExistingBox(boxIndex, measureData)
+        }
+        lymphIndex = _.findIndex(lymphs, { uuid: measureData.uuid })
+        if (lymphIndex !== -1) {
+          this.modifyExistingLymph(lymphIndex, measureData)
         }
         break
       case 'Bidirectional':
@@ -6815,29 +7023,44 @@ class CornerstoneElement extends Component {
     }
   }
   cornerToolMeasurementComplete(e) {
-    const { boxes, cornerActiveTool, cornerElement, listsActiveIndex } = this.state
+    const { firstTabActiveIndex, boxes, listsActiveIndex, lymphs, lymphsActiveIndex, cornerActiveTool, cornerElement } = this.state
     const measureData = e.detail.measurementData
     let boxIndex
+    let lymphIndex
     console.log('cornerToolMeasurementComplete', e.detail)
     switch (e.detail.toolName) {
       case 'RectangleRoi':
         let stackData = cornerstoneTools.getToolState(cornerElement, 'stack')
-        boxIndex = _.findIndex(boxes, { uuid: measureData.uuid })
-        if (boxIndex !== -1) {
-          this.modifyExistingBox(boxIndex, measureData)
-        } else {
-          this.createNewBox(stackData.data[0].currentImageIdIndex, measureData)
-        }
-        break
-      case 'Bidirectional':
-        boxIndex = _.findIndex(boxes, { biuuid: measureData.uuid })
-        if (boxIndex !== -1) {
-          this.modifyExistingBi(boxIndex, measureData)
-        } else {
-          if (listsActiveIndex !== -1) {
-            this.createNewBi(listsActiveIndex, measureData)
+        if (firstTabActiveIndex === 1) {
+          boxIndex = _.findIndex(boxes, { uuid: measureData.uuid })
+          if (boxIndex !== -1) {
+            this.modifyExistingBox(boxIndex, measureData)
+          } else {
+            this.createNewBox(stackData.data[0].currentImageIdIndex, measureData)
+          }
+        } else if (firstTabActiveIndex === 2) {
+          lymphIndex = _.findIndex(lymphs, { uuid: measureData.uuid })
+          if (lymphIndex !== -1) {
+            this.modifyExistingLymph(lymphIndex, measureData)
+          } else {
+            this.createNewLymph(stackData.data[0].currentImageIdIndex, measureData)
           }
         }
+
+        break
+      case 'Bidirectional':
+        if (firstTabActiveIndex === 1) {
+          boxIndex = _.findIndex(boxes, { biuuid: measureData.uuid })
+          if (boxIndex !== -1) {
+            this.modifyExistingBi(boxIndex, measureData)
+          } else {
+            if (listsActiveIndex !== -1) {
+              this.createNewBi(listsActiveIndex, measureData)
+            }
+          }
+        } else if (firstTabActiveIndex === 2) {
+        }
+
         break
       case 'Length':
         break
@@ -6865,7 +7088,7 @@ class CornerstoneElement extends Component {
       huMean: data.cachedStats.mean,
       huMin: data.cachedStats.min,
       Variance: data.cachedStats.variance,
-      volume: data.cachedStats.area * 1e-4,
+      volume: data.cachedStats.area * 1e-3,
       x1: data.handles.start.x,
       x2: data.handles.end.x,
       y1: data.handles.start.y,
@@ -6936,6 +7159,44 @@ class CornerstoneElement extends Component {
     obj.n = ns
     return obj
   }
+  createNewLymph(imageIndex, data) {
+    const { lymphs } = this.state
+    let visibleIdx
+    if (lymphs && lymphs.length) {
+      visibleIdx = _.maxBy(lymphs, 'visibleIdx').visibleIdx + 1
+    } else {
+      lymphs = []
+      visibleIdx = 0
+    }
+    const newLymphItem = {
+      ...lymphProtoType,
+      name: `淋巴结${visibleIdx + 1}`,
+      slice_idx: imageIndex,
+      // nodule_hist: this.noduleHist(data.handles.start.x, data.handles.start.y, data.handles.end.x, data.handles.end.y),
+      // huMax: data.cachedStats.max,
+      // huMean: data.cachedStats.mean,
+      // huMin: data.cachedStats.min,
+      // Variance: data.cachedStats.variance,
+      volume: data.cachedStats.area * 1e-3,
+      lymph: {
+        slice_idx: imageIndex,
+        x1: data.handles.start.x,
+        x2: data.handles.end.x,
+        y1: data.handles.start.y,
+        y2: data.handles.end.y,
+        probability: 1,
+      },
+      modified: 1,
+      uuid: data.uuid,
+      visibleIdx,
+      recVisible: true,
+    }
+    lymphs.push(newLymphItem)
+    this.setState({
+      lymphs,
+      needRedrawBoxes: true,
+    })
+  }
   modifyExistingBox(boxIndex, data) {
     const { boxes } = this.state
     boxes[boxIndex] = {
@@ -6952,7 +7213,29 @@ class CornerstoneElement extends Component {
     }
     this.setState({
       boxes,
-      needRedrawBoxes: true,
+      // needRedrawBoxes: true,
+    })
+  }
+  modifyExistingLymph(lymphIndex, data) {
+    const { lymphs } = this.state
+    lymphs[lymphIndex] = {
+      ...lymphs[lymphIndex],
+      // huMax: data.cachedStats.max,
+      // huMean: data.cachedStats.mean,
+      // huMin: data.cachedStats.min,
+      // Variance: data.cachedStats.variance,
+      lymph: {
+        ...lymphs[lymphIndex].lymph,
+        x1: data.handles.start.x,
+        x2: data.handles.end.x,
+        y1: data.handles.start.y,
+        y2: data.handles.end.y,
+      },
+      volume: data.cachedStats.area * 1e-3,
+    }
+    this.setState({
+      lymphs,
+      // needRedrawBoxes: true,
     })
   }
   createNewBi(boxIndex, data) {
@@ -6994,14 +7277,19 @@ class CornerstoneElement extends Component {
   }
   cornerToolMeasurementRemove(e) {
     console.log('cornerToolMeasurementRemove', e)
-    const { boxes, cornerActiveTool, cornerElement } = this.state
+    const { boxes, lymphs, cornerActiveTool, cornerElement } = this.state
     const measurement = e.detail.measurementData
     let boxIndex
+    let lymphIndex
     switch (e.detail.toolName) {
       case 'RectangleRoi':
         boxIndex = _.findIndex(boxes, { uuid: measurement.uuid })
         if (boxIndex !== -1) {
           this.removeExistingBox(boxIndex)
+        }
+        lymphIndex = _.findIndex(lymphs, { uuid: measurement.uuid })
+        if (lymphIndex !== -1) {
+          this.removeExistingLymph(lymphIndex)
         }
         break
       case 'Bidirectional':
@@ -7025,7 +7313,17 @@ class CornerstoneElement extends Component {
     this.setState({
       boxes,
       needRedrawBoxes: true,
-      drawingCompleted: false,
+      drawingNodulesCompleted: false,
+    })
+  }
+  removeExistingLymph(lymphIndex) {
+    const { lymphs } = this.state
+    lymphs[lymphIndex].recVisible = false
+    delete lymphs[lymphIndex].uuid
+    this.setState({
+      lymphs,
+      needRedrawBoxes: true,
+      drawingLymphsCompleted: false,
     })
   }
   removeExistingBi(boxIndex) {
@@ -7035,7 +7333,7 @@ class CornerstoneElement extends Component {
     this.setState({
       boxes,
       needRedrawBoxes: true,
-      drawingCompleted: false,
+      drawingNodulesCompleted: false,
     })
   }
   rectangleRoiMouseMoveCallback(e) {
@@ -8521,7 +8819,7 @@ export default connect(
       preCaseId: state.dataCenter.preCaseId,
       followUpActiveTool: state.dataCenter.followUpActiveTool,
       followUpLoadingCompleted: state.dataCenter.followUpLoadingCompleted,
-      followUpIsPlaying: state.dataCenter.isPlaying,
+      followUpIsPlaying: state.dataCenter.isPlayfollowUpisPlayinging,
     }
   },
   (dispatch) => {
@@ -8529,6 +8827,7 @@ export default connect(
       getImageIdsByCaseId: (url, caseId) => dispatch(getImageIdsByCaseId(url, caseId)),
       getNodulesByCaseId: (url, caseId, username) => dispatch(getNodulesByCaseId(url, caseId, username)),
       setFollowUpPlaying: (isPlaying) => dispatch(setFollowUpPlaying(isPlaying)),
+      setFollowUpActiveTool: (toolName) => dispatch(setFollowUpActiveTool(toolName)),
       dispatch,
     }
   }

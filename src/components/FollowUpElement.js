@@ -239,8 +239,8 @@ class FollowUpElement extends Component {
   componentDidMount() {
     this.props.onRef(this)
     console.log('followup props', this.props)
-    this.props.setFollowUpLoadingCompleted(false)
     this.props.setFollowUpActiveTool('StackScroll')
+    this.props.setFollowUpLoadingCompleted(false)
     const curInfo = this.props.curInfo
     if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
       const curImagePromise = curInfo.curImageIds.map((curImageId) => cornerstone.loadAndCacheImage(curImageId))
@@ -289,7 +289,6 @@ class FollowUpElement extends Component {
     // document.getElementById('header').style.display = 'none'
   }
   componentWillUnmount() {
-    this.props.setFollowUpActiveTool('')
     const targets = document.getElementsByClassName('viewport-element')
     cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
     cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
@@ -515,6 +514,14 @@ class FollowUpElement extends Component {
         this.plotHistogram(activeMatchNewBox, 'chart-current', maxHU, minHU)
         this.plotHistogram(activeMatchPreBox, 'chart-previous', maxHU, minHU)
       }
+    }
+
+    if (prevProps.followUpActiveTool !== this.props.followUpActiveTool) {
+      this.setState({
+        activeTool: this.props.followUpActiveTool,
+      })
+    }
+    if (prevProps.followUpIsPlaying !== this.props.followUpIsPlaying) {
     }
   }
 
@@ -1083,38 +1090,22 @@ class FollowUpElement extends Component {
   ZoomIn() {
     let newCornerstoneElement = this.state.newCornerstoneElement
     let newViewport = cornerstone.getViewport(newCornerstoneElement)
-    if (newViewport.scale <= 5) {
-      newViewport.scale = 1 + newViewport.scale
-    } else {
-      newViewport.scale = 6
-    }
+    newViewport.scale *= 1.1
     cornerstone.setViewport(newCornerstoneElement, newViewport)
     let preCornerstoneElement = this.state.preCornerstoneElement
     let preViewport = cornerstone.getViewport(preCornerstoneElement)
-    if (preViewport.scale <= 5) {
-      preViewport.scale = 1 + preViewport.scale
-    } else {
-      preViewport.scale = 6
-    }
+    preViewport.scale *= 1.1
     cornerstone.setViewport(preCornerstoneElement, preViewport)
   }
 
   ZoomOut() {
     let newCornerstoneElement = this.state.newCornerstoneElement
     let newViewport = cornerstone.getViewport(newCornerstoneElement)
-    if (newViewport.scale >= 2) {
-      newViewport.scale = newViewport.scale - 1
-    } else {
-      newViewport.scale = 1
-    }
+    newViewport.scale *= 0.9
     cornerstone.setViewport(newCornerstoneElement, newViewport)
     let preCornerstoneElement = this.state.preCornerstoneElement
     let preViewport = cornerstone.getViewport(preCornerstoneElement)
-    if (preViewport.scale >= 2) {
-      preViewport.scale = preViewport.scale - 1
-    } else {
-      preViewport.scale = 1
-    }
+    preViewport.scale *= 0.9
     cornerstone.setViewport(preCornerstoneElement, preViewport)
   }
 
@@ -1166,32 +1157,26 @@ class FollowUpElement extends Component {
   // }
 
   wwwcCustom() {
-    this.props.setFollowUpActiveTool('Wwwc')
     this.setState({ activeTool: 'Wwwc' })
   }
 
   ScrollStack() {
-    this.props.setFollowUpActiveTool('StackScroll')
     this.setState({ activeTool: 'StackScroll' })
   }
 
   startAnnos() {
-    this.props.setFollowUpActiveTool('RectangleRoi')
     this.setState({ activeTool: 'RectangleRoi' })
   }
 
   bidirectionalMeasure() {
-    this.props.setFollowUpActiveTool('Bidirectional')
     this.setState({ activeTool: 'Bidirectional' })
   }
 
   lengthMeasure() {
-    this.props.setFollowUpActiveTool('Length')
     this.setState({ activeTool: 'Length' })
   }
 
   eraseAnno() {
-    this.props.setFollowUpActiveTool('Eraser')
     this.setState({ activeTool: 'Eraser' })
   }
   onChangeViewportSort() {
@@ -4526,8 +4511,8 @@ export default connect(
   (state) => {
     return {
       isDragging: state.dataCenter.isDragging,
-      followUpIsPlaying: state.dataCenter.isPlaying,
-      // followUpActiveTool: state.dataCenter.followUpActiveTool
+      followUpIsPlaying: state.dataCenter.followUpisPlaying,
+      followUpActiveTool: state.dataCenter.followUpActiveTool,
     }
   },
   (dispatch) => {

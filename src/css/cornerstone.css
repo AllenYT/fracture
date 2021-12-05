@@ -104,6 +104,9 @@
 .func-btn-desc {
   margin-top: 5px;
 }
+.func-btn i {
+  overflow: visible;
+}
 .func-btn .menu {
   background-color: rgb(39, 46, 72) !important;
 }
