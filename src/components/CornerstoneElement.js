@@ -208,14 +208,6 @@ const noduleSegments = {
   S18: '左肺下叶-后基底段',
 }
 
-let modalBtnStyle = {
-  width: '200px',
-  display: 'block',
-  // marginTop:'10px',
-  marginBottom: '20px',
-  marginLeft: 'auto',
-  marginRight: 'auto',
-}
 
 const { Option } = Select
 const boxProtoType = {
@@ -311,6 +303,7 @@ const boxProtoType = {
   broProb: 0,
   status: 1,
 }
+const boxDrawingColor = 'rgb(0,0,0)'
 const lymphProtoType = {
   lymph: {
     nodule_no: '',
@@ -330,7 +323,7 @@ const lymphProtoType = {
   name: '淋巴结1',
   uuid: '44beb47c-b328-416d-920a-3953bf93840f',
 }
-let buttonflag = 0
+const lymphDrawingColor = 'rgb(255,255,255)'
 
 class CornerstoneElement extends Component {
   constructor(props) {
@@ -1142,7 +1135,7 @@ class CornerstoneElement extends Component {
 
     // nodules active index modified
     if (this.state.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
-      if (this.state.boxes && this.state.boxes.length) {
+      if (!this.state.show3DVisualization && this.state.boxes && this.state.boxes.length) {
         const { boxes, listsActiveIndex } = this.state
         this.setState(
           {
@@ -1176,7 +1169,7 @@ class CornerstoneElement extends Component {
 
     // lymphs active index modified
     if (this.state.lymphsActiveIndex !== -1 && prevState.lymphsActiveIndex !== this.state.lymphsActiveIndex) {
-      if (this.state.lymphs && this.state.lymphs.length) {
+      if (!this.state.show3DVisualization && this.state.lymphs && this.state.lymphs.length) {
         const { lymphs, lymphsActiveIndex } = this.state
         this.setState(
           {
@@ -1262,7 +1255,7 @@ class CornerstoneElement extends Component {
             default:
               break
           }
-          savedDataItem.color = 'rgb(0,0,255)'
+          savedDataItem.color = lymphDrawingColor
           savedDataItem.active = toolDataIndex === savedDataItemIndex
           cornerstoneTools.addToolState(cornerElement, toolName, savedDataItem)
         }
@@ -2128,7 +2121,8 @@ class CornerstoneElement extends Component {
     axios
       .post(this.config.draft.updateRects, qs.stringify(params), { headers })
       .then((res) => {
-        if (res.data.status === 'okay') {
+        console.log("updateRects response", res)
+        if (res.data.status === 'ok') {
           message.success('已保存当前结果')
           const content = res.data.allDrafts
           // this.setState({ content: content })
@@ -2923,9 +2917,9 @@ class CornerstoneElement extends Component {
   }
 
   // infoContents
-  handleListClick(index, slice_idx) {
+  handleListClick(index) {
     console.log('dropdown', this.state.listsActiveIndex, index)
-    const { listsActiveIndex } = this.state
+    const { boxes, listsActiveIndex } = this.state
     const newIndex = listsActiveIndex === index ? -1 : index
     if (this.state.show3DVisualization) {
       if (this.state.MPR && this.state.painting && newIndex !== -1) {
@@ -2936,9 +2930,16 @@ class CornerstoneElement extends Component {
         this.toggleCrosshairs(true)
       }
     }
-    this.setState({
-      listsActiveIndex: newIndex,
-    })
+    if(boxes && boxes.length){
+      this.setState({
+        listsActiveIndex: newIndex,
+      })
+    }else{
+      this.setState({
+        listsActiveIndex: -1
+      })
+    }
+
   }
   onSelectMal(index, value) {
     const boxes = this.state.boxes
@@ -3368,6 +3369,1733 @@ class CornerstoneElement extends Component {
     }
     message.success('结节删除成功')
   }
+  
+  handleLymphClick(index) {
+    const { lymphs, lymphsActiveIndex } = this.state
+
+    const newIndex = lymphsActiveIndex === index ? -1 : index
+    if(lymphs && lymphs.length){
+      this.setState({
+        lymphsActiveIndex: newIndex,
+        // cornerImageIdIndex: currentIdx,
+      })
+    }else{
+      this.setState({
+        lymphsActiveIndex: -1,
+      })
+    }
+  }
+  arrayPropSort(prop, factor) {
+    return function (a, b) {
+      let value1 = a[prop]
+      let value2 = b[prop]
+      let result = value1 - value2
+      if (result === 0) {
+        return factor
+      } else {
+        return result * factor
+      }
+    }
+  }
+
+
+  handleRangeChange(e) {
+    // this.setState({currentIdx: event.target.value - 1, imageId:
+    // this.state.imageIds[event.target.value - 1]})
+    // let style = $("<style>", {type:"text/css"}).appendTo("head");
+    // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
+  }
+  handleRangeAfterChange(e) {}
+
+  // template
+
+  template() {
+    const boxes = this.state.boxes
+    if (!(boxes && boxes.length)) {
+      return
+    }
+
+    const reportImageType = this.state.reportImageType
+    const reportGuideType = this.state.reportGuideType
+    let reportImageText = ''
+    boxes.forEach((item, index) => {
+      if (item.checked && item.visible) {
+        reportImageText += this.templateReportImage(reportImageType, index) + '\n'
+      }
+    })
+    this.setState({
+      reportImageText,
+    })
+    this.templateReportGuide(reportGuideType)
+  }
+  templateReportImage(type, boxIndex) {
+    const places = nodulePlaces
+    const segments = noduleSegments
+    const boxes = this.state.boxes
+    let texts = ''
+
+    if (type === '结节类型') {
+      let place = ''
+      let diameter = ''
+      let texture = ''
+      let representArray = []
+      let represent = ''
+      let malignancy = ''
+      if (boxes[boxIndex]['place'] === 0 || boxes[boxIndex]['place'] === undefined || boxes[boxIndex]['place'] === '') {
+        if (boxes[boxIndex]['segment'] === undefined || boxes[boxIndex]['segment'] === '' || boxes[boxIndex]['segment'] === 'None') {
+          place = '未知位置'
+        } else {
+          place = segments[boxes[boxIndex]['segment']]
+        }
+      } else {
+        if (boxes[boxIndex]['segment'] === undefined || boxes[boxIndex]['segment'] === '' || boxes[boxIndex]['segment'] === 'None') {
+          place = places[boxes[boxIndex]['place']]
+        } else {
+          place = segments[boxes[boxIndex]['segment']]
+        }
+      }
+      let ll = 0
+      let sl = 0
+      if (boxes[boxIndex]['measure'] !== undefined) {
+        ll = Math.sqrt(Math.pow(boxes[boxIndex].measure.x1 - boxes[boxIndex].measure.x2, 2) + Math.pow(boxes[boxIndex].measure.y1 - boxes[boxIndex].measure.y2, 2))
+        sl = Math.sqrt(Math.pow(boxes[boxIndex].measure.x3 - boxes[boxIndex].measure.x4, 2) + Math.pow(boxes[boxIndex].measure.y3 - boxes[boxIndex].measure.y4, 2))
+        if (isNaN(ll)) {
+          ll = 0
+        }
+        if (isNaN(sl)) {
+          sl = 0
+        }
+        if (ll === 0 && sl === 0) {
+          if (boxes[boxIndex]['diameter'] !== undefined && boxes[boxIndex]['diameter'] !== 0) {
+            diameter = '\xa0\xa0' + (boxes[boxIndex]['diameter'] / 10).toFixed(2) + ' 厘米'
+          } else {
+            diameter = '未知'
+          }
+        } else {
+          diameter = '\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0' + '×' + '\xa0' + (sl / 10).toFixed(2) + ' 厘米'
+        }
+      }
+
+      if (boxes[boxIndex]['texture'] === 2) {
+        texture = '实性'
+      } else if (boxes[boxIndex]['texture'] === 3) {
+        texture = '混合磨玻璃'
+      } else {
+        texture = '磨玻璃'
+      }
+      if (boxes[boxIndex]['lobulation'] === 2) {
+        representArray.push('分叶')
+      }
+      if (boxes[boxIndex]['spiculation'] === 2) {
+        representArray.push('毛刺')
+      }
+      if (boxes[boxIndex]['calcification'] === 2) {
+        representArray.push('钙化')
+      }
+      if (boxes[boxIndex]['pin'] === 2) {
+        representArray.push('胸膜凹陷')
+      }
+      if (boxes[boxIndex]['cav'] === 2) {
+        representArray.push('空洞')
+      }
+      if (boxes[boxIndex]['vss'] === 2) {
+        representArray.push('血管集束')
+      }
+      if (boxes[boxIndex]['bea'] === 2) {
+        representArray.push('空泡')
+      }
+      if (boxes[boxIndex]['bro'] === 2) {
+        representArray.push('支气管充气')
+      }
+      for (let index = 0; index < representArray.length; index++) {
+        if (index === 0) {
+          represent = representArray[index]
+        } else {
+          represent = represent + '、' + representArray[index]
+        }
+      }
+      if (boxes[boxIndex]['malignancy'] === 3) {
+        malignancy = '风险较高。'
+      } else if (boxes[boxIndex]['malignancy'] === 2) {
+        malignancy = '风险中等。'
+      } else {
+        malignancy = '风险较低。'
+      }
+      texts =
+        texts +
+        place +
+        ' ( Im ' +
+        (parseInt(boxes[boxIndex]['slice_idx']) + 1) +
+        '/' +
+        this.state.imageIds.length +
+        ') 见' +
+        texture +
+        '结节, 大小为' +
+        diameter +
+        ', 可见' +
+        represent +
+        ', ' +
+        malignancy
+    }
+    return texts
+  }
+  templateReportGuide(dealchoose) {
+    const boxes = this.state.boxes
+    if (dealchoose === '中华共识') {
+      let weight = 0
+
+      for (let i = 0; i < boxes.length; i++) {
+        if (boxes[i]['malignancy'] === 3) {
+          if (boxes[i]['diameter'] > 8) {
+            weight = 20
+            break
+          } else if (boxes[i]['diameter'] > 6 && boxes[i]['diameter'] <= 8) {
+            weight = weight >= 15 ? weight : 15
+          } else if (boxes[i]['diameter'] >= 4 && boxes[i]['diameter'] <= 6) {
+            weight = weight >= 10 ? weight : 10
+          } else {
+            weight = weight >= 5 ? weight : 5
+          }
+        } else {
+          if (boxes[i]['diameter'] > 8) {
+            weight = 20
+            break
+          } else if (boxes[i]['diameter'] > 6 && boxes[i]['diameter'] <= 8) {
+            weight = weight >= 10 ? weight : 10
+          } else if (boxes[i]['diameter'] >= 4 && boxes[i]['diameter'] <= 6) {
+            weight = weight >= 5 ? weight : 5
+          }
+          // else{
+          //     weight=weight>=5?weight:5
+          // }
+        }
+      }
+      switch (weight) {
+        case 20:
+          this.setState({
+            reportGuideText: '根据PET评估结节结果判断手术切除或非手术活检',
+          })
+          break
+        case 15:
+          this.setState({
+            reportGuideText: '3~6、9~12及24个月，如稳定，年度随访',
+          })
+          break
+        case 10:
+          this.setState({
+            reportGuideText: '6~12、18~24个月，如稳定，年度随访',
+          })
+          break
+        case 5:
+          this.setState({ reportGuideText: '12个月，如稳定，年度随访' })
+          break
+        case 0:
+          this.setState({ reportGuideText: '选择性随访' })
+          break
+      }
+    } else if (dealchoose === 'Fleischner') {
+      let weight = 0
+
+      for (let i = 0; i < boxes.length; i++) {
+        if (boxes[i]['texture'] === 2) {
+          if (boxes[i]['diameter'] > 8) {
+            weight = 25
+            break
+          } else if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] <= 8) {
+            weight = weight >= 15 ? weight : 15
+          } else {
+            if (boxes[i]['malignancy'] === 3) {
+              weight = weight >= 5 ? weight : 5
+            }
+            // else{
+            //     weight=weight>=0?weight:0
+            // }
+          }
+        } else if (boxes[i]['texture'] === 3) {
+          if (boxes[i]['diameter'] >= 6) {
+            weight = weight >= 20 ? weight : 20
+          }
+          // else{
+          //     weight=weight>=0?weight:0
+          // }
+        } else {
+          if (boxes[i]['diameter'] >= 6) {
+            weight = weight >= 10 ? weight : 10
+          }
+          // else{
+          //     weight=0
+          // }
+        }
+      }
+      switch (weight) {
+        case 25:
+          this.setState({ reportGuideText: '3个月考虑CT、PET/CT，或组织样本' })
+          break
+        case 20:
+          this.setState({
+            reportGuideText: '3-6月行CT确定稳定性。若未改变，并且实性成分<6mm，应每年行CT至5年',
+          })
+          break
+        case 15:
+          this.setState({
+            reportGuideText: '6-12个月行CT，之后18-24个月考虑CT',
+          })
+          break
+        case 10:
+          this.setState({
+            reportGuideText: '6-12月行CT确定稳定性，之后每2年行CT至5年',
+          })
+          break
+        case 5:
+          this.setState({ reportGuideText: '最好在12个月行CT' })
+          break
+        case 0:
+          this.setState({ reportGuideText: '无常规随访' })
+          break
+      }
+    } else if (dealchoose === 'NCCN') {
+      let weight = 0
+
+      for (let i = 0; i < boxes.length; i++) {
+        if (boxes[i]['texture'] === 2) {
+          if (boxes[i]['diameter'] >= 15) {
+            weight = 15
+            break
+          } else if (boxes[i]['diameter'] >= 7 && boxes[i]['diameter'] < 15) {
+            weight = weight >= 10 ? weight : 10
+          } else if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] < 7) {
+            weight = weight >= 5 ? weight : 5
+          }
+          // else{
+          //     weight=0
+          // }
+        } else if (boxes[i]['texture'] === 3) {
+          if (boxes[i]['diameter'] >= 8) {
+            weight = 15
+            break
+          } else if (boxes[i]['diameter'] >= 7 && boxes[i]['diameter'] < 8) {
+            weight = weight >= 10 ? weight : 10
+          } else if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] < 7) {
+            weight = weight >= 5 ? weight : 5
+          }
+          // else{
+          //     weight=0
+          // }
+        } else {
+          if (boxes[i]['diameter'] >= 20) {
+            weight = weight >= 5 ? weight : 5
+          }
+          // else{
+          //     weight=0
+          // }
+        }
+      }
+      switch (weight) {
+        case 15:
+          this.setState({ reportGuideText: '胸部增强CT和/或PET/CT' })
+          break
+        case 10:
+          this.setState({ reportGuideText: '3个月后复查LDCT或考虑PET/CT' })
+          break
+        case 5:
+          this.setState({ reportGuideText: '6个月后复查LDCT' })
+          break
+        case 0:
+          this.setState({
+            reportGuideText: '每年复查LDCT，直至患者不再是肺癌潜在治疗对象',
+          })
+          break
+      }
+    } else if (dealchoose === 'Lung-RADS') {
+      let weight = 0
+
+      for (let i = 0; i < boxes.length; i++) {
+        if (boxes[i]['malignancy'] === 1 || boxes[i]['malignancy'] === 2) {
+          if (boxes[i]['texture'] === 2) {
+            if (boxes[i]['diameter'] < 6) {
+              weight = weight >= 0 ? weight : 0
+            } else {
+              weight = weight >= 5 ? weight : 5
+            }
+          } else if (boxes[i]['texture'] === 3) {
+            if (boxes[i]['diameter'] < 6) {
+              weight = weight >= 0 ? weight : 0
+            } else {
+              weight = weight >= 5 ? weight : 5
+            }
+          } else {
+            if (boxes[i]['diameter'] < 20) {
+              weight = weight >= 0 ? weight : 0
+            } else {
+              weight = weight >= 5 ? weight : 5
+            }
+          }
+        } else {
+          if (boxes[i]['texture'] === 2) {
+            if (boxes[i]['diameter'] >= 8 && boxes[i]['diameter'] < 15) {
+              weight = weight >= 10 ? weight : 10
+            } else {
+              weight = 15
+              break
+            }
+          } else if (boxes[i]['texture'] === 3) {
+            if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] < 8) {
+              weight = weight >= 10 ? weight : 10
+            } else {
+              weight = 15
+              break
+            }
+          } else {
+            weight = weight >= 5 ? weight : 5
+          }
+        }
+      }
+      switch (weight) {
+        case 15:
+          this.setState({
+            reportGuideText: '胸部CT增强或平扫；根据恶性的概率和并发症，选择性进行PET/CT和/或组织活检；存在≥8mm的实性成分时，需进行PET/CT检查',
+          })
+          break
+        case 10:
+          this.setState({
+            reportGuideText: '3个月低剂量胸部CT筛查；存在≥8mm的实性成分时需PET/CT检查',
+          })
+          break
+        case 5:
+          this.setState({ reportGuideText: '6个月内低剂量胸部CT筛查' })
+          break
+        case 0:
+          this.setState({
+            reportGuideText: '12个月内继续年度低剂量胸部CT筛查',
+          })
+          break
+      }
+    } else if (dealchoose === '亚洲共识') {
+      let weight = 0
+
+      for (let i = 0; i < boxes.length; i++) {
+        if (boxes[i]['texture'] === 2) {
+          if (boxes[i]['diameter'] > 8) {
+            weight = 25
+            break
+          } else if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] <= 8) {
+            weight = weight >= 15 ? weight : 15
+          }
+          // else if(this.state.boxes[i]['diameter']>=4 && this.state.boxes[i]['diameter']<6){
+          //     weight=weight>=15?weight:15
+          // }
+          // else{
+          //     if(this.state.boxes[i]['malignancy']===3){
+          //         weight=weight>=5?weight:5
+          //     }
+          //     // else{
+          //     //     weight=weight>=0?weight:0
+          //     // }
+          // }
+        } else if (boxes[i]['texture'] === 1) {
+          if (boxes[i]['diameter'] > 5) {
+            weight = weight >= 5 ? weight : 5
+          }
+          // else{
+          //     weight=weight>=0?weight:0
+          // }
+        } else {
+          if (boxes[i]['diameter'] <= 8) {
+            weight = weight >= 10 ? weight : 10
+          } else {
+            weight = weight >= 15 ? weight : 15
+          }
+        }
+      }
+      switch (weight) {
+        case 25:
+          this.setState({
+            reportGuideText: '应转介多学科团队到中心进行管理。该中心的诊断能力应包括CT/PET扫描、良性疾病检测和活检',
+          })
+          break
+        case 20:
+          this.setState({
+            reportGuideText: '3个月后复查CT，如果检测时认为临床合适，考虑经验性抗菌治疗',
+          })
+          break
+        case 10:
+          this.setState({
+            reportGuideText: '在大约6个月-12个月和18个月-24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测',
+          })
+          break
+        case 15:
+          this.setState({
+            reportGuideText: '在大约3个月、12个月和24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测',
+          })
+          break
+        case 5:
+          this.setState({
+            reportGuideText: '每年进行CT监测，持续3年;然后根据临床判断，考虑每年进行CT监测',
+          })
+          break
+        case 0:
+          this.setState({
+            reportGuideText: '根据临床判断，考虑每年进行CT监测',
+          })
+          break
+      }
+    }
+  }
+  onHandleImageTextareaChange(e) {
+    this.setState({
+      reportImageText: e.target.value,
+    })
+  }
+  onHandleGuideTextareaChange(e) {
+    this.setState({
+      reportGuideText: e.target.value,
+    })
+  }
+
+  onSetReportImageActive() {
+    this.setState((prevState) => ({
+      reportImageActive: !prevState.reportImageActive,
+    }))
+  }
+  onSetReportGuideActive() {
+    this.setState(
+      (prevState) => ({
+        reportGuideActive: !prevState.reportGuideActive,
+      }),
+      () => {
+        this.reportImageTopCalc()
+      }
+    )
+  }
+  onHandleReportGuideTypeChange(e, { name, value }) {
+    this.templateReportGuide(value)
+    this.setState({
+      reportGuideType: value,
+    })
+  }
+  onHandleReportImageTypeChange(e, { name, value }) {
+    this.setState({
+      reportImageType: value,
+    })
+  }
+
+  exportPDF() {
+    const element = document.getElementById('invisiblePDF')
+    const eleHeight = element.clientHeight
+    const opt = {
+      // margin: [1, 1, 1, 1],
+      filename: 'minireport.pdf',
+      // pagebreak: { after: ['.invisiblePDF-nodule-corner-item'] },
+      image: { type: 'jpeg', quality: 1 }, // 导出的图片质量和格式
+      html2canvas: {
+        scale: 1,
+        useCORS: true,
+        width: 1100,
+        height: eleHeight + 10,
+      }, // useCORS很重要，解决文档中图片跨域问题
+      jsPDF: {
+        unit: 'mm',
+        format: [1100, eleHeight + 10],
+        orientation: 'portrait',
+        precision: 25,
+      },
+      //
+    }
+    if (element) {
+      html2pdf().set(opt).from(element).save() // 导出
+    }
+  }
+  handleCopyClick(e) {
+    e.stopPropagation()
+    const reportImageText = this.state.reportImageText
+    if (reportImageText && reportImageText.length > 0) {
+      copy(this.state.reportImageText)
+      message.success('复制成功')
+    } else {
+      message.warn('复制内容为空')
+    }
+  }
+  onMenuPageUp() {
+    const { menuButtonsWidth, menuNowPage, menuTransform } = this.state
+    this.setState({
+      menuNowPage: menuNowPage - 1,
+      menuTransform: menuTransform - menuButtonsWidth,
+    })
+  }
+  onMenuPageDown() {
+    const { menuButtonsWidth, menuNowPage, menuTransform } = this.state
+
+    this.setState({
+      menuNowPage: menuNowPage + 1,
+      menuTransform: menuTransform + menuButtonsWidth,
+    })
+  }
+  setPdfReading(pdfReading) {
+    this.setState({
+      pdfReading,
+    })
+  }
+  showImages(e) {
+    e.stopPropagation()
+    const boxes = this.state.boxes
+    const imageIds = this.state.imageIds
+    const pdfFormValues = _.assign(
+      {
+        patientId: '',
+        name: '',
+        diagDoctor: '',
+        instanceId: '',
+        sex: '',
+        auditDoctor: '',
+        studyDate: '',
+        age: '',
+        reportDate: '',
+      },
+      this.state.pdfFormValues
+    )
+    const pdfContent = (
+      <>
+        <AntdForm labelAlign="right" className="pdf-form" initialValues={pdfFormValues} onValuesChange={this.onPdfFormValuesChange.bind(this)}>
+          <Row>
+            <Col span={8} className="pdf-form-col">
+              <AntdForm.Item name={`patientId`} label={<div className="pdf-form-label">病例号</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入病例号" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`name`} label={<div className="pdf-form-label">姓名</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入姓名" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`diagDoctor`} label={<div className="pdf-form-label">诊断医师</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入诊断医师" />
+              </AntdForm.Item>
+            </Col>
+            <Col span={8} className="pdf-form-col">
+              <AntdForm.Item name={`instanceId`} label={<div className="pdf-form-label">检查号</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入检查号" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`sex`} label={<div className="pdf-form-label">性别</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入性别" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`auditDoctor`} label={<div className="pdf-form-label">审核医师</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入审核医师" />
+              </AntdForm.Item>
+            </Col>
+            <Col span={8} className="pdf-form-col">
+              <AntdForm.Item name={`studyDate`} label={<div className="pdf-form-label">检查日期</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入检查日期" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`age`} label={<div className="pdf-form-label">年龄</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入年龄" />
+              </AntdForm.Item>
+              <AntdForm.Item name={`reportDate`} label={<div className="pdf-form-label">报告日期</div>} rules={[{}]}>
+                <Input className="pdf-form-input" placeholder="请输入报告日期" />
+              </AntdForm.Item>
+            </Col>
+          </Row>
+        </AntdForm>
+        <Divider />
+        {/* <div className="corner-report-modal-title">扫描参数</div>
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>检查日期</Table.HeaderCell>
+              <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
+              <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
+              <Table.HeaderCell>kV</Table.HeaderCell>
+              <Table.HeaderCell>mA</Table.HeaderCell>
+              <Table.HeaderCell>mAs</Table.HeaderCell>
+              <Table.HeaderCell>厂商</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body></Table.Body>
+        </Table>
+        <div className="corner-report-modal-title">肺部详情</div>
+        <Table celled>
+          <Table.Header>
+            <Table.Row>
+              <Table.HeaderCell>检查日期</Table.HeaderCell>
+              <Table.HeaderCell>体积</Table.HeaderCell>
+              <Table.HeaderCell>结节总体积</Table.HeaderCell>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body></Table.Body>
+        </Table> */}
+        {boxes && boxes.length
+          ? boxes.map((nodule, index) => {
+              let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
+              let visualId = 'visual' + index
+              // console.log('visualId',visualId)
+              const pdfNodulePosition = nodule.place === 0 ? nodulePlaces[nodule.place] : noduleSegments[nodule.segment]
+              const pdfNoduleRepresents = []
+              if (nodule.lobulation === 2) {
+                pdfNoduleRepresents.push('分叶')
+              }
+              if (nodule.spiculation === 2) {
+                pdfNoduleRepresents.push('毛刺')
+              }
+              if (nodule.calcification === 2) {
+                pdfNoduleRepresents.push('钙化')
+              }
+              if (nodule.pin === 2) {
+                pdfNoduleRepresents.push('胸膜凹陷')
+              }
+              if (nodule.cav === 2) {
+                pdfNoduleRepresents.push('空洞')
+              }
+              if (nodule.vss === 2) {
+                pdfNoduleRepresents.push('血管集束')
+              }
+              if (nodule.bea === 2) {
+                pdfNoduleRepresents.push('空泡')
+              }
+              if (nodule.bro === 2) {
+                pdfNoduleRepresents.push('支气管充气')
+              }
+              let pdfNoduleRepresentText = ''
+              pdfNoduleRepresents.forEach((representItem, representIndex) => {
+                if (representIndex !== 0) {
+                  pdfNoduleRepresentText += '/' + representItem
+                } else {
+                  pdfNoduleRepresentText += representItem
+                }
+              })
+              if (!pdfNoduleRepresentText) {
+                pdfNoduleRepresentText = '无'
+              }
+              return (
+                <div key={index}>
+                  <div>&nbsp;</div>
+                  <div className="corner-report-modal-title" id="noduleDivide">
+                    结节 {index + 1}
+                  </div>
+                  <Table celled textAlign="center">
+                    <Table.Header>
+                      <Table.Row>
+                        <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
+                        <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
+                      </Table.Row>
+                    </Table.Header>
+                    <Table.Body>
+                      <Table.Row>
+                        <Table.Cell>切片号</Table.Cell>
+                        <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>结节位置</Table.Cell>
+                        <Table.Cell>{pdfNodulePosition}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>危险程度</Table.Cell>
+                        <Table.Cell>{magName[nodule.malignancy]}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>性质</Table.Cell>
+                        <Table.Cell>{texName[nodule.texture]}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>表征</Table.Cell>
+                        <Table.Cell>{pdfNoduleRepresentText}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>直径</Table.Cell>
+                        <Table.Cell>{`${(nodule.diameter / 10).toFixed(2)}cm`}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>体积</Table.Cell>
+                        <Table.Cell>{nodule['volume'] === undefined ? null : `${(nodule.volume * 1e3).toFixed(2)}mm³`}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>HU(均值/最大值/最小值)</Table.Cell>
+                        <Table.Cell>{nodule['huMean'] === undefined ? null : Math.round(nodule['huMean']) + ' / ' + nodule['huMax'] + ' / ' + nodule['huMin']}</Table.Cell>
+                      </Table.Row>
+                      <Table.Row>
+                        <Table.Cell>结节部分</Table.Cell>
+                        <Table.Cell>
+                          <div
+                            id={nodule_id}
+                            style={{
+                              width: '300px',
+                              height: '250px',
+                              margin: '0 auto',
+                            }}></div>
+                        </Table.Cell>
+                        {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
+                      </Table.Row>
+                    </Table.Body>
+                  </Table>
+                </div>
+              )
+            })
+          : null}{' '}
+      </>
+    )
+
+    this.setState(
+      {
+        pdfContent,
+        pdfFormValues,
+      },
+      () => {
+        boxes.map((nodule, index) => {
+          // console.log('nodules1',nodule)
+          const nodule_id1 = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
+          const element1 = document.getElementById(nodule_id1)
+          let imageId = imageIds[nodule.slice_idx]
+          cornerstone.enable(element1)
+          cornerstone.loadAndCacheImage(imageId).then(function (image) {
+            // console.log('cache')
+            var viewport = cornerstone.getDefaultViewportForImage(element1, image)
+            viewport.voi.windowWidth = 1600
+            viewport.voi.windowCenter = -600
+            viewport.scale = 2
+            // console.log('nodules2',nodule)
+            const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
+            const yCenter = nodule.y1 + (nodule.y2 - nodule.y1) / 2
+            viewport.translation.x = 250 - xCenter
+            viewport.translation.y = 250 - yCenter
+            // console.log('viewport',viewport)
+            cornerstone.setViewport(element1, viewport)
+            cornerstone.displayImage(element1, image)
+
+          })
+        })
+      }
+    )
+  }
+  updateForm() {
+    const boxes = this.state.boxes
+    const imageIds = this.state.imageIds
+    const pdfFormValues = this.state.pdfFormValues
+    const reportImageText = this.state.reportImageText
+    const pdfReading = this.state.pdfReading
+    const visibleNodules = boxes.map((item, index) => {
+      const pdfNodulePosition = item.place === 0 ? nodulePlaces[item.place] : noduleSegments[item.segment]
+      const pdfNoduleRepresents = []
+      if (item.lobulation === 2) {
+        pdfNoduleRepresents.push('分叶')
+      }
+      if (item.spiculation === 2) {
+        pdfNoduleRepresents.push('毛刺')
+      }
+      if (item.calcification === 2) {
+        pdfNoduleRepresents.push('钙化')
+      }
+      if (item.pin === 2) {
+        pdfNoduleRepresents.push('胸膜凹陷')
+      }
+      if (item.cav === 2) {
+        pdfNoduleRepresents.push('空洞')
+      }
+      if (item.vss === 2) {
+        pdfNoduleRepresents.push('血管集束')
+      }
+      if (item.bea === 2) {
+        pdfNoduleRepresents.push('空泡')
+      }
+      if (item.bro === 2) {
+        pdfNoduleRepresents.push('支气管充气')
+      }
+      let pdfNoduleRepresentText = ''
+      pdfNoduleRepresents.forEach((representItem, representIndex) => {
+        if (representIndex !== 0) {
+          pdfNoduleRepresentText += '/' + representItem
+        } else {
+          pdfNoduleRepresentText += representItem
+        }
+      })
+      if (!pdfNoduleRepresentText) {
+        pdfNoduleRepresentText = '无'
+      }
+      return (
+        <div className="invisiblePDF-nodule-corner-item" key={index}>
+          <div id={`pdf-nodule-${index}`} className="invisiblePDF-nodule-corner"></div>
+          <div className="invisiblePDF-nodule-info">
+            <div>切片号:{item.slice_idx + 1}</div>
+            <div>位置:{pdfNodulePosition}</div>
+            <div>危险程度:{magName[item.malignancy]}</div>
+            <div>性质:{texName[item.texture]}</div>
+            <div>表征:{pdfNoduleRepresentText}</div>
+            <div>直径:{`${(item.diameter / 10).toFixed(2)}cm`}</div>
+            <div>
+              体积:
+              {item.volume === undefined ? null : `${(item.volume * 1e3).toFixed(2)}mm³`}
+            </div>
+            <div>
+              HU(均值/最大值/最小值):
+              {item.huMean === undefined ? null : Math.round(item.huMean) + ' / ' + item.huMax + ' / ' + item.huMin}
+            </div>
+          </div>
+        </div>
+      )
+    })
+    const invisiblePdfContent = (
+      <div id="invisiblePDF" style={pdfReading ? {} : { display: 'none' }}>
+        <div id="invisiblePDF-container">
+          <div className="invisiblePDF-header">图文报告</div>
+          <div className="invisiblePDF-content">
+            <div className="invisiblePDF-content-top">
+              <div className="invisiblePDF-content-title">胸部CT检查报告单</div>
+              <div className="invisiblePDF-content-description">
+                <div className="invisiblePDF-content-description-info">
+                  <Row wrap={false}>
+                    <Col span={6}>
+                      <div>
+                        <div>姓名：{pdfFormValues.name}</div>
+                        <div>影像号：{pdfFormValues.patientId}</div>
+                      </div>
+                    </Col>
+                    <Col span={6}>
+                      <div>
+                        <div>性别：{pdfFormValues.sex}</div>
+                        <div>送检科室：</div>
+                      </div>
+                    </Col>
+                    <Col span={6}>
+                      <div>
+                        <div>年龄：{pdfFormValues.age}</div>
+                        <div>送检医生：</div>
+                      </div>
+                    </Col>
+                    <Col span={6}>
+                      <div>
+                        <div>检查号：{pdfFormValues.instanceId}</div>
+                        <div>检查日期：{pdfFormValues.studyDate}</div>
+                      </div>
+                    </Col>
+                  </Row>
+                </div>
+                <div className="invisiblePDF-content-description-nodules">
+                  <div className="invisiblePDF-content-description-nodules-title">影像所见</div>
+                  <div className="invisiblePDF-content-description-nodules-list">{visibleNodules}</div>
+                </div>
+                <div className="invisiblePDF-content-description-text">{reportImageText}</div>
+              </div>
+            </div>
+            <div className="invisiblePDF-content-bottom">
+              <div className="invisiblePDF-content-report">
+                <Row wrap={false}>
+                  <Col span={8}>报告日期：</Col>
+                  <Col span={8}>报告医师：</Col>
+                  <Col span={8}>审核医师：</Col>
+                </Row>
+              </div>
+              <div className="invisiblePDF-content-note">注：本筛查报告仅供参考，详情请咨询医师。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+    this.setState(
+      {
+        invisiblePdfContent,
+        pdfLoadingCompleted: false,
+      },
+      () => {
+        let boxesLoadCount = 0
+        const that = this
+        boxes.map((nodule, index) => {
+          // console.log('nodules1',nodule)
+          const nodule_id2 = `pdf-nodule-${index}`
+          const element2 = document.getElementById(nodule_id2)
+          let imageId = imageIds[nodule.slice_idx]
+          cornerstone.enable(element2)
+          cornerstone.loadAndCacheImage(imageId).then(function (image) {
+            // console.log('cache')
+            var viewport = cornerstone.getDefaultViewportForImage(element2, image)
+            viewport.voi.windowWidth = 1600
+            viewport.voi.windowCenter = -600
+            viewport.scale = 2
+            // console.log('nodules2',nodule)
+            const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
+            const yCenter = nodule.y1 + (nodule.y2 - nodule.y1) / 2
+            viewport.translation.x = 250 - xCenter
+            viewport.translation.y = 250 - yCenter
+            // console.log('viewport',viewport)
+            cornerstone.setViewport(element2, viewport)
+            cornerstone.displayImage(element2, image)
+
+            boxesLoadCount += 1
+            if (boxesLoadCount === boxes.length) {
+              that.setState({
+                pdfLoadingCompleted: true,
+              })
+            }
+          })
+        })
+      }
+    )
+  }
+  onPdfFormValuesChange(changedValues, allValues) {
+    this.setState({
+      pdfFormValues: allValues,
+    })
+  }
+
+  onSetPreviewActive(idx) {
+    const previewVisible = this.state.previewVisible
+    previewVisible[idx] = !previewVisible[idx]
+    this.setState({
+      previewVisible,
+    })
+  }
+
+  onHandleFirstTabChange(activeKey) {
+    if (activeKey === '1') {
+      const sliderMarks = this.state.noduleMarks
+      this.setState({
+        sliderMarks,
+        firstTabActiveIndex: 1,
+      })
+      this.handleLymphClick(-1)
+      this.handleListClick(0)
+      this.onSetWwwcToPulmonary()
+    } else if (activeKey === '2') {
+      const sliderMarks = this.state.lymphMarks
+      this.setState({
+        sliderMarks,
+        firstTabActiveIndex: 2,
+      })
+      this.handleListClick(-1)
+      this.handleLymphClick(0)
+      this.onSetWwwcToMedia()
+    }
+  }
+
+
+  //callback
+
+  // cornerstone callback
+  drawNodules() {
+    this.drawNodulesForRec()
+    this.drawNodulesForBi()
+  }
+  drawNodulesForRec() {
+    const { boxes, imageIds, cornerElement, cornerImage, cornerImageIdIndex, listsActiveIndex } = this.state
+    if (boxes && boxes.length) {
+      boxes.forEach((boxItem, boxIndex) => {
+        if (imageIds[boxItem.slice_idx] === cornerImage.imageId && boxItem.recVisible && boxItem.uuid === undefined) {
+          const measurementData = {
+            visible: true,
+            active: boxIndex === listsActiveIndex,
+            // color: 'rgb(171, 245, 220)',
+            color: undefined,
+            invalidated: true,
+            handles: {
+              start: {
+                x: boxItem.x1,
+                y: boxItem.y1,
+                highlight: false,
+                active: false,
+              },
+              end: {
+                x: boxItem.x2,
+                y: boxItem.y2,
+                highlight: false,
+                active: false,
+              },
+              textBox: {
+                active: false,
+                hasMoved: false,
+                movesIndependently: false,
+                drawnIndependently: true,
+                allowedOutsideImage: true,
+                hasBoundingBox: true,
+              },
+            },
+          }
+          cornerstoneTools.addToolState(cornerElement, 'RectangleRoi', measurementData)
+          const toolData = cornerstoneTools.getToolState(cornerElement, 'RectangleRoi')
+
+          const toolDataIndex = _.findIndex(toolData.data, function (o) {
+            let isEqual = false
+            const oHandles = o.handles
+            if (oHandles) {
+              if (oHandles.start.x === boxItem.x1 && oHandles.start.y === boxItem.y1 && oHandles.end.x === boxItem.x2 && oHandles.end.y === boxItem.y2) {
+                isEqual = true
+              }
+            }
+            return isEqual
+          })
+          if (toolDataIndex !== -1) {
+            boxItem.uuid = toolData.data[toolDataIndex].uuid
+            this.setState(
+              {
+                boxes,
+              },
+              () => {
+                this.checkNodulesDrawingCompleted()
+              }
+            )
+          }
+        }
+      })
+    }
+  }
+  drawNodulesForBi() {
+    const { boxes, imageIds, cornerElement, cornerImage, cornerImageIdIndex, listsActiveIndex } = this.state
+    if (boxes && boxes.length) {
+      boxes.forEach((boxItem, boxIndex) => {
+        if (imageIds[boxItem.slice_idx] === cornerImage.imageId && boxItem.biVisible && boxItem.biuuid === undefined && boxItem.measure) {
+          const measure = boxItem.measure
+          if (
+            _.has(measure, 'x1') &&
+            _.has(measure, 'y1') &&
+            _.has(measure, 'x2') &&
+            _.has(measure, 'y2') &&
+            _.has(measure, 'x3') &&
+            _.has(measure, 'y3') &&
+            _.has(measure, 'x4') &&
+            _.has(measure, 'y4')
+          ) {
+            const getHandle = (x, y, index, extraAttributes = {}) =>
+              Object.assign(
+                {
+                  x,
+                  y,
+                  index,
+                  drawnIndependently: false,
+                  allowedOutsideImage: false,
+                  highlight: false,
+                  active: false,
+                },
+                extraAttributes
+              )
+            const measurementData = {
+              toolName: 'Bidirectional',
+              toolType: 'Bidirectional', // Deprecation notice: toolType will be replaced by toolName
+              isCreating: true,
+              visible: true,
+              // active: boxIndex === listsActiveIndex,
+              active: false,
+              invalidated: true,
+              handles: {
+                start: getHandle(measure.x1, measure.y1, 0),
+                end: getHandle(measure.x2, measure.y2, 1),
+                perpendicularStart: getHandle(measure.x3, measure.y3, 2),
+                perpendicularEnd: getHandle(measure.x4, measure.y4, 3),
+                textBox: getHandle(measure.x1, measure.y1 - 30, null, {
+                  highlight: false,
+                  hasMoved: true,
+                  active: false,
+                  movesIndependently: false,
+                  drawnIndependently: true,
+                  allowedOutsideImage: true,
+                  hasBoundingBox: true,
+                }),
+              },
+              longestDiameter: Math.sqrt(Math.pow(measure.x1 - measure.x2, 2) + Math.pow(measure.y1 - measure.y2, 2)),
+              shortestDiameter: Math.sqrt(Math.pow(measure.x3 - measure.x4, 2) + Math.pow(measure.y3 - measure.y4, 2)),
+            }
+
+            cornerstoneTools.addToolState(cornerElement, 'Bidirectional', measurementData)
+            const toolData = cornerstoneTools.getToolState(cornerElement, 'Bidirectional')
+            console.log('Bidirectional', toolData)
+            const toolDataIndex = _.findIndex(toolData.data, function (o) {
+              let isEqual = false
+              const oHandles = o.handles
+              if (oHandles) {
+                if (
+                  oHandles.start.x === boxItem.measure.x1 &&
+                  oHandles.start.y === boxItem.measure.y1 &&
+                  oHandles.end.x === boxItem.measure.x2 &&
+                  oHandles.end.y === boxItem.measure.y2 &&
+                  oHandles.perpendicularStart.x === boxItem.measure.x3 &&
+                  oHandles.perpendicularStart.y === boxItem.measure.y3 &&
+                  oHandles.perpendicularEnd.x === boxItem.measure.x4 &&
+                  oHandles.perpendicularEnd.y === boxItem.measure.y4
+                ) {
+                  isEqual = true
+                }
+              }
+              return isEqual
+            })
+            if (toolDataIndex !== -1) {
+              boxItem.biuuid = toolData.data[toolDataIndex].uuid
+              this.setState(
+                {
+                  boxes,
+                },
+                () => {
+                  this.checkNodulesDrawingCompleted()
+                }
+              )
+            }
+          }
+        }
+      })
+    }
+  }
+  drawLymphs() {
+    const { lymphs, imageIds, cornerElement, cornerImage, lymphsActiveIndex } = this.state
+    if (lymphs && lymphs.length) {
+      lymphs.forEach((lymphItem, lymphIndex) => {
+        if (imageIds[lymphItem.slice_idx] === cornerImage.imageId && lymphItem.recVisible && lymphItem.uuid === undefined) {
+          const measurementData = {
+            visible: true,
+            active: false,
+            // active: lymphIndex === lymphsActiveIndex,
+            color: lymphDrawingColor,
+            // color: undefined,
+            invalidated: true,
+            handles: {
+              start: {
+                x: lymphItem.lymph.x1,
+                y: lymphItem.lymph.y1,
+                highlight: false,
+                active: false,
+              },
+              end: {
+                x: lymphItem.lymph.x2,
+                y: lymphItem.lymph.y2,
+                highlight: false,
+                active: false,
+              },
+              textBox: {
+                active: false,
+                hasMoved: false,
+                movesIndependently: false,
+                drawnIndependently: true,
+                allowedOutsideImage: true,
+                hasBoundingBox: true,
+              },
+            },
+          }
+          cornerstoneTools.addToolState(cornerElement, 'RectangleRoi', measurementData)
+          const toolData = cornerstoneTools.getToolState(cornerElement, 'RectangleRoi')
+
+          const toolDataIndex = _.findIndex(toolData.data, function (o) {
+            let isEqual = false
+            const oHandles = o.handles
+            if (oHandles) {
+              if (oHandles.start.x === lymphItem.lymph.x1 && oHandles.start.y === lymphItem.lymph.y1 && oHandles.end.x === lymphItem.lymph.x2 && oHandles.end.y === lymphItem.lymph.y2) {
+                isEqual = true
+              }
+            }
+            return isEqual
+          })
+          if (toolDataIndex !== -1) {
+            lymphItem.uuid = toolData.data[toolDataIndex].uuid
+            this.setState(
+              {
+                lymphs,
+              },
+              () => {
+                this.checkLymphsDrawingCompleted()
+              }
+            )
+          }
+        }
+      })
+    }
+  }
+  checkNodulesDrawingCompleted() {
+    const { boxes } = this.state
+    let count = 0
+    let biCount = 0
+    boxes.forEach((boxItem, boxIndex) => {
+      if (boxItem.uuid) {
+        count += 1
+      }
+      if (boxItem.biuuid) {
+        biCount += 1
+      }
+    })
+    this.setState({
+      drawingNodulesCompleted: count === boxes.length && biCount === boxes.length,
+    })
+  }
+  checkLymphsDrawingCompleted() {
+    const { lymphs } = this.state
+    let count = 0
+    lymphs.forEach((lymphItem, lymphIndex) => {
+      if (lymphItem.uuid) {
+        count += 1
+      }
+    })
+    this.setState({
+      drawingLymphsCompleted: count === lymphs.length,
+    })
+  }
+  cornerToolMouseUpCallback(e) {
+    console.log('cornerToolMouseUpCallback', e)
+  }
+  cornerToolMeasurementAdd(e) {
+    // console.log("cornerToolMeasurementAdd", e.detail)
+  }
+  cornerToolMeasurementModify(e) {
+    const { boxes, lymphs, cornerActiveTool, cornerElement } = this.state
+    const measureData = e.detail.measurementData
+    let boxIndex
+    let lymphIndex
+    console.log('cornerToolMeasurementModify', e.detail)
+    switch (e.detail.toolName) {
+      case 'RectangleRoi':
+        boxIndex = _.findIndex(boxes, { uuid: measureData.uuid })
+        if (boxIndex !== -1) {
+          this.modifyExistingBox(boxIndex, measureData)
+        }
+        lymphIndex = _.findIndex(lymphs, { uuid: measureData.uuid })
+        if (lymphIndex !== -1) {
+          this.modifyExistingLymph(lymphIndex, measureData)
+        }
+        break
+      case 'Bidirectional':
+        boxIndex = _.findIndex(boxes, { biuuid: measureData.uuid })
+        if (boxIndex !== -1) {
+          this.modifyExistingBi(boxIndex, measureData)
+        }
+        break
+      case 'Length':
+        break
+      case 'Eraser':
+        break
+      default:
+        break
+    }
+  }
+  cornerToolMeasurementComplete(e) {
+    const { firstTabActiveIndex, boxes, listsActiveIndex, lymphs, lymphsActiveIndex, cornerActiveTool, cornerElement } = this.state
+    const measureData = e.detail.measurementData
+    let boxIndex
+    let lymphIndex
+    console.log('cornerToolMeasurementComplete', e.detail)
+    switch (e.detail.toolName) {
+      case 'RectangleRoi':
+        let stackData = cornerstoneTools.getToolState(cornerElement, 'stack')
+        if (firstTabActiveIndex === 1) {
+          boxIndex = _.findIndex(boxes, { uuid: measureData.uuid })
+          if (boxIndex !== -1) {
+            this.modifyExistingBox(boxIndex, measureData)
+          } else {
+            this.createNewBox(stackData.data[0].currentImageIdIndex, measureData)
+          }
+        } else if (firstTabActiveIndex === 2) {
+          lymphIndex = _.findIndex(lymphs, { uuid: measureData.uuid })
+          if (lymphIndex !== -1) {
+            this.modifyExistingLymph(lymphIndex, measureData)
+          } else {
+            this.createNewLymph(stackData.data[0].currentImageIdIndex, measureData)
+          }
+        }
+
+        break
+      case 'Bidirectional':
+        if (firstTabActiveIndex === 1) {
+          boxIndex = _.findIndex(boxes, { biuuid: measureData.uuid })
+          if (boxIndex !== -1) {
+            this.modifyExistingBi(boxIndex, measureData)
+          } else {
+            if (listsActiveIndex !== -1) {
+              this.createNewBi(listsActiveIndex, measureData)
+            }
+          }
+        } else if (firstTabActiveIndex === 2) {
+        }
+
+        break
+      case 'Length':
+        break
+      case 'Eraser':
+        break
+      default:
+        break
+    }
+  }
+  createNewBox(imageIndex, data) {
+    const { boxes } = this.state
+    let visibleIdx
+    if (boxes && boxes.length) {
+      visibleIdx = _.maxBy(boxes, 'visibleIdx').visibleIdx + 1
+    } else {
+      boxes = []
+      visibleIdx = 0
+    }
+    const newBoxItem = {
+      ...boxProtoType,
+      probability: 1,
+      slice_idx: imageIndex,
+      nodule_hist: this.noduleHist(data.handles.start.x, data.handles.start.y, data.handles.end.x, data.handles.end.y),
+      huMax: data.cachedStats.max,
+      huMean: data.cachedStats.mean,
+      huMin: data.cachedStats.min,
+      Variance: data.cachedStats.variance,
+      volume: data.cachedStats.area * 1e-3,
+      x1: data.handles.start.x,
+      x2: data.handles.end.x,
+      y1: data.handles.start.y,
+      y2: data.handles.end.y,
+      measure: undefined,
+      modified: 1,
+      uuid: data.uuid,
+      prevIdx: '',
+      visibleIdx,
+      visible: true,
+      recVisible: true,
+      biVisible: true,
+      checked: false,
+    }
+    boxes.push(newBoxItem)
+    this.setState({
+      boxes,
+      needRedrawBoxes: true,
+    })
+  }
+  noduleHist(x1, y1, x2, y2) {
+    const { cornerImage } = this.state
+    let pixelArray = []
+    const pixeldata = cornerImage.getPixelData()
+    const intercept = cornerImage.intercept
+    const slope = cornerImage.slope
+
+    for (var i = ~~x1; i <= x2; i++) {
+      for (var j = ~~y1; j <= y2; j++) {
+        pixelArray.push(parseInt(slope) * parseInt(pixeldata[512 * j + i]) + parseInt(intercept))
+      }
+    }
+    pixelArray.sort(this.pixeldataSort)
+    const data = pixelArray
+    var map = {}
+    for (var i = 0; i < data.length; i++) {
+      var key = data[i]
+      if (map[key]) {
+        map[key] += 1
+      } else {
+        map[key] = 1
+      }
+    }
+
+    Object.keys(map).sort(function (a, b) {
+      return map[b] - map[a]
+    })
+    // console.log('map', map)
+
+    var ns = []
+    var bins = []
+    for (var key in map) {
+      bins.push(parseInt(key))
+      // ns.push(map[key])
+    }
+    bins.sort(this.pixeldataSort)
+
+    for (var i = 0; i < bins.length; i++) {
+      ns.push(map[bins[i]])
+    }
+
+    // for(var key in map){
+    //     bins.push(parseInt(key))
+    //     ns.push(map[key])
+    // }
+    var obj = {}
+    obj.bins = bins
+    obj.n = ns
+    return obj
+  }
+  pixeldataSort(x, y) {
+    if (x < y) {
+      return -1
+    } else if (x > y) {
+      return 1
+    } else {
+      return 0
+    }
+  }
+  createNewLymph(imageIndex, data) {
+    const { lymphs } = this.state
+    let visibleIdx
+    if (lymphs && lymphs.length) {
+      visibleIdx = _.maxBy(lymphs, 'visibleIdx').visibleIdx + 1
+    } else {
+      lymphs = []
+      visibleIdx = 0
+    }
+    const newLymphItem = {
+      ...lymphProtoType,
+      name: `淋巴结${visibleIdx + 1}`,
+      slice_idx: imageIndex,
+      // nodule_hist: this.noduleHist(data.handles.start.x, data.handles.start.y, data.handles.end.x, data.handles.end.y),
+      // huMax: data.cachedStats.max,
+      // huMean: data.cachedStats.mean,
+      // huMin: data.cachedStats.min,
+      // Variance: data.cachedStats.variance,
+      volume: data.cachedStats.area * 1e-3,
+      lymph: {
+        slice_idx: imageIndex,
+        x1: data.handles.start.x,
+        x2: data.handles.end.x,
+        y1: data.handles.start.y,
+        y2: data.handles.end.y,
+        probability: 1,
+      },
+      modified: 1,
+      uuid: data.uuid,
+      visibleIdx,
+      recVisible: true,
+    }
+    lymphs.push(newLymphItem)
+    this.setState({
+      lymphs,
+      needRedrawBoxes: true,
+    })
+  }
+  modifyExistingBox(boxIndex, data) {
+    const { boxes } = this.state
+    boxes[boxIndex] = {
+      ...boxes[boxIndex],
+      huMax: data.cachedStats.max,
+      huMean: data.cachedStats.mean,
+      huMin: data.cachedStats.min,
+      Variance: data.cachedStats.variance,
+      volume: data.cachedStats.area * 1e-4,
+      x1: data.handles.start.x,
+      x2: data.handles.end.x,
+      y1: data.handles.start.y,
+      y2: data.handles.end.y,
+    }
+    this.setState({
+      boxes,
+      // needRedrawBoxes: true,
+    })
+  }
+  modifyExistingLymph(lymphIndex, data) {
+    const { lymphs } = this.state
+    lymphs[lymphIndex] = {
+      ...lymphs[lymphIndex],
+      // huMax: data.cachedStats.max,
+      // huMean: data.cachedStats.mean,
+      // huMin: data.cachedStats.min,
+      // Variance: data.cachedStats.variance,
+      lymph: {
+        ...lymphs[lymphIndex].lymph,
+        x1: data.handles.start.x,
+        x2: data.handles.end.x,
+        y1: data.handles.start.y,
+        y2: data.handles.end.y,
+      },
+      volume: data.cachedStats.area * 1e-3,
+    }
+    this.setState({
+      lymphs,
+      // needRedrawBoxes: true,
+    })
+  }
+  createNewBi(boxIndex, data) {
+    const { boxes } = this.state
+    const handles = data.handles
+    boxes[boxIndex].measure = {
+      x1: handles.start.x,
+      x2: handles.end.x,
+      y1: handles.start.y,
+      y2: handles.end.y,
+      x3: handles.perpendicularStart.x,
+      x4: handles.perpendicularEnd.x,
+      y3: handles.perpendicularStart.y,
+      y4: handles.perpendicularEnd.y,
+    }
+    boxes[boxIndex].biuuid = data.uuid
+    this.setState({
+      boxes,
+      needRedrawBoxes: true,
+    })
+  }
+  modifyExistingBi(boxIndex, data) {
+    const { boxes } = this.state
+    const handles = data.handles
+    boxes[boxIndex].measure = {
+      x1: handles.start.x,
+      x2: handles.end.x,
+      y1: handles.start.y,
+      y2: handles.end.y,
+      x3: handles.perpendicularStart.x,
+      x4: handles.perpendicularEnd.x,
+      y3: handles.perpendicularStart.y,
+      y4: handles.perpendicularEnd.y,
+    }
+    this.setState({
+      boxes,
+      // needRedrawBoxes: true,
+      needReloadBoxes: true
+    })
+  }
+  cornerToolMeasurementRemove(e) {
+    console.log('cornerToolMeasurementRemove', e)
+    const { boxes, lymphs, cornerActiveTool, cornerElement } = this.state
+    const measurement = e.detail.measurementData
+    let boxIndex
+    let lymphIndex
+    switch (e.detail.toolName) {
+      case 'RectangleRoi':
+        boxIndex = _.findIndex(boxes, { uuid: measurement.uuid })
+        if (boxIndex !== -1) {
+          this.removeExistingBox(boxIndex)
+        }
+        lymphIndex = _.findIndex(lymphs, { uuid: measurement.uuid })
+        if (lymphIndex !== -1) {
+          this.removeExistingLymph(lymphIndex)
+        }
+        break
+      case 'Bidirectional':
+        boxIndex = _.findIndex(boxes, { biuuid: measurement.uuid })
+        if (boxIndex !== -1) {
+          this.removeExistingBi(boxIndex)
+        }
+        break
+      case 'Length':
+        break
+      case 'Eraser':
+        break
+      default:
+        break
+    }
+  }
+  removeExistingBox(boxIndex) {
+    const { boxes } = this.state
+    boxes[boxIndex].recVisible = false
+    delete boxes[boxIndex].uuid
+    this.setState({
+      boxes,
+      needRedrawBoxes: true,
+      drawingNodulesCompleted: false,
+    })
+  }
+  removeExistingLymph(lymphIndex) {
+    const { lymphs } = this.state
+    lymphs[lymphIndex].recVisible = false
+    delete lymphs[lymphIndex].uuid
+    this.setState({
+      lymphs,
+      needRedrawBoxes: true,
+      drawingLymphsCompleted: false,
+    })
+  }
+  removeExistingBi(boxIndex) {
+    const { boxes } = this.state
+    boxes[boxIndex].biVisible = false
+    delete boxes[boxIndex].biuuid
+    this.setState({
+      boxes,
+      needRedrawBoxes: true,
+      drawingNodulesCompleted: false,
+    })
+  }
+  rectangleRoiMouseMoveCallback(e) {
+    console.log('rectangleRoiMouseMoveCallback', e)
+  }
+  eraserMouseUpCallback(e) {
+    console.log('eraserMouseUpCallback', e)
+  }
+
+  // window callback
+  onKeydown(event) {
+    // if (this.state.show3DVisualization) {
+    //   return
+    // }
+    if (document.getElementById('slice-slider') !== null) document.getElementById('slice-slider').blur()
+    if (event.which == 77) {
+      // m, magnify to immersive mode
+      this.setState({ immersive: true })
+    }
+
+    if (event.which == 27) {
+      // esc, back to normal
+      this.setState({ immersive: false })
+    }
+    if (event.which == 37) {
+      // arrowLeft
+      // console.log('active item',document.activeElement,document.getElementsByClassName("ant-slider-handle")[0])
+      if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
+        event.preventDefault()
+        let newCurrentIdx = this.state.currentIdx - 1
+        if (newCurrentIdx >= 0) {
+        }
+      }
+    }
+    if (event.which == 38) {
+      // arrowUp
+      event.preventDefault()
+      const boxes = this.state.boxes
+      const listsActiveIndex = this.state.listsActiveIndex
+      if (listsActiveIndex === -1) {
+        this.keyDownListSwitch(0)
+      } else {
+        if (listsActiveIndex === 0) {
+          this.keyDownListSwitch(boxes.length - 1)
+        } else {
+          this.keyDownListSwitch(listsActiveIndex - 1)
+        }
+      }
+    }
+    if (event.which == 39) {
+      // arrowRight
+      if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
+        event.preventDefault()
+        let newCurrentIdx = this.state.currentIdx + 1
+        if (newCurrentIdx < this.state.imageIds.length) {
+          // console.log('info',cornerstone.imageCache.getCacheInfo())
+        }
+      }
+    }
+    if (event.which == 40) {
+      // arrowDown
+      event.preventDefault()
+      const boxes = this.state.boxes
+      const listsActiveIndex = this.state.listsActiveIndex
+      // const boxes = this.state.selectBoxes
+      if (listsActiveIndex === -1) {
+        this.keyDownListSwitch(0)
+      } else {
+        if (listsActiveIndex === boxes.length - 1) {
+          this.keyDownListSwitch(0)
+        } else {
+          this.keyDownListSwitch(listsActiveIndex + 1)
+        }
+      }
+    }
+    if (event.which == 72) {
+      this.toHidebox()
+    }
+  }
+  keyDownListSwitch(activeIdx) {
+    // const boxes = this.state.selectBoxes
+    const boxes = this.state.boxes
+    let sliceIdx = boxes[activeIdx].slice_idx
+    // console.log('cur', sliceIdx)
+    this.setState({
+      listsActiveIndex: activeIdx,
+      cornerImageIdIndex: sliceIdx,
+    })
+  }
+  mousedownFunc = (e) => {
+    let path = e.path
+    if (path && path.length > 2) {
+      if (document.getElementById('histogram-header') && document.getElementsByClassName('histogram-float-active') && document.getElementsByClassName('histogram-float-active').length) {
+        if (path[1] === document.getElementById('histogram-header')) {
+          let initX,
+            initY,
+            element_float = document.getElementsByClassName('histogram-float-active')[0],
+            wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
+            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+          const mousemoveFunc = (mousemoveEvent) => {
+            var nowX = mousemoveEvent.clientX,
+              nowY = mousemoveEvent.clientY,
+              disX = nowX - initX,
+              disY = nowY - initY
+            element_float.style.left = wrapLeft + disX + 'px'
+            element_float.style.top = wrapRight + disY + 'px'
+          }
+          const mouseupFunc = (mouseupEvent) => {
+            wrapLeft = parseInt(window.getComputedStyle(element_float)['left'])
+            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
+            window.removeEventListener('mousemove', mousemoveFunc)
+            window.removeEventListener('mouseup', mouseupFunc)
+          }
+          initX = e.clientX
+          initY = e.clientY
+          window.addEventListener('mousemove', mousemoveFunc, false)
+          window.addEventListener('mouseup', mouseupFunc, false)
+        }
+      }
+    }
+  }
+
 
   render() {
     const { curCaseId, preCaseId, followUpActiveTool, followUpIsPlaying } = this.props
@@ -3911,7 +5639,7 @@ class CornerstoneElement extends Component {
             if (inside.visible) {
               return (
                 <div key={idx} className={'highlightTbl' + (listsActiveIndex === idx ? ' highlightTbl-active' : '')}>
-                  <Accordion.Title onClick={this.handleListClick.bind(this, idx, inside.slice_idx)} active={listsActiveIndex === idx}>
+                  <Accordion.Title onClick={this.handleListClick.bind(this, idx)} active={listsActiveIndex === idx}>
                     <div className="nodule-accordion-item-title">
                       <div className="nodule-accordion-item-title-index nodule-accordion-item-title-column">
                         <div style={inside.modified === undefined ? { fontSize: 'large', color: 'whitesmoke' } : { fontSize: 'large', color: '#dbce12' }}>{inside.visibleIdx + 1}</div>
@@ -4309,7 +6037,7 @@ class CornerstoneElement extends Component {
         lymphContent = lymphs.map((item, index) => {
           return (
             <div key={index} className={'highlightTbl' + (lymphsActiveIndex === index ? ' highlightTbl-active' : '')}>
-              <Accordion.Title onClick={this.handleLymphClick.bind(this, item.slice_idx, index)} active={lymphsActiveIndex === index}>
+              <Accordion.Title onClick={this.handleLymphClick.bind(this, index)} active={lymphsActiveIndex === index}>
                 <div className="lymph-accordion-item-title">
                   <div className="lymph-accordion-item-title-start">
                     <div className="lymph-accordion-item-title-index">{item.visibleIdx + 1}</div>
@@ -5299,7 +7027,7 @@ class CornerstoneElement extends Component {
                                           </Popup>
                                         </div>
                                       </div>
-                                      <Accordion styled id="nodule-accordion" fluid onDoubleClick={this.doubleClickListItems.bind(this)}>
+                                      <Accordion styled id="nodule-accordion" fluid>
                                         {tableContent}
                                       </Accordion>
                                     </>
@@ -5587,1761 +7315,6 @@ class CornerstoneElement extends Component {
     }
   }
 
-  handleLymphClick(currentIdx, index) {
-    const { lymphsActiveIndex } = this.state
-
-    const newIndex = lymphsActiveIndex === index ? -1 : index
-    this.setState({
-      lymphsActiveIndex: newIndex,
-      cornerImageIdIndex: currentIdx,
-    })
-  }
-  keyDownListSwitch(activeIdx) {
-    // const boxes = this.state.selectBoxes
-    const boxes = this.state.boxes
-    let sliceIdx = boxes[activeIdx].slice_idx
-    // console.log('cur', sliceIdx)
-    this.setState({
-      listsActiveIndex: activeIdx,
-      cornerImageIdIndex: sliceIdx,
-    })
-  }
-
-  arrayPropSort(prop, factor) {
-    return function (a, b) {
-      let value1 = a[prop]
-      let value2 = b[prop]
-      let result = value1 - value2
-      if (result === 0) {
-        return factor
-      } else {
-        return result * factor
-      }
-    }
-  }
-
-  mousedownFunc = (e) => {
-    let path = e.path
-    if (path && path.length > 2) {
-      if (document.getElementById('histogram-header') && document.getElementsByClassName('histogram-float-active') && document.getElementsByClassName('histogram-float-active').length) {
-        if (path[1] === document.getElementById('histogram-header')) {
-          let initX,
-            initY,
-            element_float = document.getElementsByClassName('histogram-float-active')[0],
-            wrapLeft = parseInt(window.getComputedStyle(element_float)['left']),
-            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
-          const mousemoveFunc = (mousemoveEvent) => {
-            var nowX = mousemoveEvent.clientX,
-              nowY = mousemoveEvent.clientY,
-              disX = nowX - initX,
-              disY = nowY - initY
-            element_float.style.left = wrapLeft + disX + 'px'
-            element_float.style.top = wrapRight + disY + 'px'
-          }
-          const mouseupFunc = (mouseupEvent) => {
-            wrapLeft = parseInt(window.getComputedStyle(element_float)['left'])
-            wrapRight = parseInt(window.getComputedStyle(element_float)['top'])
-            window.removeEventListener('mousemove', mousemoveFunc)
-            window.removeEventListener('mouseup', mouseupFunc)
-          }
-          initX = e.clientX
-          initY = e.clientY
-          window.addEventListener('mousemove', mousemoveFunc, false)
-          window.addEventListener('mouseup', mouseupFunc, false)
-        }
-      }
-    }
-  }
-
-  handleRangeChange(e) {
-    // this.setState({currentIdx: event.target.value - 1, imageId:
-    // this.state.imageIds[event.target.value - 1]})
-    // let style = $("<style>", {type:"text/css"}).appendTo("head");
-    // style.text('#slice-slider::-webkit-slider-runnable-track{background:linear-gradient(90deg,#0033FF 0%,#000033 '+ (event.target.value -1)*100/this.state.imageIds.length+'%)}');
-  }
-  handleRangeAfterChange(e) {}
-  pixeldataSort(x, y) {
-    if (x < y) {
-      return -1
-    } else if (x > y) {
-      return 1
-    } else {
-      return 0
-    }
-  }
-
-  onKeydown(event) {
-    // if (this.state.show3DVisualization) {
-    //   return
-    // }
-    if (document.getElementById('slice-slider') !== null) document.getElementById('slice-slider').blur()
-    if (event.which == 77) {
-      // m, magnify to immersive mode
-      this.setState({ immersive: true })
-    }
-
-    if (event.which == 27) {
-      // esc, back to normal
-      this.setState({ immersive: false })
-    }
-    if (event.which == 37) {
-      // arrowLeft
-      // console.log('active item',document.activeElement,document.getElementsByClassName("ant-slider-handle")[0])
-      if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
-        event.preventDefault()
-        let newCurrentIdx = this.state.currentIdx - 1
-        if (newCurrentIdx >= 0) {
-        }
-      }
-    }
-    if (event.which == 38) {
-      // arrowUp
-      event.preventDefault()
-      const boxes = this.state.boxes
-      const listsActiveIndex = this.state.listsActiveIndex
-      if (listsActiveIndex === -1) {
-        this.keyDownListSwitch(0)
-      } else {
-        if (listsActiveIndex === 0) {
-          this.keyDownListSwitch(boxes.length - 1)
-        } else {
-          this.keyDownListSwitch(listsActiveIndex - 1)
-        }
-      }
-    }
-    if (event.which == 39) {
-      // arrowRight
-      if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
-        event.preventDefault()
-        let newCurrentIdx = this.state.currentIdx + 1
-        if (newCurrentIdx < this.state.imageIds.length) {
-          // console.log('info',cornerstone.imageCache.getCacheInfo())
-        }
-      }
-    }
-    if (event.which == 40) {
-      // arrowDown
-      event.preventDefault()
-      const boxes = this.state.boxes
-      const listsActiveIndex = this.state.listsActiveIndex
-      // const boxes = this.state.selectBoxes
-      if (listsActiveIndex === -1) {
-        this.keyDownListSwitch(0)
-      } else {
-        if (listsActiveIndex === boxes.length - 1) {
-          this.keyDownListSwitch(0)
-        } else {
-          this.keyDownListSwitch(listsActiveIndex + 1)
-        }
-      }
-    }
-    if (event.which == 72) {
-      this.toHidebox()
-    }
-  }
-
-  doubleClickListItems(e) {
-    console.log('doubleclick')
-  }
-
-  // template
-
-  template() {
-    const boxes = this.state.boxes
-    if (!(boxes && boxes.length)) {
-      return
-    }
-
-    const reportImageType = this.state.reportImageType
-    const reportGuideType = this.state.reportGuideType
-    let reportImageText = ''
-    boxes.forEach((item, index) => {
-      if (item.checked && item.visible) {
-        reportImageText += this.templateReportImage(reportImageType, index) + '\n'
-      }
-    })
-    this.setState({
-      reportImageText,
-    })
-    this.templateReportGuide(reportGuideType)
-  }
-  templateReportImage(type, boxIndex) {
-    const places = nodulePlaces
-    const segments = noduleSegments
-    const boxes = this.state.boxes
-    let texts = ''
-
-    if (type === '结节类型') {
-      let place = ''
-      let diameter = ''
-      let texture = ''
-      let representArray = []
-      let represent = ''
-      let malignancy = ''
-      if (boxes[boxIndex]['place'] === 0 || boxes[boxIndex]['place'] === undefined || boxes[boxIndex]['place'] === '') {
-        if (boxes[boxIndex]['segment'] === undefined || boxes[boxIndex]['segment'] === '' || boxes[boxIndex]['segment'] === 'None') {
-          place = '未知位置'
-        } else {
-          place = segments[boxes[boxIndex]['segment']]
-        }
-      } else {
-        if (boxes[boxIndex]['segment'] === undefined || boxes[boxIndex]['segment'] === '' || boxes[boxIndex]['segment'] === 'None') {
-          place = places[boxes[boxIndex]['place']]
-        } else {
-          place = segments[boxes[boxIndex]['segment']]
-        }
-      }
-      let ll = 0
-      let sl = 0
-      if (boxes[boxIndex]['measure'] !== undefined) {
-        ll = Math.sqrt(Math.pow(boxes[boxIndex].measure.x1 - boxes[boxIndex].measure.x2, 2) + Math.pow(boxes[boxIndex].measure.y1 - boxes[boxIndex].measure.y2, 2))
-        sl = Math.sqrt(Math.pow(boxes[boxIndex].measure.x3 - boxes[boxIndex].measure.x4, 2) + Math.pow(boxes[boxIndex].measure.y3 - boxes[boxIndex].measure.y4, 2))
-        if (isNaN(ll)) {
-          ll = 0
-        }
-        if (isNaN(sl)) {
-          sl = 0
-        }
-        if (ll === 0 && sl === 0) {
-          if (boxes[boxIndex]['diameter'] !== undefined && boxes[boxIndex]['diameter'] !== 0) {
-            diameter = '\xa0\xa0' + (boxes[boxIndex]['diameter'] / 10).toFixed(2) + ' 厘米'
-          } else {
-            diameter = '未知'
-          }
-        } else {
-          diameter = '\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0' + '×' + '\xa0' + (sl / 10).toFixed(2) + ' 厘米'
-        }
-      }
-
-      if (boxes[boxIndex]['texture'] === 2) {
-        texture = '实性'
-      } else if (boxes[boxIndex]['texture'] === 3) {
-        texture = '混合磨玻璃'
-      } else {
-        texture = '磨玻璃'
-      }
-      if (boxes[boxIndex]['lobulation'] === 2) {
-        representArray.push('分叶')
-      }
-      if (boxes[boxIndex]['spiculation'] === 2) {
-        representArray.push('毛刺')
-      }
-      if (boxes[boxIndex]['calcification'] === 2) {
-        representArray.push('钙化')
-      }
-      if (boxes[boxIndex]['pin'] === 2) {
-        representArray.push('胸膜凹陷')
-      }
-      if (boxes[boxIndex]['cav'] === 2) {
-        representArray.push('空洞')
-      }
-      if (boxes[boxIndex]['vss'] === 2) {
-        representArray.push('血管集束')
-      }
-      if (boxes[boxIndex]['bea'] === 2) {
-        representArray.push('空泡')
-      }
-      if (boxes[boxIndex]['bro'] === 2) {
-        representArray.push('支气管充气')
-      }
-      for (let index = 0; index < representArray.length; index++) {
-        if (index === 0) {
-          represent = representArray[index]
-        } else {
-          represent = represent + '、' + representArray[index]
-        }
-      }
-      if (boxes[boxIndex]['malignancy'] === 3) {
-        malignancy = '风险较高。'
-      } else if (boxes[boxIndex]['malignancy'] === 2) {
-        malignancy = '风险中等。'
-      } else {
-        malignancy = '风险较低。'
-      }
-      texts =
-        texts +
-        place +
-        ' ( Im ' +
-        (parseInt(boxes[boxIndex]['slice_idx']) + 1) +
-        '/' +
-        this.state.imageIds.length +
-        ') 见' +
-        texture +
-        '结节, 大小为' +
-        diameter +
-        ', 可见' +
-        represent +
-        ', ' +
-        malignancy
-    }
-    return texts
-  }
-  templateReportGuide(dealchoose) {
-    const boxes = this.state.boxes
-    if (dealchoose === '中华共识') {
-      let weight = 0
-
-      for (let i = 0; i < boxes.length; i++) {
-        if (boxes[i]['malignancy'] === 3) {
-          if (boxes[i]['diameter'] > 8) {
-            weight = 20
-            break
-          } else if (boxes[i]['diameter'] > 6 && boxes[i]['diameter'] <= 8) {
-            weight = weight >= 15 ? weight : 15
-          } else if (boxes[i]['diameter'] >= 4 && boxes[i]['diameter'] <= 6) {
-            weight = weight >= 10 ? weight : 10
-          } else {
-            weight = weight >= 5 ? weight : 5
-          }
-        } else {
-          if (boxes[i]['diameter'] > 8) {
-            weight = 20
-            break
-          } else if (boxes[i]['diameter'] > 6 && boxes[i]['diameter'] <= 8) {
-            weight = weight >= 10 ? weight : 10
-          } else if (boxes[i]['diameter'] >= 4 && boxes[i]['diameter'] <= 6) {
-            weight = weight >= 5 ? weight : 5
-          }
-          // else{
-          //     weight=weight>=5?weight:5
-          // }
-        }
-      }
-      switch (weight) {
-        case 20:
-          this.setState({
-            reportGuideText: '根据PET评估结节结果判断手术切除或非手术活检',
-          })
-          break
-        case 15:
-          this.setState({
-            reportGuideText: '3~6、9~12及24个月，如稳定，年度随访',
-          })
-          break
-        case 10:
-          this.setState({
-            reportGuideText: '6~12、18~24个月，如稳定，年度随访',
-          })
-          break
-        case 5:
-          this.setState({ reportGuideText: '12个月，如稳定，年度随访' })
-          break
-        case 0:
-          this.setState({ reportGuideText: '选择性随访' })
-          break
-      }
-    } else if (dealchoose === 'Fleischner') {
-      let weight = 0
-
-      for (let i = 0; i < boxes.length; i++) {
-        if (boxes[i]['texture'] === 2) {
-          if (boxes[i]['diameter'] > 8) {
-            weight = 25
-            break
-          } else if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] <= 8) {
-            weight = weight >= 15 ? weight : 15
-          } else {
-            if (boxes[i]['malignancy'] === 3) {
-              weight = weight >= 5 ? weight : 5
-            }
-            // else{
-            //     weight=weight>=0?weight:0
-            // }
-          }
-        } else if (boxes[i]['texture'] === 3) {
-          if (boxes[i]['diameter'] >= 6) {
-            weight = weight >= 20 ? weight : 20
-          }
-          // else{
-          //     weight=weight>=0?weight:0
-          // }
-        } else {
-          if (boxes[i]['diameter'] >= 6) {
-            weight = weight >= 10 ? weight : 10
-          }
-          // else{
-          //     weight=0
-          // }
-        }
-      }
-      switch (weight) {
-        case 25:
-          this.setState({ reportGuideText: '3个月考虑CT、PET/CT，或组织样本' })
-          break
-        case 20:
-          this.setState({
-            reportGuideText: '3-6月行CT确定稳定性。若未改变，并且实性成分<6mm，应每年行CT至5年',
-          })
-          break
-        case 15:
-          this.setState({
-            reportGuideText: '6-12个月行CT，之后18-24个月考虑CT',
-          })
-          break
-        case 10:
-          this.setState({
-            reportGuideText: '6-12月行CT确定稳定性，之后每2年行CT至5年',
-          })
-          break
-        case 5:
-          this.setState({ reportGuideText: '最好在12个月行CT' })
-          break
-        case 0:
-          this.setState({ reportGuideText: '无常规随访' })
-          break
-      }
-    } else if (dealchoose === 'NCCN') {
-      let weight = 0
-
-      for (let i = 0; i < boxes.length; i++) {
-        if (boxes[i]['texture'] === 2) {
-          if (boxes[i]['diameter'] >= 15) {
-            weight = 15
-            break
-          } else if (boxes[i]['diameter'] >= 7 && boxes[i]['diameter'] < 15) {
-            weight = weight >= 10 ? weight : 10
-          } else if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] < 7) {
-            weight = weight >= 5 ? weight : 5
-          }
-          // else{
-          //     weight=0
-          // }
-        } else if (boxes[i]['texture'] === 3) {
-          if (boxes[i]['diameter'] >= 8) {
-            weight = 15
-            break
-          } else if (boxes[i]['diameter'] >= 7 && boxes[i]['diameter'] < 8) {
-            weight = weight >= 10 ? weight : 10
-          } else if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] < 7) {
-            weight = weight >= 5 ? weight : 5
-          }
-          // else{
-          //     weight=0
-          // }
-        } else {
-          if (boxes[i]['diameter'] >= 20) {
-            weight = weight >= 5 ? weight : 5
-          }
-          // else{
-          //     weight=0
-          // }
-        }
-      }
-      switch (weight) {
-        case 15:
-          this.setState({ reportGuideText: '胸部增强CT和/或PET/CT' })
-          break
-        case 10:
-          this.setState({ reportGuideText: '3个月后复查LDCT或考虑PET/CT' })
-          break
-        case 5:
-          this.setState({ reportGuideText: '6个月后复查LDCT' })
-          break
-        case 0:
-          this.setState({
-            reportGuideText: '每年复查LDCT，直至患者不再是肺癌潜在治疗对象',
-          })
-          break
-      }
-    } else if (dealchoose === 'Lung-RADS') {
-      let weight = 0
-
-      for (let i = 0; i < boxes.length; i++) {
-        if (boxes[i]['malignancy'] === 1 || boxes[i]['malignancy'] === 2) {
-          if (boxes[i]['texture'] === 2) {
-            if (boxes[i]['diameter'] < 6) {
-              weight = weight >= 0 ? weight : 0
-            } else {
-              weight = weight >= 5 ? weight : 5
-            }
-          } else if (boxes[i]['texture'] === 3) {
-            if (boxes[i]['diameter'] < 6) {
-              weight = weight >= 0 ? weight : 0
-            } else {
-              weight = weight >= 5 ? weight : 5
-            }
-          } else {
-            if (boxes[i]['diameter'] < 20) {
-              weight = weight >= 0 ? weight : 0
-            } else {
-              weight = weight >= 5 ? weight : 5
-            }
-          }
-        } else {
-          if (boxes[i]['texture'] === 2) {
-            if (boxes[i]['diameter'] >= 8 && boxes[i]['diameter'] < 15) {
-              weight = weight >= 10 ? weight : 10
-            } else {
-              weight = 15
-              break
-            }
-          } else if (boxes[i]['texture'] === 3) {
-            if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] < 8) {
-              weight = weight >= 10 ? weight : 10
-            } else {
-              weight = 15
-              break
-            }
-          } else {
-            weight = weight >= 5 ? weight : 5
-          }
-        }
-      }
-      switch (weight) {
-        case 15:
-          this.setState({
-            reportGuideText: '胸部CT增强或平扫；根据恶性的概率和并发症，选择性进行PET/CT和/或组织活检；存在≥8mm的实性成分时，需进行PET/CT检查',
-          })
-          break
-        case 10:
-          this.setState({
-            reportGuideText: '3个月低剂量胸部CT筛查；存在≥8mm的实性成分时需PET/CT检查',
-          })
-          break
-        case 5:
-          this.setState({ reportGuideText: '6个月内低剂量胸部CT筛查' })
-          break
-        case 0:
-          this.setState({
-            reportGuideText: '12个月内继续年度低剂量胸部CT筛查',
-          })
-          break
-      }
-    } else if (dealchoose === '亚洲共识') {
-      let weight = 0
-
-      for (let i = 0; i < boxes.length; i++) {
-        if (boxes[i]['texture'] === 2) {
-          if (boxes[i]['diameter'] > 8) {
-            weight = 25
-            break
-          } else if (boxes[i]['diameter'] >= 6 && boxes[i]['diameter'] <= 8) {
-            weight = weight >= 15 ? weight : 15
-          }
-          // else if(this.state.boxes[i]['diameter']>=4 && this.state.boxes[i]['diameter']<6){
-          //     weight=weight>=15?weight:15
-          // }
-          // else{
-          //     if(this.state.boxes[i]['malignancy']===3){
-          //         weight=weight>=5?weight:5
-          //     }
-          //     // else{
-          //     //     weight=weight>=0?weight:0
-          //     // }
-          // }
-        } else if (boxes[i]['texture'] === 1) {
-          if (boxes[i]['diameter'] > 5) {
-            weight = weight >= 5 ? weight : 5
-          }
-          // else{
-          //     weight=weight>=0?weight:0
-          // }
-        } else {
-          if (boxes[i]['diameter'] <= 8) {
-            weight = weight >= 10 ? weight : 10
-          } else {
-            weight = weight >= 15 ? weight : 15
-          }
-        }
-      }
-      switch (weight) {
-        case 25:
-          this.setState({
-            reportGuideText: '应转介多学科团队到中心进行管理。该中心的诊断能力应包括CT/PET扫描、良性疾病检测和活检',
-          })
-          break
-        case 20:
-          this.setState({
-            reportGuideText: '3个月后复查CT，如果检测时认为临床合适，考虑经验性抗菌治疗',
-          })
-          break
-        case 10:
-          this.setState({
-            reportGuideText: '在大约6个月-12个月和18个月-24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测',
-          })
-          break
-        case 15:
-          this.setState({
-            reportGuideText: '在大约3个月、12个月和24个月进行低剂量CT监测，并根据临床判断考虑每年进行低剂量CT监测',
-          })
-          break
-        case 5:
-          this.setState({
-            reportGuideText: '每年进行CT监测，持续3年;然后根据临床判断，考虑每年进行CT监测',
-          })
-          break
-        case 0:
-          this.setState({
-            reportGuideText: '根据临床判断，考虑每年进行CT监测',
-          })
-          break
-      }
-    }
-  }
-  onHandleImageTextareaChange(e) {
-    this.setState({
-      reportImageText: e.target.value,
-    })
-  }
-  onHandleGuideTextareaChange(e) {
-    this.setState({
-      reportGuideText: e.target.value,
-    })
-  }
-
-  onSetReportImageActive() {
-    this.setState((prevState) => ({
-      reportImageActive: !prevState.reportImageActive,
-    }))
-  }
-  onSetReportGuideActive() {
-    this.setState(
-      (prevState) => ({
-        reportGuideActive: !prevState.reportGuideActive,
-      }),
-      () => {
-        this.reportImageTopCalc()
-      }
-    )
-  }
-  onHandleReportGuideTypeChange(e, { name, value }) {
-    this.templateReportGuide(value)
-    this.setState({
-      reportGuideType: value,
-    })
-  }
-  onHandleReportImageTypeChange(e, { name, value }) {
-    this.setState({
-      reportImageType: value,
-    })
-  }
-
-  exportPDF() {
-    const element = document.getElementById('invisiblePDF')
-    const eleHeight = element.clientHeight
-    const opt = {
-      // margin: [1, 1, 1, 1],
-      filename: 'minireport.pdf',
-      // pagebreak: { after: ['.invisiblePDF-nodule-corner-item'] },
-      image: { type: 'jpeg', quality: 1 }, // 导出的图片质量和格式
-      html2canvas: {
-        scale: 1,
-        useCORS: true,
-        width: 1100,
-        height: eleHeight + 10,
-      }, // useCORS很重要，解决文档中图片跨域问题
-      jsPDF: {
-        unit: 'mm',
-        format: [1100, eleHeight + 10],
-        orientation: 'portrait',
-        precision: 25,
-      },
-      //
-    }
-    if (element) {
-      html2pdf().set(opt).from(element).save() // 导出
-    }
-  }
-  handleCopyClick(e) {
-    e.stopPropagation()
-    const reportImageText = this.state.reportImageText
-    if (reportImageText && reportImageText.length > 0) {
-      copy(this.state.reportImageText)
-      message.success('复制成功')
-    } else {
-      message.warn('复制内容为空')
-    }
-  }
-  onMenuPageUp() {
-    const { menuButtonsWidth, menuNowPage, menuTransform } = this.state
-    this.setState({
-      menuNowPage: menuNowPage - 1,
-      menuTransform: menuTransform - menuButtonsWidth,
-    })
-  }
-  onMenuPageDown() {
-    const { menuButtonsWidth, menuNowPage, menuTransform } = this.state
-
-    this.setState({
-      menuNowPage: menuNowPage + 1,
-      menuTransform: menuTransform + menuButtonsWidth,
-    })
-  }
-  setPdfReading(pdfReading) {
-    this.setState({
-      pdfReading,
-    })
-  }
-  showImages(e) {
-    e.stopPropagation()
-    const boxes = this.state.boxes
-    const imageIds = this.state.imageIds
-    const pdfFormValues = _.assign(
-      {
-        patientId: '',
-        name: '',
-        diagDoctor: '',
-        instanceId: '',
-        sex: '',
-        auditDoctor: '',
-        studyDate: '',
-        age: '',
-        reportDate: '',
-      },
-      this.state.pdfFormValues
-    )
-    const pdfContent = (
-      <>
-        <AntdForm labelAlign="right" className="pdf-form" initialValues={pdfFormValues} onValuesChange={this.onPdfFormValuesChange.bind(this)}>
-          <Row>
-            <Col span={8} className="pdf-form-col">
-              <AntdForm.Item name={`patientId`} label={<div className="pdf-form-label">病例号</div>} rules={[{}]}>
-                <Input className="pdf-form-input" placeholder="请输入病例号" />
-              </AntdForm.Item>
-              <AntdForm.Item name={`name`} label={<div className="pdf-form-label">姓名</div>} rules={[{}]}>
-                <Input className="pdf-form-input" placeholder="请输入姓名" />
-              </AntdForm.Item>
-              <AntdForm.Item name={`diagDoctor`} label={<div className="pdf-form-label">诊断医师</div>} rules={[{}]}>
-                <Input className="pdf-form-input" placeholder="请输入诊断医师" />
-              </AntdForm.Item>
-            </Col>
-            <Col span={8} className="pdf-form-col">
-              <AntdForm.Item name={`instanceId`} label={<div className="pdf-form-label">检查号</div>} rules={[{}]}>
-                <Input className="pdf-form-input" placeholder="请输入检查号" />
-              </AntdForm.Item>
-              <AntdForm.Item name={`sex`} label={<div className="pdf-form-label">性别</div>} rules={[{}]}>
-                <Input className="pdf-form-input" placeholder="请输入性别" />
-              </AntdForm.Item>
-              <AntdForm.Item name={`auditDoctor`} label={<div className="pdf-form-label">审核医师</div>} rules={[{}]}>
-                <Input className="pdf-form-input" placeholder="请输入审核医师" />
-              </AntdForm.Item>
-            </Col>
-            <Col span={8} className="pdf-form-col">
-              <AntdForm.Item name={`studyDate`} label={<div className="pdf-form-label">检查日期</div>} rules={[{}]}>
-                <Input className="pdf-form-input" placeholder="请输入检查日期" />
-              </AntdForm.Item>
-              <AntdForm.Item name={`age`} label={<div className="pdf-form-label">年龄</div>} rules={[{}]}>
-                <Input className="pdf-form-input" placeholder="请输入年龄" />
-              </AntdForm.Item>
-              <AntdForm.Item name={`reportDate`} label={<div className="pdf-form-label">报告日期</div>} rules={[{}]}>
-                <Input className="pdf-form-input" placeholder="请输入报告日期" />
-              </AntdForm.Item>
-            </Col>
-          </Row>
-        </AntdForm>
-        <Divider />
-        {/* <div className="corner-report-modal-title">扫描参数</div>
-        <Table celled>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>检查日期</Table.HeaderCell>
-              <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
-              <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
-              <Table.HeaderCell>kV</Table.HeaderCell>
-              <Table.HeaderCell>mA</Table.HeaderCell>
-              <Table.HeaderCell>mAs</Table.HeaderCell>
-              <Table.HeaderCell>厂商</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body></Table.Body>
-        </Table>
-        <div className="corner-report-modal-title">肺部详情</div>
-        <Table celled>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>检查日期</Table.HeaderCell>
-              <Table.HeaderCell>体积</Table.HeaderCell>
-              <Table.HeaderCell>结节总体积</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body></Table.Body>
-        </Table> */}
-        {boxes && boxes.length
-          ? boxes.map((nodule, index) => {
-              let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
-              let visualId = 'visual' + index
-              // console.log('visualId',visualId)
-              const pdfNodulePosition = nodule.place === 0 ? nodulePlaces[nodule.place] : noduleSegments[nodule.segment]
-              const pdfNoduleRepresents = []
-              if (nodule.lobulation === 2) {
-                pdfNoduleRepresents.push('分叶')
-              }
-              if (nodule.spiculation === 2) {
-                pdfNoduleRepresents.push('毛刺')
-              }
-              if (nodule.calcification === 2) {
-                pdfNoduleRepresents.push('钙化')
-              }
-              if (nodule.pin === 2) {
-                pdfNoduleRepresents.push('胸膜凹陷')
-              }
-              if (nodule.cav === 2) {
-                pdfNoduleRepresents.push('空洞')
-              }
-              if (nodule.vss === 2) {
-                pdfNoduleRepresents.push('血管集束')
-              }
-              if (nodule.bea === 2) {
-                pdfNoduleRepresents.push('空泡')
-              }
-              if (nodule.bro === 2) {
-                pdfNoduleRepresents.push('支气管充气')
-              }
-              let pdfNoduleRepresentText = ''
-              pdfNoduleRepresents.forEach((representItem, representIndex) => {
-                if (representIndex !== 0) {
-                  pdfNoduleRepresentText += '/' + representItem
-                } else {
-                  pdfNoduleRepresentText += representItem
-                }
-              })
-              if (!pdfNoduleRepresentText) {
-                pdfNoduleRepresentText = '无'
-              }
-              return (
-                <div key={index}>
-                  <div>&nbsp;</div>
-                  <div className="corner-report-modal-title" id="noduleDivide">
-                    结节 {index + 1}
-                  </div>
-                  <Table celled textAlign="center">
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
-                        <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      <Table.Row>
-                        <Table.Cell>切片号</Table.Cell>
-                        <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>结节位置</Table.Cell>
-                        <Table.Cell>{pdfNodulePosition}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>危险程度</Table.Cell>
-                        <Table.Cell>{magName[nodule.malignancy]}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>性质</Table.Cell>
-                        <Table.Cell>{texName[nodule.texture]}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>表征</Table.Cell>
-                        <Table.Cell>{pdfNoduleRepresentText}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>直径</Table.Cell>
-                        <Table.Cell>{`${(nodule.diameter / 10).toFixed(2)}cm`}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>体积</Table.Cell>
-                        <Table.Cell>{nodule['volume'] === undefined ? null : `${(nodule.volume * 1e3).toFixed(2)}mm³`}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>HU(均值/最大值/最小值)</Table.Cell>
-                        <Table.Cell>{nodule['huMean'] === undefined ? null : Math.round(nodule['huMean']) + ' / ' + nodule['huMax'] + ' / ' + nodule['huMin']}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>结节部分</Table.Cell>
-                        <Table.Cell>
-                          <div
-                            id={nodule_id}
-                            style={{
-                              width: '300px',
-                              height: '250px',
-                              margin: '0 auto',
-                            }}></div>
-                        </Table.Cell>
-                        {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
-                      </Table.Row>
-                    </Table.Body>
-                  </Table>
-                </div>
-              )
-            })
-          : null}{' '}
-      </>
-    )
-
-    this.setState(
-      {
-        pdfContent,
-        pdfFormValues,
-      },
-      () => {
-        boxes.map((nodule, index) => {
-          // console.log('nodules1',nodule)
-          const nodule_id1 = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
-          const element1 = document.getElementById(nodule_id1)
-          let imageId = imageIds[nodule.slice_idx]
-          cornerstone.enable(element1)
-          cornerstone.loadAndCacheImage(imageId).then(function (image) {
-            // console.log('cache')
-            var viewport = cornerstone.getDefaultViewportForImage(element1, image)
-            viewport.voi.windowWidth = 1600
-            viewport.voi.windowCenter = -600
-            viewport.scale = 2
-            // console.log('nodules2',nodule)
-            const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
-            const yCenter = nodule.y1 + (nodule.y2 - nodule.y1) / 2
-            viewport.translation.x = 250 - xCenter
-            viewport.translation.y = 250 - yCenter
-            // console.log('viewport',viewport)
-            cornerstone.setViewport(element1, viewport)
-            cornerstone.displayImage(element1, image)
-
-            // console.log('buttonflag',buttonflag)
-          })
-        })
-      }
-    )
-  }
-  updateForm() {
-    const boxes = this.state.boxes
-    const imageIds = this.state.imageIds
-    const pdfFormValues = this.state.pdfFormValues
-    const reportImageText = this.state.reportImageText
-    const pdfReading = this.state.pdfReading
-    const visibleNodules = boxes.map((item, index) => {
-      const pdfNodulePosition = item.place === 0 ? nodulePlaces[item.place] : noduleSegments[item.segment]
-      const pdfNoduleRepresents = []
-      if (item.lobulation === 2) {
-        pdfNoduleRepresents.push('分叶')
-      }
-      if (item.spiculation === 2) {
-        pdfNoduleRepresents.push('毛刺')
-      }
-      if (item.calcification === 2) {
-        pdfNoduleRepresents.push('钙化')
-      }
-      if (item.pin === 2) {
-        pdfNoduleRepresents.push('胸膜凹陷')
-      }
-      if (item.cav === 2) {
-        pdfNoduleRepresents.push('空洞')
-      }
-      if (item.vss === 2) {
-        pdfNoduleRepresents.push('血管集束')
-      }
-      if (item.bea === 2) {
-        pdfNoduleRepresents.push('空泡')
-      }
-      if (item.bro === 2) {
-        pdfNoduleRepresents.push('支气管充气')
-      }
-      let pdfNoduleRepresentText = ''
-      pdfNoduleRepresents.forEach((representItem, representIndex) => {
-        if (representIndex !== 0) {
-          pdfNoduleRepresentText += '/' + representItem
-        } else {
-          pdfNoduleRepresentText += representItem
-        }
-      })
-      if (!pdfNoduleRepresentText) {
-        pdfNoduleRepresentText = '无'
-      }
-      return (
-        <div className="invisiblePDF-nodule-corner-item" key={index}>
-          <div id={`pdf-nodule-${index}`} className="invisiblePDF-nodule-corner"></div>
-          <div className="invisiblePDF-nodule-info">
-            <div>切片号:{item.slice_idx + 1}</div>
-            <div>位置:{pdfNodulePosition}</div>
-            <div>危险程度:{magName[item.malignancy]}</div>
-            <div>性质:{texName[item.texture]}</div>
-            <div>表征:{pdfNoduleRepresentText}</div>
-            <div>直径:{`${(item.diameter / 10).toFixed(2)}cm`}</div>
-            <div>
-              体积:
-              {item.volume === undefined ? null : `${(item.volume * 1e3).toFixed(2)}mm³`}
-            </div>
-            <div>
-              HU(均值/最大值/最小值):
-              {item.huMean === undefined ? null : Math.round(item.huMean) + ' / ' + item.huMax + ' / ' + item.huMin}
-            </div>
-          </div>
-        </div>
-      )
-    })
-    const invisiblePdfContent = (
-      <div id="invisiblePDF" style={pdfReading ? {} : { display: 'none' }}>
-        <div id="invisiblePDF-container">
-          <div className="invisiblePDF-header">图文报告</div>
-          <div className="invisiblePDF-content">
-            <div className="invisiblePDF-content-top">
-              <div className="invisiblePDF-content-title">胸部CT检查报告单</div>
-              <div className="invisiblePDF-content-description">
-                <div className="invisiblePDF-content-description-info">
-                  <Row wrap={false}>
-                    <Col span={6}>
-                      <div>
-                        <div>姓名：{pdfFormValues.name}</div>
-                        <div>影像号：{pdfFormValues.patientId}</div>
-                      </div>
-                    </Col>
-                    <Col span={6}>
-                      <div>
-                        <div>性别：{pdfFormValues.sex}</div>
-                        <div>送检科室：</div>
-                      </div>
-                    </Col>
-                    <Col span={6}>
-                      <div>
-                        <div>年龄：{pdfFormValues.age}</div>
-                        <div>送检医生：</div>
-                      </div>
-                    </Col>
-                    <Col span={6}>
-                      <div>
-                        <div>检查号：{pdfFormValues.instanceId}</div>
-                        <div>检查日期：{pdfFormValues.studyDate}</div>
-                      </div>
-                    </Col>
-                  </Row>
-                </div>
-                <div className="invisiblePDF-content-description-nodules">
-                  <div className="invisiblePDF-content-description-nodules-title">影像所见</div>
-                  <div className="invisiblePDF-content-description-nodules-list">{visibleNodules}</div>
-                </div>
-                <div className="invisiblePDF-content-description-text">{reportImageText}</div>
-              </div>
-            </div>
-            <div className="invisiblePDF-content-bottom">
-              <div className="invisiblePDF-content-report">
-                <Row wrap={false}>
-                  <Col span={8}>报告日期：</Col>
-                  <Col span={8}>报告医师：</Col>
-                  <Col span={8}>审核医师：</Col>
-                </Row>
-              </div>
-              <div className="invisiblePDF-content-note">注：本筛查报告仅供参考，详情请咨询医师。</div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-    this.setState(
-      {
-        invisiblePdfContent,
-        pdfLoadingCompleted: false,
-      },
-      () => {
-        let boxesLoadCount = 0
-        const that = this
-        boxes.map((nodule, index) => {
-          // console.log('nodules1',nodule)
-          const nodule_id2 = `pdf-nodule-${index}`
-          const element2 = document.getElementById(nodule_id2)
-          let imageId = imageIds[nodule.slice_idx]
-          cornerstone.enable(element2)
-          cornerstone.loadAndCacheImage(imageId).then(function (image) {
-            // console.log('cache')
-            var viewport = cornerstone.getDefaultViewportForImage(element2, image)
-            viewport.voi.windowWidth = 1600
-            viewport.voi.windowCenter = -600
-            viewport.scale = 2
-            // console.log('nodules2',nodule)
-            const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
-            const yCenter = nodule.y1 + (nodule.y2 - nodule.y1) / 2
-            viewport.translation.x = 250 - xCenter
-            viewport.translation.y = 250 - yCenter
-            // console.log('viewport',viewport)
-            cornerstone.setViewport(element2, viewport)
-            cornerstone.displayImage(element2, image)
-
-            boxesLoadCount += 1
-            if (boxesLoadCount === boxes.length) {
-              that.setState({
-                pdfLoadingCompleted: true,
-              })
-            }
-            // console.log('buttonflag',buttonflag)
-          })
-        })
-      }
-    )
-  }
-  onPdfFormValuesChange(changedValues, allValues) {
-    this.setState({
-      pdfFormValues: allValues,
-    })
-  }
-
-  onSetPreviewActive(idx) {
-    const previewVisible = this.state.previewVisible
-    previewVisible[idx] = !previewVisible[idx]
-    this.setState({
-      previewVisible,
-    })
-  }
-
-  onHandleFirstTabChange(activeKey) {
-    if (activeKey === '1') {
-      const sliderMarks = this.state.noduleMarks
-      this.setState({
-        sliderMarks,
-        firstTabActiveIndex: 1,
-      })
-      this.onSetWwwcToPulmonary()
-    } else if (activeKey === '2') {
-      const sliderMarks = this.state.lymphMarks
-      this.setState({
-        sliderMarks,
-        firstTabActiveIndex: 2,
-      })
-      this.onSetWwwcToMedia()
-    }
-  }
-
-  updatePointActor(origin) {
-    if (typeof origin === 'undefined') {
-      origin = this.state.origin
-    }
-
-    const picked = this.transformOriginTo3DPicked(origin)
-    // const picked = []
-    // const {originXBorder, originYBorder, originZBorder} = this.state
-    // const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
-    // picked[0] = xMax - (origin[0] * (xMax - xMin ) / originXBorder)
-    // picked[1] = yMin + (origin[1] * (yMax - yMin) / originYBorder)
-    // picked[2] = zMax - (origin[2] * (zMax - zMin) / originZBorder)
-
-    const sphereSource = vtkSphereSource.newInstance()
-    sphereSource.setRadius(5)
-    sphereSource.setCenter(picked)
-    const mapper = vtkMapper.newInstance({
-      scalarVisibility: false,
-    })
-    mapper.setInputData(sphereSource.getOutputData())
-    const actor = vtkActor.newInstance()
-    actor.setMapper(mapper)
-    actor.getProperty().setColor(1, 0, 0)
-    actor.getProperty().setDiffuse(0.75)
-    actor.getProperty().setAmbient(0.2)
-    actor.getProperty().setSpecular(0)
-    actor.getProperty().setSpecularPower(1)
-
-    this.setState({
-      pointActors: [actor],
-    })
-  }
-  clearPointActor() {
-    this.setState({
-      pointActors: [],
-    })
-  }
-
-  //callback
-  drawNodules() {
-    this.drawNodulesForRec()
-    this.drawNodulesForBi()
-  }
-  drawNodulesForRec() {
-    const { boxes, imageIds, cornerElement, cornerImage, cornerImageIdIndex, listsActiveIndex } = this.state
-    if (boxes && boxes.length) {
-      boxes.forEach((boxItem, boxIndex) => {
-        if (imageIds[boxItem.slice_idx] === cornerImage.imageId && boxItem.recVisible && boxItem.uuid === undefined) {
-          const measurementData = {
-            visible: true,
-            active: boxIndex === listsActiveIndex,
-            // color: 'rgb(171, 245, 220)',
-            color: undefined,
-            invalidated: true,
-            handles: {
-              start: {
-                x: boxItem.x1,
-                y: boxItem.y1,
-                highlight: false,
-                active: false,
-              },
-              end: {
-                x: boxItem.x2,
-                y: boxItem.y2,
-                highlight: false,
-                active: false,
-              },
-              textBox: {
-                active: false,
-                hasMoved: false,
-                movesIndependently: false,
-                drawnIndependently: true,
-                allowedOutsideImage: true,
-                hasBoundingBox: true,
-              },
-            },
-          }
-          cornerstoneTools.addToolState(cornerElement, 'RectangleRoi', measurementData)
-          const toolData = cornerstoneTools.getToolState(cornerElement, 'RectangleRoi')
-
-          const toolDataIndex = _.findIndex(toolData.data, function (o) {
-            let isEqual = false
-            const oHandles = o.handles
-            if (oHandles) {
-              if (oHandles.start.x === boxItem.x1 && oHandles.start.y === boxItem.y1 && oHandles.end.x === boxItem.x2 && oHandles.end.y === boxItem.y2) {
-                isEqual = true
-              }
-            }
-            return isEqual
-          })
-          if (toolDataIndex !== -1) {
-            boxItem.uuid = toolData.data[toolDataIndex].uuid
-            this.setState(
-              {
-                boxes,
-              },
-              () => {
-                this.checkNodulesDrawingCompleted()
-              }
-            )
-          }
-        }
-      })
-    }
-  }
-  drawNodulesForBi() {
-    const { boxes, imageIds, cornerElement, cornerImage, cornerImageIdIndex, listsActiveIndex } = this.state
-    if (boxes && boxes.length) {
-      boxes.forEach((boxItem, boxIndex) => {
-        if (imageIds[boxItem.slice_idx] === cornerImage.imageId && boxItem.biVisible && boxItem.biuuid === undefined && boxItem.measure) {
-          const measure = boxItem.measure
-          if (
-            _.has(measure, 'x1') &&
-            _.has(measure, 'y1') &&
-            _.has(measure, 'x2') &&
-            _.has(measure, 'y2') &&
-            _.has(measure, 'x3') &&
-            _.has(measure, 'y3') &&
-            _.has(measure, 'x4') &&
-            _.has(measure, 'y4')
-          ) {
-            const getHandle = (x, y, index, extraAttributes = {}) =>
-              Object.assign(
-                {
-                  x,
-                  y,
-                  index,
-                  drawnIndependently: false,
-                  allowedOutsideImage: false,
-                  highlight: false,
-                  active: false,
-                },
-                extraAttributes
-              )
-            const measurementData = {
-              toolName: 'Bidirectional',
-              toolType: 'Bidirectional', // Deprecation notice: toolType will be replaced by toolName
-              isCreating: true,
-              visible: true,
-              // active: boxIndex === listsActiveIndex,
-              active: false,
-              invalidated: true,
-              handles: {
-                start: getHandle(measure.x1, measure.y1, 0),
-                end: getHandle(measure.x2, measure.y2, 1),
-                perpendicularStart: getHandle(measure.x3, measure.y3, 2),
-                perpendicularEnd: getHandle(measure.x4, measure.y4, 3),
-                textBox: getHandle(measure.x1, measure.y1 - 30, null, {
-                  highlight: false,
-                  hasMoved: true,
-                  active: false,
-                  movesIndependently: false,
-                  drawnIndependently: true,
-                  allowedOutsideImage: true,
-                  hasBoundingBox: true,
-                }),
-              },
-              longestDiameter: Math.sqrt(Math.pow(measure.x1 - measure.x2, 2) + Math.pow(measure.y1 - measure.y2, 2)),
-              shortestDiameter: Math.sqrt(Math.pow(measure.x3 - measure.x4, 2) + Math.pow(measure.y3 - measure.y4, 2)),
-            }
-
-            cornerstoneTools.addToolState(cornerElement, 'Bidirectional', measurementData)
-            const toolData = cornerstoneTools.getToolState(cornerElement, 'Bidirectional')
-            console.log('Bidirectional', toolData)
-            const toolDataIndex = _.findIndex(toolData.data, function (o) {
-              let isEqual = false
-              const oHandles = o.handles
-              if (oHandles) {
-                if (
-                  oHandles.start.x === boxItem.measure.x1 &&
-                  oHandles.start.y === boxItem.measure.y1 &&
-                  oHandles.end.x === boxItem.measure.x2 &&
-                  oHandles.end.y === boxItem.measure.y2 &&
-                  oHandles.perpendicularStart.x === boxItem.measure.x3 &&
-                  oHandles.perpendicularStart.y === boxItem.measure.y3 &&
-                  oHandles.perpendicularEnd.x === boxItem.measure.x4 &&
-                  oHandles.perpendicularEnd.y === boxItem.measure.y4
-                ) {
-                  isEqual = true
-                }
-              }
-              return isEqual
-            })
-            if (toolDataIndex !== -1) {
-              boxItem.biuuid = toolData.data[toolDataIndex].uuid
-              this.setState(
-                {
-                  boxes,
-                },
-                () => {
-                  this.checkNodulesDrawingCompleted()
-                }
-              )
-            }
-          }
-        }
-      })
-    }
-  }
-  drawLymphs() {
-    const { lymphs, imageIds, cornerElement, cornerImage, lymphsActiveIndex } = this.state
-    if (lymphs && lymphs.length) {
-      lymphs.forEach((lymphItem, lymphIndex) => {
-        if (imageIds[lymphItem.slice_idx] === cornerImage.imageId && lymphItem.recVisible && lymphItem.uuid === undefined) {
-          const measurementData = {
-            visible: true,
-            active: false,
-            // active: lymphIndex === lymphsActiveIndex,
-            color: 'rgb(0, 0, 255)',
-            // color: undefined,
-            invalidated: true,
-            handles: {
-              start: {
-                x: lymphItem.lymph.x1,
-                y: lymphItem.lymph.y1,
-                highlight: false,
-                active: false,
-              },
-              end: {
-                x: lymphItem.lymph.x2,
-                y: lymphItem.lymph.y2,
-                highlight: false,
-                active: false,
-              },
-              textBox: {
-                active: false,
-                hasMoved: false,
-                movesIndependently: false,
-                drawnIndependently: true,
-                allowedOutsideImage: true,
-                hasBoundingBox: true,
-              },
-            },
-          }
-          cornerstoneTools.addToolState(cornerElement, 'RectangleRoi', measurementData)
-          const toolData = cornerstoneTools.getToolState(cornerElement, 'RectangleRoi')
-
-          const toolDataIndex = _.findIndex(toolData.data, function (o) {
-            let isEqual = false
-            const oHandles = o.handles
-            if (oHandles) {
-              if (oHandles.start.x === lymphItem.lymph.x1 && oHandles.start.y === lymphItem.lymph.y1 && oHandles.end.x === lymphItem.lymph.x2 && oHandles.end.y === lymphItem.lymph.y2) {
-                isEqual = true
-              }
-            }
-            return isEqual
-          })
-          if (toolDataIndex !== -1) {
-            lymphItem.uuid = toolData.data[toolDataIndex].uuid
-            this.setState(
-              {
-                lymphs,
-              },
-              () => {
-                this.checkLymphsDrawingCompleted()
-              }
-            )
-          }
-        }
-      })
-    }
-  }
-  checkNodulesDrawingCompleted() {
-    const { boxes } = this.state
-    let count = 0
-    let biCount = 0
-    boxes.forEach((boxItem, boxIndex) => {
-      if (boxItem.uuid) {
-        count += 1
-      }
-      if (boxItem.biuuid) {
-        biCount += 1
-      }
-    })
-    this.setState({
-      drawingNodulesCompleted: count === boxes.length && biCount === boxes.length,
-    })
-  }
-  checkLymphsDrawingCompleted() {
-    const { lymphs } = this.state
-    let count = 0
-    lymphs.forEach((lymphItem, lymphIndex) => {
-      if (lymphItem.uuid) {
-        count += 1
-      }
-    })
-    this.setState({
-      drawingLymphsCompleted: count === lymphs.length,
-    })
-  }
-  cornerToolMouseUpCallback(e) {
-    console.log('cornerToolMouseUpCallback', e)
-  }
-  cornerToolMeasurementAdd(e) {
-    // console.log("cornerToolMeasurementAdd", e.detail)
-  }
-  cornerToolMeasurementModify(e) {
-    const { boxes, lymphs, cornerActiveTool, cornerElement } = this.state
-    const measureData = e.detail.measurementData
-    let boxIndex
-    let lymphIndex
-    console.log('cornerToolMeasurementModify', e.detail)
-    switch (e.detail.toolName) {
-      case 'RectangleRoi':
-        boxIndex = _.findIndex(boxes, { uuid: measureData.uuid })
-        if (boxIndex !== -1) {
-          this.modifyExistingBox(boxIndex, measureData)
-        }
-        lymphIndex = _.findIndex(lymphs, { uuid: measureData.uuid })
-        if (lymphIndex !== -1) {
-          this.modifyExistingLymph(lymphIndex, measureData)
-        }
-        break
-      case 'Bidirectional':
-        boxIndex = _.findIndex(boxes, { biuuid: measureData.uuid })
-        if (boxIndex !== -1) {
-          this.modifyExistingBi(boxIndex, measureData)
-        }
-        break
-      case 'Length':
-        break
-      case 'Eraser':
-        break
-      default:
-        break
-    }
-  }
-  cornerToolMeasurementComplete(e) {
-    const { firstTabActiveIndex, boxes, listsActiveIndex, lymphs, lymphsActiveIndex, cornerActiveTool, cornerElement } = this.state
-    const measureData = e.detail.measurementData
-    let boxIndex
-    let lymphIndex
-    console.log('cornerToolMeasurementComplete', e.detail)
-    switch (e.detail.toolName) {
-      case 'RectangleRoi':
-        let stackData = cornerstoneTools.getToolState(cornerElement, 'stack')
-        if (firstTabActiveIndex === 1) {
-          boxIndex = _.findIndex(boxes, { uuid: measureData.uuid })
-          if (boxIndex !== -1) {
-            this.modifyExistingBox(boxIndex, measureData)
-          } else {
-            this.createNewBox(stackData.data[0].currentImageIdIndex, measureData)
-          }
-        } else if (firstTabActiveIndex === 2) {
-          lymphIndex = _.findIndex(lymphs, { uuid: measureData.uuid })
-          if (lymphIndex !== -1) {
-            this.modifyExistingLymph(lymphIndex, measureData)
-          } else {
-            this.createNewLymph(stackData.data[0].currentImageIdIndex, measureData)
-          }
-        }
-
-        break
-      case 'Bidirectional':
-        if (firstTabActiveIndex === 1) {
-          boxIndex = _.findIndex(boxes, { biuuid: measureData.uuid })
-          if (boxIndex !== -1) {
-            this.modifyExistingBi(boxIndex, measureData)
-          } else {
-            if (listsActiveIndex !== -1) {
-              this.createNewBi(listsActiveIndex, measureData)
-            }
-          }
-        } else if (firstTabActiveIndex === 2) {
-        }
-
-        break
-      case 'Length':
-        break
-      case 'Eraser':
-        break
-      default:
-        break
-    }
-  }
-  createNewBox(imageIndex, data) {
-    const { boxes } = this.state
-    let visibleIdx
-    if (boxes && boxes.length) {
-      visibleIdx = _.maxBy(boxes, 'visibleIdx').visibleIdx + 1
-    } else {
-      boxes = []
-      visibleIdx = 0
-    }
-    const newBoxItem = {
-      ...boxProtoType,
-      probability: 1,
-      slice_idx: imageIndex,
-      nodule_hist: this.noduleHist(data.handles.start.x, data.handles.start.y, data.handles.end.x, data.handles.end.y),
-      huMax: data.cachedStats.max,
-      huMean: data.cachedStats.mean,
-      huMin: data.cachedStats.min,
-      Variance: data.cachedStats.variance,
-      volume: data.cachedStats.area * 1e-3,
-      x1: data.handles.start.x,
-      x2: data.handles.end.x,
-      y1: data.handles.start.y,
-      y2: data.handles.end.y,
-      measure: undefined,
-      modified: 1,
-      uuid: data.uuid,
-      prevIdx: '',
-      visibleIdx,
-      visible: true,
-      recVisible: true,
-      biVisible: true,
-      checked: false,
-    }
-    boxes.push(newBoxItem)
-    this.setState({
-      boxes,
-      needRedrawBoxes: true,
-    })
-  }
-  noduleHist(x1, y1, x2, y2) {
-    const { cornerImage } = this.state
-    let pixelArray = []
-    const pixeldata = cornerImage.getPixelData()
-    const intercept = cornerImage.intercept
-    const slope = cornerImage.slope
-
-    for (var i = ~~x1; i <= x2; i++) {
-      for (var j = ~~y1; j <= y2; j++) {
-        pixelArray.push(parseInt(slope) * parseInt(pixeldata[512 * j + i]) + parseInt(intercept))
-      }
-    }
-    pixelArray.sort(this.pixeldataSort)
-    const data = pixelArray
-    var map = {}
-    for (var i = 0; i < data.length; i++) {
-      var key = data[i]
-      if (map[key]) {
-        map[key] += 1
-      } else {
-        map[key] = 1
-      }
-    }
-
-    Object.keys(map).sort(function (a, b) {
-      return map[b] - map[a]
-    })
-    // console.log('map', map)
-
-    var ns = []
-    var bins = []
-    for (var key in map) {
-      bins.push(parseInt(key))
-      // ns.push(map[key])
-    }
-    bins.sort(this.pixeldataSort)
-
-    for (var i = 0; i < bins.length; i++) {
-      ns.push(map[bins[i]])
-    }
-
-    // for(var key in map){
-    //     bins.push(parseInt(key))
-    //     ns.push(map[key])
-    // }
-    var obj = {}
-    obj.bins = bins
-    obj.n = ns
-    return obj
-  }
-  createNewLymph(imageIndex, data) {
-    const { lymphs } = this.state
-    let visibleIdx
-    if (lymphs && lymphs.length) {
-      visibleIdx = _.maxBy(lymphs, 'visibleIdx').visibleIdx + 1
-    } else {
-      lymphs = []
-      visibleIdx = 0
-    }
-    const newLymphItem = {
-      ...lymphProtoType,
-      name: `淋巴结${visibleIdx + 1}`,
-      slice_idx: imageIndex,
-      // nodule_hist: this.noduleHist(data.handles.start.x, data.handles.start.y, data.handles.end.x, data.handles.end.y),
-      // huMax: data.cachedStats.max,
-      // huMean: data.cachedStats.mean,
-      // huMin: data.cachedStats.min,
-      // Variance: data.cachedStats.variance,
-      volume: data.cachedStats.area * 1e-3,
-      lymph: {
-        slice_idx: imageIndex,
-        x1: data.handles.start.x,
-        x2: data.handles.end.x,
-        y1: data.handles.start.y,
-        y2: data.handles.end.y,
-        probability: 1,
-      },
-      modified: 1,
-      uuid: data.uuid,
-      visibleIdx,
-      recVisible: true,
-    }
-    lymphs.push(newLymphItem)
-    this.setState({
-      lymphs,
-      needRedrawBoxes: true,
-    })
-  }
-  modifyExistingBox(boxIndex, data) {
-    const { boxes } = this.state
-    boxes[boxIndex] = {
-      ...boxes[boxIndex],
-      huMax: data.cachedStats.max,
-      huMean: data.cachedStats.mean,
-      huMin: data.cachedStats.min,
-      Variance: data.cachedStats.variance,
-      volume: data.cachedStats.area * 1e-4,
-      x1: data.handles.start.x,
-      x2: data.handles.end.x,
-      y1: data.handles.start.y,
-      y2: data.handles.end.y,
-    }
-    this.setState({
-      boxes,
-      // needRedrawBoxes: true,
-    })
-  }
-  modifyExistingLymph(lymphIndex, data) {
-    const { lymphs } = this.state
-    lymphs[lymphIndex] = {
-      ...lymphs[lymphIndex],
-      // huMax: data.cachedStats.max,
-      // huMean: data.cachedStats.mean,
-      // huMin: data.cachedStats.min,
-      // Variance: data.cachedStats.variance,
-      lymph: {
-        ...lymphs[lymphIndex].lymph,
-        x1: data.handles.start.x,
-        x2: data.handles.end.x,
-        y1: data.handles.start.y,
-        y2: data.handles.end.y,
-      },
-      volume: data.cachedStats.area * 1e-3,
-    }
-    this.setState({
-      lymphs,
-      // needRedrawBoxes: true,
-    })
-  }
-  createNewBi(boxIndex, data) {
-    const { boxes } = this.state
-    const handles = data.handles
-    boxes[boxIndex].measure = {
-      x1: handles.start.x,
-      x2: handles.end.x,
-      y1: handles.start.y,
-      y2: handles.end.y,
-      x3: handles.perpendicularStart.x,
-      x4: handles.perpendicularEnd.x,
-      y3: handles.perpendicularStart.y,
-      y4: handles.perpendicularEnd.y,
-    }
-    boxes[boxIndex].biuuid = data.uuid
-    this.setState({
-      boxes,
-      needRedrawBoxes: true,
-    })
-  }
-  modifyExistingBi(boxIndex, data) {
-    const { boxes } = this.state
-    const handles = data.handles
-    boxes[boxIndex].measure = {
-      x1: handles.start.x,
-      x2: handles.end.x,
-      y1: handles.start.y,
-      y2: handles.end.y,
-      x3: handles.perpendicularStart.x,
-      x4: handles.perpendicularEnd.x,
-      y3: handles.perpendicularStart.y,
-      y4: handles.perpendicularEnd.y,
-    }
-    this.setState({
-      boxes,
-      needRedrawBoxes: true,
-    })
-  }
-  cornerToolMeasurementRemove(e) {
-    console.log('cornerToolMeasurementRemove', e)
-    const { boxes, lymphs, cornerActiveTool, cornerElement } = this.state
-    const measurement = e.detail.measurementData
-    let boxIndex
-    let lymphIndex
-    switch (e.detail.toolName) {
-      case 'RectangleRoi':
-        boxIndex = _.findIndex(boxes, { uuid: measurement.uuid })
-        if (boxIndex !== -1) {
-          this.removeExistingBox(boxIndex)
-        }
-        lymphIndex = _.findIndex(lymphs, { uuid: measurement.uuid })
-        if (lymphIndex !== -1) {
-          this.removeExistingLymph(lymphIndex)
-        }
-        break
-      case 'Bidirectional':
-        boxIndex = _.findIndex(boxes, { biuuid: measurement.uuid })
-        if (boxIndex !== -1) {
-          this.removeExistingBi(boxIndex)
-        }
-        break
-      case 'Length':
-        break
-      case 'Eraser':
-        break
-      default:
-        break
-    }
-  }
-  removeExistingBox(boxIndex) {
-    const { boxes } = this.state
-    boxes[boxIndex].recVisible = false
-    delete boxes[boxIndex].uuid
-    this.setState({
-      boxes,
-      needRedrawBoxes: true,
-      drawingNodulesCompleted: false,
-    })
-  }
-  removeExistingLymph(lymphIndex) {
-    const { lymphs } = this.state
-    lymphs[lymphIndex].recVisible = false
-    delete lymphs[lymphIndex].uuid
-    this.setState({
-      lymphs,
-      needRedrawBoxes: true,
-      drawingLymphsCompleted: false,
-    })
-  }
-  removeExistingBi(boxIndex) {
-    const { boxes } = this.state
-    boxes[boxIndex].biVisible = false
-    delete boxes[boxIndex].biuuid
-    this.setState({
-      boxes,
-      needRedrawBoxes: true,
-      drawingNodulesCompleted: false,
-    })
-  }
-  rectangleRoiMouseMoveCallback(e) {
-    console.log('rectangleRoiMouseMoveCallback', e)
-  }
-  eraserMouseUpCallback(e) {
-    console.log('eraserMouseUpCallback', e)
-  }
 
   // 3d
   getMPRStyles(selectedNum, viewerWidth, viewerHeight) {
@@ -8317,6 +8290,44 @@ class CornerstoneElement extends Component {
       istyle.modified()
     }
   }
+  updatePointActor(origin) {
+    if (typeof origin === 'undefined') {
+      origin = this.state.origin
+    }
+
+    const picked = this.transformOriginTo3DPicked(origin)
+    // const picked = []
+    // const {originXBorder, originYBorder, originZBorder} = this.state
+    // const {xMax, yMax, zMax, xMin, yMin, zMin} = this.state.segRange
+    // picked[0] = xMax - (origin[0] * (xMax - xMin ) / originXBorder)
+    // picked[1] = yMin + (origin[1] * (yMax - yMin) / originYBorder)
+    // picked[2] = zMax - (origin[2] * (zMax - zMin) / originZBorder)
+
+    const sphereSource = vtkSphereSource.newInstance()
+    sphereSource.setRadius(5)
+    sphereSource.setCenter(picked)
+    const mapper = vtkMapper.newInstance({
+      scalarVisibility: false,
+    })
+    mapper.setInputData(sphereSource.getOutputData())
+    const actor = vtkActor.newInstance()
+    actor.setMapper(mapper)
+    actor.getProperty().setColor(1, 0, 0)
+    actor.getProperty().setDiffuse(0.75)
+    actor.getProperty().setAmbient(0.2)
+    actor.getProperty().setSpecular(0)
+    actor.getProperty().setSpecularPower(1)
+
+    this.setState({
+      pointActors: [actor],
+    })
+  }
+  clearPointActor() {
+    this.setState({
+      pointActors: [],
+    })
+  }
+
   createChannelFragmentVolumes() {
     const fragmentVolumes = []
     const zs = [-284, -280, -278, -274, -270, -266]
