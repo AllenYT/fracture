@@ -3680,7 +3680,7 @@ class FollowUpElement extends Component {
     this.setState({
       reportImageText,
     })
-    console.log('reportImageText', reportImageType, reportImageText)
+    // console.log('reportImageText', reportImageType, reportImageText)
     this.templateReportGuide(reportGuideType)
   }
   templateReportImage(type) {
@@ -3693,7 +3693,7 @@ class FollowUpElement extends Component {
     let reportImageText = []
     boxes.forEach((item, index) => {
       let texts = ''
-      console.log('textsType', type)
+      // console.log('textsType', type)
       if (type === '结节类型') {
         let place = ''
         let diameter = ''
@@ -3784,7 +3784,7 @@ class FollowUpElement extends Component {
         texts =
           texts + place + ' ( Im ' + (parseInt(item['slice_idx']) + 1) + '/' + this.state.curImageIds.length + ') 见' + texture + '结节, 大小为' + diameter + ', 可见' + represent + ', ' + malignancy
       }
-      console.log('nodule_no', item.nodule_no, texts)
+      // console.log('nodule_no', item.nodule_no, texts)
       if (!item.checked) {
         reportImageText.push(<div key={index}>{texts}</div>)
       } else {

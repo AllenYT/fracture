@@ -15,6 +15,7 @@ class CustomOverlay extends PureComponent {
     super(props)
     this.state = {
       imageData: null,
+      caseId: null,
     }
   }
   static propTypes = {
@@ -41,9 +42,16 @@ class CustomOverlay extends PureComponent {
   }
 
   async componentDidMount() {
-    console.log('componentDidMount', this.props)
+    // console.log('componentDidMount', this.props)
+    const { imageId } = this.props
+    if (imageId) {
+      // console.log('componentDidMount', imageId.split('/')[4])
+      this.setState({
+        caseId: imageId.split('/')[4],
+      })
+    }
     const imagePromise = new Promise((resolve, reject) => {
-      cornerstone.loadImage(this.props.imageId).then((image) => {
+      cornerstone.loadImage(imageId).then((image) => {
         resolve(image.data)
       }, reject)
     })
@@ -53,8 +61,8 @@ class CustomOverlay extends PureComponent {
   }
 
   render() {
-    const { imageId, scale, windowWidth, windowCenter } = this.props
-    const { imageData } = this.state
+    const { imageId, scale, windowWidth, windowCenter, curDate, preDate, curCaseId, preCaseId } = this.props
+    const { imageData, caseId } = this.state
 
     if (!imageId) {
       return null
@@ -82,16 +90,16 @@ class CustomOverlay extends PureComponent {
     const MachineName = imageData.string('x00090010')
 
     var imageState = ''
+    // if (!studyDate) {
+    //   studyDate = imageId.split('/')[4].split('_')[1]
+    // }
 
-    if (!studyDate) {
-      studyDate = imageId.split('/')[4].split('_')[1]
-    }
-    // console.log('studyDate', studyDate, this.props.curDate, this.props.preDate)
-    if (this.props.preDate === this.props.curDate) {
+    // console.log('studyDate', studyTime, studyDate, this.props.curDate, this.props.preDate)
+    if (curCaseId === preCaseId) {
       imageState = '相同'
-    } else if (this.props.curDate === studyDate) {
+    } else if (curCaseId === caseId) {
       imageState = '近期'
-    } else if (studyDate === this.props.preDate) {
+    } else if (caseId === preCaseId) {
       imageState = '早期'
     } else {
       imageState = 'Unknown'
@@ -174,7 +182,9 @@ export default connect(
   (state) => {
     return {
       curDate: state.dataCenter.curDate,
+      curCaseId: state.dataCenter.curCaseId,
       preDate: state.dataCenter.preDate,
+      preCaseId: state.dataCenter.preCaseId,
     }
   },
   (dispatch) => {

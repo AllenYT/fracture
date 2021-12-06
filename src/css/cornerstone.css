@@ -1408,6 +1408,12 @@ table#nodule-table {
   margin: 0 auto;
 }
 
+#range-slider .ant-slider-rail {
+  background-image: linear-gradient(to right, #447df1, #46e6fe) !important;
+}
+#range-slider .ant-slider-track {
+  background-image: linear-gradient(to right, #59a2e6, #59a2e6) !important;
+}
 #feature-table {
   border-collapse: collapse;
   margin: 0 auto;
@@ -1457,6 +1463,7 @@ table#nodule-table {
   background-color: rgb(23, 28, 47) !important;
   padding: 20px;
   height: 100%;
+  width: 100%;
 }
 #pdf .description span {
   font-size: 16px;

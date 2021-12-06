@@ -345,6 +345,7 @@ class CornerstoneElement extends Component {
       cornerFrameRate: 30,
       cornerActiveTool: 'StackScroll',
       cornerIsOverlayVisible: true,
+      cornerAnnoVisible: true,
       cornerElement: null,
       cornerViewport: {
         scale: 2,
@@ -690,6 +691,7 @@ class CornerstoneElement extends Component {
     }
 
     let cornerImageIdIndex = 0
+    let listsActiveIndex = -1
     let noduleMarks = {}
     if (nodules && nodules.length) {
       //sort and save previous index
@@ -714,6 +716,7 @@ class CornerstoneElement extends Component {
         nodules.forEach((item, index) => {
           if (item.prevIdx === noduleNo) {
             cornerImageIdIndex = item.slice_idx
+            listsActiveIndex = index
           }
         })
       }
@@ -726,8 +729,11 @@ class CornerstoneElement extends Component {
         noduleMarks,
         sliderMarks: noduleMarks,
         cornerImageIdIndex,
+        listsActiveIndex,
       },
-      () => {}
+      () => {
+        this.template()
+      }
     )
     loadAndCacheImagePlus(imageIds[cornerImageIdIndex], 1).then((image) => {
       const imageData = image.data
@@ -738,8 +744,8 @@ class CornerstoneElement extends Component {
     })
     executeTask()
     this.loadDisplay()
-    const annoImageIds = []
-    const annoRoundImageIds = []
+    let annoImageIds = []
+    let annoRoundImageIds = []
     nodules.forEach((boxItem, boxIndex) => {
       let nowSliceIndex = boxItem.slice_idx
       annoImageIds.push(imageIds[nowSliceIndex])
@@ -749,12 +755,14 @@ class CornerstoneElement extends Component {
         }
       }
     })
+    annoImageIds = _.uniq(annoImageIds)
     const annoPromises = annoImageIds.map((annoImageId) => {
       return loadAndCacheImagePlus(annoImageId, 2)
     })
     Promise.all(annoPromises).then((value) => {
       console.log('annoPromises', value.length)
     })
+    annoRoundImageIds = _.uniq(annoRoundImageIds)
     const annoRoundPromises = annoRoundImageIds.map((annoRoundImageId) => {
       return loadAndCacheImagePlus(annoRoundImageId, 3)
     })
@@ -1129,15 +1137,15 @@ class CornerstoneElement extends Component {
     if (!prevState.patientId && this.state.patientId) {
       this.loadStudyBrowser()
     }
-    if (!prevState.cornerViewport !== this.state.cornerViewport) {
-      const { cornerElement, cornerViewport } = this.state
-      if (cornerElement) {
-        const viewport = cornerstone.getViewport(cornerElement)
-        const newViewport = Object.assign({}, viewport, cornerViewport)
+    // if (!prevState.cornerViewport !== this.state.cornerViewport) {
+    //   const { cornerElement, cornerViewport } = this.state
+    //   if (cornerElement && !this.state.show3DVisualization && !this.state.showFollowUp) {
+    //     const viewport = cornerstone.getViewport(cornerElement)
+    //     const newViewport = Object.assign({}, viewport, cornerViewport)
 
-        cornerstone.setViewport(cornerElement, newViewport)
-      }
-    }
+    //     cornerstone.setViewport(cornerElement, newViewport)
+    //   }
+    // }
 
     // nodules active index modified
     if (this.state.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
@@ -2063,7 +2071,14 @@ class CornerstoneElement extends Component {
     })
   }
   onSetAnnoVisible(visible) {
+    const { boxes } = this.state
+    boxes.forEach((boxItem, boxIndex) => {
+      boxItem.recVisible = visible
+      boxItem.biVisible = visible
+    })
     this.setState({
+      boxes,
+      needRedrawBoxes: true,
       cornerAnnoVisible: visible,
     })
   }
@@ -4075,71 +4090,75 @@ class CornerstoneElement extends Component {
               if (!pdfNoduleRepresentText) {
                 pdfNoduleRepresentText = '无'
               }
-              return (
-                <div key={index}>
-                  <div>&nbsp;</div>
-                  <div className="corner-report-modal-title" id="noduleDivide">
-                    结节 {index + 1}
+              if (nodule.visible && nodule.checked) {
+                return (
+                  <div key={index}>
+                    <div>&nbsp;</div>
+                    <div className="corner-report-modal-title" id="noduleDivide">
+                      结节 {index + 1}
+                    </div>
+                    <Table celled textAlign="center">
+                      <Table.Header>
+                        <Table.Row>
+                          <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
+                          <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
+                        </Table.Row>
+                      </Table.Header>
+                      <Table.Body>
+                        <Table.Row>
+                          <Table.Cell>切片号</Table.Cell>
+                          <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                          <Table.Cell>结节位置</Table.Cell>
+                          <Table.Cell>{pdfNodulePosition}</Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                          <Table.Cell>危险程度</Table.Cell>
+                          <Table.Cell>{magName[nodule.malignancy]}</Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                          <Table.Cell>性质</Table.Cell>
+                          <Table.Cell>{texName[nodule.texture]}</Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                          <Table.Cell>表征</Table.Cell>
+                          <Table.Cell>{pdfNoduleRepresentText}</Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                          <Table.Cell>直径</Table.Cell>
+                          <Table.Cell>{`${(nodule.diameter / 10).toFixed(2)}cm`}</Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                          <Table.Cell>体积</Table.Cell>
+                          <Table.Cell>{nodule['volume'] === undefined ? null : `${(nodule.volume * 1e3).toFixed(2)}mm³`}</Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                          <Table.Cell>HU(均值/最大值/最小值)</Table.Cell>
+                          <Table.Cell>{nodule['huMean'] === undefined ? null : Math.round(nodule['huMean']) + ' / ' + nodule['huMax'] + ' / ' + nodule['huMin']}</Table.Cell>
+                        </Table.Row>
+                        <Table.Row>
+                          <Table.Cell>结节部分</Table.Cell>
+                          <Table.Cell>
+                            <div
+                              id={nodule_id}
+                              style={{
+                                width: '300px',
+                                height: '250px',
+                                margin: '0 auto',
+                              }}></div>
+                          </Table.Cell>
+                          {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
+                        </Table.Row>
+                      </Table.Body>
+                    </Table>
                   </div>
-                  <Table celled textAlign="center">
-                    <Table.Header>
-                      <Table.Row>
-                        <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
-                        <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
-                      </Table.Row>
-                    </Table.Header>
-                    <Table.Body>
-                      <Table.Row>
-                        <Table.Cell>切片号</Table.Cell>
-                        <Table.Cell>{nodule['slice_idx'] + 1}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>结节位置</Table.Cell>
-                        <Table.Cell>{pdfNodulePosition}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>危险程度</Table.Cell>
-                        <Table.Cell>{magName[nodule.malignancy]}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>性质</Table.Cell>
-                        <Table.Cell>{texName[nodule.texture]}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>表征</Table.Cell>
-                        <Table.Cell>{pdfNoduleRepresentText}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>直径</Table.Cell>
-                        <Table.Cell>{`${(nodule.diameter / 10).toFixed(2)}cm`}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>体积</Table.Cell>
-                        <Table.Cell>{nodule['volume'] === undefined ? null : `${(nodule.volume * 1e3).toFixed(2)}mm³`}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>HU(均值/最大值/最小值)</Table.Cell>
-                        <Table.Cell>{nodule['huMean'] === undefined ? null : Math.round(nodule['huMean']) + ' / ' + nodule['huMax'] + ' / ' + nodule['huMin']}</Table.Cell>
-                      </Table.Row>
-                      <Table.Row>
-                        <Table.Cell>结节部分</Table.Cell>
-                        <Table.Cell>
-                          <div
-                            id={nodule_id}
-                            style={{
-                              width: '300px',
-                              height: '250px',
-                              margin: '0 auto',
-                            }}></div>
-                        </Table.Cell>
-                        {/* <Table.Cell><Image id={nodule_id}></Image></Table.Cell> */}
-                      </Table.Row>
-                    </Table.Body>
-                  </Table>
-                </div>
-              )
+                )
+              } else {
+                return null
+              }
             })
-          : null}{' '}
+          : null}
       </>
     )
 
@@ -4151,11 +4170,14 @@ class CornerstoneElement extends Component {
       () => {
         boxes.map((nodule, index) => {
           // console.log('nodules1',nodule)
+          if (!nodule.visible || !nodule.checked) {
+            return
+          }
           const nodule_id1 = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
           const element1 = document.getElementById(nodule_id1)
           let imageId = imageIds[nodule.slice_idx]
           cornerstone.enable(element1)
-          cornerstone.loadAndCacheImage(imageId).then(function (image) {
+          cornerstone.loadAndCacheImage(imageId).then((image)=> {
             // console.log('cache')
             var viewport = cornerstone.getDefaultViewportForImage(element1, image)
             viewport.voi.windowWidth = 1600
@@ -4218,30 +4240,34 @@ class CornerstoneElement extends Component {
       if (!pdfNoduleRepresentText) {
         pdfNoduleRepresentText = '无'
       }
-      return (
-        <div className="invisiblePDF-nodule-corner-item" key={index}>
-          <div id={`pdf-nodule-${index}`} className="invisiblePDF-nodule-corner"></div>
-          <div className="invisiblePDF-nodule-info">
-            <div>切片号:{item.slice_idx + 1}</div>
-            <div>位置:{pdfNodulePosition}</div>
-            <div>危险程度:{magName[item.malignancy]}</div>
-            <div>性质:{texName[item.texture]}</div>
-            <div>表征:{pdfNoduleRepresentText}</div>
-            <div>直径:{`${(item.diameter / 10).toFixed(2)}cm`}</div>
-            <div>
-              体积:
-              {item.volume === undefined ? null : `${(item.volume * 1e3).toFixed(2)}mm³`}
-            </div>
-            <div>
-              HU(均值/最大值/最小值):
-              {item.huMean === undefined ? null : Math.round(item.huMean) + ' / ' + item.huMax + ' / ' + item.huMin}
+      if (item.visible && item.checked) {
+        return (
+          <div className="invisiblePDF-nodule-corner-item" key={index}>
+            <div id={`pdf-nodule-${index}`} className="invisiblePDF-nodule-corner"></div>
+            <div className="invisiblePDF-nodule-info">
+              <div>切片号:{item.slice_idx + 1}</div>
+              <div>位置:{pdfNodulePosition}</div>
+              <div>危险程度:{magName[item.malignancy]}</div>
+              <div>性质:{texName[item.texture]}</div>
+              <div>表征:{pdfNoduleRepresentText}</div>
+              <div>直径:{`${(item.diameter / 10).toFixed(2)}cm`}</div>
+              <div>
+                体积:
+                {item.volume === undefined ? null : `${(item.volume * 1e3).toFixed(2)}mm³`}
+              </div>
+              <div>
+                HU(均值/最大值/最小值):
+                {item.huMean === undefined ? null : Math.round(item.huMean) + ' / ' + item.huMax + ' / ' + item.huMin}
+              </div>
             </div>
           </div>
-        </div>
-      )
+        )
+      } else {
+        return null
+      }
     })
     const invisiblePdfContent = (
-      <div id="invisiblePDF" style={pdfReading ? {} : { display: 'none' }}>
+      <div id="invisiblePDF">
         <div id="invisiblePDF-container">
           <div className="invisiblePDF-header">图文报告</div>
           <div className="invisiblePDF-content">
@@ -4304,14 +4330,22 @@ class CornerstoneElement extends Component {
       },
       () => {
         let boxesLoadCount = 0
-        const that = this
+        let allCount = 0
+        boxes.forEach((nodule, index)=>{
+          if(nodule.visible && nodule.checked){
+            allCount+= 1
+          }
+        })
         boxes.map((nodule, index) => {
+          if (!nodule.visible || !nodule.checked) {
+            return
+          }
           // console.log('nodules1',nodule)
           const nodule_id2 = `pdf-nodule-${index}`
           const element2 = document.getElementById(nodule_id2)
           let imageId = imageIds[nodule.slice_idx]
           cornerstone.enable(element2)
-          cornerstone.loadAndCacheImage(imageId).then(function (image) {
+          cornerstone.loadAndCacheImage(imageId).then((image)=> {
             // console.log('cache')
             var viewport = cornerstone.getDefaultViewportForImage(element2, image)
             viewport.voi.windowWidth = 1600
@@ -4327,8 +4361,8 @@ class CornerstoneElement extends Component {
             cornerstone.displayImage(element2, image)
 
             boxesLoadCount += 1
-            if (boxesLoadCount === boxes.length) {
-              that.setState({
+            if (boxesLoadCount === allCount) {
+              this.setState({
                 pdfLoadingCompleted: true,
               })
             }
@@ -4713,7 +4747,7 @@ class CornerstoneElement extends Component {
     }
   }
   createNewBox(imageIndex, data) {
-    const { boxes } = this.state
+    let boxes = this.state.boxes
     let visibleIdx
     if (boxes && boxes.length) {
       visibleIdx = _.maxBy(boxes, 'visibleIdx').visibleIdx + 1
@@ -4811,7 +4845,7 @@ class CornerstoneElement extends Component {
     }
   }
   createNewLymph(imageIndex, data) {
-    const { lymphs } = this.state
+    let lymphs = this.state.lymphs
     let visibleIdx
     if (lymphs && lymphs.length) {
       visibleIdx = _.maxBy(lymphs, 'visibleIdx').visibleIdx + 1
@@ -6582,7 +6616,11 @@ class CornerstoneElement extends Component {
             <Icon className="func-btn-icon" name="repeat" size="large"></Icon>
             <div className="func-btn-desc">刷新</div>
           </div>
-          <div title="窗宽窗位" onClick={this.onSetCornerActiveTool.bind(this, 'Wwwc')} className={'func-btn'} hidden={show3DVisualization}>
+          <div
+            title="窗宽窗位"
+            onClick={this.onSetCornerActiveTool.bind(this, 'Wwwc')}
+            className={'func-btn' + (!showFollowUp ? (cornerActiveTool === 'Wwwc' ? ' func-btn-active' : '') : followUpActiveTool === 'Wwwc' ? ' func-btn-active' : '')}
+            hidden={show3DVisualization}>
             <Icon className="func-btn-icon icon-custom icon-custom-wwwc" size="large"></Icon>
             <div className="func-btn-desc">
               <Dropdown
@@ -6619,23 +6657,23 @@ class CornerstoneElement extends Component {
           )}
 
           {cornerAnnoVisible ? (
-            <div onClick={this.onSetAnnoVisible.bind(this, false)} className="func-btn" title="隐藏结节" hidden={show3DVisualization}>
+            <div onClick={this.onSetAnnoVisible.bind(this, false)} className="func-btn" title="隐藏结节" hidden={show3DVisualization || showFollowUp}>
               <Icon className="func-btn-icon" id="cache-button" name="eye slash" size="large"></Icon>
               <div className="func-btn-desc">隐藏结节</div>
             </div>
           ) : (
-            <div onClick={this.onSetAnnoVisible.bind(this, true)} className="func-btn" title="显示结节" hidden={show3DVisualization}>
+            <div onClick={this.onSetAnnoVisible.bind(this, true)} className="func-btn" title="显示结节" hidden={show3DVisualization || showFollowUp}>
               <Icon className="func-btn-icon" id="cache-button" name="eye" size="large"></Icon>
               <div className="func-btn-desc">显示结节</div>
             </div>
           )}
           {cornerIsOverlayVisible ? (
-            <div onClick={this.onSetOverlayVisible.bind(this, false)} className="func-btn" title="隐藏信息" hidden={show3DVisualization}>
+            <div onClick={this.onSetOverlayVisible.bind(this, false)} className="func-btn" title="隐藏信息" hidden={show3DVisualization || showFollowUp}>
               <Icon className="func-btn-icon" id="cache-button" name="delete calendar" size="large"></Icon>
               <div className="func-btn-desc">隐藏信息</div>
             </div>
           ) : (
-            <div onClick={this.onSetOverlayVisible.bind(this, true)} className="func-btn" title="显示信息" hidden={show3DVisualization}>
+            <div onClick={this.onSetOverlayVisible.bind(this, true)} className="func-btn" title="显示信息" hidden={show3DVisualization || showFollowUp}>
               <Icon className="func-btn-icon" id="cache-button" name="content" size="large"></Icon>
               <div className="func-btn-desc">显示信息</div>
             </div>
@@ -6883,9 +6921,9 @@ class CornerstoneElement extends Component {
                                       )
                                     }
 
-                                    // const viewport = imageRenderedEvent.detail.viewport
-                                    // const newViewport = Object.assign({}, viewport, cornerViewport)
-                                    // cornerstone.setViewport(cornerElement, newViewport)
+                                    const viewport = imageRenderedEvent.detail.viewport
+                                    const newViewport = Object.assign({}, viewport, this.state.cornerViewport)
+                                    cornerstone.setViewport(cornerElement, newViewport)
                                   })
                                 )
                                 this.subs.cornerMouseUp.sub(
@@ -7317,7 +7355,7 @@ class CornerstoneElement extends Component {
             </Sidebar.Pushable>
           </div>
           {histogramFloatWindow}
-          {invisiblePdfContent}
+          {pdfReading ? invisiblePdfContent: null}
         </div>
       )
       // }
@@ -7576,6 +7614,9 @@ class CornerstoneElement extends Component {
     const threshold = this.state.labelThreshold
     const dimensions = this.state.dimensions
     const labelData = this.state.labelData
+    if (!labelData || !labelData.range) {
+      return
+    }
     const range = labelData.range
     const minX = range.minX - 15
     const maxX = range.maxX + 15
@@ -8838,7 +8879,7 @@ export default connect(
       preCaseId: state.dataCenter.preCaseId,
       followUpActiveTool: state.dataCenter.followUpActiveTool,
       followUpLoadingCompleted: state.dataCenter.followUpLoadingCompleted,
-      followUpIsPlaying: state.dataCenter.isPlayfollowUpisPlayinging,
+      followUpIsPlaying: state.dataCenter.followUpisPlaying,
     }
   },
   (dispatch) => {
