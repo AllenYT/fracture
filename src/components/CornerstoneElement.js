@@ -208,7 +208,6 @@ const noduleSegments = {
   S18: '左肺下叶-后基底段',
 }
 
-
 const { Option } = Select
 const boxProtoType = {
   rect_no: '',
@@ -392,7 +391,6 @@ class CornerstoneElement extends Component {
       pdfReading: false,
       pdfLoadingCompleted: false,
 
-      measureStateList: [],
       toolState: '',
       windowWidth: document.body.clientWidth,
       windowHeight: document.body.clientHeight,
@@ -1131,7 +1129,15 @@ class CornerstoneElement extends Component {
     if (!prevState.patientId && this.state.patientId) {
       this.loadStudyBrowser()
     }
-    // this.saveToDB()
+    if (!prevState.cornerViewport !== this.state.cornerViewport) {
+      const { cornerElement, cornerViewport } = this.state
+      if (cornerElement) {
+        const viewport = cornerstone.getViewport(cornerElement)
+        const newViewport = Object.assign({}, viewport, cornerViewport)
+
+        cornerstone.setViewport(cornerElement, newViewport)
+      }
+    }
 
     // nodules active index modified
     if (this.state.listsActiveIndex !== -1 && prevState.listsActiveIndex !== this.state.listsActiveIndex) {
@@ -1964,10 +1970,15 @@ class CornerstoneElement extends Component {
       this.followUpComponent.reset()
       return
     }
-    cornerViewport.scale = 1
-    this.setState({
-      cornerViewport,
-    })
+    if (document.getElementById('ct-image-block')) {
+      const ctImageBlock = document.getElementById('ct-image-block')
+      const ctImageBlockHeight = ctImageBlock.clientHeight
+      console.log('onResetView', ctImageBlockHeight, ctImageBlockHeight / 512)
+      cornerViewport.scale = ctImageBlockHeight / 512
+      this.setState({
+        cornerViewport,
+      })
+    }
   }
 
   onSetWwwcFlip() {
@@ -2121,7 +2132,7 @@ class CornerstoneElement extends Component {
     axios
       .post(this.config.draft.updateRects, qs.stringify(params), { headers })
       .then((res) => {
-        console.log("updateRects response", res)
+        console.log('updateRects response', res)
         if (res.data.status === 'ok') {
           message.success('已保存当前结果')
           const content = res.data.allDrafts
@@ -2930,16 +2941,15 @@ class CornerstoneElement extends Component {
         this.toggleCrosshairs(true)
       }
     }
-    if(boxes && boxes.length){
+    if (boxes && boxes.length) {
       this.setState({
         listsActiveIndex: newIndex,
       })
-    }else{
+    } else {
       this.setState({
-        listsActiveIndex: -1
+        listsActiveIndex: -1,
       })
     }
-
   }
   onSelectMal(index, value) {
     const boxes = this.state.boxes
@@ -3051,10 +3061,23 @@ class CornerstoneElement extends Component {
     const { boxes } = this.state
     boxes[idx].biVisible = visible
     boxes[idx].recVisible = visible
-    this.setState({
-      boxes,
-      needRedrawBoxes: true,
-    })
+    if (visible) {
+      this.setState(
+        {
+          boxes,
+          needRedrawBoxes: true,
+        },
+        () => {
+          this.drawNodules()
+          this.drawLymphs()
+        }
+      )
+    } else {
+      this.setState({
+        boxes,
+        needRedrawBoxes: true,
+      })
+    }
   }
   clearNoduleMeasure(idx) {
     const { boxes } = this.state
@@ -3064,6 +3087,7 @@ class CornerstoneElement extends Component {
       boxes,
       needRedrawBoxes: true,
     })
+    message.success('成功擦除测量')
   }
   featureAnalysis(idx, e) {
     console.log('特征分析')
@@ -3321,15 +3345,6 @@ class CornerstoneElement extends Component {
     console.log('onHUValueChange', value)
   }
 
-  toHideMeasures(idx, e) {
-    const measureStateList = this.state.measureStateList
-    const measureStat = measureStateList[idx]
-    measureStateList[idx] = !measureStat
-    // measureStateList[idx]
-    this.setState({ measureStateList: measureStateList })
-    console.log('measureStateList', this.state.measureStateList)
-  }
-
   setDelNodule(idx, open) {
     const boxes = this.state.boxes
     boxes[idx].delOpen = open
@@ -3369,17 +3384,17 @@ class CornerstoneElement extends Component {
     }
     message.success('结节删除成功')
   }
-  
+
   handleLymphClick(index) {
     const { lymphs, lymphsActiveIndex } = this.state
 
     const newIndex = lymphsActiveIndex === index ? -1 : index
-    if(lymphs && lymphs.length){
+    if (lymphs && lymphs.length) {
       this.setState({
         lymphsActiveIndex: newIndex,
         // cornerImageIdIndex: currentIdx,
       })
-    }else{
+    } else {
       this.setState({
         lymphsActiveIndex: -1,
       })
@@ -3397,7 +3412,6 @@ class CornerstoneElement extends Component {
       }
     }
   }
-
 
   handleRangeChange(e) {
     // this.setState({currentIdx: event.target.value - 1, imageId:
@@ -4155,7 +4169,6 @@ class CornerstoneElement extends Component {
             // console.log('viewport',viewport)
             cornerstone.setViewport(element1, viewport)
             cornerstone.displayImage(element1, image)
-
           })
         })
       }
@@ -4360,7 +4373,6 @@ class CornerstoneElement extends Component {
     }
   }
 
-
   //callback
 
   // cornerstone callback
@@ -4488,7 +4500,7 @@ class CornerstoneElement extends Component {
 
             cornerstoneTools.addToolState(cornerElement, 'Bidirectional', measurementData)
             const toolData = cornerstoneTools.getToolState(cornerElement, 'Bidirectional')
-            console.log('Bidirectional', toolData)
+            // console.log('Bidirectional', toolData)
             const toolDataIndex = _.findIndex(toolData.data, function (o) {
               let isEqual = false
               const oHandles = o.handles
@@ -4626,7 +4638,7 @@ class CornerstoneElement extends Component {
     const measureData = e.detail.measurementData
     let boxIndex
     let lymphIndex
-    console.log('cornerToolMeasurementModify', e.detail)
+    // console.log('cornerToolMeasurementModify', e.detail)
     switch (e.detail.toolName) {
       case 'RectangleRoi':
         boxIndex = _.findIndex(boxes, { uuid: measureData.uuid })
@@ -4890,6 +4902,7 @@ class CornerstoneElement extends Component {
       y3: handles.perpendicularStart.y,
       y4: handles.perpendicularEnd.y,
     }
+    boxes[boxIndex].biVisible = true
     boxes[boxIndex].biuuid = data.uuid
     this.setState({
       boxes,
@@ -4912,7 +4925,7 @@ class CornerstoneElement extends Component {
     this.setState({
       boxes,
       // needRedrawBoxes: true,
-      needReloadBoxes: true
+      needReloadBoxes: true,
     })
   }
   cornerToolMeasurementRemove(e) {
@@ -4953,7 +4966,7 @@ class CornerstoneElement extends Component {
     this.setState({
       boxes,
       needRedrawBoxes: true,
-      drawingNodulesCompleted: false,
+      // drawingNodulesCompleted: false,
     })
   }
   removeExistingLymph(lymphIndex) {
@@ -4963,7 +4976,7 @@ class CornerstoneElement extends Component {
     this.setState({
       lymphs,
       needRedrawBoxes: true,
-      drawingLymphsCompleted: false,
+      // drawingLymphsCompleted: false,
     })
   }
   removeExistingBi(boxIndex) {
@@ -4973,7 +4986,7 @@ class CornerstoneElement extends Component {
     this.setState({
       boxes,
       needRedrawBoxes: true,
-      drawingNodulesCompleted: false,
+      // drawingNodulesCompleted: false,
     })
   }
   rectangleRoiMouseMoveCallback(e) {
@@ -5096,7 +5109,6 @@ class CornerstoneElement extends Component {
     }
   }
 
-
   render() {
     const { curCaseId, preCaseId, followUpActiveTool, followUpIsPlaying } = this.props
     const {
@@ -5110,7 +5122,6 @@ class CornerstoneElement extends Component {
       windowHeight,
       verticalMode,
       slideSpan,
-      measureStateList,
       dateSeries,
       previewVisible,
       clearUserOpen,
@@ -5600,7 +5611,6 @@ class CornerstoneElement extends Component {
             }
             let diameter = inside.diameter
 
-            let showMeasure = measureStateList[idx]
             if (inside.lobulation === 2) {
               representArray.push('分叶')
             }
@@ -6759,8 +6769,8 @@ class CornerstoneElement extends Component {
                     />
                   </div>
                 ) : (
-                  <div id="ct-container">
-                    <div id="ct-image-block" style={studyListShowed ? { paddingLeft: `${ctImagePadding}px` } : {}}>
+                  <div id="ct-container" className={verticalMode ? 'ct-container-vertical' : 'ct-container-horizontal'}>
+                    <div id="ct-image-block" className={verticalMode ? 'ct-image-block-vertical' : 'ct-image-block-horizontal'} style={studyListShowed ? { paddingLeft: `${ctImagePadding}px` } : {}}>
                       {show3DVisualization ? (
                         <div className="center-viewport-panel" id="segment-container">
                           {renderLoading ? (
@@ -6817,7 +6827,7 @@ class CornerstoneElement extends Component {
                                 {
                                   name: 'RectangleRoi',
                                   mode: 'active',
-                                  mouseButtonMask: 1,
+                                  mouseButtonMask: 10,
                                   props: {
                                     mouseMoveCallback: this.rectangleRoiMouseMoveCallback.bind(this),
                                   },
@@ -6825,18 +6835,18 @@ class CornerstoneElement extends Component {
                                 {
                                   name: 'Bidirectional',
                                   mode: 'active',
-                                  mouseButtonMask: 1,
+                                  mouseButtonMask: 11,
                                 },
                                 {
                                   name: 'Length',
                                   mode: 'active',
-                                  mouseButtonMask: 1,
+                                  mouseButtonMask: 12,
                                 },
                                 //erase
                                 {
                                   name: 'Eraser',
                                   mode: 'active',
-                                  mouseButtonMask: 1,
+                                  mouseButtonMask: 13,
                                   props: {
                                     mouseUpCallback: this.eraserMouseUpCallback.bind(this),
                                   },
@@ -6873,10 +6883,9 @@ class CornerstoneElement extends Component {
                                       )
                                     }
 
-                                    const viewport = imageRenderedEvent.detail.viewport
-                                    const newViewport = Object.assign({}, viewport, cornerViewport)
-
-                                    cornerstone.setViewport(cornerElement, newViewport)
+                                    // const viewport = imageRenderedEvent.detail.viewport
+                                    // const newViewport = Object.assign({}, viewport, cornerViewport)
+                                    // cornerstone.setViewport(cornerElement, newViewport)
                                   })
                                 )
                                 this.subs.cornerMouseUp.sub(
@@ -6931,7 +6940,7 @@ class CornerstoneElement extends Component {
 
                       {/* </div> */}
                     </div>
-                    <div id="ct-info-block">
+                    <div id="ct-info-block" className={verticalMode ? 'ct-info-block-vertical' : 'ct-info-block-horizontal'} style={verticalMode ? { paddingLeft: `${ctImagePadding}px` } : {}}>
                       <div
                         id="nodule-card-container"
                         className={
@@ -7314,7 +7323,6 @@ class CornerstoneElement extends Component {
       // }
     }
   }
-
 
   // 3d
   getMPRStyles(selectedNum, viewerWidth, viewerHeight) {
