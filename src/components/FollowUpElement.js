@@ -1833,8 +1833,8 @@ class FollowUpElement extends Component {
         }
 
         if (newNodule['volume'] !== 0 && previousNodule['volume'] !== 0) {
-          const curDate = this.state.curCaseId.split('_')[1]
-          const preDate = this.state.preCaseId.split('_')[1]
+          const curDate = this.props.curDate
+          const preDate = this.props.preDate
           var curTime = new Date()
           var preTime = new Date()
           curTime.setFullYear(curDate.substring(0, 4), curDate.substring(4, 6), curDate.substring(6, 8))
@@ -4510,6 +4510,8 @@ class FollowUpElement extends Component {
 export default connect(
   (state) => {
     return {
+      curDate: state.dataCenter.curDate,
+      preDate: state.dataCenter.preDate,
       isDragging: state.dataCenter.isDragging,
       followUpIsPlaying: state.dataCenter.followUpisPlaying,
       followUpActiveTool: state.dataCenter.followUpActiveTool,

@@ -4177,7 +4177,7 @@ class CornerstoneElement extends Component {
           const element1 = document.getElementById(nodule_id1)
           let imageId = imageIds[nodule.slice_idx]
           cornerstone.enable(element1)
-          cornerstone.loadAndCacheImage(imageId).then((image)=> {
+          cornerstone.loadAndCacheImage(imageId).then((image) => {
             // console.log('cache')
             var viewport = cornerstone.getDefaultViewportForImage(element1, image)
             viewport.voi.windowWidth = 1600
@@ -4331,43 +4331,50 @@ class CornerstoneElement extends Component {
       () => {
         let boxesLoadCount = 0
         let allCount = 0
-        boxes.forEach((nodule, index)=>{
-          if(nodule.visible && nodule.checked){
-            allCount+= 1
+        boxes.forEach((nodule, index) => {
+          if (nodule.visible && nodule.checked) {
+            allCount += 1
           }
         })
-        boxes.map((nodule, index) => {
-          if (!nodule.visible || !nodule.checked) {
-            return
-          }
-          // console.log('nodules1',nodule)
-          const nodule_id2 = `pdf-nodule-${index}`
-          const element2 = document.getElementById(nodule_id2)
-          let imageId = imageIds[nodule.slice_idx]
-          cornerstone.enable(element2)
-          cornerstone.loadAndCacheImage(imageId).then((image)=> {
-            // console.log('cache')
-            var viewport = cornerstone.getDefaultViewportForImage(element2, image)
-            viewport.voi.windowWidth = 1600
-            viewport.voi.windowCenter = -600
-            viewport.scale = 2
-            // console.log('nodules2',nodule)
-            const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
-            const yCenter = nodule.y1 + (nodule.y2 - nodule.y1) / 2
-            viewport.translation.x = 250 - xCenter
-            viewport.translation.y = 250 - yCenter
-            // console.log('viewport',viewport)
-            cornerstone.setViewport(element2, viewport)
-            cornerstone.displayImage(element2, image)
-
-            boxesLoadCount += 1
-            if (boxesLoadCount === allCount) {
-              this.setState({
-                pdfLoadingCompleted: true,
-              })
-            }
+        if(allCount === 0){
+          message.warn("未选中结节")
+          this.setState({
+            pdfLoadingCompleted: true,
           })
-        })
+        }else{
+          boxes.map((nodule, index) => {
+            if (!nodule.visible || !nodule.checked) {
+              return
+            }
+            // console.log('nodules1',nodule)
+            const nodule_id2 = `pdf-nodule-${index}`
+            const element2 = document.getElementById(nodule_id2)
+            let imageId = imageIds[nodule.slice_idx]
+            cornerstone.enable(element2)
+            cornerstone.loadAndCacheImage(imageId).then((image) => {
+              // console.log('cache')
+              var viewport = cornerstone.getDefaultViewportForImage(element2, image)
+              viewport.voi.windowWidth = 1600
+              viewport.voi.windowCenter = -600
+              viewport.scale = 2
+              // console.log('nodules2',nodule)
+              const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
+              const yCenter = nodule.y1 + (nodule.y2 - nodule.y1) / 2
+              viewport.translation.x = 250 - xCenter
+              viewport.translation.y = 250 - yCenter
+              // console.log('viewport',viewport)
+              cornerstone.setViewport(element2, viewport)
+              cornerstone.displayImage(element2, image)
+  
+              boxesLoadCount += 1
+              if (boxesLoadCount === allCount) {
+                this.setState({
+                  pdfLoadingCompleted: true,
+                })
+              }
+            })
+          })
+        }
       }
     )
   }
@@ -7275,7 +7282,11 @@ class CornerstoneElement extends Component {
                               top: `${reportImageTop}px`,
                               height: `${reportImageHeight}px`,
                             }}>
-                            <Accordion.Title id="report-accordion-image-header" active={reportImageActive} onClick={this.onSetReportImageActive.bind(this)}>
+                            <Accordion.Title
+                              id="report-accordion-image-header"
+                              active={reportImageActive}
+                              // onClick={this.onSetReportImageActive.bind(this)}
+                            >
                               <div className="report-title">
                                 <div className="report-title-desc">
                                   诊断报告
@@ -7355,7 +7366,7 @@ class CornerstoneElement extends Component {
             </Sidebar.Pushable>
           </div>
           {histogramFloatWindow}
-          {pdfReading ? invisiblePdfContent: null}
+          {pdfReading ? invisiblePdfContent : null}
         </div>
       )
       // }
