@@ -322,7 +322,7 @@ const lymphProtoType = {
   name: '淋巴结1',
   uuid: '44beb47c-b328-416d-920a-3953bf93840f',
 }
-const lymphDrawingColor = 'rgb(255,255,255)'
+const lymphDrawingColor = 'rgb(0, 255, 255)'
 
 class CornerstoneElement extends Component {
   constructor(props) {
@@ -1216,6 +1216,7 @@ class CornerstoneElement extends Component {
     }
   }
   redrawCorner() {
+    console.log('redrawCorner')
     this.redrawForToolName('RectangleRoi')
     this.redrawForToolName('Bidirectional')
   }
@@ -2190,6 +2191,7 @@ class CornerstoneElement extends Component {
         console.log('err: ' + err)
       })
   }
+
   getBackendNodules() {
     const boxes = this.state.boxes
     let backendNodules = []
@@ -2197,6 +2199,8 @@ class CornerstoneElement extends Component {
       // const currentIdx = boxes[i].prevIdx
       const currentIdx = i
       backendNodules[currentIdx] = _.assign({}, boxes[i])
+      delete backendNodules[currentIdx].uuid
+      delete backendNodules[currentIdx].biuuid
       delete backendNodules[currentIdx].prevIdx
       delete backendNodules[currentIdx].delOpen
       delete backendNodules[currentIdx].visible
@@ -4336,12 +4340,12 @@ class CornerstoneElement extends Component {
             allCount += 1
           }
         })
-        if(allCount === 0){
-          message.warn("未选中结节")
+        if (allCount === 0) {
+          message.warn('未选中结节')
           this.setState({
             pdfLoadingCompleted: true,
           })
-        }else{
+        } else {
           boxes.map((nodule, index) => {
             if (!nodule.visible || !nodule.checked) {
               return
@@ -4365,7 +4369,7 @@ class CornerstoneElement extends Component {
               // console.log('viewport',viewport)
               cornerstone.setViewport(element2, viewport)
               cornerstone.displayImage(element2, image)
-  
+
               boxesLoadCount += 1
               if (boxesLoadCount === allCount) {
                 this.setState({
@@ -4418,6 +4422,7 @@ class CornerstoneElement extends Component {
 
   // cornerstone callback
   drawNodules() {
+    console.log('drawNodules')
     this.drawNodulesForRec()
     this.drawNodulesForBi()
   }

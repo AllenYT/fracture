@@ -1408,10 +1408,12 @@ table#nodule-table {
   margin: 0 auto;
 }
 
-#range-slider .ant-slider-rail {
+#range-slider .ant-slider-rail,
+#followup-histogram-float .ant-slider-rail {
   background-image: linear-gradient(to right, #447df1, #46e6fe) !important;
 }
-#range-slider .ant-slider-track {
+#range-slider .ant-slider-track,
+#followup-histogram-float .ant-slider-track {
   background-image: linear-gradient(to right, #59a2e6, #59a2e6) !important;
 }
 #feature-table {

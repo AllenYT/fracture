@@ -62,7 +62,7 @@ class CustomOverlay extends PureComponent {
 
   render() {
     const { imageId, scale, windowWidth, windowCenter, curDate, preDate, curCaseId, preCaseId } = this.props
-    const { imageData, caseId } = this.state
+    const { imageData } = this.state
 
     if (!imageId) {
       return null
@@ -95,6 +95,11 @@ class CustomOverlay extends PureComponent {
     // }
 
     // console.log('studyDate', studyTime, studyDate, this.props.curDate, this.props.preDate)
+    let caseId
+    if (imageId) {
+      caseId = imageId.split('/')[4]
+    }
+
     if (curCaseId === preCaseId) {
       imageState = '相同'
     } else if (curCaseId === caseId) {

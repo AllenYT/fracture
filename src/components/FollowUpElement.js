@@ -1950,7 +1950,7 @@ class FollowUpElement extends Component {
                 <Col span={3} className="register-nodule-card-content-first">
                   <p className="VDTText">
                     {'VDT : '}
-                    <span className={VDT > 400 ? 'VDTText-highlight' : ''}>{VDT}</span>
+                    <span className={VDT > 0 && VDT < 400 ? 'VDTText-highlight' : ''}>{VDT}</span>
                   </p>
                 </Col>
                 <Col span={3} className="register-nodule-card-content-first">
@@ -2556,7 +2556,7 @@ class FollowUpElement extends Component {
     // if (activeMatchNewNoduleNo !== -1 && activeMatchPreNoduleNo !== -1) {
 
     featureModal = (
-      <div className="followup-histogram-float">
+      <div className="followup-histogram-float" id="followup-histogram-float">
         <div id="followup-histogram-header">
           <div id="followup-title-1">
             <p>随访病灶特征分析</p>
