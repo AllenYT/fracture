@@ -305,7 +305,7 @@
   height: 60%;
 }
 .nodule-card-container-vertical {
-  width: 30%;
+  width: 450px;
   height: 100%;
   margin-left: 0px;
 }
@@ -807,7 +807,7 @@
 }
 .report-tab-container-vertical {
   margin-left: 5px;
-  width: 70%;
+  width: calc(100% - 455px);
   height: 100%;
 }
 #report .title {

@@ -89,6 +89,7 @@ let playTimer = undefined
 let flipTimer = undefined
 let leftSlideTimer = undefined
 let closeFollowUpInterval = undefined
+let loadedImageNumber = 0 
 
 const dictList = {
   lung: {
@@ -360,7 +361,8 @@ class CornerstoneElement extends Component {
           y: 0,
         },
       },
-      studyListShowed: false,
+      loadedImagePercent: 0,
+      studyListShowed: true,
       showFollowUp: false,
       show3DVisualization: false,
       showMPR: false,
@@ -757,14 +759,18 @@ class CornerstoneElement extends Component {
     })
     annoImageIds = _.uniq(annoImageIds)
     const annoPromises = annoImageIds.map((annoImageId) => {
-      return loadAndCacheImagePlus(annoImageId, 2)
+      return loadAndCacheImagePlus(annoImageId, 2).then((image)=>{
+        this.calcLoadedImagePercent(imageIds.length)
+      })
     })
     Promise.all(annoPromises).then((value) => {
       console.log('annoPromises', value.length)
     })
     annoRoundImageIds = _.uniq(annoRoundImageIds)
     const annoRoundPromises = annoRoundImageIds.map((annoRoundImageId) => {
-      return loadAndCacheImagePlus(annoRoundImageId, 3)
+      return loadAndCacheImagePlus(annoRoundImageId, 3).then((image)=>{
+        this.calcLoadedImagePercent(imageIds.length)
+      })
     })
     Promise.all(annoRoundPromises).then((value) => {
       console.log('annoRoundPromises', value.length)
@@ -808,7 +814,9 @@ class CornerstoneElement extends Component {
 
     const allPromises = imageIds.map((imageId) => {
       // console.log(imageId)
-      return loadAndCacheImagePlus(imageId, 3)
+      return loadAndCacheImagePlus(imageId, 3).then((image)=>{
+        this.calcLoadedImagePercent(imageIds.length)
+      })
     })
     await Promise.all(allPromises).then((value) => {
       console.log('allPromises', value.length)
@@ -1213,6 +1221,15 @@ class CornerstoneElement extends Component {
           needRedrawBoxes: false,
         })
       }
+    }
+  }
+  calcLoadedImagePercent(length){
+    loadedImageNumber = loadedImageNumber + 1
+    console.log("calcLoadedImagePercent", loadedImageNumber)
+    if(loadedImageNumber % 20 === 0 || loadedImageNumber === length){
+      this.setState({
+        loadedImagePercent: (loadedImageNumber / length).toFixed(2) * 100
+      })
     }
   }
   redrawCorner() {
@@ -5181,6 +5198,7 @@ class CornerstoneElement extends Component {
       cornerIsOverlayVisible,
       cornerViewport,
       cornerAnnoVisible,
+      loadedImagePercent,
       drawingNodulesCompleted,
       drawingLymphsCompleted,
 
@@ -6394,6 +6412,7 @@ class CornerstoneElement extends Component {
                 isReady={true}
                 isSelected={this.state.caseId === serie.caseId}
                 href={serie.href}
+                loadedImagePercent={loadedImagePercent}
               />
               // <div className={'preview-item' + (this.state.caseId === serie.caseId ? ' preview-item-selected' : '')} onClick={(e) => this.handleClickScreen(e, serie.href, validStatus)} key={keyId}>
               //   <div className="preview-item-canvas" id={previewId}></div>

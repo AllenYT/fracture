@@ -1,6 +1,8 @@
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { DragSource } from 'react-dnd'
+import { Progress } from 'antd'
+
 import '../initCornerstone.js'
 import cornerstone from 'cornerstone-core'
 import cornerstoneTools from 'cornerstone-tools'
@@ -73,11 +75,33 @@ class PreviewElement extends Component {
   onHandleClickPreview(href) {
     window.location.href = href
   }
+  componentDidUpdate(prevProps){
+    if(prevProps.loadedImagePercent !== this.props.loadedImagePercent){
+      console.log("prevProps", this.props.loadedImagePercent)
+    }
+  }
   render() {
-    const { connectDragSource, caseId, statusIcon, description, isSelected, href } = this.props
+    const { connectDragSource, caseId, statusIcon, description, isSelected, href, loadedImagePercent } = this.props
     return connectDragSource(
       <div className={'preview-item' + (isSelected ? ' preview-item-selected' : '')}>
         <div className="preview-item-canvas" id={'preview-' + caseId} onClick={this.onHandleClickPreview.bind(this, href)}></div>
+        <div className="preview-item-process">
+          <Progress
+            percent={loadedImagePercent}
+            strokeColor={{
+              from: '#108ee9',
+              to: '#87d068',
+            }}
+            // success={{
+            //   percent: loadedImagePercent + 20,
+            //   strokeColor: {
+            //     from: '#108ee9',
+            //     to: '#87d068',
+            //   },
+            // }}
+            showInfo={false}
+          />
+        </div>
         <div className="preview-item-info">
           <div className="preview-item-info-icon">{statusIcon}</div>
           <div className="preview-item-info-desc">{description}</div>
