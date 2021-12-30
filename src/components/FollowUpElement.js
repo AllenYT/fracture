@@ -243,7 +243,10 @@ class FollowUpElement extends Component {
     this.props.setFollowUpLoadingCompleted(false)
     const curInfo = this.props.curInfo
     if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
-      const curImagePromise = curInfo.curImageIds.map((curImageId) => cornerstone.loadAndCacheImage(curImageId))
+
+      const curImagePromise = curInfo.curImageIds.map((curImageId, curImageIndex) => cornerstone.loadAndCacheImage(curImageId).then(image=>{
+        // this.props.calcLoadedImagePercent(curInfo.curCaseId, curImageIndex)
+      }))
       Promise.all(curImagePromise).then(() => {
         this.setState({ curImageIdsLoadingCompleted: true })
         console.log('followup curImages loading completed')
@@ -261,7 +264,10 @@ class FollowUpElement extends Component {
     }
     const preInfo = this.props.preInfo
     if (preInfo.preImageIds && preInfo.preCaseId && preInfo.preBoxes) {
-      const preImagePromise = preInfo.preImageIds.map((preImageId) => cornerstone.loadAndCacheImage(preImageId))
+
+      const preImagePromise = preInfo.preImageIds.map((preImageId, preImageIndex) => cornerstone.loadAndCacheImage(preImageId).then(image=>{
+        // this.props.calcLoadedImagePercent(preInfo.preCaseId, preImageIndex)
+      }))
       Promise.all(preImagePromise).then(() => {
         this.setState({ preImageIdsLoadingCompleted: true })
         console.log('followup preImages loading completed')
@@ -276,6 +282,7 @@ class FollowUpElement extends Component {
           this.changeImageIndex('pre')
         }
       )
+
     }
 
     this.resizeScreen()
@@ -436,7 +443,9 @@ class FollowUpElement extends Component {
         const targets = document.getElementsByClassName('viewport-element')
         cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
         cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
-        const curImagePromise = curInfo.curImageIds.map((curImageId) => cornerstone.loadAndCacheImage(curImageId))
+        const curImagePromise = curInfo.curImageIds.map((curImageId, curImageIndex) => cornerstone.loadAndCacheImage(curImageId).then(image=>{
+          // this.props.calcLoadedImagePercent(curInfo.curCaseId, curImageIndex)
+        }))
         Promise.all(curImagePromise).then(() => {
           this.setState({ curImageIdsLoadingCompleted: true })
           console.log('followup curImages loading completed')
@@ -463,7 +472,9 @@ class FollowUpElement extends Component {
         const targets = document.getElementsByClassName('viewport-element')
         cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
         cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
-        const preImagePromise = preInfo.preImageIds.map((preImageId) => cornerstone.loadAndCacheImage(preImageId))
+        const preImagePromise = preInfo.preImageIds.map((preImageId, preImageIndex) => cornerstone.loadAndCacheImage(preImageId).then(image=>{
+          // this.props.calcLoadedImagePercent(preInfo.preCaseId, preImageIndex)
+        }))
         Promise.all(preImagePromise).then(() => {
           this.setState({ preImageIdsLoadingCompleted: true })
           console.log('followup preImages loading completed')

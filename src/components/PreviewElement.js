@@ -75,9 +75,9 @@ class PreviewElement extends Component {
   onHandleClickPreview(href) {
     window.location.href = href
   }
-  componentDidUpdate(prevProps){
-    if(prevProps.loadedImagePercent !== this.props.loadedImagePercent){
-      console.log("prevProps", this.props.loadedImagePercent)
+  componentDidUpdate(prevProps) {
+    if (prevProps.loadedImagePercent !== this.props.loadedImagePercent) {
+      // console.log("prevProps", this.props.loadedImagePercent)
     }
   }
   render() {
@@ -86,21 +86,23 @@ class PreviewElement extends Component {
       <div className={'preview-item' + (isSelected ? ' preview-item-selected' : '')}>
         <div className="preview-item-canvas" id={'preview-' + caseId} onClick={this.onHandleClickPreview.bind(this, href)}></div>
         <div className="preview-item-process">
-          <Progress
-            percent={loadedImagePercent}
-            strokeColor={{
-              from: '#108ee9',
-              to: '#87d068',
-            }}
-            // success={{
-            //   percent: loadedImagePercent + 20,
-            //   strokeColor: {
-            //     from: '#108ee9',
-            //     to: '#87d068',
-            //   },
-            // }}
-            showInfo={false}
-          />
+          {loadedImagePercent === 0 || loadedImagePercent >= 100 ? null : (
+            <Progress
+              percent={loadedImagePercent}
+              strokeColor={{
+                from: '#108ee9',
+                to: '#87d068',
+              }}
+              // success={{
+              //   percent: loadedImagePercent + 20,
+              //   strokeColor: {
+              //     from: '#108ee9',
+              //     to: '#87d068',
+              //   },
+              // }}
+              showInfo={false}
+            />
+          )}
         </div>
         <div className="preview-item-info">
           <div className="preview-item-info-icon">{statusIcon}</div>

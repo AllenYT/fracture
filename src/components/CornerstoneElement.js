@@ -89,7 +89,7 @@ let playTimer = undefined
 let flipTimer = undefined
 let leftSlideTimer = undefined
 let closeFollowUpInterval = undefined
-let loadedImageNumber = 0 
+const loadedImageNumberMap = {}
 
 const dictList = {
   lung: {
@@ -362,7 +362,7 @@ class CornerstoneElement extends Component {
         },
       },
       loadedImagePercent: 0,
-      studyListShowed: true,
+      studyListShowed: false,
       showFollowUp: false,
       show3DVisualization: false,
       showMPR: false,
@@ -758,18 +758,18 @@ class CornerstoneElement extends Component {
       }
     })
     annoImageIds = _.uniq(annoImageIds)
-    const annoPromises = annoImageIds.map((annoImageId) => {
-      return loadAndCacheImagePlus(annoImageId, 2).then((image)=>{
-        this.calcLoadedImagePercent(imageIds.length)
+    const annoPromises = annoImageIds.map((annoImageId, annoImageIndex) => {
+      return loadAndCacheImagePlus(annoImageId, 2).then((image) => {
+        this.calcLoadedImagePercent(this.state.caseId, annoImageIndex)
       })
     })
     Promise.all(annoPromises).then((value) => {
       console.log('annoPromises', value.length)
     })
     annoRoundImageIds = _.uniq(annoRoundImageIds)
-    const annoRoundPromises = annoRoundImageIds.map((annoRoundImageId) => {
-      return loadAndCacheImagePlus(annoRoundImageId, 3).then((image)=>{
-        this.calcLoadedImagePercent(imageIds.length)
+    const annoRoundPromises = annoRoundImageIds.map((annoRoundImageId, annoRoundImageIndex) => {
+      return loadAndCacheImagePlus(annoRoundImageId, 3).then((image) => {
+        this.calcLoadedImagePercent(this.state.caseId, annoRoundImageIndex)
       })
     })
     Promise.all(annoRoundPromises).then((value) => {
@@ -812,10 +812,10 @@ class CornerstoneElement extends Component {
         }
       })
 
-    const allPromises = imageIds.map((imageId) => {
+    const allPromises = imageIds.map((imageId, imageIndex) => {
       // console.log(imageId)
-      return loadAndCacheImagePlus(imageId, 3).then((image)=>{
-        this.calcLoadedImagePercent(imageIds.length)
+      return loadAndCacheImagePlus(imageId, 3).then((image) => {
+        this.calcLoadedImagePercent(this.state.caseId, imageIndex)
       })
     })
     await Promise.all(allPromises).then((value) => {
@@ -1223,14 +1223,37 @@ class CornerstoneElement extends Component {
       }
     }
   }
-  calcLoadedImagePercent(length){
-    loadedImageNumber = loadedImageNumber + 1
-    console.log("calcLoadedImagePercent", loadedImageNumber)
-    if(loadedImageNumber % 20 === 0 || loadedImageNumber === length){
-      this.setState({
-        loadedImagePercent: (loadedImageNumber / length).toFixed(2) * 100
-      })
+  calcLoadedImagePercent(caseId, imageIndex) {
+    if (loadedImageNumberMap[caseId] === undefined) {
+      loadedImageNumberMap[caseId] = {}
+    } 
+    loadedImageNumberMap[caseId][imageIndex] = 1
+    const nowValue = Object.keys(loadedImageNumberMap[caseId]).length
+    // console.log("calcLoadedImagePercent",imageIndex, nowValue, caseId)
+
+    const { dateSeries } = this.state
+    for (let i = 0; i < dateSeries.length; i++) {
+      const dateSerie = dateSeries[i]
+      const dateIndex = _.findIndex(dateSerie, { caseId })
+      if (dateIndex !== -1) {
+        dateSerie[dateIndex].loadedNumber = nowValue
+        // if(dateSeries[dateIndex].loadedNumber % 20 === 0 || dateSeries[dateIndex].loadedNumber === dateSeries[dateIndex].imageLength){
+        //   dateSeries[dateIndex].progressPercent =  (dateSeries[dateIndex].loadedNumber / dateSeries[dateIndex].imageLength).toFixed(2) * 100
+        // }
+        if(dateSerie[dateIndex].loadedNumber % 20 === 0 || dateSeries[dateIndex].loadedNumber === dateSeries[dateIndex].imageLength){
+          this.setState({
+            dateSeries,
+          })
+        }
+      }
     }
+    // loadedImageNumber = loadedImageNumber + 1
+    // console.log("calcLoadedImagePercent", loadedImageNumber)
+    // if(loadedImageNumber % 20 === 0 || loadedImageNumber === length){
+    //   this.setState({
+    //     loadedImagePercent: (loadedImageNumber / length).toFixed(2) * 100
+    //   })
+    // }
   }
   redrawCorner() {
     console.log('redrawCorner')
@@ -1392,7 +1415,9 @@ class CornerstoneElement extends Component {
                 Description: serie.description,
                 href: '/case/' + serie.caseId.replace('#', '%23') + '/' + annotype.data,
                 image: dicom.data[parseInt(dicom.data.length / 3)],
+                imageLength: dicom.data.length,
                 validInfo: dataValidRes.data,
+                loadedNumber: 0,
               })
               if (count === total) {
                 console.log('theList', theList)
@@ -6401,6 +6426,7 @@ class CornerstoneElement extends Component {
             }
             let previewId = 'preview-' + serie.caseId
             let keyId = 'key-' + index + '-' + serieIndex
+            let loadedImagePercent = serie.loadedNumber && serie.imageLength ? (serie.loadedNumber / serie.imageLength).toFixed(2) * 100 : 0
             return (
               <PreviewElement
                 key={keyId}
@@ -6832,6 +6858,7 @@ class CornerstoneElement extends Component {
                       curCaseId={curCaseId}
                       preCaseId={preCaseId}
                       username={username}
+                      calcLoadedImagePercent={this.calcLoadedImagePercent.bind(this)}
                       onRef={(input) => {
                         this.followUpComponent = input
                       }}
