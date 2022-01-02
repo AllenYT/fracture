@@ -237,9 +237,6 @@ class FollowUpDisplayElement extends Component {
       }
     }
   }
-  calcLoadedImagePercent(caseId, imageIndex){
-    this.props.calcLoadedImagePercent(caseId, imageIndex)
-  }
   render() {
     const { curInfo, preInfo, registerBoxes, show } = this.state
     if (show) {
@@ -249,7 +246,6 @@ class FollowUpDisplayElement extends Component {
           preInfo={preInfo}
           registerBoxes={registerBoxes}
           username={this.props.username}
-          calcLoadedImagePercent={this.calcLoadedImagePercent.bind(this)}
           onRef={(input) => {
             this.props.onRef(input)
           }}

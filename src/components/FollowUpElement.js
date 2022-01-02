@@ -14,7 +14,7 @@ import PropTypes from 'prop-types'
 import { helpers } from '../vtk/helpers/index.js'
 import copy from 'copy-to-clipboard'
 import { connect } from 'react-redux'
-import { getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpActiveTool, setFollowUpLoadingCompleted } from '../actions'
+import { getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpActiveTool, setFollowUpLoadingCompleted, updateLoadedImageNumber } from '../actions'
 import { DropTarget } from 'react-dnd'
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -41,6 +41,9 @@ import src1 from '../images/scu-logo.jpg'
 import FollowUpViewport from './FollowUpViewport'
 import '../vtk/ViewportOverlay/ViewportOverlay.css'
 import * as echarts from 'echarts/lib/echarts'
+
+import { loadAndCacheImagePlus } from '../lib/cornerstoneImageRequest'
+import { executeTask } from '../lib/taskHelper'
 
 const { Title, Text } = Typography
 const { TextArea } = Input
@@ -241,37 +244,47 @@ class FollowUpElement extends Component {
     console.log('followup props', this.props)
     this.props.setFollowUpActiveTool('StackScroll')
     this.props.setFollowUpLoadingCompleted(false)
-    const curInfo = this.props.curInfo
-    if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
-
-      const curImagePromise = curInfo.curImageIds.map((curImageId, curImageIndex) => cornerstone.loadAndCacheImage(curImageId).then(image=>{
-        // this.props.calcLoadedImagePercent(curInfo.curCaseId, curImageIndex)
-      }))
-      Promise.all(curImagePromise).then(() => {
-        this.setState({ curImageIdsLoadingCompleted: true })
-        console.log('followup curImages loading completed')
-      })
-      this.setState(
-        {
-          curImageIds: curInfo.curImageIds,
-          curCaseId: curInfo.curCaseId,
-          curBoxes: curInfo.curBoxes,
-        },
-        () => {
-          this.changeImageIndex('cur')
-        }
-      )
-    }
+    this.setState({ curImageIdsLoadingCompleted: true })
+    // const curInfo = this.props.curInfo
+    // if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
+    //   const curImagePromise = curInfo.curImageIds.map((curImageId, curImageIndex) =>
+    //     cornerstone.loadAndCacheImage(curImageId).then((image) => {
+    //       // this.props.calcLoadedImagePercent(curInfo.curCaseId, curImageIndex)
+    //       this.props.updateLoadedImageNumber(curImageIndex, curInfo.curCaseId)
+    //     })
+    //   )
+    //   Promise.all(curImagePromise).then(() => {
+    //     console.log('followup curImages loading completed')
+    //   })
+    //   this.setState(
+    //     {
+    //       curImageIds: curInfo.curImageIds,
+    //       curCaseId: curInfo.curCaseId,
+    //       curBoxes: curInfo.curBoxes,
+    //     },
+    //     () => {
+    //       this.changeImageIndex('cur')
+    //     }
+    //   )
+    // }
     const preInfo = this.props.preInfo
+    const loadedImages = this.props.loadedImages
     if (preInfo.preImageIds && preInfo.preCaseId && preInfo.preBoxes) {
-
-      const preImagePromise = preInfo.preImageIds.map((preImageId, preImageIndex) => cornerstone.loadAndCacheImage(preImageId).then(image=>{
-        // this.props.calcLoadedImagePercent(preInfo.preCaseId, preImageIndex)
-      }))
-      Promise.all(preImagePromise).then(() => {
+      if (_.has(loadedImages, preInfo.preCaseId)) {
         this.setState({ preImageIdsLoadingCompleted: true })
-        console.log('followup preImages loading completed')
-      })
+        console.log('followup preImages have loaded')
+      } else {
+        const preImagePromise = preInfo.preImageIds.map((preImageId, preImageIndex) =>
+          loadAndCacheImagePlus(preImageId, 5).then((image) => {
+            this.props.updateLoadedImageNumber(preImageIndex, preInfo.preCaseId)
+          })
+        )
+        Promise.all(preImagePromise).then(() => {
+          this.setState({ preImageIdsLoadingCompleted: true })
+          console.log('followup preImages loading completed')
+        })
+      }
+
       this.setState(
         {
           preImageIds: preInfo.preImageIds,
@@ -282,7 +295,6 @@ class FollowUpElement extends Component {
           this.changeImageIndex('pre')
         }
       )
-
     }
 
     this.resizeScreen()
@@ -296,11 +308,14 @@ class FollowUpElement extends Component {
     // document.getElementById('header').style.display = 'none'
   }
   componentWillUnmount() {
-    const targets = document.getElementsByClassName('viewport-element')
-    cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
-    cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
-    console.log('componentWillUnmount', cornerstoneTools.getToolState(targets[0], 'RectangleRoi'))
-    console.log('componentWillUnmount', cornerstoneTools.getToolState(targets[1], 'RectangleRoi'))
+    const { newCornerstoneElement, preCornerstoneElement } = this.state
+    cornerstoneTools.clearToolState(newCornerstoneElement, 'RectangleRoi')
+    cornerstoneTools.clearToolState(preCornerstoneElement, 'RectangleRoi')
+    cornerstoneTools.clearToolState(newCornerstoneElement, 'Bidirectional')
+    cornerstoneTools.clearToolState(preCornerstoneElement, 'Bidirectional')
+    cornerstoneTools.clearToolState(newCornerstoneElement, 'Length')
+    cornerstoneTools.clearToolState(preCornerstoneElement, 'Length')
+
     window.removeEventListener('resize', this.resizeScreen.bind(this))
     window.removeEventListener('mousedown', this.mousedownFunc.bind(this))
     //阻止异步操作
@@ -435,6 +450,7 @@ class FollowUpElement extends Component {
     }
     if (prevProps.curInfo !== this.props.curInfo) {
       const curInfo = this.props.curInfo
+      const loadedImages = this.props.loadedImages
       if (curInfo.curImageIds && curInfo.curCaseId && curInfo.curBoxes) {
         this.props.setFollowUpLoadingCompleted(false)
         this.setState({
@@ -443,13 +459,21 @@ class FollowUpElement extends Component {
         const targets = document.getElementsByClassName('viewport-element')
         cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
         cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
-        const curImagePromise = curInfo.curImageIds.map((curImageId, curImageIndex) => cornerstone.loadAndCacheImage(curImageId).then(image=>{
-          // this.props.calcLoadedImagePercent(curInfo.curCaseId, curImageIndex)
-        }))
-        Promise.all(curImagePromise).then(() => {
+        if (_.has(loadedImages, curInfo.curCaseId)) {
           this.setState({ curImageIdsLoadingCompleted: true })
-          console.log('followup curImages loading completed')
-        })
+          console.log('followup curImages have loaded')
+        } else {
+          const curImagePromise = curInfo.curImageIds.map((curImageId, curImageIndex) =>
+            loadAndCacheImagePlus(curImageId, 6).then((image) => {
+              this.props.updateLoadedImageNumber(curImageIndex, curInfo.curCaseId)
+            })
+          )
+          Promise.all(curImagePromise).then(() => {
+            this.setState({ curImageIdsLoadingCompleted: true })
+            console.log('followup curImages loading completed')
+          })
+        }
+
         this.setState(
           {
             curImageIds: curInfo.curImageIds,
@@ -464,6 +488,7 @@ class FollowUpElement extends Component {
     }
     if (prevProps.preInfo !== this.props.preInfo) {
       const preInfo = this.props.preInfo
+      const loadedImages = this.props.loadedImages
       if (preInfo.preImageIds && preInfo.preCaseId && preInfo.preBoxes) {
         this.props.setFollowUpLoadingCompleted(false)
         this.setState({
@@ -472,13 +497,21 @@ class FollowUpElement extends Component {
         const targets = document.getElementsByClassName('viewport-element')
         cornerstoneTools.clearToolState(targets[0], 'RectangleRoi')
         cornerstoneTools.clearToolState(targets[1], 'RectangleRoi')
-        const preImagePromise = preInfo.preImageIds.map((preImageId, preImageIndex) => cornerstone.loadAndCacheImage(preImageId).then(image=>{
-          // this.props.calcLoadedImagePercent(preInfo.preCaseId, preImageIndex)
-        }))
-        Promise.all(preImagePromise).then(() => {
+        if (_.has(loadedImages, preInfo.preCaseId)) {
           this.setState({ preImageIdsLoadingCompleted: true })
-          console.log('followup preImages loading completed')
-        })
+          console.log('followup preImages have loaded')
+        } else {
+          const preImagePromise = preInfo.preImageIds.map((preImageId, preImageIndex) =>
+            loadAndCacheImagePlus(preImageId, 6).then((image) => {
+              this.props.updateLoadedImageNumber(preImageIndex, preInfo.preCaseId)
+            })
+          )
+          Promise.all(preImagePromise).then(() => {
+            this.setState({ preImageIdsLoadingCompleted: true })
+            console.log('followup preImages loading completed')
+          })
+        }
+
         this.setState(
           {
             preImageIds: preInfo.preImageIds,
@@ -643,16 +676,15 @@ class FollowUpElement extends Component {
       const { curListsActiveIndex } = this.state
       const newIndex = curListsActiveIndex === index ? -1 : index
       // console.log('curidx', index, curListsActiveIndex)
-      const targets = document.getElementsByClassName('viewport-element')
-      this.startAnnos()
       this.setState(
         {
           curListsActiveIndex: newIndex,
           curImageIdIndex: currentIdx - 1,
         },
         () => {
-          const { curBoxes, curImageIds, sortChanged } = this.state
-          const currentTarget = targets[sortChanged ? 1 : 0]
+          const { curBoxes, curImageIds, newCornerstoneElement } = this.state
+          const currentTarget = newCornerstoneElement
+
           for (let i = 0; i < curBoxes.length; i++) {
             if (curBoxes[i].slice_idx === currentIdx) {
               if (curBoxes[i].uuid === undefined) {
@@ -734,17 +766,14 @@ class FollowUpElement extends Component {
     } else if (status === 'previous') {
       const { preListsActiveIndex } = this.state
       const newIndex = preListsActiveIndex === index ? -1 : index
-      const targets = document.getElementsByClassName('viewport-element')
-      this.startAnnos()
       this.setState(
         {
           preListsActiveIndex: newIndex,
           preImageIdIndex: currentIdx - 1,
         },
         () => {
-          const { preBoxes, preImageIds, sortChanged } = this.state
-          const that = this
-          const previousTarget = targets[sortChanged ? 0 : 1]
+          const { preBoxes, preImageIds, preCornerstoneElement } = this.state
+          const previousTarget = preCornerstoneElement
           for (let i = 0; i < preBoxes.length; i++) {
             if (preBoxes[i].slice_idx === currentIdx) {
               if (preBoxes[i].uuid === undefined) {
@@ -840,7 +869,6 @@ class FollowUpElement extends Component {
   }
 
   onNewNoduleChange(noduleNo, idx) {
-    this.startAnnos()
     if (typeof idx !== undefined || idx !== null) {
       const newListsActiveIndex = this.state.newListsActiveIndex
       this.setState({
@@ -855,9 +883,7 @@ class FollowUpElement extends Component {
           curImageIdIndex: curBoxes[curIndex].slice_idx - 1,
         },
         () => {
-          const sortChanged = this.state.sortChanged
-          const targets = document.getElementsByClassName('viewport-element')
-          const currentTarget = targets[sortChanged ? 1 : 0]
+          const currentTarget = this.state.newCornerstoneElement
           const curImageIds = this.state.curImageIds
           if (curBoxes[curIndex].uuid === undefined) {
             const curNodule_uuid = this.drawCustomRectangleRoi(currentTarget, curBoxes[curIndex], curImageIds)
@@ -879,7 +905,6 @@ class FollowUpElement extends Component {
   }
 
   onPreNoduleChange(noduleNo, idx) {
-    this.startAnnos()
     if (typeof idx !== undefined || idx !== null) {
       const vanishListsActiveIndex = this.state.vanishListsActiveIndex
 
@@ -895,9 +920,7 @@ class FollowUpElement extends Component {
           preImageIdIndex: preBoxes[preIndex].slice_idx - 1,
         },
         () => {
-          const sortChanged = this.state.sortChanged
-          const targets = document.getElementsByClassName('viewport-element')
-          const currentTarget = targets[sortChanged ? 0 : 1]
+          const currentTarget = this.state.preCornerstoneElement
           const preImageIds = this.state.preImageIds
           if (preBoxes[preIndex].uuid === undefined) {
             const preNodule_uuid = this.drawCustomRectangleRoi(currentTarget, preBoxes[preIndex], preImageIds)
@@ -2664,32 +2687,6 @@ class FollowUpElement extends Component {
           {sortChanged ? (
             <>
               <FollowUpViewport
-                viewportIndex={this.state.preViewportIndex}
-                tools={this.state.tools}
-                imageIds={this.state.preImageIds}
-                style={{ minWidth: '50%', flex: '1' }}
-                imageIdIndex={this.state.preImageIdIndex}
-                isPlaying={this.props.followUpIsPlaying}
-                frameRate={this.state.frameRate}
-                activeTool={this.state.activeTool}
-                isOverlayVisible={this.state.isOverlayVisible}
-                setCornerstoneElement={(input) => {
-                  this.setState({
-                    preCornerstoneElement: input,
-                  })
-                }}
-                setViewportIndex={(input) => {
-                  this.setState({
-                    activeViewportIndex: this.state.preViewportIndex,
-                  })
-                }}
-                onMouseUp={(target, viewportIndex) => {
-                  this.mouseUp(target, viewportIndex)
-                }}
-                voi={preVoi}
-                className={this.state.activeViewportIndex === this.state.preViewportIndex ? 'active' : ''}
-              />
-              <FollowUpViewport
                 viewportIndex={this.state.curViewportIndex}
                 tools={this.state.tools}
                 imageIds={this.state.curImageIds}
@@ -2714,37 +2711,37 @@ class FollowUpElement extends Component {
                 }}
                 voi={curVoi}
                 className={this.state.activeViewportIndex === this.state.curViewportIndex ? 'active' : ''}
+              />
+              <FollowUpViewport
+                viewportIndex={this.state.preViewportIndex}
+                tools={this.state.tools}
+                imageIds={this.state.preImageIds}
+                style={{ minWidth: '50%', flex: '1' }}
+                imageIdIndex={this.state.preImageIdIndex}
+                isPlaying={this.props.followUpIsPlaying}
+                frameRate={this.state.frameRate}
+                activeTool={this.state.activeTool}
+                isOverlayVisible={this.state.isOverlayVisible}
+                setCornerstoneElement={(input) => {
+                  this.setState({
+                    preCornerstoneElement: input,
+                  })
+                }}
+                setViewportIndex={(input) => {
+                  this.setState({
+                    activeViewportIndex: this.state.preViewportIndex,
+                  })
+                }}
+                onMouseUp={(target, viewportIndex) => {
+                  this.mouseUp(target, viewportIndex)
+                }}
+                voi={preVoi}
+                className={this.state.activeViewportIndex === this.state.preViewportIndex ? 'active' : ''}
               />
             </>
           ) : (
             <>
               <FollowUpViewport
-                viewportIndex={this.state.curViewportIndex}
-                tools={this.state.tools}
-                imageIds={this.state.curImageIds}
-                style={{ minWidth: '50%', flex: '1' }}
-                imageIdIndex={this.state.curImageIdIndex}
-                isPlaying={this.props.followUpIsPlaying}
-                frameRate={this.state.frameRate}
-                activeTool={this.state.activeTool}
-                isOverlayVisible={this.state.isOverlayVisible}
-                setCornerstoneElement={(input) => {
-                  this.setState({
-                    newCornerstoneElement: input,
-                  })
-                }}
-                setViewportIndex={(input) => {
-                  this.setState({
-                    activeViewportIndex: this.state.curViewportIndex,
-                  })
-                }}
-                onMouseUp={(target, viewportIndex) => {
-                  this.mouseUp(target, viewportIndex)
-                }}
-                voi={curVoi}
-                className={this.state.activeViewportIndex === this.state.curViewportIndex ? 'active' : ''}
-              />
-              <FollowUpViewport
                 viewportIndex={this.state.preViewportIndex}
                 tools={this.state.tools}
                 imageIds={this.state.preImageIds}
@@ -2769,6 +2766,32 @@ class FollowUpElement extends Component {
                 }}
                 voi={preVoi}
                 className={this.state.activeViewportIndex === this.state.preViewportIndex ? 'active' : ''}
+              />
+              <FollowUpViewport
+                viewportIndex={this.state.curViewportIndex}
+                tools={this.state.tools}
+                imageIds={this.state.curImageIds}
+                style={{ minWidth: '50%', flex: '1' }}
+                imageIdIndex={this.state.curImageIdIndex}
+                isPlaying={this.props.followUpIsPlaying}
+                frameRate={this.state.frameRate}
+                activeTool={this.state.activeTool}
+                isOverlayVisible={this.state.isOverlayVisible}
+                setCornerstoneElement={(input) => {
+                  this.setState({
+                    newCornerstoneElement: input,
+                  })
+                }}
+                setViewportIndex={(input) => {
+                  this.setState({
+                    activeViewportIndex: this.state.curViewportIndex,
+                  })
+                }}
+                onMouseUp={(target, viewportIndex) => {
+                  this.mouseUp(target, viewportIndex)
+                }}
+                voi={curVoi}
+                className={this.state.activeViewportIndex === this.state.curViewportIndex ? 'active' : ''}
               />
             </>
           )}
@@ -2776,13 +2799,13 @@ class FollowUpElement extends Component {
         {this.state.isRegistering === false ? (
           <Row justify="space-between" className="BoxesAccord-Row">
             <div span={12} style={{ height: '100%' }} className="boxes-accord-col">
-              <Accordion className="current-nodule-accordion">{sortChanged ? preBoxesAccord : curBoxesAccord}</Accordion>
+              <Accordion className="current-nodule-accordion">{sortChanged ? curBoxesAccord : preBoxesAccord}</Accordion>
             </div>
             <div className="follow-up-viewport-match" onClick={this.onNoduleMatch.bind(this)}>
               <FontAwesomeIcon icon={faLink} />
             </div>
             <div span={12} style={{ height: '100%' }} className="boxes-accord-col">
-              <Accordion className="current-nodule-accordion">{sortChanged ? curBoxesAccord : preBoxesAccord}</Accordion>
+              <Accordion className="current-nodule-accordion">{sortChanged ? preBoxesAccord : curBoxesAccord}</Accordion>
             </div>
           </Row>
         ) : (
@@ -4521,6 +4544,7 @@ class FollowUpElement extends Component {
 export default connect(
   (state) => {
     return {
+      loadedImages: state.dataCenter.loadedImages,
       curDate: state.dataCenter.curDate,
       preDate: state.dataCenter.preDate,
       isDragging: state.dataCenter.isDragging,
@@ -4532,6 +4556,7 @@ export default connect(
     return {
       setFollowUpActiveTool: (toolName) => dispatch(setFollowUpActiveTool(toolName)),
       setFollowUpLoadingCompleted: (loadingCompleted) => dispatch(setFollowUpLoadingCompleted(loadingCompleted)),
+      updateLoadedImageNumber: (loadedImageIndex, caseId) => dispatch(updateLoadedImageNumber(loadedImageIndex, caseId)),
       dispatch,
     }
   }

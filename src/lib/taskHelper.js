@@ -85,10 +85,10 @@ function sortTaskPool() {
 }
 
 function sortTaskByPriority(x, y) {
-  // big to small
-  if (x.priority > y.priority) {
+  // small to big
+  if (x.priority < y.priority) {
     return -1
-  } else if (x.priority < y.priority) {
+  } else if (x.priority > y.priority) {
     return 1
   } else {
     return 0

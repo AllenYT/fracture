@@ -84,3 +84,9 @@ export const setFollowUpPlaying = (isPlaying) => ({
   type: 'SET_FOLLOW_UP_PLAYING',
   isPlaying,
 })
+
+export const updateLoadedImageNumber = (loadedImageIndex, caseId) => ({
+  type: 'UPDATE_LOADED_IMAGE_NUMBER',
+  loadedImageIndex,
+  caseId,
+})

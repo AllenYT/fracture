@@ -30,7 +30,7 @@
     "record": {
         "getMainList": "http://192.168.7.198:8085/record/getMainListForPage",
         "getSubList": "http://192.168.7.198:8085/record/getSubListForMainItem",
-        "getSubListForMainItem_front": "http://192.168.7.198:8085/record/getSubListForMainItem_front",
+        "getSubListForMainItem": "http://192.168.7.198:8085/record/getSubListForMainItem_front",
         "getPatientListForCond": "http://192.168.7.198:8085/record/getPatientListForCond",
         "getTotalPages": "http://192.168.7.198:8085/record/getTotalPages",
         "getPatientInfo": "http://192.168.7.198:8085/record/getPatientInfo",

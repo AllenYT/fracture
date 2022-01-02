@@ -921,12 +921,12 @@ class CTpanel extends Component {
       Authorization: 'Bearer '.concat(token),
     }
     axios
-      .post(this.config.record.getSubListForMainItem_front, qs.stringify(params))
+      .post(this.config.record.getSubListForMainItem, qs.stringify(params))
       .then((response) => {
         const data = response.data
-        console.log('getSubListForMainItem_front response', response)
+        console.log('getSubListForMainItem response', response)
         if (data.status !== 'okay') {
-          throw new Error('getSubListForMainItem_front failed')
+          throw new Error('getSubListForMainItem failed')
         } else {
           const subList = data.subList
           const theList = []

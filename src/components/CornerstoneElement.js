@@ -31,7 +31,7 @@ import CornerstoneViewport from 'react-cornerstone-viewport'
 
 import { faChevronLeft, faChevronRight, faChevronDown, faChevronUp, faCaretDown, faFilter, faSortAmountDownAlt, faSortUp, faSortDown, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons'
 import { connect } from 'react-redux'
-import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpPlaying, setFollowUpActiveTool } from '../actions'
+import { getConfigJson, getImageIdsByCaseId, getNodulesByCaseId, dropCaseId, setFollowUpPlaying, setFollowUpActiveTool, updateLoadedImageNumber } from '../actions'
 import { DropTarget } from 'react-dnd'
 
 import vtkActor from 'vtk.js/Sources/Rendering/Core/Actor'
@@ -760,7 +760,7 @@ class CornerstoneElement extends Component {
     annoImageIds = _.uniq(annoImageIds)
     const annoPromises = annoImageIds.map((annoImageId, annoImageIndex) => {
       return loadAndCacheImagePlus(annoImageId, 2).then((image) => {
-        this.calcLoadedImagePercent(this.state.caseId, annoImageIndex)
+        this.props.updateLoadedImageNumber(annoImageIndex, this.state.caseId)
       })
     })
     Promise.all(annoPromises).then((value) => {
@@ -769,7 +769,7 @@ class CornerstoneElement extends Component {
     annoRoundImageIds = _.uniq(annoRoundImageIds)
     const annoRoundPromises = annoRoundImageIds.map((annoRoundImageId, annoRoundImageIndex) => {
       return loadAndCacheImagePlus(annoRoundImageId, 3).then((image) => {
-        this.calcLoadedImagePercent(this.state.caseId, annoRoundImageIndex)
+        this.props.updateLoadedImageNumber(annoRoundImageIndex, this.state.caseId)
       })
     })
     Promise.all(annoRoundPromises).then((value) => {
@@ -814,8 +814,8 @@ class CornerstoneElement extends Component {
 
     const allPromises = imageIds.map((imageId, imageIndex) => {
       // console.log(imageId)
-      return loadAndCacheImagePlus(imageId, 3).then((image) => {
-        this.calcLoadedImagePercent(this.state.caseId, imageIndex)
+      return loadAndCacheImagePlus(imageId, 4).then((image) => {
+        this.props.updateLoadedImageNumber(imageIndex, this.state.caseId)
       })
     })
     await Promise.all(allPromises).then((value) => {
@@ -1140,6 +1140,27 @@ class CornerstoneElement extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    if (prevProps.needUpdateLoadedImages !== this.props.needUpdateLoadedImages) {
+      if (this.props.loadedImages) {
+        const loadedCaseIds = Object.keys(this.props.loadedImages)
+        loadedCaseIds.forEach((loadedCaseId) => {
+          const nowValue = Object.keys(this.props.loadedImages[loadedCaseId]).length
+          const dateSeries = this.state.dateSeries
+          for (let i = 0; i < dateSeries.length; i++) {
+            const dateSerie = dateSeries[i]
+            const dateIndex = _.findIndex(dateSerie, { caseId: loadedCaseId })
+            if (dateIndex !== -1) {
+              if (nowValue % 20 === 0 || nowValue === dateSerie[dateIndex].imageLength) {
+                dateSerie[dateIndex].loadedNumber = nowValue
+                this.setState({
+                  dateSeries,
+                })
+              }
+            }
+          }
+        })
+      }
+    }
     if (prevState.immersive !== this.state.immersive) {
     }
     if (!prevState.patientId && this.state.patientId) {
@@ -1222,38 +1243,6 @@ class CornerstoneElement extends Component {
         })
       }
     }
-  }
-  calcLoadedImagePercent(caseId, imageIndex) {
-    if (loadedImageNumberMap[caseId] === undefined) {
-      loadedImageNumberMap[caseId] = {}
-    } 
-    loadedImageNumberMap[caseId][imageIndex] = 1
-    const nowValue = Object.keys(loadedImageNumberMap[caseId]).length
-    // console.log("calcLoadedImagePercent",imageIndex, nowValue, caseId)
-
-    const { dateSeries } = this.state
-    for (let i = 0; i < dateSeries.length; i++) {
-      const dateSerie = dateSeries[i]
-      const dateIndex = _.findIndex(dateSerie, { caseId })
-      if (dateIndex !== -1) {
-        dateSerie[dateIndex].loadedNumber = nowValue
-        // if(dateSeries[dateIndex].loadedNumber % 20 === 0 || dateSeries[dateIndex].loadedNumber === dateSeries[dateIndex].imageLength){
-        //   dateSeries[dateIndex].progressPercent =  (dateSeries[dateIndex].loadedNumber / dateSeries[dateIndex].imageLength).toFixed(2) * 100
-        // }
-        if(dateSerie[dateIndex].loadedNumber % 20 === 0 || dateSeries[dateIndex].loadedNumber === dateSeries[dateIndex].imageLength){
-          this.setState({
-            dateSeries,
-          })
-        }
-      }
-    }
-    // loadedImageNumber = loadedImageNumber + 1
-    // console.log("calcLoadedImagePercent", loadedImageNumber)
-    // if(loadedImageNumber % 20 === 0 || loadedImageNumber === length){
-    //   this.setState({
-    //     loadedImagePercent: (loadedImageNumber / length).toFixed(2) * 100
-    //   })
-    // }
   }
   redrawCorner() {
     console.log('redrawCorner')
@@ -1369,9 +1358,9 @@ class CornerstoneElement extends Component {
     const headers = {
       Authorization: 'Bearer '.concat(token),
     }
-    axios.post(this.config.record.getSubListForMainItem_front, qs.stringify(params)).then((response) => {
+    axios.post(this.config.record.getSubListForMainItem, qs.stringify(params)).then((response) => {
       const data = response.data
-      console.log('getSubListForMainItem_front request', response)
+      console.log('getSubListForMainItem response', response)
       if (data.status !== 'okay') {
         console.log('Not okay')
         // window.location.href = '/'
@@ -1408,6 +1397,8 @@ class CornerstoneElement extends Component {
                 })
               ),
             ]).then(([annotype, dicom, dataValidRes]) => {
+              console.log('getSubListForMainItem response', dicom)
+
               count += 1
               theList[idx].push({
                 date: key,
@@ -2339,6 +2330,11 @@ class CornerstoneElement extends Component {
   showFollowUp() {
     this.onSetStudyList(true)
     this.onSetAnimationPlaying(false)
+    const { cornerElement } = this.state
+    cornerstoneTools.clearToolState(cornerElement, 'RectangleRoi')
+    cornerstoneTools.clearToolState(cornerElement, 'Bidirectional')
+    cornerstoneTools.clearToolState(cornerElement, 'Length')
+
     this.setState({
       showFollowUp: true,
     })
@@ -6746,7 +6742,7 @@ class CornerstoneElement extends Component {
           <div
             onClick={this.onSetCornerActiveTool.bind(this, 'RectangleRoi')}
             title="标注"
-            hidden={show3DVisualization}
+            hidden={show3DVisualization || showFollowUp}
             className={'func-btn' + (!showFollowUp ? (cornerActiveTool === 'RectangleRoi' ? ' func-btn-active' : '') : followUpActiveTool === 'RectangleRoi' ? ' func-btn-active' : '')}>
             <Icon className="func-btn-icon" name="edit" size="large"></Icon>
             <div className="func-btn-desc">标注</div>
@@ -6858,7 +6854,6 @@ class CornerstoneElement extends Component {
                       curCaseId={curCaseId}
                       preCaseId={preCaseId}
                       username={username}
-                      calcLoadedImagePercent={this.calcLoadedImagePercent.bind(this)}
                       onRef={(input) => {
                         this.followUpComponent = input
                       }}
@@ -8936,6 +8931,8 @@ export default connect(
   (state) => {
     return {
       caseData: state.dataCenter.caseData,
+      loadedImages: state.dataCenter.loadedImages,
+      needUpdateLoadedImages: state.dataCenter.needUpdateLoadedImages,
       caseId: state.dataCenter.caseId,
       curCaseId: state.dataCenter.curCaseId,
       preCaseId: state.dataCenter.preCaseId,
@@ -8950,6 +8947,7 @@ export default connect(
       getNodulesByCaseId: (url, caseId, username) => dispatch(getNodulesByCaseId(url, caseId, username)),
       setFollowUpPlaying: (isPlaying) => dispatch(setFollowUpPlaying(isPlaying)),
       setFollowUpActiveTool: (toolName) => dispatch(setFollowUpActiveTool(toolName)),
+      updateLoadedImageNumber: (loadedImageIndex, caseId) => dispatch(updateLoadedImageNumber(loadedImageIndex, caseId)),
       dispatch,
     }
   }

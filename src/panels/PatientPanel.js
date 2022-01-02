@@ -228,7 +228,7 @@ class PatientPanel extends Component {
 
     axios
       .post(
-        this.config.record.getSubListForMainItem_front,
+        this.config.record.getSubListForMainItem,
         qs.stringify(params)
       )
       .then((response) => {

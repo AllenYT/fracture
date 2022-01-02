@@ -19,8 +19,9 @@ const configReducer = (state = { config: null }, action) => {
   }
 }
 
-const dataCenterReducer = (state = { caseData: [], caseId: null }, action) => {
+const dataCenterReducer = (state = { caseData: [], caseId: null, loadedImages: {} }, action) => {
   const caseData = state.caseData
+  const loadedImages = state.loadedImages
   let caseDataIndex
   switch (action.type) {
     case 'RECEIVE_IMAGE_IDS':
@@ -30,6 +31,7 @@ const dataCenterReducer = (state = { caseData: [], caseId: null }, action) => {
         caseData.push({
           caseId: action.caseId,
           imageIds,
+          nodules: [],
         })
       } else {
         caseData[caseDataIndex].imageIds = imageIds
@@ -46,6 +48,7 @@ const dataCenterReducer = (state = { caseData: [], caseId: null }, action) => {
       if (caseDataIndex === -1) {
         caseData.push({
           caseId: action.caseId,
+          imageIds: [],
           nodules,
         })
       } else {
@@ -91,6 +94,10 @@ const dataCenterReducer = (state = { caseData: [], caseId: null }, action) => {
             preDate: action.date,
           }
         }
+      } else {
+        return {
+          ...state,
+        }
       }
     case 'SET_FOLLOW_UP_ACTIVE_TOOL':
       return {
@@ -106,6 +113,17 @@ const dataCenterReducer = (state = { caseData: [], caseId: null }, action) => {
       return {
         ...state,
         followUpisPlaying: action.isPlaying,
+      }
+    case 'UPDATE_LOADED_IMAGE_NUMBER':
+      const loadedImageIndex = action.loadedImageIndex
+      if (loadedImages[action.caseId] === undefined) {
+        loadedImages[action.caseId] = {}
+      }
+      loadedImages[action.caseId][loadedImageIndex] = 1
+      return {
+        ...state,
+        loadedImages,
+        needUpdateLoadedImages: _.random(0, 100),
       }
     default:
       return state

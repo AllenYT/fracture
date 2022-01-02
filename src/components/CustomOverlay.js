@@ -103,9 +103,9 @@ class CustomOverlay extends PureComponent {
     if (curCaseId === preCaseId) {
       imageState = '相同'
     } else if (curCaseId === caseId) {
-      imageState = '近期'
+      imageState = '后片'
     } else if (caseId === preCaseId) {
-      imageState = '早期'
+      imageState = '前片'
     } else {
       imageState = 'Unknown'
     }

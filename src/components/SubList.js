@@ -144,7 +144,7 @@ class SubList extends Component {
     }
 
     axios
-      .post(this.config.record.getSubListForMainItem_front, qs.stringify(params), { headers })
+      .post(this.config.record.getSubListForMainItem, qs.stringify(params), { headers })
       .then((response) => {
         const data = response.data
         if (data.status !== 'okay') {
