@@ -1976,7 +1976,7 @@ class CornerstoneElement extends Component {
               ctImagePadding: studyListShowed ? 150 : 0,
             },
             () => {
-              this.resizeScreen()
+              // this.resizeScreen()
             }
           )
         }, 500)
@@ -2367,7 +2367,9 @@ class CornerstoneElement extends Component {
       }
     )
   }
-
+  enter3DSlicer() {
+    window.open(this.config.data.slicerJumpUrl + `?caseId=${this.state.caseId}`)
+  }
   toHomepage() {
     window.location.href = '/homepage'
     // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
@@ -6796,6 +6798,11 @@ class CornerstoneElement extends Component {
               <div className="func-btn-desc">进入随访</div>
             </div>
           )}
+
+          <div title="Slicer" className={'func-btn'} onClick={this.enter3DSlicer.bind(this)} hidden={show3DVisualization || showFollowUp}>
+            <Icon className="func-btn-icon icon-custom icon-custom-slicer" size="large" />
+            <div className="func-btn-desc">Slicer</div>
+          </div>
         </>
       )
 

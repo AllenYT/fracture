@@ -8,7 +8,8 @@
         "preprocess": "http://192.168.7.198:8085/preprocess/exec",
         "getMhaListForCaseId": "http://192.168.7.198:8085/data/getMhaListForCaseId",
         "download":"http://192.168.7.198:8085/data/zip",
-        "getDiskInfo":"http://192.168.7.198:8085/data/getDiskInfo"
+        "getDiskInfo":"http://192.168.7.198:8085/data/getDiskInfo",
+        "slicerJumpUrl":"http://192.168.7.198:8085/data/slicerJumpUrl"
     },
     "user": {
         "get_statistics": "http://192.168.7.198:8085/user/getStatistics/",
@@ -38,7 +39,6 @@
         "getNodulesAtPage": "http://192.168.7.198:8085/nodule/getNodulesAtPage",
         "filterNodulesMulti": "http://192.168.7.198:8085/nodule/filterNodulesMulti",
         "getNodulesAtPageMulti": "http://192.168.7.198:8085/nodule/getNodulesAtPageMulti",
-        "getCov19List": "http://192.168.7.198:8085/covid/getCovidlist",
         "getMainListForSubset": "http://192.168.7.198:8085/record/getMainListForSubset",
         "getTotalPagesForSubset": "http://192.168.7.198:8085/record/getTotalPagesForSubset"
     },

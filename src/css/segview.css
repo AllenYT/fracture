@@ -54,6 +54,10 @@
   height: 21px !important;
   background-size: 21px 21px !important;
 }
+.icon-custom-slicer{
+  background: url('../icons/slicer.svg') no-repeat !important;
+  background-size: 21px 21px !important;
+}
 #segment-container {
   position: relative;
   width: 100%;

@@ -1217,7 +1217,8 @@ class FollowUpElement extends Component {
     this.setState((prevState) => ({
       sortChanged: !prevState.sortChanged,
     }))
-    console.log('targets', document.getElementsByClassName('viewport-element'))
+    this.changeImageIndex('cur')
+    this.changeImageIndex('pre')
   }
   render() {
     const welcome = '欢迎您，' + localStorage.realname
@@ -2596,7 +2597,7 @@ class FollowUpElement extends Component {
             <p>随访病灶特征分析</p>
           </div>
           <div id="followup-title-2">
-            <p>{`近期N${activeMatchNewNo}结节 & 早期P${activeMatchPreNo}号结节`}</p>
+            <p>{`后片N${activeMatchNewNo}结节 & 前片P${activeMatchPreNo}号结节`}</p>
           </div>
           <div id="followup-icon">
             <Icon
@@ -2616,7 +2617,7 @@ class FollowUpElement extends Component {
         <div className="content">
           <Row justify="center" align="middle">
             <Col className="histogram-title" span={1}>
-              近期
+              后片
             </Col>
             <Col span={23}>
               <div id="chart-current"></div>
@@ -2624,7 +2625,7 @@ class FollowUpElement extends Component {
           </Row>
           <Row justify="center" align="middle">
             <Col className="histogram-title" span={1}>
-              早期
+              前片
             </Col>
             <Col span={23}>
               <div id="chart-previous"></div>
