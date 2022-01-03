@@ -2368,7 +2368,12 @@ class CornerstoneElement extends Component {
     )
   }
   enter3DSlicer() {
-    window.open(this.config.data.slicerJumpUrl + `?caseId=${this.state.caseId}`)
+    axios.get(this.config.data.slicerJumpUrl + `?caseId=${this.state.caseId}`).then((res) => {
+      // console.log("slicerJumpUrl response", res)
+      if (res && res.data) {
+        window.open(res.data)
+      }
+    })
   }
   toHomepage() {
     window.location.href = '/homepage'
