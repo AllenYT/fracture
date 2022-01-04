@@ -779,38 +779,38 @@ class CornerstoneElement extends Component {
     // this.loadStudyBrowser()
     this.loadReport()
 
-    axios
-      .post(
-        this.config.draft.getLymphs,
-        qs.stringify({
-          caseId: this.state.caseId,
-          username: 'deepln',
-        })
-      )
-      .then((res) => {
-        console.log('lymph request', res)
-        const data = res.data
+    // axios
+    //   .post(
+    //     this.config.draft.getLymphs,
+    //     qs.stringify({
+    //       caseId: this.state.caseId,
+    //       username: 'deepln',
+    //     })
+    //   )
+    //   .then((res) => {
+    //     console.log('lymph request', res)
+    //     const data = res.data
 
-        if (data && data.length) {
-          const lymphMarks = {}
-          data.forEach((item, index) => {
-            const itemLymph = item.lymph
-            item.slice_idx = itemLymph.slice_idx
-            item.volume = Math.abs(itemLymph.x1 - itemLymph.x2) * Math.abs(itemLymph.y1 - itemLymph.y2) * Math.pow(10, -4)
-            lymphMarks[item.slice_idx] = ''
-          })
-          data.sort(this.arrayPropSort('slice_idx', 1))
-          data.forEach((item, index) => {
-            item.name = `淋巴结${index + 1}`
-            item.visibleIdx = index
-            item.recVisible = true
-          })
-          this.setState({
-            lymphMarks,
-          })
-          this.saveLymphData(data)
-        }
-      })
+    //     if (data && data.length) {
+    //       const lymphMarks = {}
+    //       data.forEach((item, index) => {
+    //         const itemLymph = item.lymph
+    //         item.slice_idx = itemLymph.slice_idx
+    //         item.volume = Math.abs(itemLymph.x1 - itemLymph.x2) * Math.abs(itemLymph.y1 - itemLymph.y2) * Math.pow(10, -4)
+    //         lymphMarks[item.slice_idx] = ''
+    //       })
+    //       data.sort(this.arrayPropSort('slice_idx', 1))
+    //       data.forEach((item, index) => {
+    //         item.name = `淋巴结${index + 1}`
+    //         item.visibleIdx = index
+    //         item.recVisible = true
+    //       })
+    //       this.setState({
+    //         lymphMarks,
+    //       })
+    //       this.saveLymphData(data)
+    //     }
+    //   })
 
     const allPromises = imageIds.map((imageId, imageIndex) => {
       // console.log(imageId)
@@ -6804,7 +6804,7 @@ class CornerstoneElement extends Component {
             </div>
           )}
 
-          <div title="Slicer" className={'func-btn'} onClick={this.enter3DSlicer.bind(this)} hidden={show3DVisualization || showFollowUp}>
+          <div title="Slicer" className={'func-btn'} onClick={this.enter3DSlicer.bind(this)} hidden={true}>
             <Icon className="func-btn-icon icon-custom icon-custom-slicer" size="large" />
             <div className="func-btn-desc">Slicer</div>
           </div>
@@ -7211,7 +7211,7 @@ class CornerstoneElement extends Component {
                               )}
                             </Tabs>
                           </TabPane>
-                          <TabPane tab={'纵隔病灶'} key="2">
+                          {/* <TabPane tab={'纵隔病灶'} key="2">
                             <Tabs type="card" defaultActiveKey="1" size="small">
                               <TabPane tab={`淋巴结 ${lymphs.length}个`} key="1">
                                 <div id="elec-table">
@@ -7239,7 +7239,7 @@ class CornerstoneElement extends Component {
                                 </div>
                               </TabPane>
                             </Tabs>
-                          </TabPane>
+                          </TabPane> */}
                           {/* <TabPane tab={'其他'} key="3"></TabPane> */}
                         </Tabs>
                       </div>
