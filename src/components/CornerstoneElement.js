@@ -2330,12 +2330,18 @@ class CornerstoneElement extends Component {
   showFollowUp() {
     this.onSetStudyList(true)
     this.onSetAnimationPlaying(false)
-    const { cornerElement } = this.state
+    const { cornerElement, boxes } = this.state
     cornerstoneTools.clearToolState(cornerElement, 'RectangleRoi')
     cornerstoneTools.clearToolState(cornerElement, 'Bidirectional')
     cornerstoneTools.clearToolState(cornerElement, 'Length')
-
+    if (boxes && boxes.length) {
+      boxes.forEach((boxItem, boxIndex) => {
+        delete boxItem.uuid
+        delete boxItem.biuuid
+      })
+    }
     this.setState({
+      drawingNodulesCompleted: false,
       showFollowUp: true,
     })
   }
@@ -4477,6 +4483,7 @@ class CornerstoneElement extends Component {
       boxes.forEach((boxItem, boxIndex) => {
         if (imageIds[boxItem.slice_idx] === cornerImage.imageId && boxItem.recVisible && boxItem.uuid === undefined) {
           const measurementData = {
+            noduleIndex: boxItem.visibleIdx + 1,
             visible: true,
             active: boxIndex === listsActiveIndex,
             // color: 'rgb(171, 245, 220)',

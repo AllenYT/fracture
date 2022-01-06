@@ -103,6 +103,7 @@ class FollowUpViewport extends Component {
       isOverlayVisible,
       className,
       setCornerstoneElement,
+      setCornerstoneImage,
       setViewportIndex,
       voi,
       onMouseUp,
@@ -133,7 +134,7 @@ class FollowUpViewport extends Component {
                 },
                 invert: voi.invert,
               })
-
+              setCornerstoneImage(imageRenderedEvent.detail.image)
               cornerstone.setViewport(newCornerstoneElement, newViewport)
             })
             newCornerstoneElement.addEventListener('mouseup', () => {
