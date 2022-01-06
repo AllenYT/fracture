@@ -2369,7 +2369,35 @@ class CornerstoneElement extends Component {
         showFollowUp: false,
       },
       () => {
+        this.changeImageIndex()
         this.resizeScreen()
+      }
+    )
+  }
+  changeImageIndex() {
+    const { listsActiveIndex, boxes, cornerImageIdIndex } = this.state
+    let tmpImageIdIndex = cornerImageIdIndex
+    if (cornerImageIdIndex === 0) {
+      tmpImageIdIndex = 1
+      console.log('回第一张ct')
+    } else if (cornerImageIdIndex === 1) {
+      tmpImageIdIndex = 0
+      console.log('回第零张ct')
+    } else if (cornerImageIdIndex > 1) {
+      if (boxes && boxes.length && listsActiveIndex !== -1) {
+        tmpImageIdIndex = boxes[listsActiveIndex].slice_idx
+        console.log('回当前结节')
+      } else {
+        tmpImageIdIndex = 0
+        console.log('回第零张ct')
+      }
+    }
+    this.setState(
+      {
+        cornerImageIdIndex: tmpImageIdIndex,
+      },
+      () => {
+        this.redrawCorner()
       }
     )
   }
@@ -5099,69 +5127,73 @@ class CornerstoneElement extends Component {
     // if (this.state.show3DVisualization) {
     //   return
     // }
-    if (document.getElementById('slice-slider') !== null) document.getElementById('slice-slider').blur()
+    // if (document.getElementById('slice-slider') !== null) document.getElementById('slice-slider').blur()
     if (event.which == 77) {
       // m, magnify to immersive mode
-      this.setState({ immersive: true })
+      // this.setState({ immersive: true })
     }
 
     if (event.which == 27) {
       // esc, back to normal
-      this.setState({ immersive: false })
+      // this.setState({ immersive: false })
     }
     if (event.which == 37) {
       // arrowLeft
       // console.log('active item',document.activeElement,document.getElementsByClassName("ant-slider-handle")[0])
-      if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
-        event.preventDefault()
-        let newCurrentIdx = this.state.currentIdx - 1
-        if (newCurrentIdx >= 0) {
-        }
-      }
+      // if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
+      //   event.preventDefault()
+      //   let newCurrentIdx = this.state.currentIdx - 1
+      //   if (newCurrentIdx >= 0) {
+      //   }
+      // }
     }
     if (event.which == 38) {
       // arrowUp
       event.preventDefault()
-      const boxes = this.state.boxes
-      const listsActiveIndex = this.state.listsActiveIndex
-      if (listsActiveIndex === -1) {
-        this.keyDownListSwitch(0)
-      } else {
-        if (listsActiveIndex === 0) {
-          this.keyDownListSwitch(boxes.length - 1)
+      if (!this.state.show3DVisualization && !this.state.showFollowUp) {
+        const boxes = this.state.boxes
+        const listsActiveIndex = this.state.listsActiveIndex
+        if (listsActiveIndex === -1) {
+          this.keyDownListSwitch(0)
         } else {
-          this.keyDownListSwitch(listsActiveIndex - 1)
+          if (listsActiveIndex === 0) {
+            this.keyDownListSwitch(boxes.length - 1)
+          } else {
+            this.keyDownListSwitch(listsActiveIndex - 1)
+          }
         }
       }
     }
     if (event.which == 39) {
       // arrowRight
-      if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
-        event.preventDefault()
-        let newCurrentIdx = this.state.currentIdx + 1
-        if (newCurrentIdx < this.state.imageIds.length) {
-          // console.log('info',cornerstone.imageCache.getCacheInfo())
-        }
-      }
+      // if (document.getElementsByClassName('ant-slider-handle')[0] !== document.activeElement) {
+      //   event.preventDefault()
+      //   let newCurrentIdx = this.state.currentIdx + 1
+      //   if (newCurrentIdx < this.state.imageIds.length) {
+      //     // console.log('info',cornerstone.imageCache.getCacheInfo())
+      //   }
+      // }
     }
     if (event.which == 40) {
       // arrowDown
       event.preventDefault()
-      const boxes = this.state.boxes
-      const listsActiveIndex = this.state.listsActiveIndex
-      // const boxes = this.state.selectBoxes
-      if (listsActiveIndex === -1) {
-        this.keyDownListSwitch(0)
-      } else {
-        if (listsActiveIndex === boxes.length - 1) {
+      if (!this.state.show3DVisualization && !this.state.showFollowUp) {
+        const boxes = this.state.boxes
+        const listsActiveIndex = this.state.listsActiveIndex
+        // const boxes = this.state.selectBoxes
+        if (listsActiveIndex === -1) {
           this.keyDownListSwitch(0)
         } else {
-          this.keyDownListSwitch(listsActiveIndex + 1)
+          if (listsActiveIndex === boxes.length - 1) {
+            this.keyDownListSwitch(0)
+          } else {
+            this.keyDownListSwitch(listsActiveIndex + 1)
+          }
         }
       }
     }
     if (event.which == 72) {
-      this.toHidebox()
+      // this.toHidebox()
     }
   }
   keyDownListSwitch(activeIdx) {

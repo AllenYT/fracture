@@ -428,7 +428,7 @@ class FollowUpElement extends Component {
         console.log('显示第零张ct')
       } else if (curImageIdIndex > 1) {
         if (curBoxes && curBoxes.length) {
-          tmpIndex = curBoxes[0].slice_idx - 1
+          tmpIndex = curBoxes[0].slice_idx
         }
         console.log('显示当前结节')
       }
@@ -447,7 +447,7 @@ class FollowUpElement extends Component {
         console.log('显示第零张ct')
       } else if (preImageIdIndex > 0) {
         if (preBoxes && preBoxes.length) {
-          tmpIndex = preBoxes[0].slice_idx - 1
+          tmpIndex = preBoxes[0].slice_idx
         }
         console.log('显示当前结节')
       }
@@ -462,32 +462,35 @@ class FollowUpElement extends Component {
     if (this.state.newListsActiveIndex !== -1 && prevState.newListsActiveIndex !== this.state.newListsActiveIndex) {
       if (this.state.registerBoxes && this.state.registerBoxes.new && this.state.registerBoxes.new.length) {
         const { registerBoxes, newListsActiveIndex } = this.state
-        this.setState(
-          {
-            curImageIdIndex: registerBoxes['new'][newListsActiveIndex].slice_idx,
-          },
-          () => {
-            cornerstone.loadAndCacheImage(this.state.curImageIds[registerBoxes['new'][newListsActiveIndex].slice_idx]).then((image) => {
-              this.redrawCorner('cur')
-            })
-          }
-        )
+        if (registerBoxes['new'][newListsActiveIndex]) {
+          this.setState(
+            {
+              curImageIdIndex: registerBoxes['new'][newListsActiveIndex].slice_idx,
+            },
+            () => {
+              cornerstone.loadAndCacheImage(this.state.curImageIds[registerBoxes['new'][newListsActiveIndex].slice_idx]).then((image) => {
+                this.setCustomRetangleActive('cur', registerBoxes['new'][newListsActiveIndex].nodule_no)
+              })
+            }
+          )
+        }
       }
     }
     if (this.state.vanishListsActiveIndex !== -1 && prevState.vanishListsActiveIndex !== this.state.vanishListsActiveIndex) {
       if (this.state.registerBoxes && this.state.registerBoxes.vanish && this.state.registerBoxes.vanish.length) {
         const { registerBoxes, vanishListsActiveIndex } = this.state
-        console.log('onPreNoduleChange')
-        this.setState(
-          {
-            preImageIdIndex: registerBoxes['vanish'][vanishListsActiveIndex].slice_idx,
-          },
-          () => {
-            cornerstone.loadAndCacheImage(this.state.preImageIds[registerBoxes['vanish'][vanishListsActiveIndex].slice_idx]).then((image) => {
-              this.redrawCorner('pre')
-            })
-          }
-        )
+        if (registerBoxes['vanish'][vanishListsActiveIndex]) {
+          this.setState(
+            {
+              preImageIdIndex: registerBoxes['vanish'][vanishListsActiveIndex].slice_idx,
+            },
+            () => {
+              cornerstone.loadAndCacheImage(this.state.preImageIds[registerBoxes['vanish'][vanishListsActiveIndex].slice_idx]).then((image) => {
+                this.setCustomRetangleActive('pre', registerBoxes['vanish'][vanishListsActiveIndex].nodule_no)
+              })
+            }
+          )
+        }
       }
     }
     if (prevState.activeViewportIndex !== this.state.activeViewportIndex) {
@@ -728,13 +731,12 @@ class FollowUpElement extends Component {
         },
         () => {
           const { curBoxes, curImageIds, newCornerstoneElement } = this.state
-          const currentTarget = newCornerstoneElement
-
-          for (let i = 0; i < curBoxes.length; i++) {
-            if (curBoxes[i].slice_idx === currentIdx) {
-              if (curBoxes[i].uuid === undefined) {
-                console.log('cur addToolState init', i)
-                cornerstone.loadImage(curImageIds[currentIdx]).then(() => {
+          loadAndCacheImagePlus(curImageIds[currentIdx], 1).then(() => {
+            const currentTarget = newCornerstoneElement
+            for (let i = 0; i < curBoxes.length; i++) {
+              if (curBoxes[i].slice_idx === currentIdx) {
+                if (curBoxes[i].uuid === undefined) {
+                  console.log('cur addToolState init', i)
                   // cornerstone.updateImage(currentTarget)
                   const measurementData = {
                     noduleIndex: curBoxes[i].visibleIdx + 1,
@@ -781,11 +783,9 @@ class FollowUpElement extends Component {
                     curBoxes[i].uuid = toolData.data[toolDataIndex].uuid
                   }
                   // cornerstoneTools.setToolEnabledForElement(currentTarget, 'RectangleRoi')
-                })
-              } else {
-                if (i === newIndex) {
-                  console.log('cur addToolState inited', curBoxes[i].uuid, currentIdx, this.state.curImageIdIndex)
-                  cornerstone.loadAndCacheImage(curImageIds[currentIdx]).then(() => {
+                } else {
+                  if (i === newIndex) {
+                    console.log('cur addToolState inited', curBoxes[i].uuid, currentIdx, this.state.curImageIdIndex)
                     let toolData = cornerstoneTools.getToolState(currentTarget, 'RectangleRoi')
                     if (toolData && toolData.data && toolData.data.length) {
                       const toolDataIndex = _.findIndex(toolData.data, { uuid: curBoxes[i].uuid })
@@ -798,13 +798,13 @@ class FollowUpElement extends Component {
                         }
                       })
                     }
-                  })
+                  }
                 }
               }
+              // }
+              this.setState({ curBoxes: curBoxes })
             }
-            // }
-            this.setState({ curBoxes: curBoxes })
-          }
+          })
         }
       )
     } else if (status === 'previous') {
@@ -817,7 +817,7 @@ class FollowUpElement extends Component {
         },
         () => {
           const { preBoxes, preImageIds } = this.state
-          cornerstone.loadAndCacheImage(preImageIds[currentIdx]).then(() => {
+          loadAndCacheImagePlus(preImageIds[currentIdx], 1).then(() => {
             const previousTarget = this.state.preCornerstoneElement
             for (let i = 0; i < preBoxes.length; i++) {
               if (preBoxes[i].slice_idx === currentIdx) {
@@ -871,7 +871,7 @@ class FollowUpElement extends Component {
                   // cornerstoneTools.setToolEnabledForElement(previousTarget, 'RectangleRoi')
                 } else {
                   if (i === newIndex) {
-                    console.log('pre addToolState init', preBoxes[i].uuid, preBoxes[i].slice_idx, currentIdx, this.state.preImageIdIndex)
+                    console.log('pre addToolState init', preBoxes[i].uuid, currentIdx, this.state.preImageIdIndex)
                     let toolData = cornerstoneTools.getToolState(previousTarget, 'RectangleRoi')
                     if (toolData && toolData.data && toolData.data.length) {
                       const toolDataIndex = _.findIndex(toolData.data, { uuid: preBoxes[i].uuid })
@@ -904,8 +904,53 @@ class FollowUpElement extends Component {
       })
     }
     console.log('onMatchNoduleChange', newNoduleNo, previousNoduleNo)
-    this.onNewNoduleChange(newNoduleNo)
-    this.onPreNoduleChange(previousNoduleNo)
+    const { curBoxes, curImageIds, preBoxes, preImageIds } = this.state
+    if (curBoxes && curBoxes.length) {
+      let curIndex = _.findIndex(curBoxes, { nodule_no: newNoduleNo })
+      if (curIndex !== -1) {
+        this.setState(
+          {
+            curImageIdIndex: curBoxes[curIndex].slice_idx,
+          },
+          () => {
+            if (curBoxes[curIndex].uuid) {
+              this.setCustomRetangleActive('cur', newNoduleNo)
+            } else {
+              const currentTarget = this.state.newCornerstoneElement
+              const curNodule_uuid = this.drawCustomRectangleRoi(currentTarget, curBoxes[curIndex], curImageIds)
+              curBoxes[curIndex] = curNodule_uuid
+              this.setState({
+                curBoxes,
+              })
+            }
+          }
+        )
+      }
+    }
+    if (preBoxes && preBoxes.length) {
+      let preIndex = _.findIndex(preBoxes, { nodule_no: previousNoduleNo })
+      if (preIndex !== -1) {
+        this.setState(
+          {
+            preImageIdIndex: preBoxes[preIndex].slice_idx,
+          },
+          () => {
+            if (preBoxes[preIndex].uuid) {
+              this.setCustomRetangleActive('pre', previousNoduleNo)
+            } else {
+              const currentTarget = this.state.preCornerstoneElement
+              const preNodule_uuid = this.drawCustomRectangleRoi(currentTarget, preBoxes[preIndex], preImageIds)
+              preBoxes[preIndex] = preNodule_uuid
+              this.setState({
+                preBoxes,
+              })
+            }
+          }
+        )
+      }
+    }
+    // this.onNewNoduleChange(newNoduleNo)
+    // this.onPreNoduleChange(previousNoduleNo)
     this.setState({ activeTool: 'RectangleRoi', activeMatchNewNoduleNo: newNoduleNo, activeMatchPreNoduleNo: previousNoduleNo })
   }
 
@@ -934,7 +979,7 @@ class FollowUpElement extends Component {
               curBoxes,
             },
             () => {
-              this.redrawCorner('cur')
+              this.setCustomRetangleActive('cur', noduleNo)
             }
           )
         }
@@ -967,7 +1012,7 @@ class FollowUpElement extends Component {
               preBoxes,
             },
             () => {
-              this.redrawCorner('pre')
+              this.setCustomRetangleActive('pre', noduleNo)
             }
           )
         }
@@ -976,7 +1021,7 @@ class FollowUpElement extends Component {
   }
 
   drawCustomRectangleRoi(target, nodule, imageIds) {
-    cornerstone.loadImage(imageIds[nodule.slice_idx - 1]).then(() => {
+    loadAndCacheImagePlus(imageIds[nodule.slice_idx - 1], 1).then(() => {
       const measurementData = {
         noduleIndex: nodule.visibleIdx + 1,
         visible: true,
@@ -1025,54 +1070,97 @@ class FollowUpElement extends Component {
     })
     return nodule
   }
-  redrawCorner(type) {
+  // setCustomRetangleActive(type) {
+  //   if (type === 'cur') {
+  //     const { registerBoxes, newListsActiveIndex, curBoxes, newCornerstoneElement } = this.state
+  //     let toolData = cornerstoneTools.getToolState(newCornerstoneElement, 'RectangleRoi')
+  //     if (toolData && toolData.data && toolData.data.length) {
+  //       let toolDataIndex = -1
+  //       if (newListsActiveIndex !== -1) {
+  //         let curIndex = -1
+  //         if (registerBoxes && registerBoxes.new && registerBoxes.new.length) {
+  //           curIndex = _.findIndex(curBoxes, { nodule_no: registerBoxes['new'][newListsActiveIndex].nodule_no })
+  //         }
+  //         if (curIndex !== -1) {
+  //           toolDataIndex = _.findIndex(toolData.data, {
+  //             uuid: curBoxes[curIndex].uuid,
+  //           })
+  //         }
+  //       }
+  //       const savedData = [].concat(toolData.data)
+  //       cornerstoneTools.clearToolState(newCornerstoneElement, 'RectangleRoi')
+  //       savedData.forEach((savedDataItem, savedDataItemIndex) => {
+  //         if (_.findIndex(curBoxes, { uuid: savedDataItem.uuid }) !== -1) {
+  //           savedDataItem.active = toolDataIndex === savedDataItemIndex
+  //           cornerstoneTools.addToolState(newCornerstoneElement, 'RectangleRoi', savedDataItem)
+  //         }
+  //       })
+  //     }
+  //   } else if (type === 'pre') {
+  //     const { registerBoxes, vanishListsActiveIndex, preBoxes, preCornerstoneElement } = this.state
+  //     let toolData = cornerstoneTools.getToolState(preCornerstoneElement, 'RectangleRoi')
+  //     if (toolData && toolData.data && toolData.data.length) {
+  //       let toolDataIndex = -1
+  //       if (vanishListsActiveIndex !== -1) {
+  //         let preIndex = -1
+  //         if (registerBoxes && registerBoxes.vanish && registerBoxes.vanish.length) {
+  //           preIndex = _.findIndex(preBoxes, { nodule_no: registerBoxes['vanish'][vanishListsActiveIndex].nodule_no })
+  //         }
+  //         if (preIndex !== -1) {
+  //           toolDataIndex = _.findIndex(toolData.data, {
+  //             uuid: preBoxes[preIndex].uuid,
+  //           })
+  //         }
+  //       }
+  //       const savedData = [].concat(toolData.data)
+  //       cornerstoneTools.clearToolState(preCornerstoneElement, 'RectangleRoi')
+  //       savedData.forEach((savedDataItem, savedDataItemIndex) => {
+  //         if (_.findIndex(preBoxes, { uuid: savedDataItem.uuid }) !== -1) {
+  //           savedDataItem.active = toolDataIndex === savedDataItemIndex
+  //           cornerstoneTools.addToolState(preCornerstoneElement, 'RectangleRoi', savedDataItem)
+  //         }
+  //       })
+  //     }
+  //   }
+  // }
+  setCustomRetangleActive(type, noduleNo) {
     if (type === 'cur') {
-      const { registerBoxes, newListsActiveIndex, curBoxes, newCornerstoneElement } = this.state
-      let toolData = cornerstoneTools.getToolState(newCornerstoneElement, 'RectangleRoi')
-      if (toolData && toolData.data && toolData.data.length) {
-        let toolDataIndex = -1
-        if (newListsActiveIndex !== -1) {
-          let curIndex = -1
-          if (registerBoxes && registerBoxes.new && registerBoxes.new.length) {
-            curIndex = _.findIndex(curBoxes, { nodule_no: registerBoxes['new'][newListsActiveIndex].nodule_no })
-          }
-          if (curIndex !== -1) {
-            toolDataIndex = _.findIndex(toolData.data, {
-              uuid: curBoxes[curIndex].uuid,
+      const { newCornerstoneElement, curImageIds, curBoxes } = this.state
+      let curIndex = _.findIndex(curBoxes, { nodule_no: noduleNo })
+      if (curIndex !== -1) {
+        const nodule = curBoxes[curIndex]
+        loadAndCacheImagePlus(curImageIds[nodule.slice_idx], 1).then(() => {
+          let toolData = cornerstoneTools.getToolState(newCornerstoneElement, 'RectangleRoi')
+          if (toolData && toolData.data && toolData.data.length) {
+            const toolDataIndex = _.findIndex(toolData.data, { uuid: nodule.uuid })
+            const savedData = [].concat(toolData.data)
+            cornerstoneTools.clearToolState(newCornerstoneElement, 'RectangleRoi')
+            savedData.forEach((savedDataItem, savedDataItemIndex) => {
+              if (_.findIndex(curBoxes, { uuid: savedDataItem.uuid }) !== -1) {
+                savedDataItem.active = toolDataIndex === savedDataItemIndex
+                cornerstoneTools.addToolState(newCornerstoneElement, 'RectangleRoi', savedDataItem)
+              }
             })
-          }
-        }
-        const savedData = [].concat(toolData.data)
-        cornerstoneTools.clearToolState(newCornerstoneElement, 'RectangleRoi')
-        savedData.forEach((savedDataItem, savedDataItemIndex) => {
-          if (_.findIndex(curBoxes, { uuid: savedDataItem.uuid }) !== -1) {
-            savedDataItem.active = toolDataIndex === savedDataItemIndex
-            cornerstoneTools.addToolState(newCornerstoneElement, 'RectangleRoi', savedDataItem)
           }
         })
       }
     } else if (type === 'pre') {
-      const { registerBoxes, vanishListsActiveIndex, preBoxes, preCornerstoneElement } = this.state
-      let toolData = cornerstoneTools.getToolState(preCornerstoneElement, 'RectangleRoi')
-      if (toolData && toolData.data && toolData.data.length) {
-        let toolDataIndex = -1
-        if (vanishListsActiveIndex !== -1) {
-          let preIndex = -1
-          if (registerBoxes && registerBoxes.vanish && registerBoxes.vanish.length) {
-            preIndex = _.findIndex(preBoxes, { nodule_no: registerBoxes['vanish'][vanishListsActiveIndex].nodule_no })
-          }
-          if (preIndex !== -1) {
-            toolDataIndex = _.findIndex(toolData.data, {
-              uuid: preBoxes[preIndex].uuid,
+      const { preCornerstoneElement, preImageIds, preBoxes } = this.state
+      let preIndex = _.findIndex(preBoxes, { nodule_no: noduleNo })
+      if (preIndex !== -1) {
+        const nodule = preBoxes[preIndex]
+        loadAndCacheImagePlus(preImageIds[nodule.slice_idx], 1).then(() => {
+          let toolData = cornerstoneTools.getToolState(preCornerstoneElement, 'RectangleRoi')
+          if (toolData && toolData.data && toolData.data.length) {
+            const toolDataIndex = _.findIndex(toolData.data, { uuid: nodule.uuid })
+            const savedData = [].concat(toolData.data)
+            cornerstoneTools.clearToolState(preCornerstoneElement, 'RectangleRoi')
+            savedData.forEach((savedDataItem, savedDataItemIndex) => {
+              if (_.findIndex(preBoxes, { uuid: savedDataItem.uuid }) !== -1) {
+                savedDataItem.active = toolDataIndex === savedDataItemIndex
+                cornerstoneTools.addToolState(preCornerstoneElement, 'RectangleRoi', savedDataItem)
+              }
             })
-          }
-        }
-        const savedData = [].concat(toolData.data)
-        cornerstoneTools.clearToolState(preCornerstoneElement, 'RectangleRoi')
-        savedData.forEach((savedDataItem, savedDataItemIndex) => {
-          if (_.findIndex(preBoxes, { uuid: savedDataItem.uuid }) !== -1) {
-            savedDataItem.active = toolDataIndex === savedDataItemIndex
-            cornerstoneTools.addToolState(preCornerstoneElement, 'RectangleRoi', savedDataItem)
           }
         })
       }
@@ -2083,7 +2171,7 @@ class FollowUpElement extends Component {
                 </Col>
               </Row>
               <Row className="register-nodule-card-second" align="middle" wrap={false}>
-                <Col span={2}>{'IM' + newNodule.slice_idx}</Col>
+                <Col span={2}>{`IM ${newNodule.slice_idx + 1}`}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{newNoduleLength.toFixed(1) + '*' + newNoduleWidth.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">{newNodule.volume !== undefined ? Math.floor(newNodule.volume * 1000).toFixed(1) + 'mm³' : null}</div>
@@ -2178,7 +2266,7 @@ class FollowUpElement extends Component {
                 </Col>
               </Row>
               <Row className="register-nodule-card-second" align="middle" justify="center" wrap={false}>
-                <Col span={2}>{'IM' + previousNodule.slice_idx}</Col>
+                <Col span={2}>{`IM ${previousNodule.slice_idx + 1}`}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{preNoduleLength.toFixed(1) + '*' + preNoduleWidth.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">
@@ -2369,7 +2457,7 @@ class FollowUpElement extends Component {
                 </Col>
               </Row>
               <Row className="register-nodule-card-second" align="middle" wrap={false}>
-                <Col span={2}>{'IM ' + value['slice_idx']}</Col>
+                <Col span={2}>{`IM ${value['slice_idx'] + 1}`}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{ll.toFixed(1) + '*' + sl.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">{value.volume !== undefined ? Math.floor(value.volume * 1000).toFixed(1) + 'mm³' : null}</div>
@@ -2539,7 +2627,7 @@ class FollowUpElement extends Component {
               </Row>
 
               <Row className="register-nodule-card-second" align="middle" wrap={false}>
-                <Col span={2}>{'IM ' + value['slice_idx']}</Col>
+                <Col span={2}>{`IM ${value['slice_idx'] + 1}`}</Col>
                 <Col span={8} className="register-nodule-card-second-center">
                   <div className="register-nodule-card-text register-nodule-card-text-length">{ll.toFixed(1) + '*' + sl.toFixed(1) + 'mm'}</div>
                   <div className="register-nodule-card-text register-nodule-card-text-volume">{value.volume !== undefined ? Math.floor(value.volume * 1000).toFixed(1) + 'mm³' : null}</div>
