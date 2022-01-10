@@ -735,9 +735,34 @@ class CornerstoneElement extends Component {
       },
       () => {
         this.template()
+        this.loadAllInfo()
       }
     )
-    loadAndCacheImagePlus(imageIds[cornerImageIdIndex], 1).then((image) => {
+
+    // this.processCenterLine()
+    // this.processOneAirway()
+    // const origin = document.getElementById('origin-canvas')
+    // const canvas = document.getElementById('canvas')
+    // console.log('origin-canvas',canvas)
+    // const canvas_ROI = document.createElement('canvas')
+    // canvas_ROI.id = 'canvasROI'
+    // canvas_ROI.height = 500
+    // canvas_ROI.width = 500
+    // origin.appendChild(canvas_ROI)
+    // canvas_ROI.style.position = 'absolute'
+  }
+  async loadAllInfo() {
+    const token = localStorage.getItem('token')
+    const headers = {
+      Authorization: 'Bearer '.concat(token),
+    }
+    const {imageIds, cornerImageIdIndex, nodules} = this.state
+    console.log('imageIds', this.state.imageIds, this.state.imageIds[cornerImageIdIndex])
+    if (this.state.imageIds && this.state.imageIds.length) {
+      console.log('imageIds')
+    }
+    cornerstone.loadAndCacheImage(imageIds[cornerImageIdIndex]).then((image) => {
+      console.log('first imageId')
       const imageData = image.data
       const patientId = imageData.string('x00100020')
       this.setState({
@@ -898,7 +923,7 @@ class CornerstoneElement extends Component {
             listLoading: listLoading,
           })
           urls.forEach((item, index) => {
-            this.DownloadSegment(item.index)
+            this.DownloadSegment(item.index, urls)
           })
         } else {
           this.setState({
@@ -909,13 +934,13 @@ class CornerstoneElement extends Component {
       .catch((error) => {
         console.log(error)
       })
-    // function sortByProp(prop) {
-    //   return function (a, b) {
-    //     var value1 = a[prop]
-    //     var value2 = b[prop]
-    //     return value1 - value2
-    //   }
-    // }
+    function sortByProp(prop) {
+      return function (a, b) {
+        var value1 = a[prop]
+        var value2 = b[prop]
+        return value1 - value2
+      }
+    }
 
     axios
       .post(
@@ -1102,19 +1127,7 @@ class CornerstoneElement extends Component {
           this.processCenterLine(coos)
         }
       })
-    // this.processCenterLine()
-    // this.processOneAirway()
-    // const origin = document.getElementById('origin-canvas')
-    // const canvas = document.getElementById('canvas')
-    // console.log('origin-canvas',canvas)
-    // const canvas_ROI = document.createElement('canvas')
-    // canvas_ROI.id = 'canvasROI'
-    // canvas_ROI.height = 500
-    // canvas_ROI.width = 500
-    // origin.appendChild(canvas_ROI)
-    // canvas_ROI.style.position = 'absolute'
   }
-
   componentWillUnmount() {
     console.log('remove')
 
@@ -1139,7 +1152,8 @@ class CornerstoneElement extends Component {
     window.removeEventListener('mousedown', this.mousedownFunc.bind(this))
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  async componentDidUpdate(prevProps, prevState) {
+
     if (prevProps.needUpdateLoadedImages !== this.props.needUpdateLoadedImages) {
       if (this.props.loadedImages) {
         const loadedCaseIds = Object.keys(this.props.loadedImages)
@@ -1736,16 +1750,16 @@ class CornerstoneElement extends Component {
     // console.log("actor:", actor)
     return actor
   }
-  DownloadSegment(idx) {
+  DownloadSegment(idx, urls) {
     const progressCallback = (progressEvent) => {
       const percent = Math.floor((100 * progressEvent.loaded) / progressEvent.total)
       const tmp_percent = this.state.percent
       tmp_percent[idx] = percent
       this.setState({ percent: tmp_percent })
     }
-    const color = this.state.urls[idx].color
-    const cl = this.state.urls[idx].class
-    const cur_url = this.state.urls[idx].url + '?caseId=' + this.state.caseId
+    const color = urls[idx].color
+    const cl = urls[idx].class
+    const cur_url = urls[idx].url + '?caseId=' + this.state.caseId
     HttpDataAccessHelper.fetchBinary(cur_url.replace('#', '%23'), {
       progressCallback,
     }).then((binary) => {
