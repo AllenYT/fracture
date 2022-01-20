@@ -756,7 +756,7 @@ class CornerstoneElement extends Component {
     const headers = {
       Authorization: 'Bearer '.concat(token),
     }
-    const {imageIds, cornerImageIdIndex, nodules} = this.state
+    const { imageIds, cornerImageIdIndex, nodules } = this.state
     console.log('imageIds', this.state.imageIds, this.state.imageIds[cornerImageIdIndex])
     if (this.state.imageIds && this.state.imageIds.length) {
       console.log('imageIds')
@@ -1153,7 +1153,6 @@ class CornerstoneElement extends Component {
   }
 
   async componentDidUpdate(prevProps, prevState) {
-
     if (prevProps.needUpdateLoadedImages !== this.props.needUpdateLoadedImages) {
       if (this.props.loadedImages) {
         const loadedCaseIds = Object.keys(this.props.loadedImages)
@@ -1920,6 +1919,11 @@ class CornerstoneElement extends Component {
             if (document.getElementById('ct-image-block')) {
               const ctImageBlock = document.getElementById('ct-image-block')
               const ctImageBlockHeight = ctImageBlock.clientHeight
+              // console.log('resizeScreen', this.state.imageIds)
+              // const firstImageId = this.state.imageIds[this.state.imageIds - 1]
+              // cornerstone.loadImage(firstImageId).then((img) => {
+              //   console.log('scale img', img)
+              // })
               const cornerViewport = {
                 ...this.state.cornerViewport,
                 scale: ctImageBlockHeight / 512,
@@ -2029,7 +2033,10 @@ class CornerstoneElement extends Component {
     if (document.getElementById('ct-image-block')) {
       const ctImageBlock = document.getElementById('ct-image-block')
       const ctImageBlockHeight = ctImageBlock.clientHeight
-      console.log('onResetView', ctImageBlockHeight, ctImageBlockHeight / 512)
+      const firstImageId = this.state.imageIds[this.state.imageIds - 1]
+      cornerstone.loadImage(firstImageId).then((img) => {
+        console.log('scale img', img)
+      })
       cornerViewport.scale = ctImageBlockHeight / 512
       this.setState({
         cornerViewport,
@@ -8659,7 +8666,7 @@ class CornerstoneElement extends Component {
   }
   createAirwayVolumes() {
     const points = this.state.points
-    const outputExtent = [512, 512]
+    const outputExtent = [512, 512] //*
     const outputSpacing = [0.7, 0.7]
     const number = points.length > 30 ? 30 : points.length
     const { tangents, normals } = frenet(points)
@@ -8804,8 +8811,7 @@ class CornerstoneElement extends Component {
   }
   generateLines() {
     const p1 = [180, 0, 0]
-    const p2 = [180, 512, 0]
-
+    const p2 = [180, 512, 0] //*
     const lineSource = vtkLineSource.newInstance({ resolution: 10 })
     lineSource.setPoint1(p1)
     lineSource.setPoint2(p2)

@@ -19,6 +19,7 @@ class SubList extends Component {
       activeIndex: -1,
       cart: new Set(),
       show: false,
+      dataValidContnt: [],
       contextRef: props.contextRef,
       random: Math.random(),
     }
@@ -83,11 +84,50 @@ class SubList extends Component {
     })
   }
 
-  handleClick = (e, titleProps) => {
-    const { index } = titleProps
-    const { activeIndex } = this.state
+  async handleClick(e, titleProps) {
+    const { index, studyAry } = titleProps
+    const { activeIndex, subList } = this.state
     const newIndex = activeIndex === index ? -1 : index
     this.setState({ activeIndex: newIndex })
+    //dataValid
+    console.log(index, 'subList', this.state.subList, this.state.subList.length)
+    // var for_i = 0
+    // var studyAry
+    // for (const subKey in subList) {
+    //   if (for_i === index) {
+    //     studyAry = subList[subKey]
+
+    //     console.log('studyAry', subList, studyAry)
+    //   } else {
+    //     for_i += 1
+    //   }
+    // }
+    const content = studyAry
+    const token = localStorage.getItem('token')
+    const headers = {
+      Authorization: 'Bearer '.concat(token),
+    }
+    var dataValidContnt = []
+    for (var i = 0; i < content.length; i++) {
+      console.log('content', content[i]['caseId'])
+      const params = {
+        caseId: content[i]['caseId'],
+      }
+      const validInfo = new Promise((resolve, reject) => {
+        axios.post(this.config.draft.dataValid, qs.stringify(params)).then((validResponse) => {
+          const validInfo = validResponse.data
+          let validContent = {
+            caseId: params.caseId,
+            validInfo: validInfo,
+          }
+          resolve(validContent)
+        }, reject)
+      })
+      dataValidContnt[i] = await validInfo
+    }
+
+    console.log('sublist dataValidContnt', dataValidContnt)
+    this.setState({ dataValidContnt: dataValidContnt })
   }
 
   handlePidClick() {
@@ -181,12 +221,8 @@ class SubList extends Component {
   }
 
   render() {
-    const subList = this.state.subList
-
-    const hint = this.state.hint
-    const mainItem = this.props.mainItem
-    const cart = this.state.cart
-    // console.log("cart", this.state.cart);
+    const { subList, hint, mainItem, cart, dataValidContnt } = this.state
+    console.log('render dataValidContnt', this.state.dataValidContnt)
 
     let panels = []
     let idx = 0
@@ -203,7 +239,7 @@ class SubList extends Component {
       const len = studyAry.length
       panels.push(
         <div key={idx}>
-          <Accordion.Title className="space" active={this.state.activeIndex === idx} index={idx} onClick={this.handleClick}>
+          <Accordion.Title className="space" active={this.state.activeIndex === idx} index={idx} studyAry={studyAry} onClick={this.handleClick}>
             <div style={{ display: 'inline-block', width: '10%' }}>
               <Icon name={icon} />
             </div>
@@ -225,7 +261,9 @@ class SubList extends Component {
             </div>
           </Accordion.Title>
           <Accordion.Content active={this.state.activeIndex === idx}>
-            <SeriesIdList cart={cart} parent={this} content={studyAry} contextRef={this.state.contextRef} pid={mainItem} />
+            {dataValidContnt && dataValidContnt.length ? (
+              <SeriesIdList cart={cart} parent={this} content={studyAry} contextRef={this.state.contextRef} pid={mainItem} dataValidContnt={dataValidContnt} />
+            ) : null}
           </Accordion.Content>
         </div>
       )
