@@ -347,6 +347,7 @@ class CornerstoneElement extends Component {
       cornerActiveTool: 'StackScroll',
       cornerIsOverlayVisible: true,
       cornerAnnoVisible: true,
+      cornerBiVisible: false,
       cornerElement: null,
       cornerViewport: {
         scale: 2,
@@ -702,7 +703,7 @@ class CornerstoneElement extends Component {
         item.delOpen = false
         item.visible = true
         item.recVisible = true
-        item.biVisible = true
+        item.biVisible = false
         item.checked = false
         noduleMarks[item.slice_idx] = ''
       })
@@ -2033,10 +2034,6 @@ class CornerstoneElement extends Component {
     if (document.getElementById('ct-image-block')) {
       const ctImageBlock = document.getElementById('ct-image-block')
       const ctImageBlockHeight = ctImageBlock.clientHeight
-      const firstImageId = this.state.imageIds[this.state.imageIds - 1]
-      cornerstone.loadImage(firstImageId).then((img) => {
-        console.log('scale img', img)
-      })
       cornerViewport.scale = ctImageBlockHeight / 512
       this.setState({
         cornerViewport,
@@ -2129,7 +2126,10 @@ class CornerstoneElement extends Component {
     const { boxes } = this.state
     boxes.forEach((boxItem, boxIndex) => {
       boxItem.recVisible = visible
-      boxItem.biVisible = visible
+      if (!visible) {
+        boxItem.biVisible = visible
+      }
+      // boxItem.biVisible = visible
     })
     this.setState({
       boxes,
@@ -2137,6 +2137,7 @@ class CornerstoneElement extends Component {
       cornerAnnoVisible: visible,
     })
   }
+
   onSetOverlayVisible(visible) {
     this.setState({
       cornerIsOverlayVisible: visible,
@@ -3179,7 +3180,7 @@ class CornerstoneElement extends Component {
   onSetNoduleMeasureVisible(idx, visible) {
     const { boxes } = this.state
     boxes[idx].biVisible = visible
-    boxes[idx].recVisible = visible
+    // boxes[idx].recVisible = visible
     if (visible) {
       this.setState(
         {
@@ -4889,7 +4890,7 @@ class CornerstoneElement extends Component {
       visibleIdx,
       visible: true,
       recVisible: true,
-      biVisible: true,
+      biVisible: false,
       checked: false,
     }
     boxes.push(newBoxItem)
@@ -5049,7 +5050,7 @@ class CornerstoneElement extends Component {
       y3: handles.perpendicularStart.y,
       y4: handles.perpendicularEnd.y,
     }
-    boxes[boxIndex].biVisible = true
+    boxes[boxIndex].biVisible = false
     boxes[boxIndex].biuuid = data.uuid
     this.setState({
       boxes,
@@ -5286,6 +5287,7 @@ class CornerstoneElement extends Component {
       cornerIsOverlayVisible,
       cornerViewport,
       cornerAnnoVisible,
+      cornerBiVisible,
       loadedImagePercent,
       drawingNodulesCompleted,
       drawingLymphsCompleted,
@@ -5959,7 +5961,7 @@ class CornerstoneElement extends Component {
                             <Button basic icon title="擦除测量" active color="green" onClick={this.clearNoduleMeasure.bind(this, idx)}>
                               <Icon inverted color="green" name="eraser"></Icon>
                             </Button>
-                            {inside.recVisible || inside.biVisible ? (
+                            {/* {inside.recVisible && inside.biVisible ? (
                               <Button basic icon title="隐藏测量" active color="blue" onClick={this.onSetNoduleMeasureVisible.bind(this, idx, false)}>
                                 <Icon inverted color="blue" name="eye slash"></Icon>
                               </Button>
@@ -5967,7 +5969,18 @@ class CornerstoneElement extends Component {
                               <Button basic icon title="显示测量" active color="blue" onClick={this.onSetNoduleMeasureVisible.bind(this, idx, true)}>
                                 <Icon inverted color="blue" name="eye"></Icon>
                               </Button>
-                            )}
+                            )} */}
+                            {inside.recVisible ? (
+                              inside.biVisible ? (
+                                <Button basic icon title="隐藏测量" active color="blue" onClick={this.onSetNoduleMeasureVisible.bind(this, idx, false)}>
+                                  <Icon inverted color="blue" name="eye slash"></Icon>
+                                </Button>
+                              ) : (
+                                <Button basic icon title="显示测量" active color="blue" onClick={this.onSetNoduleMeasureVisible.bind(this, idx, true)}>
+                                  <Icon inverted color="blue" name="eye"></Icon>
+                                </Button>
+                              )
+                            ) : null}
                             <Popup
                               on="click"
                               trigger={
