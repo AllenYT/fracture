@@ -18,9 +18,9 @@ import './App.css'
 const preloadState = {}
 
 const middleware = [thunk, promiseMiddleware]
-if (process.env.NODE_ENV !== 'production') {
-  middleware.push(createLogger())
-}
+// if (process.env.NODE_ENV !== 'production') {
+//   middleware.push(createLogger())
+// }
 const store = createStore(reducer, preloadState, applyMiddleware(...middleware))
 // store.dispatch(getConfigJson(process.env.PUBLIC_URL + "/config.json"))
 

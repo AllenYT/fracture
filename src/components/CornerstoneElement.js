@@ -350,7 +350,7 @@ class CornerstoneElement extends Component {
       cornerBiVisible: false,
       cornerElement: null,
       cornerViewport: {
-        scale: 2,
+        scale: 1,
         invert: false,
         pixelReplication: false,
         voi: {
@@ -361,6 +361,10 @@ class CornerstoneElement extends Component {
           x: 0,
           y: 0,
         },
+      },
+      cornerImageSize: {
+        rows: 512,
+        columns: 512
       },
       loadedImagePercent: 0,
       studyListShowed: false,
@@ -758,16 +762,21 @@ class CornerstoneElement extends Component {
       Authorization: 'Bearer '.concat(token),
     }
     const { imageIds, cornerImageIdIndex, nodules } = this.state
-    console.log('imageIds', this.state.imageIds, this.state.imageIds[cornerImageIdIndex])
-    if (this.state.imageIds && this.state.imageIds.length) {
-      console.log('imageIds')
-    }
+    // console.log('imageIds', this.state.imageIds, this.state.imageIds[cornerImageIdIndex])
     cornerstone.loadAndCacheImage(imageIds[cornerImageIdIndex]).then((image) => {
-      console.log('first imageId')
+      console.log('first imageId', image)
       const imageData = image.data
       const patientId = imageData.string('x00100020')
+      const cornerImageRows = image.rows
+      const cornerImageColumns = image.columns
+      const cornerImageSize = {
+        rows: cornerImageRows,
+        columns: cornerImageColumns
+      }
+      
       this.setState({
         patientId,
+        cornerImageSize,
       })
     })
     executeTask()
@@ -1179,6 +1188,10 @@ class CornerstoneElement extends Component {
     }
     if (!prevState.patientId && this.state.patientId) {
       this.loadStudyBrowser()
+    }
+    if (prevState.cornerImageSize !== this.state.cornerImageSize){
+      console.log("first imageId need reset")
+      this.onResetView()
     }
     // if (!prevState.cornerViewport !== this.state.cornerViewport) {
     //   const { cornerElement, cornerViewport } = this.state
@@ -1920,6 +1933,7 @@ class CornerstoneElement extends Component {
             if (document.getElementById('ct-image-block')) {
               const ctImageBlock = document.getElementById('ct-image-block')
               const ctImageBlockHeight = ctImageBlock.clientHeight
+              const cornerImageSize = this.state.cornerImageSize
               // console.log('resizeScreen', this.state.imageIds)
               // const firstImageId = this.state.imageIds[this.state.imageIds - 1]
               // cornerstone.loadImage(firstImageId).then((img) => {
@@ -1927,7 +1941,7 @@ class CornerstoneElement extends Component {
               // })
               const cornerViewport = {
                 ...this.state.cornerViewport,
-                scale: ctImageBlockHeight / 512,
+                scale: ctImageBlockHeight / cornerImageSize.rows,
               }
               this.setState({
                 cornerViewport,
@@ -2034,10 +2048,18 @@ class CornerstoneElement extends Component {
     if (document.getElementById('ct-image-block')) {
       const ctImageBlock = document.getElementById('ct-image-block')
       const ctImageBlockHeight = ctImageBlock.clientHeight
-      cornerViewport.scale = ctImageBlockHeight / 512
+      const cornerImageSize = this.state.cornerImageSize
+      // const firstImageId = this.state.imageIds[0]
+      // cornerstone.loadImage(firstImageId).then((img) => {
+      //   const defView = cornerstone.getDefaultViewport(this.state.cornerElement, img)
+      //   defView.scale = ctImageBlockHeight / 1024
+      //   cornerstone.displayImage(this.state.cornerElement, img, defView)
+      // })
+      cornerViewport.scale = ctImageBlockHeight / cornerImageSize.columns
       this.setState({
         cornerViewport,
       })
+
     }
   }
 
@@ -6466,33 +6488,24 @@ class CornerstoneElement extends Component {
       if (dateSeries && dateSeries.length) {
         previewContent = dateSeries.map((item, index) => {
           const vSeries = item.map((serie, serieIndex) => {
-            var validStatus = serie.validInfo.status
-            var validInfo = serie.validInfo.message
-            var statusIcon
+            let validStatus = serie.validInfo.status
+            let validInfo = serie.validInfo.message
+            let statusIcon
             if (validStatus === 'failed') {
               if (validInfo === 'Files been manipulated') {
                 statusIcon = (
-                  <div>
                     <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-                    &nbsp;
-                    <p>影像发生篡改</p>
-                  </div>
+                    // <p>影像发生篡改</p>
                 )
               } else if (validInfo === 'Errors occur during preprocess') {
                 statusIcon = (
-                  <div>
                     <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-                    &nbsp;
-                    <p>软件预处理出错</p>
-                  </div>
+                    // <p>软件预处理出错</p>
                 )
               } else if (validInfo === 'caseId not found') {
                 statusIcon = (
-                  <div>
                     <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-                    &nbsp;
-                    <p>数据未入库</p>
-                  </div>
+                    // <p>数据未入库</p>
                 )
               }
             } else if (validStatus === 'ok') {

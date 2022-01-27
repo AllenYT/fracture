@@ -67,7 +67,7 @@ class PreviewElement extends Component {
       var viewport = cornerstone.getDefaultViewportForImage(element, image)
       viewport.voi.windowWidth = 1600
       viewport.voi.windowCenter = -600
-      viewport.scale = 110 / 512
+      viewport.scale = 110 / image.columns 
       cornerstone.setViewport(element, viewport)
       cornerstone.displayImage(element, image)
     })
