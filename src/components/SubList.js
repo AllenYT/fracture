@@ -222,7 +222,7 @@ class SubList extends Component {
 
   render() {
     const { subList, hint, mainItem, cart, dataValidContnt } = this.state
-    console.log('render dataValidContnt', this.state.dataValidContnt)
+    // console.log('render dataValidContnt', this.state.dataValidContnt)
 
     let panels = []
     let idx = 0
@@ -235,7 +235,7 @@ class SubList extends Component {
     // console.log("subList", subList);
     for (const subKey in subList) {
       const studyAry = subList[subKey]
-      console.log('studyAry', studyAry)
+      // console.log('studyAry', studyAry)
       const len = studyAry.length
       panels.push(
         <div key={idx}>

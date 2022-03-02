@@ -81,6 +81,27 @@
   text-align: center;
   margin-top: 10px;
   margin-bottom: 50px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+.searchBar :hover {
+  cursor: default;
+}
+.searchBar-slider {
+  width: 50px;
+}
+.searchBar-slider :hover {
+  cursor: default;
+}
+.searchBar .ant-slider-disabled {
+  cursor: default !important;
+}
+.searchBar .ant-slider-handle {
+  width: 20px;
+  height: 20px;
+  margin-top: -8px;
+  cursor: default !important;
 }
 #queuestyle .ant-select {
   color: whitesmoke !important;

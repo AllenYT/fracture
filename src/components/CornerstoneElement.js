@@ -15,7 +15,7 @@ import { Icon, Button, Accordion, Modal, Dropdown, Menu, Label, Header, Popup, T
 import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
 import qs from 'qs'
 import axios from 'axios'
-import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Cascader, Radio, Row, Col, Form as AntdForm, Input } from 'antd'
+import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Cascader, Radio, Row, Col, Form as AntdForm, Input, Tooltip } from 'antd'
 import * as echarts from 'echarts'
 import html2pdf from 'html2pdf.js'
 import copy from 'copy-to-clipboard'
@@ -364,7 +364,7 @@ class CornerstoneElement extends Component {
       },
       cornerImageSize: {
         rows: 512,
-        columns: 512
+        columns: 512,
       },
       loadedImagePercent: 0,
       studyListShowed: false,
@@ -478,6 +478,7 @@ class CornerstoneElement extends Component {
       ],
       nodulesAllSelected: true,
       ctImagePadding: 0,
+      menuNowPage: 1,
       menuButtonsWidth: 1540,
       menuScrollable: false,
       menuTransform: 0,
@@ -771,9 +772,9 @@ class CornerstoneElement extends Component {
       const cornerImageColumns = image.columns
       const cornerImageSize = {
         rows: cornerImageRows,
-        columns: cornerImageColumns
+        columns: cornerImageColumns,
       }
-      
+
       this.setState({
         patientId,
         cornerImageSize,
@@ -1189,8 +1190,8 @@ class CornerstoneElement extends Component {
     if (!prevState.patientId && this.state.patientId) {
       this.loadStudyBrowser()
     }
-    if (prevState.cornerImageSize !== this.state.cornerImageSize){
-      console.log("first imageId need reset")
+    if (prevState.cornerImageSize !== this.state.cornerImageSize) {
+      console.log('first imageId need reset')
       this.onResetView()
     }
     // if (!prevState.cornerViewport !== this.state.cornerViewport) {
@@ -1903,7 +1904,7 @@ class CornerstoneElement extends Component {
       windowHeight: document.body.clientHeight,
       verticalMode,
     })
-    // this.menuButtonsCalc()
+    this.menuButtonsCalc()
     if (document.getElementById('corner-top-row')) {
       const cornerTopRow = document.getElementById('corner-top-row')
       const cornerTopRowHeight = cornerTopRow.clientHeight
@@ -1958,8 +1959,8 @@ class CornerstoneElement extends Component {
     const userWidth = document.getElementById('menu-item-user').clientWidth
     const menuButtonsWidth = screenWidth - logoWidth - userWidth //可视宽度
     const menuItemButtons = document.getElementById('menu-item-buttons')
-    // console.log('buttons', screenWidth, logoWidth, userWidth, menuButtonsWidth)
-    // console.log('buttons', menuItemButtons.scrollWidth, menuItemButtons.clientWidth)
+    console.log('buttons', screenWidth, logoWidth, userWidth, menuButtonsWidth)
+    console.log('buttons', menuItemButtons.scrollWidth, menuItemButtons.clientWidth)
     const menuTotalPages = Math.ceil(menuItemButtons.scrollWidth / menuButtonsWidth)
     let menuNowPage = this.state.menuNowPage
     let menuTransform = this.state.menuTransform
@@ -1968,7 +1969,7 @@ class CornerstoneElement extends Component {
       menuTransform = (menuNowPage - 1) * menuButtonsWidth
     }
     const menuScrollable = menuTotalPages > 1
-    // console.log('buttons', menuTotalPages, menuScrollable)
+    console.log('buttons', menuNowPage, menuTotalPages, menuScrollable)
     this.setState({
       menuButtonsWidth,
       menuScrollable,
@@ -2059,7 +2060,6 @@ class CornerstoneElement extends Component {
       this.setState({
         cornerViewport,
       })
-
     }
   }
 
@@ -4073,17 +4073,40 @@ class CornerstoneElement extends Component {
   }
   onMenuPageUp() {
     const { menuButtonsWidth, menuNowPage, menuTransform } = this.state
+    let borderWidth = 0;
+    if(document.getElementsByClassName('func-btn') && document.getElementsByClassName('func-btn').length > 0){
+      const funcBtns = document.getElementsByClassName('func-btn')
+      let funcBtnIndex = 0;
+      while(borderWidth < menuButtonsWidth){
+        borderWidth += funcBtns[funcBtnIndex].clientWidth
+        funcBtnIndex++
+      }
+      if(borderWidth > menuButtonsWidth && funcBtnIndex > 0){
+        borderWidth -= funcBtns[funcBtnIndex - 1].clientWidth
+      }      
+    }
     this.setState({
       menuNowPage: menuNowPage - 1,
-      menuTransform: menuTransform - menuButtonsWidth,
+      menuTransform: menuTransform - borderWidth,
     })
   }
   onMenuPageDown() {
     const { menuButtonsWidth, menuNowPage, menuTransform } = this.state
-
+    let borderWidth = 0;
+    if(document.getElementsByClassName('func-btn') && document.getElementsByClassName('func-btn').length > 0){
+      const funcBtns = document.getElementsByClassName('func-btn')
+      let funcBtnIndex = 0;
+      while(borderWidth < menuButtonsWidth){
+        borderWidth += funcBtns[funcBtnIndex].clientWidth
+        funcBtnIndex++
+      }
+      if(borderWidth > menuButtonsWidth && funcBtnIndex > 0){
+        borderWidth -= funcBtns[funcBtnIndex - 1].clientWidth
+      }      
+    }
     this.setState({
       menuNowPage: menuNowPage + 1,
-      menuTransform: menuTransform + menuButtonsWidth,
+      menuTransform: menuTransform + borderWidth,
     })
   }
   setPdfReading(pdfReading) {
@@ -5924,6 +5947,9 @@ class CornerstoneElement extends Component {
               </Grid.Column> */}
                         <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? `${(inside.volume * 1e3).toFixed(2)}mm³` : null}</div>
                         <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
+                        <div className={'nodule-accordion-item-content-info-prob' + ` nodule-accordion-item-content-info-prob-${inside.malignancy}`}>
+                          {inside.malProb !== undefined ? `${(inside.malProb * 100).toFixed(1)}%` : null}
+                        </div>
                       </div>
                       {/* <Grid.Column widescreen={3} computer={3} textAlign='center'>
                                           <select id={texId} style={selectStyle} defaultValue="" disabled>
@@ -6494,18 +6520,18 @@ class CornerstoneElement extends Component {
             if (validStatus === 'failed') {
               if (validInfo === 'Files been manipulated') {
                 statusIcon = (
-                    <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-                    // <p>影像发生篡改</p>
+                  <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
+                  // <p>影像发生篡改</p>
                 )
               } else if (validInfo === 'Errors occur during preprocess') {
                 statusIcon = (
-                    <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-                    // <p>软件预处理出错</p>
+                  <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
+                  // <p>软件预处理出错</p>
                 )
               } else if (validInfo === 'caseId not found') {
                 statusIcon = (
-                    <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-                    // <p>数据未入库</p>
+                  <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
+                  // <p>数据未入库</p>
                 )
               }
             } else if (validStatus === 'ok') {

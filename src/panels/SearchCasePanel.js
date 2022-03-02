@@ -1,6 +1,6 @@
 import React, { Component } from 'react'
 import { Pagination, Input, Grid, Checkbox, Button, Icon, Header, Dropdown } from 'semantic-ui-react'
-import { notification, Select } from 'antd'
+import { notification, Select, Slider } from 'antd'
 import MainList from '../components/MainList'
 import '../css/searchCasePanel.css'
 import axios from 'axios'
@@ -20,11 +20,15 @@ export class SearchPanel extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      checked: false,
+      searchType: 1,
+      activeType: 'pid',
+      activeTypeConfirmed: 'pid',
       activePage: 1,
       totalPage: 1,
       pidKeyword: '',
       dateKeyword: '',
+      pidKeywordConfirmed: '',
+      dateKeywordConfirmed: '',
       // searchResults: true,
       queue: [],
       chooseQueue: '不限队列',
@@ -40,7 +44,6 @@ export class SearchPanel extends Component {
     this.handlePaginationChange = this.handlePaginationChange.bind(this)
     this.handleInputChange = this.handleInputChange.bind(this)
 
-    this.handleCheckbox = this.handleCheckbox.bind(this)
     this.startDownload = this.startDownload.bind(this)
     this.getQueue = this.getQueue.bind(this)
     this.onKeyDown = this.onKeyDown.bind(this)
@@ -50,7 +53,7 @@ export class SearchPanel extends Component {
   }
 
   async componentDidMount() {
-    this.getTotalPages()
+    this.getTotalPages('pid', '', '')
     this.getQueue()
     document.addEventListener('keydown', this.onKeyDown)
   }
@@ -81,15 +84,14 @@ export class SearchPanel extends Component {
     //     }
     // }
 
-    if (prevState.chooseQueue !== this.state.chooseQueue) {
-      this.getTotalPages()
+    if (prevState.searchType != this.state.searchType) {
+      this.confirmSearch()
     }
 
-    if (prevState.checked !== this.state.checked) {
-      // console.log('true')
-      // this.setState({searchResults: true})
-      this.getTotalPages()
+    if (prevState.chooseQueue !== this.state.chooseQueue) {
+      this.confirmSearch()
     }
+
     if (prevState.activePageQueue != this.state.activePageQueue) {
       let activeQueue = []
       let i = 0
@@ -109,53 +111,92 @@ export class SearchPanel extends Component {
       if (event.path.length > 1 && event.path[0].id === 'queueDropdown') {
         return
       }
+      this.confirmSearch()
       // console.log("checked", this.state.checked)
-      if (this.state.checked) {
-        // search by date
-        if (!document.getElementById('date-search')) {
-          return
-        }
-        const dateValue = document.getElementById('date-search').value
-        let dateRegex = new RegExp('^([0-9]){0,8}$')
-        if (dateRegex.test(dateValue)) {
-          this.setState({
-            activePage: 1,
-            dateKeyword: dateValue,
-            search: true,
-          })
-          this.getTotalPages()
-          this.setState({ search: false })
-        } else {
-          notification.warning({
-            top: 48,
-            duration: 6,
-            message: '提醒',
-            description: '输入日期应不超过8个字符，且仅支持数字',
-          })
-        }
+    }
+  }
+
+  confirmSearch() {
+    const searchType = this.state.searchType
+
+    if (searchType === 3) {
+      // search by date
+      if (!document.getElementById('date-search')) {
+        return
+      }
+      const dateValue = document.getElementById('date-search').value
+      let dateRegex = new RegExp('^([0-9]){0,8}$')
+      if (dateRegex.test(dateValue)) {
+        this.setState({
+          activePage: 1,
+          dateKeywordConfirmed: dateValue,
+          activeTypeConfirmed: 'date',
+          search: true,
+        })
+        this.getTotalPages('date', '', dateValue)
+        this.setState({ search: false })
       } else {
-        // search by patient
-        if (!document.getElementById('patient-search')) {
-          return
-        }
-        const patientValue = document.getElementById('patient-search').value
-        let patientRegex = new RegExp('^([a-zA-Z0-9_#]){0,32}$')
-        if (patientRegex.test(patientValue)) {
-          this.setState({
-            activePage: 1,
-            pidKeyword: patientValue,
-            search: true,
-          })
-          this.getTotalPages()
-          this.setState({ search: false })
-        } else {
-          notification.warning({
-            top: 48,
-            duration: 6,
-            message: '提醒',
-            description: '病人ID不超过32个字符，且仅支持字母、数字、"#"和"_"',
-          })
-        }
+        notification.warning({
+          top: 48,
+          duration: 6,
+          message: '提醒',
+          description: '输入日期应不超过8个字符，且仅支持数字',
+        })
+      }
+    } else if (searchType === 1) {
+      // search by patient
+      if (!document.getElementById('patient-search')) {
+        return
+      }
+      const patientValue = document.getElementById('patient-search').value
+      let patientRegex = new RegExp('^([a-zA-Z0-9_#]){0,32}$')
+      if (patientRegex.test(patientValue)) {
+        this.setState({
+          activePage: 1,
+          pidKeywordConfirmed: patientValue,
+          activeTypeConfirmed: 'pid',
+          search: true,
+        })
+        this.getTotalPages('pid', patientValue, '')
+        this.setState({ search: false })
+      } else {
+        notification.warning({
+          top: 48,
+          duration: 6,
+          message: '提醒',
+          description: '病人ID不超过32个字符，且仅支持字母、数字、"#"和"_"',
+        })
+      }
+    } else if (searchType === 2) {
+      const dateValue = document.getElementById('date-search').value
+      let dateRegex = new RegExp('^([0-9]){0,8}$')
+      const patientValue = document.getElementById('patient-search').value
+      let patientRegex = new RegExp('^([a-zA-Z0-9_#]){0,32}$')
+      if (!patientRegex.test(patientValue)) {
+        notification.warning({
+          top: 48,
+          duration: 6,
+          message: '提醒',
+          description: '病人ID不超过32个字符，且仅支持字母、数字、"#"和"_"',
+        })
+      } else if (!dateRegex.test(dateValue)) {
+        notification.warning({
+          top: 48,
+          duration: 6,
+          message: '提醒',
+          description: '输入日期应不超过8个字符，且仅支持数字',
+        })
+      } else {
+        this.setState({
+          activePage: 1,
+          pidKeywordConfirmed: patientValue,
+          dateKeywordConfirmed: dateValue,
+          activeTypeConfirmed: this.state.activeType,
+          search: true,
+        })
+
+        this.getTotalPages(this.state.activeType, patientValue, dateValue)
+        this.setState({ search: false })
       }
     }
   }
@@ -199,20 +240,18 @@ export class SearchPanel extends Component {
       })
   }
 
-  getTotalPages() {
+  getTotalPages(type, pidKeyword, dateKeyword) {
+    const searchType = this.state.searchType
     if (this.state.chooseQueue === '不限队列') {
       const token = localStorage.getItem('token')
       const headers = {
         Authorization: 'Bearer '.concat(token),
       }
-      let type = 'pid'
-      if (this.state.checked) {
-        type = 'date'
-      }
+
       const params = {
-        type: type,
-        pidKeyword: this.state.pidKeyword,
-        dateKeyword: this.state.dateKeyword,
+        type,
+        pidKeyword,
+        dateKeyword,
       }
 
       axios
@@ -233,14 +272,10 @@ export class SearchPanel extends Component {
         })
         .catch((error) => console.log(error))
     } else {
-      let type = 'pid'
-      if (this.state.checked) {
-        type = 'date'
-      }
       const params = {
-        type: type,
-        pidKeyword: this.state.pidKeyword,
-        dateKeyword: this.state.dateKeyword,
+        type,
+        pidKeyword,
+        dateKeyword,
         username: localStorage.getItem('username'),
         subsetName: this.state.chooseQueue,
       }
@@ -266,6 +301,23 @@ export class SearchPanel extends Component {
     })
     this.setState({ activePage: 1 })
   }
+  handleSliderChange(value) {
+    this.setState({
+      searchType: value / 10,
+    })
+    this.setState({ activePage: 1 })
+  }
+
+  handleSliderClick(e) {
+    console.log('click')
+    let searchType = this.state.searchType + 1
+    if (searchType > 3) {
+      searchType = 1
+    }
+    this.setState({
+      searchType,
+    })
+  }
 
   handleInputChange(e) {
     const value = e.currentTarget.value
@@ -274,9 +326,15 @@ export class SearchPanel extends Component {
     // var reg = new RegExp("^[A-Za-z0-9]+$");
     // if (name === "pid" && !isNaN(value)) {
     if (name === 'pid') {
-      this.setState({ pidKeyword: value })
+      this.setState({
+        pidKeyword: value,
+        activeType: 'pid',
+      })
     } else if (name === 'date') {
-      this.setState({ dateKeyword: value })
+      this.setState({
+        dateKeyword: value,
+        activeType: 'date',
+      })
     }
   }
 
@@ -396,12 +454,20 @@ export class SearchPanel extends Component {
   }
 
   render() {
-    const { activePage } = this.state
-    const isChecked = this.state.checked
-    let type = 'pid'
-
-    if (isChecked) {
+    const { searchType } = this.state
+    let type, pidKeyword, dateKeyword
+    if (searchType === 1) {
+      type = 'pid'
+      pidKeyword = this.state.pidKeywordConfirmed
+      dateKeyword = ''
+    } else if (searchType === 2) {
+      type = this.state.activeTypeConfirmed
+      pidKeyword = this.state.pidKeywordConfirmed
+      dateKeyword = this.state.dateKeywordConfirmed
+    } else if (searchType === 3) {
       type = 'date'
+      pidKeyword = ''
+      dateKeyword = this.state.dateKeywordConfirmed
     }
     // let searchResults
     // if (this.state.searchResults) {
@@ -500,30 +566,39 @@ export class SearchPanel extends Component {
               <div className="searchBar">
                 <Input
                   name="pid"
-                  // value={this.state.pidKeyword}
-                  // onChange={this.handleInputChange}
+                  value={this.state.pidKeyword}
+                  onChange={this.handleInputChange}
                   id="patient-search"
                   icon="user"
                   iconPosition="left"
                   placeholder="病人ID"
                   // maxLength={16}
-                  disabled={this.state.checked}
+                  disabled={this.state.searchType === 3}
                 />
 
-                <span id="type-slider">
-                  <Checkbox slider onChange={this.handleCheckbox} defaultChecked={this.state.checked} />
+                <span id="type-slider" onClick={this.handleSliderClick.bind(this)}>
+                  {/* <Checkbox slider onChange={this.handleCheckbox} defaultChecked={this.state.checked} /> */}
+                  <Slider
+                    className="searchBar-slider"
+                    min={10}
+                    max={30}
+                    step={10}
+                    tooltipVisible={false}
+                    onChange={this.handleSliderChange.bind(this)}
+                    disabled={true}
+                    value={this.state.searchType * 10}></Slider>
                 </span>
 
                 <Input
                   name="date"
-                  // value={this.state.dateKeyword}
-                  // onChange={this.handleInputChange}
+                  value={this.state.dateKeyword}
+                  onChange={this.handleInputChange}
                   id="date-search"
                   icon="calendar"
                   iconPosition="left"
                   placeholder="检查时间"
                   // maxLength={8}
-                  disabled={!this.state.checked}
+                  disabled={this.state.searchType === 1}
                 />
               </div>
               <div id="show-search-content">
@@ -533,8 +608,8 @@ export class SearchPanel extends Component {
                     <MainList
                       type={type}
                       currentPage={this.state.activePage} //MainList.js 40,css in MainList.js 108
-                      pidKeyword={this.state.pidKeyword}
-                      dateKeyword={this.state.dateKeyword}
+                      pidKeyword={pidKeyword}
+                      dateKeyword={dateKeyword}
                       subsetName={this.state.chooseQueue}
                       search={this.state.search}
                       onRef={(input) => {

@@ -867,6 +867,7 @@ export class SearchNodulePanel extends Component {
             })
         })
         .catch((err) => {
+          this.setState({ load: false })
           console.log(err)
         })
     } else {
@@ -1119,7 +1120,7 @@ export class SearchNodulePanel extends Component {
               ></Input>
               <em>&nbsp;&nbsp;&nbsp;&nbsp;</em>
               {this.state.load === true ? (
-                <Button icon="upload" className="ui green inverted button" size="mini" onClick={this.handleAddQueues.bind(this)} disabled></Button>
+                <Button icon="upload" className="ui green inverted button" size="mini" disabled></Button>
               ) : (
                 <Button icon="add" className="ui green inverted button" size="mini" onClick={this.handleAddQueues.bind(this)}></Button>
               )}

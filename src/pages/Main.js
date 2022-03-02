@@ -16,7 +16,6 @@ import MyReviewsPanel from '../panels/MyReviewsPanel'
 import PatientPanel from '../panels/PatientPanel'
 import SearchCasePanel from '../panels/SearchCasePanel'
 import SearchNodulePanel from '../panels/SearchNodulePanel'
-import CTPanel from '../panels/CTPanel'
 import TestPanel from '../components/Test'
 import '../css/main.css'
 import axios from 'axios'
@@ -447,7 +446,6 @@ class Main extends Component {
                     <Route path="/preprocess/" component={preprocess} />
                     <Route path="/adminManage" component={AdminManagePanel} />
                     {/* <Route path="/test" component={TestPanel} /> */}
-                    <Route path="/ct" component={CTPanel} />
                   </Switch>
                 </>
               ) : (
