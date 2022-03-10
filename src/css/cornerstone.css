@@ -140,6 +140,42 @@
   background-color: rgb(39, 46, 72);
   /* background-color: rgba(1, 23, 46, 0.997) !important; */
 }
+.corner-setting-modal {
+  width: 600px !important; 
+  background-color: rgb(5, 10, 29) !important;
+  transition: box-shadow 0.3s ease-in-out opacity 0.3s ease-in-out;
+  opacity: 0.9;
+}
+.corner-setting-modal:hover {
+  box-shadow: 0 0 50px black !important;
+  opacity: 1;
+}
+.corner-setting-modal-header {
+  background-color: rgb(23, 28, 47) !important;
+  border-bottom: 2px solid rgb(5, 10, 29) !important;
+  color: whitesmoke !important;
+}
+.corner-setting-modal-content {
+  background-color: rgb(23, 28, 47) !important;
+  color: whitesmoke !important;
+}
+.corner-setting-modal-content-container{
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+}
+.corner-setting-modal-content-container-name{
+  margin-right: 20px;
+} 
+.corner-setting-modal-content-container-opt{
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+.corner-setting-modal-content-container-opt span{
+}
 .direction-page-up {
   position: absolute;
   top: 40%;

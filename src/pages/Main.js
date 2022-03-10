@@ -17,6 +17,7 @@ import PatientPanel from '../panels/PatientPanel'
 import SearchCasePanel from '../panels/SearchCasePanel'
 import SearchNodulePanel from '../panels/SearchNodulePanel'
 import TestPanel from '../components/Test'
+import VTKNewViewer from '../components/VTKNewViewer'
 import '../css/main.css'
 import axios from 'axios'
 import src1 from '../images/MILab.png'
@@ -445,6 +446,7 @@ class Main extends Component {
                     <Route path="/homepage/" component={HomepagePanel} />
                     <Route path="/preprocess/" component={preprocess} />
                     <Route path="/adminManage" component={AdminManagePanel} />
+                    <Route path="/newViewer" component={VTKNewViewer} />
                     {/* <Route path="/test" component={TestPanel} /> */}
                   </Switch>
                 </>

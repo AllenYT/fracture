@@ -68,7 +68,7 @@ import { createSub } from '../vtk/lib/createSub.js'
 
 // import centerLine from '../center_line.json'
 // import oneAirway from '../one_airway.json'
-
+import '../css/ct.css'
 import '../css/cornerstone.css'
 import '../css/segview.css'
 import '../css/studyBrowser.css'
@@ -396,6 +396,7 @@ class CornerstoneElement extends Component {
       pdfFormValues: {},
       invisiblePdfContent: null,
 
+      settingOpen: false,
       pdfReading: false,
       pdfLoadingCompleted: false,
 
@@ -428,6 +429,7 @@ class CornerstoneElement extends Component {
 
       /*新加变量 */
       nodules: [],
+      noduleColor: 'rgba(0,255,0,1)',
       nodulesAllChecked: false,
       nodulesOrder: {
         slice_idx: 1,
@@ -484,6 +486,7 @@ class CornerstoneElement extends Component {
       menuTransform: 0,
       renderLoading: false,
       registering: false,
+      slabThickness: 1,
 
       /*显示变量*/
       bottomRowHeight: 0,
@@ -944,6 +947,9 @@ class CornerstoneElement extends Component {
       })
       .catch((error) => {
         console.log(error)
+        this.setState({
+          noThreedData: true,
+        })
       })
     function sortByProp(prop) {
       return function (a, b) {
@@ -1271,6 +1277,12 @@ class CornerstoneElement extends Component {
         })
       }
     }
+
+    if (prevState.noduleColor !== this.state.noduleColor) {
+      this.setState({
+        needRedrawBoxes: true,
+      })
+    }
   }
   redrawCorner() {
     console.log('redrawCorner')
@@ -1314,6 +1326,8 @@ class CornerstoneElement extends Component {
             default:
               break
           }
+          const color = this.state.noduleColor
+          savedDataItem.color = color
           savedDataItem.active = toolDataIndex === savedDataItemIndex
           cornerstoneTools.addToolState(cornerElement, toolName, savedDataItem)
         }
@@ -2458,6 +2472,17 @@ class CornerstoneElement extends Component {
     // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
   }
 
+  setSettingOpen(open) {
+    this.setState({
+      settingOpen: open,
+    })
+  }
+  setNoduleColor(e) {
+    console.log('noduleColor', e)
+    this.setState({
+      noduleColor: e.rgba,
+    })
+  }
   clearLocalStorage() {
     localStorage.clear()
     message.success('清空成功')
@@ -4073,17 +4098,17 @@ class CornerstoneElement extends Component {
   }
   onMenuPageUp() {
     const { menuButtonsWidth, menuNowPage, menuTransform } = this.state
-    let borderWidth = 0;
-    if(document.getElementsByClassName('func-btn') && document.getElementsByClassName('func-btn').length > 0){
+    let borderWidth = 0
+    if (document.getElementsByClassName('func-btn') && document.getElementsByClassName('func-btn').length > 0) {
       const funcBtns = document.getElementsByClassName('func-btn')
-      let funcBtnIndex = 0;
-      while(borderWidth < menuButtonsWidth){
+      let funcBtnIndex = 0
+      while (borderWidth < menuButtonsWidth) {
         borderWidth += funcBtns[funcBtnIndex].clientWidth
         funcBtnIndex++
       }
-      if(borderWidth > menuButtonsWidth && funcBtnIndex > 0){
+      if (borderWidth > menuButtonsWidth && funcBtnIndex > 0) {
         borderWidth -= funcBtns[funcBtnIndex - 1].clientWidth
-      }      
+      }
     }
     this.setState({
       menuNowPage: menuNowPage - 1,
@@ -4092,17 +4117,17 @@ class CornerstoneElement extends Component {
   }
   onMenuPageDown() {
     const { menuButtonsWidth, menuNowPage, menuTransform } = this.state
-    let borderWidth = 0;
-    if(document.getElementsByClassName('func-btn') && document.getElementsByClassName('func-btn').length > 0){
+    let borderWidth = 0
+    if (document.getElementsByClassName('func-btn') && document.getElementsByClassName('func-btn').length > 0) {
       const funcBtns = document.getElementsByClassName('func-btn')
-      let funcBtnIndex = 0;
-      while(borderWidth < menuButtonsWidth){
+      let funcBtnIndex = 0
+      while (borderWidth < menuButtonsWidth) {
         borderWidth += funcBtns[funcBtnIndex].clientWidth
         funcBtnIndex++
       }
-      if(borderWidth > menuButtonsWidth && funcBtnIndex > 0){
+      if (borderWidth > menuButtonsWidth && funcBtnIndex > 0) {
         borderWidth -= funcBtns[funcBtnIndex - 1].clientWidth
-      }      
+      }
     }
     this.setState({
       menuNowPage: menuNowPage + 1,
@@ -4577,12 +4602,13 @@ class CornerstoneElement extends Component {
     if (boxes && boxes.length) {
       boxes.forEach((boxItem, boxIndex) => {
         if (imageIds[boxItem.slice_idx] === cornerImage.imageId && boxItem.recVisible && boxItem.uuid === undefined) {
+          const color = this.state.noduleColor
           const measurementData = {
             noduleIndex: boxItem.visibleIdx + 1,
             visible: true,
             active: boxIndex === listsActiveIndex,
             // color: 'rgb(171, 245, 220)',
-            color: undefined,
+            color: color,
             invalidated: true,
             handles: {
               start: {
@@ -5322,6 +5348,7 @@ class CornerstoneElement extends Component {
       dateSeries,
       previewVisible,
       clearUserOpen,
+      settingOpen,
 
       imageIds,
       cornerImageIdIndex,
@@ -5401,6 +5428,7 @@ class CornerstoneElement extends Component {
       maskImageData,
       maskLabelMap,
       lineActors,
+      slabThickness,
 
       readonly,
       registering,
@@ -5965,7 +5993,6 @@ class CornerstoneElement extends Component {
                             mode="multiple"
                             dropdownMatchSelectWidth={false}
                             defaultValue={inside.malignancy}
-                            dropdownMatchSelectWidth={false}
                             value={representArray}
                             placeholder="请选择表征"
                             bordered={false}
@@ -6636,6 +6663,39 @@ class CornerstoneElement extends Component {
                 <Icon className="func-btn-icon icon-custom icon-custom-mpr-hide" size="large" />
                 <div className="func-btn-desc"> 取消MPR</div>
               </div>
+              <div className="func-btn">
+                <Icon className="func-btn-icon" name="dot circle" size="large" onClick={this.setMIP.bind(this)} />
+                <Popup
+                  on="click"
+                  trigger={
+                    <div className="func-btn-desc">
+                      MIP
+                      <FontAwesomeIcon icon={faCaretDown} />
+                    </div>
+                  }
+                  position="bottom center"
+                  style={{
+                    backgroundColor: 'rgb(39, 46, 72)',
+                    width: '230px',
+                    color: 'whitesmoke',
+                  }}>
+                  <div>
+                    <div className="slab-thick-container">
+                      切片厚度:
+                      <Slider
+                        className="slab-thick-slider"
+                        value={slabThickness}
+                        min={1}
+                        step={10}
+                        max={5001}
+                        tooltipVisible={false}
+                        onChange={this.handleSlabThicknessChange.bind(this)}
+                        onAfterChange={this.afterHandleSlabThicknessChange.bind(this)}
+                      />
+                    </div>
+                  </div>
+                </Popup>
+              </div>
               <div className="func-btn" hidden={!displayCrosshairs} onClick={this.toggleCrosshairs.bind(this, false)} description="hidden crosshairs">
                 <Icon className="func-btn-icon icon-custom icon-custom-HC" size="large" />
                 <div className="func-btn-desc"> 隐藏十字线</div>
@@ -6952,6 +7012,25 @@ class CornerstoneElement extends Component {
                     text="留言"
                     onClick={this.handleWriting}
                   /> */}
+                    <Modal
+                      className="corner-setting-modal"
+                      open={settingOpen}
+                      onOpen={this.setSettingOpen.bind(this, true)}
+                      onClose={this.setSettingOpen.bind(this, false)}
+                      trigger={<Dropdown.Item icon="settings" text="设置" />}>
+                      <Modal.Header className="corner-setting-modal-header">系统设置</Modal.Header>
+                      <Modal.Content className="corner-setting-modal-content">
+                        <Modal.Description>
+                          <div className="corner-setting-modal-content-container">
+                            <div className="corner-setting-modal-content-container-name">颜色选择</div>
+                            <div className="corner-setting-modal-content-container-opt">
+                              <InputColor initialValue="#00FF00" onChange={this.setNoduleColor.bind(this)} placement="right" />
+                            </div>
+                          </div>
+                        </Modal.Description>
+                      </Modal.Content>
+                    </Modal>
+
                     <Dropdown.Item icon="trash alternate" text="清空缓存" onClick={this.clearLocalStorage.bind(this)} />
                     <Dropdown.Item icon="log out" text="注销" onClick={this.handleLogout.bind(this)} />
                   </Dropdown.Menu>
@@ -8059,6 +8138,17 @@ class CornerstoneElement extends Component {
       this.changeMode(2)
     }
   }
+  setMIP() {
+    if (this.state.MIP) {
+      this.setState({
+        MIP: false,
+      })
+    } else {
+      this.setState({
+        MIP: true,
+      })
+    }
+  }
   setCPR() {
     if (this.state.CPR) {
       this.setState({
@@ -8160,6 +8250,20 @@ class CornerstoneElement extends Component {
       selectedNum: selectedNum,
     })
   }
+  handleSlabThicknessChange(value) {
+    this.setState({
+      slabThickness: value,
+    })
+    const valueInMM = value / 10
+    const apis = this.apis
+    apis.forEach((api) => {
+      const renderWindow = api.genericRenderWindow.getRenderWindow()
+
+      api.setSlabThickness(valueInMM)
+      renderWindow.render()
+    })
+  }
+  afterHandleSlabThicknessChange(value) {}
   toggleCrosshairs(displayCrosshairs) {
     this.toggleTool(displayCrosshairs)
     const apis = this.apis
@@ -8246,6 +8350,10 @@ class CornerstoneElement extends Component {
         },
       })
 
+      const mapper = api.volumes[0].getMapper()
+      if (mapper.setBlendModeToMaximumIntensity) {
+        mapper.setBlendModeToMaximumIntensity()
+      }
       api.setSlabThickness(0.1)
 
       renderWindow.render()

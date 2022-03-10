@@ -12,7 +12,8 @@ import vtkInteractorStyleChannelFragment from '../vtk/VTKViewport/vtkInteractorS
 class VTK2DViewer extends Component {
   constructor(props) {
     super(props)
-    this.state = {}
+    this.state = {
+    }
     this.container = React.createRef()
   }
 
@@ -23,8 +24,8 @@ class VTK2DViewer extends Component {
     this.glWindow = this.genericRenderWindow.getOpenGLRenderWindow()
     this.renderWindow = this.genericRenderWindow.getRenderWindow()
     this.renderer = this.genericRenderWindow.getRenderer()
-    this.renderer.setBackground([0, 0, 0])
-    // this.renderer.setBackground([0.59, 0.6, 0.81])
+    // this.renderer.setBackground([0, 0, 0])
+    this.renderer.setBackground([0.59, 0.6, 0.81])
     this.interactor = this.renderWindow.getInteractor()
     this.camera = this.renderer.getActiveCamera()
     // camera's viewup =>
@@ -33,6 +34,7 @@ class VTK2DViewer extends Component {
     // camera elevation => up direction
     this.camera.elevation(-180)
     this.camera.setViewUp(1, 0, 0)
+    this.renderWindow.render()
     // const istyle = vtkInteractorStyleChannelFragment.newInstance();
     // this.renderWindow.getInteractor().setInteractorStyle(istyle);
   }
