@@ -20,7 +20,6 @@ class SeriesIdList extends Component {
       contextRef: props.contextRef,
       popupHovers: [],
       dataValidContnt: this.props.dataValidContnt,
-      allResults: props.allResults,
       // cart: new Set()
     }
     this.config = JSON.parse(localStorage.getItem('config'))
@@ -113,13 +112,13 @@ class SeriesIdList extends Component {
   }
 
   resultsUpdate() {
+    console.log('resultsUpdate dataValidContnt')
     const content = this.props.content
     const token = localStorage.getItem('token')
     const headers = {
       Authorization: 'Bearer '.concat(token),
     }
     var dataValidContnt = []
-    var allResults = []
     for (var i = 0; i < content.length; i++) {
       console.log('content', content[i]['caseId'])
       const params = {
@@ -135,36 +134,6 @@ class SeriesIdList extends Component {
           }
           dataValidContnt.push(validContent)
           this.setState({ dataValidContnt: dataValidContnt })
-          if (validInfo.status === 'ok') {
-            Promise.all([
-              axios.post(this.config.draft.getModelResults, qs.stringify(params), {
-                headers,
-              }),
-              axios.post(this.config.draft.getAnnoResults, qs.stringify(params), {
-                headers,
-              }),
-              axios.post(this.config.review.getReviewResults, qs.stringify(params), {
-                headers,
-              }),
-            ])
-              .then(([res1, res2, res3]) => {
-                const modelList = res1.data.dataList
-                const annoList = res2.data.dataList
-                const reviewList = res3.data.dataList
-
-                let resultsList = {
-                  caseId: params.caseId,
-                  modelList: modelList,
-                  annoList: annoList,
-                  reviewList: reviewList,
-                }
-                allResults.push(resultsList)
-                this.setState({ allResults: allResults })
-              })
-              .catch((error) => {
-                console.log(error)
-              })
-          }
         })
         .catch((error) => {
           console.log(error)
@@ -177,66 +146,11 @@ class SeriesIdList extends Component {
   }
   componentDidUpdate(prevProps) {
     if (prevProps.dataValidContnt !== this.props.dataValidContnt) {
-      this.resultsUpdate()
+      // this.resultsUpdate()
+      this.setState({ dataValidContnt: this.props.dataValidContnt })
       console.log('props valid change')
     }
   }
-  // componentWillReceiveProps(nextProps) {
-  //   if (nextProps.content !== this.props.content) {
-  //     const content = nextProps.content
-  //     const token = localStorage.getItem('token')
-  //     const headers = {
-  //       Authorization: 'Bearer '.concat(token),
-  //     }
-  //     var dataValidContnt = []
-  //     var allResults = []
-  //     for (var i = 0; i < content.length; i++) {
-  //       console.log('content', content[i])
-  //       const params = {
-  //         caseId: content[i]['caseId'],
-  //       }
-  //       axios.post(this.config.draft.dataValid, qs.stringify(params)).then((validResponse) => {
-  //         const validInfo = validResponse.data
-  //         let validContent = {
-  //           caseId: params.caseId,
-  //           validInfo: validInfo,
-  //         }
-  //         dataValidContnt.push(validContent)
-  //         this.setState({ dataValidContnt: dataValidContnt })
-  //         if (validInfo.status === 'ok') {
-  //           Promise.all([
-  //             axios.post(this.config.draft.getModelResults, qs.stringify(params), {
-  //               headers,
-  //             }),
-  //             axios.post(this.config.draft.getAnnoResults, qs.stringify(params), {
-  //               headers,
-  //             }),
-  //             axios.post(this.config.review.getReviewResults, qs.stringify(params), {
-  //               headers,
-  //             }),
-  //           ])
-  //             .then(([res1, res2, res3]) => {
-  //               const modelList = res1.data.dataList
-  //               const annoList = res2.data.dataList
-  //               const reviewList = res3.data.dataList
-
-  //               let resultsList = {
-  //                 caseId: params.caseId,
-  //                 modelList: modelList,
-  //                 annoList: annoList,
-  //                 reviewList: reviewList,
-  //               }
-  //               allResults.push(resultsList)
-  //               this.setState({ allResults: allResults })
-  //             })
-  //             .catch((error) => {
-  //               console.log(error)
-  //             })
-  //         }
-  //       })
-  //     }
-  //   }
-  // }
 
   notice(valid, e) {
     if (valid.status === 'failed') {
@@ -283,7 +197,7 @@ class SeriesIdList extends Component {
     const onPopupIndex = this.state.onPopupIndex
     const content = this.props.content
     const pid = this.props.pid
-    const { dataValidContnt, allResults } = this.state
+    const { dataValidContnt } = this.state
     var resultsPopup = ''
     let CheckboxDis = {
       display: 'none',
@@ -294,7 +208,6 @@ class SeriesIdList extends Component {
       }
     }
 
-    // if (dataValidContnt.length !== 0) {
     resultsPopup = content.map((item, index) => {
       console.log('getCart', item)
       const idName = item.caseId + '_' + index
@@ -302,9 +215,7 @@ class SeriesIdList extends Component {
       var dataValidbyCaseId = ''
       var modelStr = ''
       var annoStr = ''
-      // var reviewStr = ''
       var statusIcon = ''
-      // var
       console.log('datavalid', dataValidContnt, dataValidContnt.length)
 
       for (let i = 0; i < dataValidContnt.length; i++) {
@@ -316,23 +227,10 @@ class SeriesIdList extends Component {
         }
       }
       console.log('valid', dataValidbyCaseId)
-      // dataValidbyCaseId = dataValidContnt.validInfo
       if (dataValidbyCaseId.status === 'failed') {
         statusIcon = <CloseCircleOutlined style={{ color: 'rgba(219, 40, 40)' }} />
-        // if (dataValidbyCaseId.message === "Files been manipulated") {
-        //   notification.warning("Files been manipulated");
-        // } else if (
-        //   dataValidbyCaseId.message === "Errors occur during preprocess"
-        // ) {
-        //   notification.warning("Errors occur during preprocess");
-        // } else if (dataValidbyCaseId.message === "caseId not found") {
-        //   notification.warning("caseId not found");
-        // }
       } else if (dataValidbyCaseId.status === 'ok') {
         statusIcon = <CheckCircleOutlined style={{ color: '#52c41a' }} />
-        // if (dataValidbyCaseId.length) {
-        // for (let i = 0; i < allResults.length; i++) {
-        //   if (allResults[i].caseId === item['caseId']) {
         if (dataValidbyCaseId.modelResults.length > 0) {
           for (let j = 0; j < dataValidbyCaseId.modelResults.length; j++) {
             modelStr += '<div class="ui blue label">'
@@ -378,56 +276,6 @@ class SeriesIdList extends Component {
                   <div id="review-results">{ReactHtmlParser(reviewStr)}</div> */}
           </div>
         )
-        // break
-        //   }
-        // }
-        // } else {
-        //   if (allResults.modelList.length > 0) {
-        //     for (let j = 0; j < allResults.modelList.length; j++) {
-        //       modelStr += '<div class="ui blue label">'
-        //       modelStr += allResults.modelList[j]
-        //       modelStr += '</div>'
-        //     }
-        //   } else {
-        //     modelStr += '<div class="ui blue label">'
-        //     modelStr += '暂无结果'
-        //     modelStr += '</div>'
-        //   }
-
-        //   if (allResults.annoList.length > 0) {
-        //     for (let j = 0; j < allResults.annoList.length; j++) {
-        //       annoStr += '<div class="ui blue label">'
-        //       annoStr += allResults.annoList[j]
-        //       annoStr += '</div>'
-        //     }
-        //   } else {
-        //     annoStr += '<div class="ui blue label">'
-        //     annoStr += '暂无结果'
-        //     annoStr += '</div>'
-        //   }
-
-        //   if (allResults.reviewList.length > 0) {
-        //     for (let j = 0; j < allResults.reviewList.length; j++) {
-        //       reviewStr += '<div class="ui blue label">'
-        //       reviewStr += allResults.reviewList[j]
-        //       reviewStr += '</div>'
-        //     }
-        //   } else {
-        //     reviewStr += '<div class="ui blue label">'
-        //     reviewStr += '暂无结果'
-        //     reviewStr += '</div>'
-        //   }
-        //   popupContent = (
-        //     <div>
-        //       <h4>模型结果</h4>
-        //       <div id="model-results">{ReactHtmlParser(modelStr)}</div>
-        //       <h4>标注结果</h4>
-        //       <div id="anno-results">{ReactHtmlParser(annoStr)}</div>
-        //       {/* <h4>审核结果</h4>
-        //             <div id="review-results">{ReactHtmlParser(reviewStr)}</div> */}
-        //     </div>
-        //   )
-        // }
       } else {
         statusIcon = <SyncOutlined spin />
       }

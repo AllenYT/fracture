@@ -85,49 +85,44 @@ class SubList extends Component {
   }
 
   async handleClick(e, titleProps) {
-    const { index, studyAry } = titleProps
+    // console.log('click e', e)
+    const { index, studyAry, active } = titleProps
+
     const { activeIndex, subList } = this.state
     const newIndex = activeIndex === index ? -1 : index
     this.setState({ activeIndex: newIndex })
     //dataValid
-    console.log(index, 'subList', this.state.subList, this.state.subList.length)
-    // var for_i = 0
-    // var studyAry
-    // for (const subKey in subList) {
-    //   if (for_i === index) {
-    //     studyAry = subList[subKey]
-
-    //     console.log('studyAry', subList, studyAry)
-    //   } else {
-    //     for_i += 1
-    //   }
-    // }
-    const content = studyAry
-    const token = localStorage.getItem('token')
-    const headers = {
-      Authorization: 'Bearer '.concat(token),
-    }
-    var dataValidContnt = []
-    for (var i = 0; i < content.length; i++) {
-      console.log('content', content[i]['caseId'])
-      const params = {
-        caseId: content[i]['caseId'],
+    if (!active) {
+      console.log(index, 'subList', this.state.subList, this.state.subList.length)
+      const content = studyAry
+      const token = localStorage.getItem('token')
+      const headers = {
+        Authorization: 'Bearer '.concat(token),
       }
-      const validInfo = new Promise((resolve, reject) => {
-        axios.post(this.config.draft.dataValid, qs.stringify(params)).then((validResponse) => {
-          const validInfo = validResponse.data
-          let validContent = {
-            caseId: params.caseId,
-            validInfo: validInfo,
-          }
-          resolve(validContent)
-        }, reject)
-      })
-      dataValidContnt[i] = await validInfo
+      var dataValidContnt = []
+      for (var i = 0; i < content.length; i++) {
+        console.log('content', content[i]['caseId'])
+        const params = {
+          caseId: content[i]['caseId'],
+        }
+        const validInfo = new Promise((resolve, reject) => {
+          axios.post(this.config.draft.dataValid, qs.stringify(params)).then((validResponse) => {
+            const validInfo = validResponse.data
+            let validContent = {
+              caseId: params.caseId,
+              validInfo: validInfo,
+            }
+            resolve(validContent)
+          }, reject)
+        })
+        dataValidContnt[i] = await validInfo
+        this.setState({ dataValidContnt: dataValidContnt })
+      }
+
+      console.log('sublist dataValidContnt', dataValidContnt)
     }
 
-    console.log('sublist dataValidContnt', dataValidContnt)
-    this.setState({ dataValidContnt: dataValidContnt })
+    // this.setState({ dataValidContnt: dataValidContnt })
   }
 
   handlePidClick() {

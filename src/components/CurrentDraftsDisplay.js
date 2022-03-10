@@ -41,6 +41,7 @@ class CurrentDraftsDisplay extends Component {
       }, reject)
     })
     await dataValidPromise
+
     // console.log("await");
     Promise.all([
       axios.post(this.config.draft.getModelResults, qs.stringify(params), {
