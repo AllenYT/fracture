@@ -141,7 +141,7 @@
   /* background-color: rgba(1, 23, 46, 0.997) !important; */
 }
 .corner-setting-modal {
-  width: 600px !important; 
+  width: 600px !important;
   background-color: rgb(5, 10, 29) !important;
   transition: box-shadow 0.3s ease-in-out opacity 0.3s ease-in-out;
   opacity: 0.9;
@@ -159,22 +159,22 @@
   background-color: rgb(23, 28, 47) !important;
   color: whitesmoke !important;
 }
-.corner-setting-modal-content-container{
+.corner-setting-modal-content-container {
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: flex-start;
 }
-.corner-setting-modal-content-container-name{
+.corner-setting-modal-content-container-name {
   margin-right: 20px;
-} 
-.corner-setting-modal-content-container-opt{
+}
+.corner-setting-modal-content-container-opt {
   flex: 1;
   display: flex;
   flex-direction: row;
   align-items: center;
 }
-.corner-setting-modal-content-container-opt span{
+.corner-setting-modal-content-container-opt span {
 }
 .direction-page-up {
   position: absolute;
@@ -652,10 +652,10 @@
   width: 20%;
 }
 .nodule-accordion-item-title-column:nth-child(4) {
-  width: 18%;
+  width: 25%;
 }
 .nodule-accordion-item-title-column:nth-child(5) {
-  width: 47%;
+  width: 40%;
 }
 
 .nodule-accordion-item-title-index {
@@ -785,7 +785,7 @@
 }
 .nodule-accordion-item-content-info-diam {
   margin-left: 35%;
-  width: 20%;
+  width: 25%;
   text-align: start;
 }
 .nodule-accordion-item-content-info-hu {
@@ -793,7 +793,7 @@
   display: flex;
   flex-direction: row;
   align-items: center;
-  width: 31.5%;
+  width: 26.5%;
 }
 .nodule-accordion-item-content-info-prob {
   width: 13.5%;

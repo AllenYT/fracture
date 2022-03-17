@@ -366,6 +366,12 @@ class CornerstoneElement extends Component {
         rows: 512,
         columns: 512,
       },
+      cornerstoneZoomScaleConfig: {
+        invert: false,
+        preventZoomOutsideImage: false,
+        minScale: 0.25,
+        maxScale: 20.0,
+      },
       loadedImagePercent: 0,
       studyListShowed: false,
       showFollowUp: false,
@@ -575,6 +581,8 @@ class CornerstoneElement extends Component {
     this.subs = {
       cornerImageRendered: createSub(),
       cornerMouseUp: createSub(),
+      cornerMouseMove: createSub(),
+      cornerMouseDrag: createSub(),
       cornerMeasureAdd: createSub(),
       cornerMeasureModify: createSub(),
       cornerMeasureComplete: createSub(),
@@ -2070,6 +2078,8 @@ class CornerstoneElement extends Component {
       //   defView.scale = ctImageBlockHeight / 1024
       //   cornerstone.displayImage(this.state.cornerElement, img, defView)
       // })
+      cornerViewport.translation.x = 0
+      cornerViewport.translation.y = 0
       cornerViewport.scale = ctImageBlockHeight / cornerImageSize.columns
       this.setState({
         cornerViewport,
@@ -4849,6 +4859,78 @@ class CornerstoneElement extends Component {
   cornerToolMouseUpCallback(e) {
     console.log('cornerToolMouseUpCallback', e)
   }
+  mouseMovePositionDisplay(evt) {
+    const [imageX, imageY] = [evt.detail.startPoints.image.x, evt.detail.startPoints.image.y]
+  }
+  zoomToCenterStrategy(evt) {
+    const { invert, maxScale, minScale } = this.state.cornerstoneZoomScaleConfig
+    const deltaY = evt.detail.deltaPoints.page.y
+    const ticks = invert ? -deltaY / 100 : deltaY / 100
+    let EvtViewport = evt.detail.viewport
+    let { cornerViewport } = this.state
+    const { element } = evt.detail
+    const [startX, startY, imageX, imageY] = [evt.detail.startPoints.page.x, evt.detail.startPoints.page.y, evt.detail.startPoints.image.x, evt.detail.startPoints.image.y]
+    // let viewport = this.state.cornerViewport
+    console.log('zoomToCenterStrategy', evt)
+    // Calculate the new scale factor based on how far the mouse has changed
+    EvtViewport = this.changeViewportScale(EvtViewport, ticks, {
+      maxScale,
+      minScale,
+    })
+    cornerViewport.scale = EvtViewport.scale
+    cornerstone.setViewport(element, EvtViewport)
+    const newCoords = cornerstone.pageToPixel(element, startX, startY)
+    let shift = {
+      x: imageX - newCoords.x,
+      y: imageY - newCoords.y,
+    }
+    const cornerShift = this.cornerShift(shift, EvtViewport)
+    console.log('zoomToCenterStrategy cornerShift', cornerShift)
+
+    cornerViewport.translation.x -= cornerShift.x
+    cornerViewport.translation.y -= cornerShift.y
+    this.setState({ cornerViewport: cornerViewport })
+  }
+  changeViewportScale(viewport, ticks, scaleLimits) {
+    const { maxScale, minScale } = scaleLimits
+    const pow = 1.7
+    const oldFactor = Math.log(viewport.scale) / Math.log(pow)
+    const factor = oldFactor + ticks
+    const scale = Math.pow(pow, factor)
+
+    if (maxScale && scale > maxScale) {
+      viewport.scale = maxScale
+    } else if (minScale && scale < minScale) {
+      viewport.scale = minScale
+    } else {
+      viewport.scale = scale
+    }
+
+    return viewport
+  }
+  cornerShift(shift, viewportOrientation) {
+    const { hflip, vflip, rotation } = viewportOrientation
+    console.log('cornerShift', viewportOrientation)
+    // Apply Flips
+    shift.x *= hflip ? -1 : 1
+    shift.y *= vflip ? -1 : 1
+
+    // Apply rotations
+    if (rotation !== 0) {
+      const angle = (rotation * Math.PI) / 180
+
+      const cosA = Math.cos(angle)
+      const sinA = Math.sin(angle)
+
+      const newX = shift.x * cosA - shift.y * sinA
+      const newY = shift.x * sinA + shift.y * cosA
+
+      shift.x = newX
+      shift.y = newY
+    }
+
+    return shift
+  }
   cornerToolMeasurementAdd(e) {
     // console.log("cornerToolMeasurementAdd", e.detail)
   }
@@ -5918,9 +6000,9 @@ class CornerstoneElement extends Component {
                       </div>
 
                       {ll === 0 && sl === 0 ? (
-                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(diameter / 10).toFixed(1)}cm`}</div>
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(diameter / 10).toFixed(2)}cm`}</div>
                       ) : (
-                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(ll / 10).toFixed(1)}x${(sl / 10).toFixed(1)}cm`}</div>
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(ll / 10).toFixed(2)}x${(sl / 10).toFixed(2)}cm`}</div>
                       )}
 
                       <div className="nodule-accordion-item-title-column">
@@ -7185,6 +7267,19 @@ class CornerstoneElement extends Component {
                                 this.subs.cornerMouseUp.sub(
                                   cornerElement.addEventListener('cornerstonetoolsmouseup', (e) => {
                                     // this.cornerToolMouseUpCallback(e)
+                                  })
+                                )
+                                this.subs.cornerMouseMove.sub(
+                                  cornerElement.addEventListener('cornerstonetoolsmousemove', (e) => {
+                                    this.mouseMovePositionDisplay(e)
+                                  })
+                                )
+                                this.subs.cornerMouseDrag.sub(
+                                  cornerElement.addEventListener('cornerstonetoolsmousedrag', (e) => {
+                                    console.log('cornerstonetoolsmousedrag', e)
+                                    if (e.detail.buttons === 2) {
+                                      this.zoomToCenterStrategy(e)
+                                    }
                                   })
                                 )
                                 this.subs.cornerMeasureAdd.sub(
