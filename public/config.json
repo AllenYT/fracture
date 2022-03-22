@@ -102,6 +102,13 @@
     "role": {
         "getAllRole": "http://192.168.7.198:8085/role/getAllRole"
     },
+    "prefusion":{
+        "getDataListForCaseId": "http://192.168.7.198:8885/data/getDataListForCaseId",
+        "getMhaListForCaseId": "http://192.168.7.198:8885/data/getMhaListForCaseId",
+        "getLobeCoordPathForCaseId":"http://192.168.7.198:8885/data/getLobeCoordPathForCaseId",
+        "lobeCoord":"http://192.168.7.198:8885/data/lobeCoord",
+        "getLobeCoord": "http://192.168.7.198:8885/data/getLobeCoordPathForCaseId"
+    },
     "loginId":{
         "uid":"user1",
         "password":"123456"

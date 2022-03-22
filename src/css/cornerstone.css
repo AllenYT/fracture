@@ -433,6 +433,9 @@
 .nodule-filter-desc-checkbox,
 .threed-filter-desc-checkbox {
 }
+.nodule-filter-desc-checkbox:nth-child(3) {
+  margin-left: 15px;
+}
 .nodule-filter-desc-checkbox span,
 .threed-filter-desc-checkbox span {
   color: whitesmoke;

@@ -60,21 +60,26 @@ html {
 }
 
 #header {
-  background-color: #02182f;
+  background-color: rgb(39, 46, 72) !important;
   /* height:10%; */
   /* margin-bottom: 0 !important; */
+}
+#header > a.item:first-child {
+  color: whitesmoke !important;
 }
 
 #header > a.item {
   background-color: transparent !important;
-  color: #66cfec !important;
+  color: rgb(173, 179, 203) !important;
   font-size: 1.2em;
 }
 
 #header > a.item:hover {
   border-color: white;
 }
-
+#header > .item {
+  color: whitesmoke !important;
+}
 .invisible-login-button {
   visibility: hidden;
 }

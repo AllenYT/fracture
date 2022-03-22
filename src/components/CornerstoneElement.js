@@ -437,6 +437,7 @@ class CornerstoneElement extends Component {
       nodules: [],
       noduleColor: 'rgba(0,255,0,1)',
       nodulesAllChecked: false,
+      noduleLimited: false,
       nodulesOrder: {
         slice_idx: 1,
         long_length: 0,
@@ -587,6 +588,7 @@ class CornerstoneElement extends Component {
       cornerMeasureModify: createSub(),
       cornerMeasureComplete: createSub(),
       cornerMeasureRemove: createSub(),
+      cornerstonetoolstouchdragend: createSub(),
     }
     this.nextPath = this.nextPath.bind(this)
     this.plotHistogram = this.plotHistogram.bind(this)
@@ -1268,7 +1270,7 @@ class CornerstoneElement extends Component {
         )
       }
     }
-    // boxes modified
+    // boxes modified need reload template
     if (!prevState.needReloadBoxes && this.state.needReloadBoxes) {
       if (this.state.boxes && this.state.boxes.length) {
         this.template()
@@ -2542,6 +2544,17 @@ class CornerstoneElement extends Component {
     })
   }
   onHandleNoduleAllCheckClick(e) {
+    e.stopPropagation()
+  }
+  onHandleNoduleLimitChange() {
+    const boxes = this.state.boxes
+    const noduleLimited = !this.state.noduleLimited
+    this.setState({
+      noduleLimited,
+      boxes,
+    })
+  }
+  onHandleNoduleLimitClick(e) {
     e.stopPropagation()
   }
   onHandleNoduleCheckChange(idx) {
@@ -4608,9 +4621,12 @@ class CornerstoneElement extends Component {
     this.drawNodulesForBi()
   }
   drawNodulesForRec() {
-    const { boxes, imageIds, cornerElement, cornerImage, cornerImageIdIndex, listsActiveIndex } = this.state
+    const { boxes, imageIds, cornerElement, cornerImage, cornerImageIdIndex, listsActiveIndex, noduleLimited } = this.state
     if (boxes && boxes.length) {
       boxes.forEach((boxItem, boxIndex) => {
+        if (noduleLimited && boxIndex > 20) {
+          return
+        }
         if (imageIds[boxItem.slice_idx] === cornerImage.imageId && boxItem.recVisible && boxItem.uuid === undefined) {
           const color = this.state.noduleColor
           const measurementData = {
@@ -4672,9 +4688,12 @@ class CornerstoneElement extends Component {
     }
   }
   drawNodulesForBi() {
-    const { boxes, imageIds, cornerElement, cornerImage, cornerImageIdIndex, listsActiveIndex } = this.state
+    const { boxes, imageIds, cornerElement, cornerImage, cornerImageIdIndex, listsActiveIndex, noduleLimited } = this.state
     if (boxes && boxes.length) {
       boxes.forEach((boxItem, boxIndex) => {
+        if (noduleLimited && boxIndex > 20) {
+          return
+        }
         if (imageIds[boxItem.slice_idx] === cornerImage.imageId && boxItem.biVisible && boxItem.biuuid === undefined && boxItem.measure) {
           const measure = boxItem.measure
           if (
@@ -5447,6 +5466,7 @@ class CornerstoneElement extends Component {
       drawingLymphsCompleted,
 
       nodulesAllChecked,
+      noduleLimited,
       nodulesOrder,
       noduleOrderOption,
       nodulesSelect,
@@ -5887,6 +5907,9 @@ class CornerstoneElement extends Component {
       if (boxes && boxes.length > 0) {
         tableContent = boxes // .selectBoxes
           .map((inside, idx) => {
+            if (noduleLimited && idx >= 20) {
+              return null
+            }
             if (inside.visible) {
               noduleNumber += 1
             }
@@ -7367,6 +7390,15 @@ class CornerstoneElement extends Component {
                                             全选
                                           </Checkbox>
                                           <div className="nodule-filter-desc-text">已筛选{noduleNumber}个病灶</div>
+                                          {boxes.length > 20 ? (
+                                            <Checkbox
+                                              className="nodule-filter-desc-checkbox"
+                                              checked={noduleLimited}
+                                              onChange={this.onHandleNoduleLimitChange.bind(this)}
+                                              onClick={this.onHandleNoduleLimitClick.bind(this)}>
+                                              只显示20个结节
+                                            </Checkbox>
+                                          ) : null}
                                         </div>
                                         <div className="nodule-filter-operation">
                                           <Popup

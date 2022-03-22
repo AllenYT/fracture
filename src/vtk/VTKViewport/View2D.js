@@ -75,6 +75,7 @@ export default class View2D extends Component {
       rotation: { theta: 0, phi: 0 },
       sliderValue: 0,
       initialized: false,
+      bdCreated: false,
     }
 
     this.apiProperties = {}
@@ -97,7 +98,15 @@ export default class View2D extends Component {
     })
   }
   initVolumes() {
+    // console.log("initVolumes", this.props.volumes.length)
     this.props.volumes.forEach(this.renderer.addVolume)
+    // if(this.props.bdVolumes && this.props.bdVolumes.length && !this.state.bdCreated){
+    //   this.props.bdVolumes.forEach(this.renderer.addVolume)
+    //   this.setState({
+    //     bdCreated: true
+    //   })
+    //   console.log("bdVolumes after", this.renderer.getVolumes())
+    // }
     this.renderWindow.render()
 
     let widgets = []
@@ -261,6 +270,7 @@ export default class View2D extends Component {
       this.props.onCreated(api)
       // this.updateSlider()
     }
+    this.renderWindow.render()
   }
   setContainerSize(width, height) {
     const oglrw = this.genericRenderWindow.getOpenGLRenderWindow()
@@ -609,6 +619,33 @@ export default class View2D extends Component {
       this.initVolumes()
       console.timeEnd('volumes init')
     }
+
+    if (prevProps.lobeActors !== this.props.lobeActors) {
+      if (this.props.lobeActors.length) {
+        console.log('actor', this.renderer.getActors())
+        this.props.lobeActors.forEach(this.renderer.addActor)
+      } else {
+        // TODO: Remove all volumes
+      }
+      this.renderer.resetCamera()
+      this.renderWindow.render()
+    }
+
+    if (!this.state.bdCreated && this.props.bdVolumes) {
+      if (this.props.bdVolumes.length) {
+        this.props.bdVolumes.forEach(this.renderer.addVolume)
+        console.log('bdVolumes update', this.renderer.getVolumes())
+        this.setState({
+          bdCreated: true,
+        })
+      } else {
+        // TODO: Remove all volumes
+      }
+      const istyle = this.renderWindow.getInteractor().getInteractorStyle()
+      istyle.modified()
+      this.renderWindow.render()
+    }
+
     // if (prevProps.volumes !== this.props.volumes) {
     //   // this.props.volumes.forEach((volume) => {
     //   //   if (!volume.isA('vtkVolume')) {
@@ -617,12 +654,12 @@ export default class View2D extends Component {
     //   // })
 
     //   if (this.props.volumes.length) {
-    //     // this.renderer.removeAllVolumes()
+    //     this.renderer.removeAllVolumes()
     //     this.props.volumes.forEach(this.renderer.addVolume)
     //     // console.log('volumes length', this.renderer.getVolumes().length)
-    //     console.time('volumes add')
-    //     this.renderWindow.render()
-    //     console.timeEnd('volumes add')
+    //     // console.time('volumes add')
+    //     // this.renderWindow.render()
+    //     // console.timeEnd('volumes add')
     //   } else {
     //     // TODO: Remove all volumes
     //     // this.renderer.removeAllVolumes()
