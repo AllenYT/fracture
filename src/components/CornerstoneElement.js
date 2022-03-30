@@ -166,6 +166,7 @@ const texName = {
   1: '磨玻璃',
   2: '实性',
   3: '半实性',
+  4: '钙化',
 }
 const magName = {
   '-1': '未知',
@@ -721,7 +722,7 @@ class CornerstoneElement extends Component {
         item.delOpen = false
         item.visible = true
         item.recVisible = true
-        item.biVisible = false
+        item.biVisible = this.config.longShortDiamShow
         item.checked = false
         noduleMarks[item.slice_idx] = ''
       })
@@ -2923,9 +2924,13 @@ class CornerstoneElement extends Component {
                 })
                 break
               case 5:
+                // selectedPro.push({
+                //   key: 'calcification',
+                //   val: 2,
+                // })
                 selectedPro.push({
-                  key: 'calcification',
-                  val: 2,
+                  key: 'texture',
+                  val: 4,
                 })
                 break
               case 6:
@@ -3684,6 +3689,8 @@ class CornerstoneElement extends Component {
         texture = '实性'
       } else if (boxes[boxIndex]['texture'] === 3) {
         texture = '混合磨玻璃'
+      } else if (boxes[boxIndex]['texture'] === 4) {
+        texture = '钙化'
       } else {
         texture = '磨玻璃'
       }
@@ -3693,9 +3700,9 @@ class CornerstoneElement extends Component {
       if (boxes[boxIndex]['spiculation'] === 2) {
         representArray.push('毛刺')
       }
-      if (boxes[boxIndex]['calcification'] === 2) {
-        representArray.push('钙化')
-      }
+      // if (boxes[boxIndex]['calcification'] === 2) {
+      //   representArray.push('钙化')
+      // }
       if (boxes[boxIndex]['pin'] === 2) {
         representArray.push('胸膜凹陷')
       }
@@ -3725,21 +3732,11 @@ class CornerstoneElement extends Component {
       } else {
         malignancy = '风险较低。'
       }
-      texts =
-        texts +
-        place +
-        ' ( Im ' +
-        (parseInt(boxes[boxIndex]['slice_idx']) + 1) +
-        '/' +
-        this.state.imageIds.length +
-        ') 见' +
-        texture +
-        '结节, 大小为' +
-        diameter +
-        ', 可见' +
-        represent +
-        ', ' +
-        malignancy
+      texts = texts + place + ' ( Im ' + (parseInt(boxes[boxIndex]['slice_idx']) + 1) + '/' + this.state.imageIds.length + ') 见' + texture + '结节, 大小为' + diameter
+      if (represent) {
+        texts += ', 可见' + represent
+      }
+      texts += ', ' + malignancy
     }
     return texts
   }
@@ -4259,9 +4256,9 @@ class CornerstoneElement extends Component {
               if (nodule.spiculation === 2) {
                 pdfNoduleRepresents.push('毛刺')
               }
-              if (nodule.calcification === 2) {
-                pdfNoduleRepresents.push('钙化')
-              }
+              // if (nodule.calcification === 2) {
+              //   pdfNoduleRepresents.push('钙化')
+              // }
               if (nodule.pin === 2) {
                 pdfNoduleRepresents.push('胸膜凹陷')
               }
@@ -4409,9 +4406,9 @@ class CornerstoneElement extends Component {
       if (item.spiculation === 2) {
         pdfNoduleRepresents.push('毛刺')
       }
-      if (item.calcification === 2) {
-        pdfNoduleRepresents.push('钙化')
-      }
+      // if (item.calcification === 2) {
+      //   pdfNoduleRepresents.push('钙化')
+      // }
       if (item.pin === 2) {
         pdfNoduleRepresents.push('胸膜凹陷')
       }
@@ -5949,9 +5946,9 @@ class CornerstoneElement extends Component {
             if (inside.spiculation === 2) {
               representArray.push('毛刺')
             }
-            if (inside.calcification === 2) {
-              representArray.push('钙化')
-            }
+            // if (inside.calcification === 2) {
+            //   representArray.push('钙化')
+            // }
             if (inside.pin === 2) {
               representArray.push('胸膜凹陷')
             }
@@ -6018,6 +6015,9 @@ class CornerstoneElement extends Component {
                           </Option>
                           <Option className="nodule-accordion-item-title-select-option" value={3}>
                             半实性
+                          </Option>
+                          <Option className="nodule-accordion-item-title-select-option" value={4}>
+                            钙化
                           </Option>
                         </Select>
                       </div>
@@ -6110,9 +6110,9 @@ class CornerstoneElement extends Component {
                             <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
                               毛刺
                             </Option>
-                            <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
+                            {/* <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
                               钙化
-                            </Option>
+                            </Option> */}
                             <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
                               胸膜凹陷
                             </Option>

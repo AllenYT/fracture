@@ -270,7 +270,12 @@
         {
             "value":3,
             "label":"实性"
+        },
+        {
+            "value": 4,
+            "label": "钙化"
         }
-    ]
+    ],
+    "longShortDiamShow": true
 
 }

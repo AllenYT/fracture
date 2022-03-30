@@ -1499,9 +1499,9 @@ class FollowUpElement extends Component {
         if (inside.spiculation === 2) {
           representArray.push('毛刺')
         }
-        if (inside.calcification === 2) {
-          representArray.push('钙化')
-        }
+        // if (inside.calcification === 2) {
+        //   representArray.push('钙化')
+        // }
         if (inside.pin === 2) {
           representArray.push('胸膜凹陷')
         }
@@ -1580,6 +1580,9 @@ class FollowUpElement extends Component {
                       </Option>
                       <Option className="nodule-accordion-item-title-select-option" value={3}>
                         半实性
+                      </Option>
+                      <Option className="nodule-accordion-item-title-select-option" value={4}>
+                        钙化
                       </Option>
                     </Select>
                   </div>
@@ -1681,9 +1684,9 @@ class FollowUpElement extends Component {
                         <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
                           毛刺
                         </Option>
-                        <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
+                        {/* <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
                           钙化
-                        </Option>
+                        </Option> */}
                         <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
                           胸膜凹陷
                         </Option>
@@ -1759,9 +1762,9 @@ class FollowUpElement extends Component {
         if (inside.spiculation === 2) {
           representArray.push('毛刺')
         }
-        if (inside.calcification === 2) {
-          representArray.push('钙化')
-        }
+        // if (inside.calcification === 2) {
+        //   representArray.push('钙化')
+        // }
         if (inside.pin === 2) {
           representArray.push('胸膜凹陷')
         }
@@ -1841,6 +1844,9 @@ class FollowUpElement extends Component {
                       </Option>
                       <Option className="nodule-accordion-item-title-select-option" value={3}>
                         半实性
+                      </Option>
+                      <Option className="nodule-accordion-item-title-select-option" value={4}>
+                        钙化
                       </Option>
                     </Select>
                   </div>
@@ -1941,9 +1947,9 @@ class FollowUpElement extends Component {
                         <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
                           毛刺
                         </Option>
-                        <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
+                        {/* <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
                           钙化
-                        </Option>
+                        </Option> */}
                         <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
                           胸膜凹陷
                         </Option>
@@ -2071,9 +2077,9 @@ class FollowUpElement extends Component {
         if (newNodule.spiculation === 2) {
           newRepresentArray.push('毛刺')
         }
-        if (newNodule.calcification === 2) {
-          newRepresentArray.push('钙化')
-        }
+        // if (newNodule.calcification === 2) {
+        //   newRepresentArray.push('钙化')
+        // }
         if (newNodule.pin === 2) {
           newRepresentArray.push('胸膜凹陷')
         }
@@ -2096,9 +2102,9 @@ class FollowUpElement extends Component {
         if (previousNodule.spiculation === 2) {
           preRepresentArray.push('毛刺')
         }
-        if (previousNodule.calcification === 2) {
-          preRepresentArray.push('钙化')
-        }
+        // if (previousNodule.calcification === 2) {
+        //   preRepresentArray.push('钙化')
+        // }
         if (previousNodule.pin === 2) {
           preRepresentArray.push('胸膜凹陷')
         }
@@ -2201,6 +2207,9 @@ class FollowUpElement extends Component {
                     <Option className="nodule-accordion-item-title-select-option" value={3}>
                       半实性
                     </Option>
+                    <Option className="nodule-accordion-item-title-select-option" value={4}>
+                      钙化
+                    </Option>
                   </Select>
                 </Col>
                 <Col span={8} className="register-nodule-card-select-center">
@@ -2224,9 +2233,9 @@ class FollowUpElement extends Component {
                     <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
                       毛刺
                     </Option>
-                    <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
+                    {/* <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
                       钙化
-                    </Option>
+                    </Option> */}
                     <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
                       胸膜凹陷
                     </Option>
@@ -2298,6 +2307,9 @@ class FollowUpElement extends Component {
                     <Option className="nodule-accordion-item-title-select-option" value={3}>
                       半实性
                     </Option>
+                    <Option className="nodule-accordion-item-title-select-option" value={4}>
+                      钙化
+                    </Option>
                   </Select>
                 </Col>
                 <Col span={8} className="register-nodule-card-select-center">
@@ -2321,9 +2333,9 @@ class FollowUpElement extends Component {
                     <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
                       毛刺
                     </Option>
-                    <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
+                    {/* <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
                       钙化
-                    </Option>
+                    </Option> */}
                     <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
                       胸膜凹陷
                     </Option>
@@ -2487,6 +2499,9 @@ class FollowUpElement extends Component {
                     <Option className="nodule-accordion-item-title-select-option" value={3}>
                       半实性
                     </Option>
+                    <Option className="nodule-accordion-item-title-select-option" value={4}>
+                      钙化
+                    </Option>
                   </Select>
                 </Col>
                 <Col span={10} className="register-nodule-card-select-center">
@@ -2510,9 +2525,9 @@ class FollowUpElement extends Component {
                     <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
                       毛刺
                     </Option>
-                    <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
+                    {/* <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
                       钙化
-                    </Option>
+                    </Option> */}
                     <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
                       胸膜凹陷
                     </Option>
@@ -2657,6 +2672,9 @@ class FollowUpElement extends Component {
                     <Option className="nodule-accordion-item-title-select-option" value={3}>
                       半实性
                     </Option>
+                    <Option className="nodule-accordion-item-title-select-option" value={4}>
+                      钙化
+                    </Option>
                   </Select>
                 </Col>
                 <Col span={10} className="register-nodule-card-select-center">
@@ -2680,9 +2698,9 @@ class FollowUpElement extends Component {
                     <Option className={'nodule-accordion-item-content-select-option'} value={'毛刺'}>
                       毛刺
                     </Option>
-                    <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
+                    {/* <Option className={'nodule-accordion-item-content-select-option'} value={'钙化'}>
                       钙化
-                    </Option>
+                    </Option> */}
                     <Option className={'nodule-accordion-item-content-select-option'} value={'胸膜凹陷'}>
                       胸膜凹陷
                     </Option>
@@ -3982,6 +4000,8 @@ class FollowUpElement extends Component {
           texture = '实性'
         } else if (item['texture'] === 3) {
           texture = '混合磨玻璃'
+        } else if (item['texture'] === 4) {
+          texture = '钙化'
         } else {
           texture = '磨玻璃'
         }
@@ -3991,9 +4011,9 @@ class FollowUpElement extends Component {
         if (item['spiculation'] === 2) {
           representArray.push('毛刺')
         }
-        if (item['calcification'] === 2) {
-          representArray.push('钙化')
-        }
+        // if (item['calcification'] === 2) {
+        //   representArray.push('钙化')
+        // }
         if (item['pin'] === 2) {
           representArray.push('胸膜凹陷')
         }
