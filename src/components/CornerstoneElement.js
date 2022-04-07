@@ -741,6 +741,9 @@ class CornerstoneElement extends Component {
             listsActiveIndex = index
           }
         })
+      } else {
+        cornerImageIdIndex = nodules[0].slice_idx
+        listsActiveIndex = 0
       }
     }
     this.setState(
@@ -776,6 +779,7 @@ class CornerstoneElement extends Component {
     const headers = {
       Authorization: 'Bearer '.concat(token),
     }
+
     const { imageIds, cornerImageIdIndex, nodules } = this.state
     // console.log('imageIds', this.state.imageIds, this.state.imageIds[cornerImageIdIndex])
     cornerstone.loadAndCacheImage(imageIds[cornerImageIdIndex]).then((image) => {
@@ -1180,7 +1184,7 @@ class CornerstoneElement extends Component {
     window.removeEventListener('mousedown', this.mousedownFunc.bind(this))
   }
 
-  async componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState) {
     if (prevProps.needUpdateLoadedImages !== this.props.needUpdateLoadedImages) {
       if (this.props.loadedImages) {
         const loadedCaseIds = Object.keys(this.props.loadedImages)
@@ -1254,7 +1258,10 @@ class CornerstoneElement extends Component {
         this.updateForm()
       }
     }
-
+    if (!_.isEqual(prevState.nodulesOrder, this.state.nodulesOrder)) {
+      console.log('needSort', prevState.nodulesOrder, this.state.nodulesOrder)
+      this.sortBoxes()
+    }
     // lymphs active index modified
     if (this.state.lymphsActiveIndex !== -1 && prevState.lymphsActiveIndex !== this.state.lymphsActiveIndex) {
       if (!this.state.show3DVisualization && this.state.lymphs && this.state.lymphs.length) {
@@ -2175,10 +2182,10 @@ class CornerstoneElement extends Component {
     const { boxes } = this.state
     boxes.forEach((boxItem, boxIndex) => {
       boxItem.recVisible = visible
-      if (!visible) {
-        boxItem.biVisible = visible
-      }
-      // boxItem.biVisible = visible
+      // if (!visible) {
+      //   boxItem.biVisible = visible
+      // }
+      boxItem.biVisible = visible
     })
     this.setState({
       boxes,
@@ -2790,14 +2797,10 @@ class CornerstoneElement extends Component {
         nodulesOrder[type] = 1
       }
     }
-    this.setState(
-      {
-        nodulesOrder,
-      },
-      () => {
-        this.sortBoxes()
-      }
-    )
+    this.sortBoxes()
+    // this.setState({
+    //   nodulesOrder,
+    // })
   }
   onHandleOrderDirectionNodule(type, e) {
     e.stopPropagation()
@@ -2813,14 +2816,10 @@ class CornerstoneElement extends Component {
         nodulesOrder[type] = -nodulesOrder[type]
       }
     }
-    this.setState(
-      {
-        nodulesOrder,
-      },
-      () => {
-        this.sortBoxes()
-      }
-    )
+    this.sortBoxes()
+    // this.setState({
+    //   nodulesOrder,
+    // })
   }
   sortBoxes() {
     const boxes = this.state.boxes
@@ -5965,7 +5964,7 @@ class CornerstoneElement extends Component {
               representArray.push('支气管充气')
             }
             if (inside.segment && inside.segment !== 'None') {
-              locationValues = noduleSegments[inside.segment].split('-')
+              locationValues = noduleSegments[inside.segment].split('-').join('/')
             } else {
               if (inside.place) {
                 locationValues = [nodulePlaces[inside.place]]
@@ -6030,7 +6029,7 @@ class CornerstoneElement extends Component {
 
                       <div className="nodule-accordion-item-title-column">
                         <div className="nodule-accordion-item-title-location">
-                          <Cascader
+                          {/* <Cascader
                             className="nodule-accordion-item-title-cascader"
                             bordered={false}
                             suffixIcon={null}
@@ -6042,7 +6041,8 @@ class CornerstoneElement extends Component {
                             }}
                             onChange={this.onSelectPlace.bind(this, idx)}
                             onClick={this.onSelectPlaceClick.bind(this)}
-                          />
+                          /> */}
+                          <div className="nodule-accordion-item-title-location-text">{locationValues}</div>
                         </div>
 
                         <div className="nodule-accordion-item-title-mal">

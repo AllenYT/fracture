@@ -1518,7 +1518,7 @@ class FollowUpElement extends Component {
           representArray.push('支气管充气')
         }
         if (inside.segment && inside.segment !== 'None') {
-          locationValues = lungLoc[inside.segment].split('-')
+          locationValues = lungLoc[inside.segment].split('-').join('/')
         } else {
           if (inside.place) {
             locationValues = [nodulePlaces[inside.place]]
@@ -1595,7 +1595,7 @@ class FollowUpElement extends Component {
 
                   <div className="nodule-accordion-item-title-column">
                     <div className="nodule-accordion-item-title-location">
-                      <Cascader
+                      {/* <Cascader
                         className="nodule-accordion-item-title-cascader"
                         bordered={false}
                         suffixIcon={null}
@@ -1607,7 +1607,8 @@ class FollowUpElement extends Component {
                         }}
                         onChange={this.onSelectPlace.bind(this, idx, 'current')}
                         onClick={this.onSelectPlaceClick.bind(this)}
-                      />
+                      /> */}
+                      {locationValues}
                     </div>
 
                     <div className="nodule-accordion-item-title-mal">
@@ -1781,7 +1782,7 @@ class FollowUpElement extends Component {
           representArray.push('支气管充气')
         }
         if (inside.segment && inside.segment !== 'None') {
-          locationValues = lungLoc[inside.segment].split('-')
+          locationValues = lungLoc[inside.segment].split('-').join('/')
         } else {
           if (inside.place) {
             locationValues = [nodulePlaces[inside.place]]
@@ -1858,7 +1859,7 @@ class FollowUpElement extends Component {
 
                   <div className="nodule-accordion-item-title-column">
                     <div className="nodule-accordion-item-title-location">
-                      <Cascader
+                      {/* <Cascader
                         className="nodule-accordion-item-title-cascader"
                         bordered={false}
                         suffixIcon={null}
@@ -1870,7 +1871,8 @@ class FollowUpElement extends Component {
                         }}
                         onChange={this.onSelectPlace.bind(this, idx, 'previous')}
                         onClick={this.onSelectPlaceClick.bind(this)}
-                      />
+                      /> */}
+                      {locationValues}
                     </div>
 
                     <div className="nodule-accordion-item-title-mal">
@@ -2001,7 +2003,7 @@ class FollowUpElement extends Component {
         let preLocationValues
 
         if (newNodule.segment && newNodule.segment !== 'None') {
-          newLocationValues = lungLoc[newNodule.segment].split('-')
+          newLocationValues = lungLoc[newNodule.segment].split('-').join('/')
         } else {
           if (newNodule.place) {
             newLocationValues = [nodulePlaces[newNodule.place]]
@@ -2010,7 +2012,7 @@ class FollowUpElement extends Component {
           }
         }
         if (previousNodule.segment && previousNodule.segment !== 'None') {
-          preLocationValues = lungLoc[previousNodule.segment].split('-')
+          preLocationValues = lungLoc[previousNodule.segment].split('-').join('/')
         } else {
           if (previousNodule.place) {
             preLocationValues = [nodulePlaces[previousNodule.place]]
@@ -2143,7 +2145,7 @@ class FollowUpElement extends Component {
               <Row className="register-nodule-card-first">
                 <Col span={12} className="register-nodule-card-content-first">
                   定位：
-                  <Cascader
+                  {/* <Cascader
                     className="nodule-accordion-item-title-cascader"
                     bordered={false}
                     suffixIcon={null}
@@ -2155,7 +2157,8 @@ class FollowUpElement extends Component {
                     }}
                     onChange={this.onSelectPlace.bind(this, idx, 'match-cur')}
                     onClick={this.onSelectPlaceClick.bind(this)}
-                  />
+                  /> */}
+                  {newLocationValues}
                   {/* <Cascader options={this.config.segment} onChange={this.onLungLocationChange.bind(this, idx, 'register-match')}>
                     <a href="#">{lungLoc[followupLoc]}</a>
                   </Cascader> */}
@@ -2384,7 +2387,7 @@ class FollowUpElement extends Component {
       newNodulesTbl = registerBoxes['new'].map((value, idx) => {
         let locationValues
         if (value.segment && value.segment !== 'None') {
-          locationValues = lungLoc[value.segment].split('-')
+          locationValues = lungLoc[value.segment].split('-').join('/')
         } else {
           if (value.place) {
             locationValues = [nodulePlaces[value.place]]
@@ -2453,7 +2456,7 @@ class FollowUpElement extends Component {
               <Row className="register-nodule-card-first">
                 <Col span={24}>
                   定位：
-                  <Cascader
+                  {/* <Cascader
                     className="nodule-accordion-item-title-cascader"
                     bordered={false}
                     suffixIcon={null}
@@ -2465,7 +2468,8 @@ class FollowUpElement extends Component {
                     }}
                     onChange={this.onSelectPlace.bind(this, idx, 'new')}
                     onClick={this.onSelectPlaceClick.bind(this)}
-                  />
+                  /> */}
+                  {locationValues}
                 </Col>
               </Row>
               <Row className="register-nodule-card-second" align="middle" wrap={false}>
@@ -2556,7 +2560,7 @@ class FollowUpElement extends Component {
       vanishNodulesTbl = registerBoxes['vanish'].map((value, idx) => {
         let locationValues
         if (value.segment && value.segment !== 'None') {
-          locationValues = lungLoc[value.segment].split('-')
+          locationValues = lungLoc[value.segment].split('-').join('/')
         } else {
           if (value.place) {
             locationValues = [nodulePlaces[value.place]]
@@ -2625,7 +2629,7 @@ class FollowUpElement extends Component {
               <Row className="register-nodule-card-first">
                 <Col span={24}>
                   定位：
-                  <Cascader
+                  {/* <Cascader
                     className="nodule-accordion-item-title-cascader"
                     bordered={false}
                     suffixIcon={null}
@@ -2637,7 +2641,8 @@ class FollowUpElement extends Component {
                     }}
                     onChange={this.onSelectPlace.bind(this, idx, 'vanish')}
                     onClick={this.onSelectPlaceClick.bind(this)}
-                  />
+                  /> */}
+                  {locationValues}
                 </Col>
               </Row>
 
