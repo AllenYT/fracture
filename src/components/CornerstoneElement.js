@@ -1,4 +1,4 @@
-import React, { Component } from 'react'
+import React, { Component, useState, useEffect, useRef } from 'react'
 // import {CineDialog} from 'react-viewerbase'
 // import { WrappedStudyBrowser } from '../components/wrappedStudyBrowser'
 import ReactHtmlParser from 'react-html-parser'
@@ -331,22 +331,32 @@ class CornerstoneElement extends Component {
     super(props)
     this.state = {
       // displayPanel
+      date: new Date(),
       caseId: window.location.pathname.split('/case/')[1].split('/')[0].replace('%23', '#'),
       username: localStorage.getItem('username'),
       modelName: window.location.pathname.split('/')[3],
       realname: localStorage.realname ? localStorage.realname : '',
       patientId: null,
+      noduleSpacing: null,
 
       firstTabActiveIndex: 1,
 
       //cornerstoneElement
       imageIds: [],
+      mousemovePos: {
+        startX: 0,
+        startY: 0,
+        imageX: 0,
+        imageY: 0,
+      },
       cornerImageIdIndex: 0,
       cornerImage: null,
       cornerIsPlaying: false,
       cornerFrameRate: 30,
       cornerActiveTool: 'StackScroll',
       cornerIsOverlayVisible: true,
+      cornerMouseCoordVisible: false,
+      cornerMouseInside: true,
       cornerAnnoVisible: true,
       cornerBiVisible: false,
       cornerElement: null,
@@ -438,6 +448,7 @@ class CornerstoneElement extends Component {
       nodules: [],
       noduleColor: 'rgba(0,255,0,1)',
       nodulesAllChecked: false,
+      smallNodulesChecked: false,
       noduleLimited: false,
       nodulesOrder: {
         slice_idx: 1,
@@ -711,16 +722,37 @@ class CornerstoneElement extends Component {
       imageIds = this.props.caseData[caseDataIndex].imageIds
       nodules = this.props.caseData[caseDataIndex].nodules
     }
+    if (imageIds[0]) {
+      await cornerstone.loadAndCacheImage(imageIds[0]).then((image) => {
+        const imageData = image.data
+        const noduleSpacing = String(imageData.string('x00280030')).split('\\')[0]
+        this.setState({
+          noduleSpacing,
+        })
+      })
+    }
 
     let cornerImageIdIndex = 0
     let listsActiveIndex = -1
     let noduleMarks = {}
+    let spacing = this.state.noduleSpacing
+    let dia
     if (nodules && nodules.length) {
       //sort and save previous index
       nodules.forEach((item, index) => {
         item.prevIdx = parseInt(item.nodule_no)
         item.delOpen = false
-        item.visible = true
+        if (spacing) {
+          dia = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2)) * spacing
+        } else {
+          dia = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
+        }
+        if (dia <= 5) {
+          item.visible = false
+        } else {
+          item.visible = true
+        }
+
         item.recVisible = true
         item.biVisible = this.config.longShortDiamShow
         item.checked = false
@@ -786,6 +818,7 @@ class CornerstoneElement extends Component {
       console.log('first imageId', image)
       const imageData = image.data
       const patientId = imageData.string('x00100020')
+      const noduleSpacing = String(imageData.string('x00280030')).split('\\')[0]
       const cornerImageRows = image.rows
       const cornerImageColumns = image.columns
       const cornerImageSize = {
@@ -796,6 +829,7 @@ class CornerstoneElement extends Component {
       this.setState({
         patientId,
         cornerImageSize,
+        noduleSpacing,
       })
     })
     executeTask()
@@ -830,7 +864,7 @@ class CornerstoneElement extends Component {
       console.log('annoRoundPromises', value.length)
     })
 
-    // this.loadStudyBrowser()
+    // this.loadStudyBrowser()F
     this.loadReport()
 
     // axios
@@ -2199,6 +2233,11 @@ class CornerstoneElement extends Component {
       cornerIsOverlayVisible: visible,
     })
   }
+  onSetMouseCoordVisible(visible) {
+    this.setState({
+      cornerMouseCoordVisible: visible,
+    })
+  }
   onSetCornerActiveTool(tool) {
     const { showFollowUp } = this.state
     if (showFollowUp) {
@@ -2554,6 +2593,244 @@ class CornerstoneElement extends Component {
   onHandleNoduleAllCheckClick(e) {
     e.stopPropagation()
   }
+  onHandleSmallNodulesCheckChange() {
+    const boxes = this.state.boxes
+    const selectedPro = []
+    const selectedLong = []
+    const selectedMal = []
+    const nodulesSelect = this.state.nodulesSelect
+    const smallNodulesChecked = !this.state.smallNodulesChecked
+    const spacing = this.state.noduleSpacing
+    nodulesSelect.forEach((item, index) => {
+      const nodulesSelectChecked = item.checked
+      if (item.key === 0) {
+        nodulesSelectChecked.forEach((chItem, chIndex) => {
+          if (chItem) {
+            switch (chIndex) {
+              case 0:
+                selectedPro.push({
+                  key: 'texture',
+                  val: 2,
+                })
+                break
+              case 1:
+                selectedPro.push({
+                  key: 'texture',
+                  val: 3,
+                })
+                break
+              case 2:
+                selectedPro.push({
+                  key: 'texture',
+                  val: 1,
+                })
+                break
+              case 3:
+                selectedPro.push({
+                  key: 'spiculation',
+                  val: 2,
+                })
+                break
+              case 4:
+                selectedPro.push({
+                  key: 'lobulation',
+                  val: 2,
+                })
+                break
+              case 5:
+                selectedPro.push({
+                  key: 'calcification',
+                  val: 2,
+                })
+                break
+              case 6:
+                selectedPro.push({
+                  key: 'pin',
+                  val: 2,
+                })
+                break
+              case 7:
+                selectedPro.push({
+                  key: 'cav',
+                  val: 2,
+                })
+
+                break
+              case 8:
+                selectedPro.push({
+                  key: 'vss',
+                  val: 2,
+                })
+
+                break
+              case 9:
+                selectedPro.push({
+                  key: 'bea',
+                  val: 2,
+                })
+
+                break
+              case 10:
+                selectedPro.push({
+                  key: 'bro',
+                  val: 2,
+                })
+                break
+              case 11:
+                selectedPro.push({
+                  key: 'texture',
+                  val: -1,
+                })
+              default:
+                break
+            }
+          }
+        })
+      } else if (item.key === 1) {
+        nodulesSelectChecked.forEach((chItem, chIndex) => {
+          if (chItem) {
+            switch (chIndex) {
+              case 0:
+                selectedLong.push({
+                  min: 0,
+                  max: 3,
+                })
+                break
+              case 1:
+                selectedLong.push({
+                  min: 3,
+                  max: 5,
+                })
+                break
+              case 2:
+                selectedLong.push({
+                  min: 5,
+                  max: 10,
+                })
+                break
+              case 3:
+                selectedLong.push({
+                  min: 10,
+                  max: 13,
+                })
+                break
+              case 4:
+                selectedLong.push({
+                  min: 13,
+                  max: 30,
+                })
+                break
+              case 5:
+                selectedLong.push({
+                  min: 30,
+                  max: Infinity,
+                })
+                break
+              default:
+                break
+            }
+          }
+        })
+      } else if (item.key === 2) {
+        nodulesSelectChecked.forEach((chItem, chIndex) => {
+          if (chItem) {
+            switch (chIndex) {
+              case 0:
+                selectedMal.push({
+                  key: 'malignancy',
+                  val: 3,
+                })
+                break
+              case 1:
+                selectedMal.push({
+                  key: 'malignancy',
+                  val: 2,
+                })
+                break
+              case 2:
+                selectedMal.push({
+                  key: 'malignancy',
+                  val: 1,
+                })
+                break
+              case 3:
+                selectedMal.push({
+                  key: 'malignancy',
+                  val: -1,
+                })
+                break
+              default:
+                break
+            }
+          }
+        })
+      }
+    })
+    boxes.forEach((boxItem, boIndex) => {
+      let boProSelected = false
+      let boDiamSelected = false
+      let boMalSelected = false
+
+      if (selectedPro.length) {
+        selectedPro.forEach((proItem, proIndex) => {
+          if (boxItem[proItem.key] === proItem.val) {
+            boProSelected = true
+          }
+        })
+      } else {
+        boProSelected = true
+      }
+
+      if (selectedLong.length) {
+        let boxItemLL = 0
+        if (boxItem.measure) {
+          if (spacing) {
+            boxItemLL = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+          } else {
+            boxItemLL = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+          }
+        }
+        selectedLong.forEach((longItem, diaIndex) => {
+          if (boxItemLL <= longItem.max && boxItemLL >= longItem.min) {
+            boDiamSelected = true
+          }
+        })
+      } else {
+        boDiamSelected = true
+      }
+
+      if (selectedMal.length) {
+        selectedMal.forEach((proItem, proIndex) => {
+          if (boxItem[proItem.key] === proItem.val) {
+            boMalSelected = true
+          }
+        })
+      } else {
+        boMalSelected = true
+      }
+      let dia
+      if (spacing) {
+        dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+      } else {
+        dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+      }
+      if (dia <= 5) {
+        if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
+          boxes[boIndex].visible = true
+        } else {
+          boxes[boIndex].visible = false
+        }
+      }
+    })
+    this.setState({
+      boxes,
+      smallNodulesChecked,
+      needReloadBoxes: true,
+    })
+  }
+  onHandleSmallNodulesCheckClick(e) {
+    e.stopPropagation()
+  }
   onHandleNoduleLimitChange() {
     const boxes = this.state.boxes
     const noduleLimited = !this.state.noduleLimited
@@ -2825,6 +3102,7 @@ class CornerstoneElement extends Component {
     const boxes = this.state.boxes
     const nodulesOrder = this.state.nodulesOrder
     const keys = Object.keys(nodulesOrder)
+    const spacing = this.state.noduleSpacing
     keys.forEach((item) => {
       if (nodulesOrder[item] !== 0) {
         const newBoxes = _.sortBy(
@@ -2835,7 +3113,11 @@ class CornerstoneElement extends Component {
             } else if (item === 'long_length') {
               let ll = 0
               if (o.measure) {
-                ll = Math.sqrt(Math.pow(o.measure.x1 - o.measure.x2, 2) + Math.pow(o.measure.y1 - o.measure.y2, 2))
+                if (spacing) {
+                  ll = Math.sqrt(Math.pow(o.measure.x1 - o.measure.x2, 2) + Math.pow(o.measure.y1 - o.measure.y2, 2)) * spacing
+                } else {
+                  ll = Math.sqrt(Math.pow(o.measure.x1 - o.measure.x2, 2) + Math.pow(o.measure.y1 - o.measure.y2, 2))
+                }
               }
               return nodulesOrder[item] * ll
             } else {
@@ -2886,6 +3168,8 @@ class CornerstoneElement extends Component {
     const selectedLong = []
     const selectedMal = []
     const nodulesSelect = this.state.nodulesSelect
+    const smallNodulesChecked = this.state.smallNodulesChecked
+    const spacing = this.state.noduleSpacing
     nodulesSelect.forEach((item, index) => {
       const nodulesSelectChecked = item.checked
       if (item.key === 0) {
@@ -3073,7 +3357,11 @@ class CornerstoneElement extends Component {
       if (selectedLong.length) {
         let boxItemLL = 0
         if (boxItem.measure) {
-          boxItemLL = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+          if (spacing) {
+            boxItemLL = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+          } else {
+            boxItemLL = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+          }
         }
         selectedLong.forEach((longItem, diaIndex) => {
           if (boxItemLL <= longItem.max && boxItemLL >= longItem.min) {
@@ -3093,11 +3381,25 @@ class CornerstoneElement extends Component {
       } else {
         boMalSelected = true
       }
-
-      if (boProSelected && boDiamSelected && boMalSelected) {
-        boxes[boIndex].visible = true
+      let dia
+      if (spacing) {
+        dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
       } else {
-        boxes[boIndex].visible = false
+        dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+      }
+
+      if (dia <= 5) {
+        if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
+          boxes[boIndex].visible = true
+        } else {
+          boxes[boIndex].visible = false
+        }
+      } else {
+        if (boProSelected && boDiamSelected && boMalSelected) {
+          boxes[boIndex].visible = true
+        } else {
+          boxes[boIndex].visible = false
+        }
       }
     })
     this.setState({
@@ -3640,6 +3942,7 @@ class CornerstoneElement extends Component {
     const places = nodulePlaces
     const segments = noduleSegments
     const boxes = this.state.boxes
+    const spacing = this.state.spacing
     let texts = ''
 
     if (type === '结节类型') {
@@ -4741,7 +5044,6 @@ class CornerstoneElement extends Component {
               longestDiameter: Math.sqrt(Math.pow(measure.x1 - measure.x2, 2) + Math.pow(measure.y1 - measure.y2, 2)),
               shortestDiameter: Math.sqrt(Math.pow(measure.x3 - measure.x4, 2) + Math.pow(measure.y3 - measure.y4, 2)),
             }
-
             cornerstoneTools.addToolState(cornerElement, 'Bidirectional', measurementData)
             const toolData = cornerstoneTools.getToolState(cornerElement, 'Bidirectional')
             // console.log('Bidirectional', toolData)
@@ -4875,7 +5177,18 @@ class CornerstoneElement extends Component {
     console.log('cornerToolMouseUpCallback', e)
   }
   mouseMovePositionDisplay(evt) {
-    const [imageX, imageY] = [evt.detail.startPoints.image.x, evt.detail.startPoints.image.y]
+    const [startX, startY, imageX, imageY] = [evt.detail.startPoints.page.x, evt.detail.startPoints.page.y, evt.detail.startPoints.image.x, evt.detail.startPoints.image.y]
+    let { mousemovePos } = this.state
+    mousemovePos.startX = startX
+    mousemovePos.startY = startY
+    mousemovePos.imageX = imageX
+    mousemovePos.imageY = imageY
+    if (imageX < 0 || imageY < 0 || imageX > evt.detail.image.width - 20 || imageY > evt.detail.image.height - 20) {
+      this.setState({ cornerMouseInside: false })
+    } else {
+      this.setState({ cornerMouseInside: true })
+    }
+    this.setState({ mousemovePos })
   }
   zoomToCenterStrategy(evt) {
     const { invert, maxScale, minScale } = this.state.cornerstoneZoomScaleConfig
@@ -5446,6 +5759,7 @@ class CornerstoneElement extends Component {
       previewVisible,
       clearUserOpen,
       settingOpen,
+      mousemovePos,
 
       imageIds,
       cornerImageIdIndex,
@@ -5454,6 +5768,8 @@ class CornerstoneElement extends Component {
       cornerFrameRate,
       cornerActiveTool,
       cornerIsOverlayVisible,
+      cornerMouseCoordVisible,
+      cornerMouseInside,
       cornerViewport,
       cornerAnnoVisible,
       cornerBiVisible,
@@ -5462,6 +5778,7 @@ class CornerstoneElement extends Component {
       drawingLymphsCompleted,
 
       nodulesAllChecked,
+      smallNodulesChecked,
       noduleLimited,
       nodulesOrder,
       noduleOrderOption,
@@ -5912,11 +6229,17 @@ class CornerstoneElement extends Component {
             let representArray = []
             let locationValues = ''
             const visualId = 'visual-' + idx
+            const spacing = this.state.noduleSpacing
             let ll = 0
             let sl = 0
             if (inside.measure !== undefined && inside.measure !== null) {
-              ll = Math.sqrt(Math.pow(inside.measure.x1 - inside.measure.x2, 2) + Math.pow(inside.measure.y1 - inside.measure.y2, 2))
-              sl = Math.sqrt(Math.pow(inside.measure.x3 - inside.measure.x4, 2) + Math.pow(inside.measure.y3 - inside.measure.y4, 2))
+              if (spacing) {
+                ll = Math.sqrt(Math.pow(inside.measure.x1 - inside.measure.x2, 2) + Math.pow(inside.measure.y1 - inside.measure.y2, 2)) * spacing
+                sl = Math.sqrt(Math.pow(inside.measure.x3 - inside.measure.x4, 2) + Math.pow(inside.measure.y3 - inside.measure.y4, 2)) * spacing
+              } else {
+                ll = Math.sqrt(Math.pow(inside.measure.x1 - inside.measure.x2, 2) + Math.pow(inside.measure.y1 - inside.measure.y2, 2))
+                sl = Math.sqrt(Math.pow(inside.measure.x3 - inside.measure.x4, 2) + Math.pow(inside.measure.y3 - inside.measure.y4, 2))
+              }
               if (isNaN(ll)) {
                 ll = 0
               }
@@ -5937,7 +6260,13 @@ class CornerstoneElement extends Component {
                 sl = 0
               }
             }
-            let diameter = inside.diameter
+
+            let diameter
+            if (spacing) {
+              diameter = inside.diameter * spacing
+            } else {
+              diameter = inside.diameter
+            }
 
             if (inside.lobulation === 2) {
               representArray.push('分叶')
@@ -6022,9 +6351,9 @@ class CornerstoneElement extends Component {
                       </div>
 
                       {ll === 0 && sl === 0 ? (
-                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(diameter / 10).toFixed(2)}cm`}</div>
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${diameter.toFixed(1)}mm`}</div>
                       ) : (
-                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(ll / 10).toFixed(2)}x${(sl / 10).toFixed(2)}cm`}</div>
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${ll.toFixed(1)}x${sl.toFixed(1)}mm`}</div>
                       )}
 
                       <div className="nodule-accordion-item-title-column">
@@ -6529,8 +6858,17 @@ class CornerstoneElement extends Component {
         Maximum3DDiameter = boxes[listsActiveIndex].Maximum3DDiameter ? boxes[listsActiveIndex].Maximum3DDiameter.toFixed(2) : 0
         if (boxes[listsActiveIndex].measure !== null && boxes[listsActiveIndex].measure !== undefined) {
           let measureCoord = boxes[listsActiveIndex].measure
-          let ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2))
-          let sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2))
+          let ll,
+            sl = 0
+          const spacing = this.state.noduleSpacing
+          if (spacing) {
+            ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2)) * spacing
+            sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2)) * spacing
+          } else {
+            ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2))
+            sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2))
+          }
+
           apsidal_mean = ((ll + sl) / 2).toFixed(2)
         }
 
@@ -7015,6 +7353,17 @@ class CornerstoneElement extends Component {
               <div className="func-btn-desc">显示信息</div>
             </div>
           )}
+          {cornerMouseCoordVisible ? (
+            <div onClick={this.onSetMouseCoordVisible.bind(this, false)} className={'func-btn'} title="隐藏坐标" hidden={show3DVisualization || showFollowUp}>
+              <Icon className="func-btn-icon" id="cache-button" name="location arrow slash" size="large"></Icon>
+              <div className="func-btn-desc">隐藏坐标</div>
+            </div>
+          ) : (
+            <div onClick={this.onSetMouseCoordVisible.bind(this, true)} className="func-btn" title="显示坐标" hidden={show3DVisualization || showFollowUp}>
+              <Icon className="func-btn-icon" id="cache-button" name="location arrow" size="large"></Icon>
+              <div className="func-btn-desc">显示坐标</div>
+            </div>
+          )}
           <div
             title="切换切片"
             onClick={this.onSetCornerActiveTool.bind(this, 'StackScroll')}
@@ -7389,6 +7738,13 @@ class CornerstoneElement extends Component {
                                             onClick={this.onHandleNoduleAllCheckClick.bind(this)}>
                                             全选
                                           </Checkbox>
+                                          <Checkbox
+                                            className="nodule-filter-desc-checkbox"
+                                            checked={smallNodulesChecked}
+                                            onChange={this.onHandleSmallNodulesCheckChange.bind(this)}
+                                            onClick={this.onHandleSmallNodulesCheckClick.bind(this)}>
+                                            微小结节
+                                          </Checkbox>
                                           <div className="nodule-filter-desc-text">已筛选{noduleNumber}个病灶</div>
                                           {boxes.length > 20 ? (
                                             <Checkbox
@@ -7743,6 +8099,13 @@ class CornerstoneElement extends Component {
           </div>
           {histogramFloatWindow}
           {pdfReading ? invisiblePdfContent : null}
+          {cornerMouseCoordVisible && cornerMouseInside ? (
+            <div
+              className="imagePos"
+              style={{ position: 'absolute', color: '#54c8ff', top: `${mousemovePos.startY + 30}px`, left: `${mousemovePos.startX - 50}px`, zIndex: 1, fontWeight: 'bold', fontSize: '16px' }}>
+              ({mousemovePos.imageX.toFixed(0)},{mousemovePos.imageY.toFixed(0)})
+            </div>
+          ) : null}
         </div>
       )
       // }
@@ -9281,6 +9644,19 @@ class CornerstoneElement extends Component {
     picked[1] = yMin + (origin[1] * (yMax - yMin)) / originYBorder
     picked[2] = zMax - (origin[2] * (zMax - zMin)) / originZBorder
     return picked
+  }
+  saveTime(period) {
+    //if (this.state.unsaved)
+    const timestamp = new Date()
+    const params = {
+      username: this.state.username,
+      studyId: '',
+      caseId: this.state.caseId,
+      duration: period,
+    }
+    axios.post(this.config.user.userUsageDuration, qs.stringify(params)).then((res) => {
+      console.log('userUsageDuration', res)
+    })
   }
 }
 

@@ -26,7 +26,8 @@
         "updateUserInfoForAdmin": "http://192.168.7.198:8085/user/updateUserInfoForAdmin",
         "getTotalUserPages": "http://192.168.7.198:8085/user/getTotalUserPages",
         "delUser": "http://192.168.7.198:8085/user/delUser",
-        "updateRolesForUser": "http://192.168.7.198:8085/user/updateRolesForUser"
+        "updateRolesForUser": "http://192.168.7.198:8085/user/updateRolesForUser",
+        "userUsageDuration" : "http://192.168.7.198:8085/user/addUserUsageDuration"
     },
     "record": {
         "getMainList": "http://192.168.7.198:8085/record/getMainListForPage",

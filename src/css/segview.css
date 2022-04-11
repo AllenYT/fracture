@@ -54,8 +54,12 @@
   height: 21px !important;
   background-size: 21px 21px !important;
 }
-.icon-custom-slicer{
+.icon-custom-slicer {
   background: url('../icons/slicer.svg') no-repeat !important;
+  background-size: 21px 21px !important;
+}
+.icon-custom-location {
+  background: url('../icons/location_slash_fill.svg') no-repeat !important;
   background-size: 21px 21px !important;
 }
 #segment-container {
