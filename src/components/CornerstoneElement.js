@@ -303,6 +303,7 @@ const boxProtoType = {
   beaProb: 0,
   broProb: 0,
   status: 1,
+  type: 'nodule',
 }
 const boxDrawingColor = 'rgb(0,0,0)'
 const lymphProtoType = {
@@ -742,11 +743,16 @@ class CornerstoneElement extends Component {
       nodules.forEach((item, index) => {
         item.prevIdx = parseInt(item.nodule_no)
         item.delOpen = false
-        if (spacing) {
-          dia = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2)) * spacing
+        if (item.measure) {
+          if (spacing) {
+            dia = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2)) * spacing
+          } else {
+            dia = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
+          }
         } else {
-          dia = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
+          dia = item.diameter
         }
+
         if (dia <= 5) {
           item.visible = false
         } else {
@@ -2809,11 +2815,16 @@ class CornerstoneElement extends Component {
         boMalSelected = true
       }
       let dia
-      if (spacing) {
-        dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+      if (boxItem.measure) {
+        if (spacing) {
+          dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+        } else {
+          dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+        }
       } else {
-        dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+        dia = boxItem.diameter
       }
+
       if (dia <= 5) {
         if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
           boxes[boIndex].visible = true
@@ -3113,10 +3124,14 @@ class CornerstoneElement extends Component {
             } else if (item === 'long_length') {
               let ll = 0
               if (o.measure) {
-                if (spacing) {
-                  ll = Math.sqrt(Math.pow(o.measure.x1 - o.measure.x2, 2) + Math.pow(o.measure.y1 - o.measure.y2, 2)) * spacing
+                if (o.measure) {
+                  if (spacing) {
+                    ll = Math.sqrt(Math.pow(o.measure.x1 - o.measure.x2, 2) + Math.pow(o.measure.y1 - o.measure.y2, 2)) * spacing
+                  } else {
+                    ll = Math.sqrt(Math.pow(o.measure.x1 - o.measure.x2, 2) + Math.pow(o.measure.y1 - o.measure.y2, 2))
+                  }
                 } else {
-                  ll = Math.sqrt(Math.pow(o.measure.x1 - o.measure.x2, 2) + Math.pow(o.measure.y1 - o.measure.y2, 2))
+                  ll = o.diameter
                 }
               }
               return nodulesOrder[item] * ll
@@ -3382,10 +3397,14 @@ class CornerstoneElement extends Component {
         boMalSelected = true
       }
       let dia
-      if (spacing) {
-        dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+      if (boxItem.measure) {
+        if (spacing) {
+          dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+        } else {
+          dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+        }
       } else {
-        dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+        dia = boxItem.diameter
       }
 
       if (dia <= 5) {
@@ -6232,7 +6251,7 @@ class CornerstoneElement extends Component {
             const spacing = this.state.noduleSpacing
             let ll = 0
             let sl = 0
-            if (inside.measure !== undefined && inside.measure !== null) {
+            if (inside.measure) {
               if (spacing) {
                 ll = Math.sqrt(Math.pow(inside.measure.x1 - inside.measure.x2, 2) + Math.pow(inside.measure.y1 - inside.measure.y2, 2)) * spacing
                 sl = Math.sqrt(Math.pow(inside.measure.x3 - inside.measure.x4, 2) + Math.pow(inside.measure.y3 - inside.measure.y4, 2)) * spacing
@@ -6861,14 +6880,18 @@ class CornerstoneElement extends Component {
           let ll,
             sl = 0
           const spacing = this.state.noduleSpacing
-          if (spacing) {
-            ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2)) * spacing
-            sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2)) * spacing
+          if (measureCoord.measure) {
+            if (spacing) {
+              ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2)) * spacing
+              sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2)) * spacing
+            } else {
+              ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2))
+              sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2))
+            }
           } else {
-            ll = Math.sqrt(Math.pow(measureCoord.x1 - measureCoord.x2, 2) + Math.pow(measureCoord.y1 - measureCoord.y2, 2))
-            sl = Math.sqrt(Math.pow(measureCoord.x3 - measureCoord.x4, 2) + Math.pow(measureCoord.y3 - measureCoord.y4, 2))
+            ll = 0
+            sl = 0
           }
-
           apsidal_mean = ((ll + sl) / 2).toFixed(2)
         }
 
@@ -7746,15 +7769,6 @@ class CornerstoneElement extends Component {
                                             微小结节
                                           </Checkbox>
                                           <div className="nodule-filter-desc-text">已筛选{noduleNumber}个病灶</div>
-                                          {boxes.length > 20 ? (
-                                            <Checkbox
-                                              className="nodule-filter-desc-checkbox"
-                                              checked={noduleLimited}
-                                              onChange={this.onHandleNoduleLimitChange.bind(this)}
-                                              onClick={this.onHandleNoduleLimitClick.bind(this)}>
-                                              只显示20个结节
-                                            </Checkbox>
-                                          ) : null}
                                         </div>
                                         <div className="nodule-filter-operation">
                                           <Popup
@@ -7789,7 +7803,17 @@ class CornerstoneElement extends Component {
                                                       checked={nodulesAllSelected}
                                                       onChange={this.onHandleSelectAllNodules.bind(this)}></Checkbox>
                                                     全选
+                                                    {boxes.length > 20 ? (
+                                                      <Checkbox
+                                                        className="nodule-filter-desc-checkbox"
+                                                        checked={noduleLimited}
+                                                        onChange={this.onHandleNoduleLimitChange.bind(this)}
+                                                        onClick={this.onHandleNoduleLimitClick.bind(this)}>
+                                                        限制20个
+                                                      </Checkbox>
+                                                    ) : null}
                                                   </div>
+
                                                   <div className="nodule-filter-operation-select-content-bottom-right">
                                                     <Button className="nodule-filter-operation-select-content-bottom-button" onClick={this.onHandleSelectNoduleComplete.bind(this)}>
                                                       确定
