@@ -753,7 +753,7 @@ class CornerstoneElement extends Component {
           dia = item.diameter
         }
 
-        if (dia <= 5) {
+        if (dia <= this.config.smallNodulesDiameter) {
           item.visible = false
         } else {
           item.visible = true
@@ -2825,7 +2825,7 @@ class CornerstoneElement extends Component {
         dia = boxItem.diameter
       }
 
-      if (dia <= 5) {
+      if (dia <= this.config.smallNodulesDiameter) {
         if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
           boxes[boIndex].visible = true
         } else {
@@ -3407,7 +3407,7 @@ class CornerstoneElement extends Component {
         dia = boxItem.diameter
       }
 
-      if (dia <= 5) {
+      if (dia <= this.config.smallNodulesDiameter) {
         if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
           boxes[boIndex].visible = true
         } else {
@@ -6369,10 +6369,10 @@ class CornerstoneElement extends Component {
                         </Select>
                       </div>
 
-                      {ll === 0 && sl === 0 ? (
-                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${diameter.toFixed(1)}mm`}</div>
+                      {ll === 0 || sl === 0 ? (
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(diameter / 10).toFixed(2)}cm`}</div>
                       ) : (
-                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${ll.toFixed(1)}x${sl.toFixed(1)}mm`}</div>
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(ll / 10).toFixed(2)}x${(sl / 10).toFixed(2)}cm`}</div>
                       )}
 
                       <div className="nodule-accordion-item-title-column">

@@ -277,6 +277,7 @@
             "label": "钙化"
         }
     ],
-    "longShortDiamShow": false
+    "longShortDiamShow": false,
+    "smallNodulesDiameter":5
 
 }
