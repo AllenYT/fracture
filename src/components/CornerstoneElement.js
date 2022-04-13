@@ -760,9 +760,13 @@ class CornerstoneElement extends Component {
             sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2))
           }
         } else {
-          dia = item.diameter
+          if (spacing) {
+            dia = item.diameter * spacing
+          } else {
+            dia = item.diameter
+          }
         }
-        if (item.measure) {
+        if (item.measure && (sl !== 0 || ll !== 0)) {
           if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
             item.visible = false
           } else {
@@ -3004,9 +3008,13 @@ class CornerstoneElement extends Component {
           sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2))
         }
       } else {
-        dia = boxItem.diameter
+        if (spacing) {
+          dia = boxItem.diameter * spacing
+        } else {
+          dia = boxItem.diameter
+        }
       }
-      if (boxItem.measure) {
+      if (boxItem.measure && (sl !== 0 || ll !== 0)) {
         if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
@@ -3611,9 +3619,13 @@ class CornerstoneElement extends Component {
           sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2))
         }
       } else {
-        dia = boxItem.diameter
+        if (spacing) {
+          dia = boxItem.diameter * spacing
+        } else {
+          dia = boxItem.diameter
+        }
       }
-      if (boxItem.measure) {
+      if (boxItem.measure && (sl !== 0 || ll !== 0)) {
         if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
@@ -6579,12 +6591,20 @@ class CornerstoneElement extends Component {
                           </Option>
                         </Select>
                       </div>
-
-                      {ll === 0 || sl === 0 ? (
+                      {ll !== 0 && sl !== 0 ? (
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(ll / 10).toFixed(2)}x${(sl / 10).toFixed(2)}cm`}</div>
+                      ) : ll === 0 && sl !== 0 ? (
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(sl / 10).toFixed(2)}cm`}</div>
+                      ) : ll !== 0 && sl === 0 ? (
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(ll / 10).toFixed(2)}cm`}</div>
+                      ) : (
+                        <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(diameter / 10).toFixed(2)}cm`}</div>
+                      )}
+                      {/* {ll === 0 || sl === 0 ? (
                         <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(diameter / 10).toFixed(2)}cm`}</div>
                       ) : (
                         <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(ll / 10).toFixed(2)}x${(sl / 10).toFixed(2)}cm`}</div>
-                      )}
+                      )} */}
 
                       <div className="nodule-accordion-item-title-column">
                         <div className="nodule-accordion-item-title-location">
