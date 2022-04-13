@@ -737,7 +737,7 @@ class CornerstoneElement extends Component {
     let listsActiveIndex = -1
     let noduleMarks = {}
     let spacing = this.state.noduleSpacing
-    let dia
+    let ll, sl, dia
     if (nodules && nodules.length) {
       //sort and save previous index
       nodules.forEach((item, index) => {
@@ -745,18 +745,27 @@ class CornerstoneElement extends Component {
         item.delOpen = false
         if (item.measure) {
           if (spacing) {
-            dia = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2)) * spacing
+            ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2)) * spacing
+            sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2)) * spacing
           } else {
-            dia = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
+            ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
+            sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2))
           }
         } else {
           dia = item.diameter
         }
-
-        if (dia <= this.config.smallNodulesDiameter) {
-          item.visible = false
+        if (item.measure) {
+          if (ll <= this.config.smallNodulesDiameter && sl <= this.config.smallNodulesDiameter) {
+            item.visible = false
+          } else {
+            item.visible = true
+          }
         } else {
-          item.visible = true
+          if (dia <= this.config.smallNodulesDiameter) {
+            item.visible = false
+          } else {
+            item.visible = true
+          }
         }
 
         item.recVisible = true
@@ -2814,22 +2823,33 @@ class CornerstoneElement extends Component {
       } else {
         boMalSelected = true
       }
-      let dia
+      let ll, sl, dia
       if (boxItem.measure) {
         if (spacing) {
-          dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+          ll = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+          sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2)) * spacing
         } else {
-          dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+          ll = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+          sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2))
         }
       } else {
         dia = boxItem.diameter
       }
-
-      if (dia <= this.config.smallNodulesDiameter) {
-        if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
-          boxes[boIndex].visible = true
-        } else {
-          boxes[boIndex].visible = false
+      if (boxItem.measure) {
+        if (ll <= this.config.smallNodulesDiameter && sl <= this.config.smallNodulesDiameter) {
+          if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
+            boxes[boIndex].visible = true
+          } else {
+            boxes[boIndex].visible = false
+          }
+        }
+      } else {
+        if (dia <= this.config.smallNodulesDiameter) {
+          if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
+            boxes[boIndex].visible = true
+          } else {
+            boxes[boIndex].visible = false
+          }
         }
       }
     })
@@ -3396,28 +3416,33 @@ class CornerstoneElement extends Component {
       } else {
         boMalSelected = true
       }
-      let dia
+      let ll, sl, dia
       if (boxItem.measure) {
         if (spacing) {
-          dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+          ll = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2)) * spacing
+          sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2)) * spacing
         } else {
-          dia = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+          ll = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
+          sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2))
         }
       } else {
         dia = boxItem.diameter
       }
-
-      if (dia <= this.config.smallNodulesDiameter) {
-        if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
-          boxes[boIndex].visible = true
-        } else {
-          boxes[boIndex].visible = false
+      if (boxItem.measure) {
+        if (ll <= this.config.smallNodulesDiameter && sl <= this.config.smallNodulesDiameter) {
+          if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
+            boxes[boIndex].visible = true
+          } else {
+            boxes[boIndex].visible = false
+          }
         }
       } else {
-        if (boProSelected && boDiamSelected && boMalSelected) {
-          boxes[boIndex].visible = true
-        } else {
-          boxes[boIndex].visible = false
+        if (dia <= this.config.smallNodulesDiameter) {
+          if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
+            boxes[boIndex].visible = true
+          } else {
+            boxes[boIndex].visible = false
+          }
         }
       }
     })
