@@ -279,7 +279,9 @@ export default class View2D extends Component {
   }
 
   componentDidMount() {
-    this.props.onRef(this)
+    if (this.props.onRef) {
+      this.props.onRef(this)
+    }
     console.time('mount!')
     // Tracking ID to tie emitted events to this component
     this.uid = uuidv4()
@@ -315,6 +317,8 @@ export default class View2D extends Component {
     this.paintFilter = vtkPaintFilter.newInstance()
     this.paintFilter.setLabel(label)
     this.paintFilter.setRadius(radius)
+
+    this.componentDidUpdate({}, this.state)
 
     const svgWidgetManager = vtkSVGWidgetManager.newInstance()
 
@@ -768,7 +772,6 @@ export default class View2D extends Component {
         this.subs.paintEnd.sub(
           this.viewWidget.onEndInteractionEvent(() => {
             const strokeBufferPromise = this.paintFilter.endStroke()
-
             if (this.props.onPaintEnd) {
               strokeBufferPromise.then((strokeBuffer) => {
                 this.props.onPaintEnd(strokeBuffer, this.props.viewerType)

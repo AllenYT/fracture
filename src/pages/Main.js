@@ -447,7 +447,7 @@ class Main extends Component {
                     <Route path="/preprocess/" component={preprocess} />
                     <Route path="/adminManage" component={AdminManagePanel} />
                     <Route path="/prefusion" component={VTKPrefusionViewer} />
-                    {/* <Route path="/test" component={TestPanel} /> */}
+                    <Route path="/test" component={TestPanel} />
                   </Switch>
                 </>
               ) : (
