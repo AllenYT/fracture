@@ -1,0 +1,22 @@
+.test-container{
+    display: flex;
+    flex-direction: column;
+    height:600px;
+    width: 1200px;
+}
+.test-title{
+    height:50px;
+}
+.test-content{
+    height: 550px;
+    display: flex;
+    flex-direction: row;
+}
+.test-left-block{
+    width: 50%;
+    margin-right: 100px;
+}
+.test-right-block{
+    width: 50%;
+
+}

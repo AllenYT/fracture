@@ -83,7 +83,7 @@ import '../initCornerstone.js'
 
 cornerstoneWADOImageLoader.external.cornerstone = cornerstone
 window.cornerstoneTools = cornerstoneTools
-
+const segmentationModule = cornerstoneTools.getModule('segmentation')
 const { TabPane } = Tabs
 let playTimer = undefined
 let flipTimer = undefined
@@ -426,6 +426,12 @@ class CornerstoneElement extends Component {
       slideSpan: 0,
       imageCaching: false,
 
+      threeDimensionalPixelData: null,
+      threeDimensionalPixelDataZero: null,
+      bdVolumes: null,
+      bdImageData: null,
+      displayBorder: false,
+
       //studybrowserList
       dateSeries: [],
       previewVisible: [],
@@ -592,6 +598,8 @@ class CornerstoneElement extends Component {
       chartType: 'line',
     }
     this.config = JSON.parse(localStorage.getItem('config'))
+    this.threeDimensionalPixelDataZero = null
+    this.threeDimensionalPixelData = null
     this.subs = {
       cornerImageRendered: createSub(),
       cornerMouseUp: createSub(),
@@ -822,6 +830,25 @@ class CornerstoneElement extends Component {
     // canvas_ROI.style.position = 'absolute'
   }
   async loadAllInfo() {
+    axios
+      .post(
+        this.config.user.getCustomConfig,
+        qs.stringify({
+          username: this.state.username,
+        })
+      )
+      .then((res) => {
+        if (res.status === 200) {
+          console.log('getCustomConfig', res)
+          const nodulesOrder = JSON.parse(res.data.filterAndSorter)
+          this.setState({
+            nodulesOrder,
+          })
+        }
+      })
+      .catch((e) => {
+        console.log(e)
+      })
     const token = localStorage.getItem('token')
     const headers = {
       Authorization: 'Bearer '.concat(token),
@@ -1666,6 +1693,25 @@ class CornerstoneElement extends Component {
     })
   }
   getMPRInfoWithPriority(imageIds) {
+    // Create buffer the size of the 3D volume
+    const dimensions = this.state.dimensions
+    const width = dimensions[0]
+    const height = dimensions[1]
+    const depth = dimensions[2]
+    const numVolumePixels = width * height * depth
+
+    // If you want to load a segmentation labelmap, you would want to load
+    // it into this array at this point.
+    const threeDimensionalPixelData = new Float32Array(numVolumePixels)
+    const threeDimensionalPixelDataZero = new Float32Array(numVolumePixels).fill(0)
+
+    this.threeDimensionalPixelData = threeDimensionalPixelData
+    this.threeDimensionalPixelDataZero = threeDimensionalPixelDataZero
+    console.log('threeDimensionalPixelData', threeDimensionalPixelData)
+    console.log('threeDimensionalPixelDataZero', threeDimensionalPixelDataZero)
+    // Use Float32Arrays in cornerstoneTools for interoperability.
+    segmentationModule.configuration.arrayType = 1
+
     const oneInterval = 10
     const twoInterval = 3
     const range = {
@@ -1706,6 +1752,21 @@ class CornerstoneElement extends Component {
         }
         if (numberProcessed === imageIds.length) {
           this.state.vtkImageData.modified()
+          axios
+            .get(this.config.prefusion.lobeCoord + `?caseId=${this.state.caseId}`)
+            .then((res) => {
+              const border = res.data
+              const result = this.generateLobeBorder(border, threeDimensionalPixelData)
+              // resolve(result)
+              const { actor: bdVolumes, imageData: bdImageData } = result
+              this.setState({
+                bdVolumes: [bdVolumes],
+                bdImageData,
+              })
+            })
+            .catch((e) => {
+              console.log(e)
+            })
         }
       })
     })
@@ -1887,6 +1948,91 @@ class CornerstoneElement extends Component {
         }
       )
     })
+  }
+  generateLobeBorder(border, threeDimensionalPixelData) {
+    const { vtkImageData: vtkOriImageData, dimensions } = this.state
+    const data = vtkOriImageData.getPointData().getScalars().getData()
+    // const pixelArray = new Float32Array(dimensions[0] * dimensions[1] * dimensions[1]).fill(0)
+    const pixelArray = threeDimensionalPixelData
+    // const oriRange = vtkOriImageData.getPointData().getScalars().getRange()
+    // console.log('border oriRange', oriRange)
+
+    for (let lobe in border) {
+      if (border[lobe] && border[lobe].length) {
+        border[lobe].forEach((point) => {
+          let newZ = point[0]
+          let newY = point[1]
+          let newX = point[2]
+          for (let i = newZ - 2; i < newZ + 2; i++) {
+            for (let j = newY - 2; j < newY + 2; j++) {
+              for (let k = newX - 2; k < newX + 2; k++) {
+                const nowIndex = k + j * dimensions[0] + i * dimensions[0] * dimensions[1]
+                if (nowIndex >= 0 && nowIndex < data.length) {
+                  pixelArray[nowIndex] = Number(lobe[lobe.length - 1]) * 100
+                }
+              }
+            }
+          }
+          // const nowIndex = newX + newY * dimensions[0] + newZ * dimensions[0] * dimensions[1]
+          // pixelArray[nowIndex] = Number(lobe[lobe.length - 1]) * 100
+        })
+      }
+    }
+
+    const imageData = vtkImageData.newInstance()
+    const scalarArray = vtkDataArray.newInstance({
+      name: 'border',
+      numberOfComponents: 1,
+      values: pixelArray,
+    })
+    imageData.setDimensions(...dimensions)
+    imageData.setSpacing(...vtkOriImageData.getSpacing())
+    imageData.setOrigin(...vtkOriImageData.getOrigin())
+    const direction = vtkOriImageData.getDirection()
+    imageData.setDirection(...direction)
+    // imageData.setSpacing(...spacing)
+    // imageData.setOrigin(...origin)
+    // imageData.setDirection(...direction)
+
+    imageData.getPointData().setScalars(scalarArray)
+    // const { actor, mapper } = this.createActorMapper(imageData)
+    const mapper = vtkVolumeMapper.newInstance()
+    mapper.setInputData(imageData)
+
+    const actor = vtkVolume.newInstance()
+    actor.setMapper(mapper)
+
+    const range = imageData.getPointData().getScalars().getRange()
+    const rgbTransferFunction = actor.getProperty().getRGBTransferFunction(0)
+
+    const voi = this.state.voi
+
+    const low = voi.windowCenter - voi.windowWidth / 2
+    const high = voi.windowCenter + voi.windowWidth / 2
+
+    rgbTransferFunction.setMappingRange(low, high)
+
+    const cfun = vtkColorTransferFunction.newInstance()
+    cfun.addRGBPoint(0, 0.0, 0.0, 0.0)
+    cfun.addRGBPoint(100, 0.7, 0.6, 0.32)
+    cfun.addRGBPoint(200, 0.26, 0.44, 0.26)
+    cfun.addRGBPoint(300, 0.45, 0.24, 0.16)
+    cfun.addRGBPoint(400, 0.19, 0.48, 0.58)
+    cfun.addRGBPoint(500, 0.46, 0.59, 0.71)
+
+    const ofun = vtkPiecewiseFunction.newInstance()
+    ofun.addPoint(0, 0.0)
+    ofun.addPoint(100, 1.0)
+    ofun.addPoint(500, 1.0)
+
+    actor.getProperty().setRGBTransferFunction(0, cfun)
+    actor.getProperty().setScalarOpacity(0, ofun)
+
+    // const result = volumes.concat(actor)
+    // const element = this.cornerstoneElements[0]
+    // cornerstone.updateImage(element)
+
+    return { actor, imageData }
   }
 
   saveLymphData(lymphData) {
@@ -2541,6 +2687,31 @@ class CornerstoneElement extends Component {
       }
     })
   }
+  toggleLobeBorder() {
+    const { displayBorder, imageIds, bdImageData } = this.state
+    if (!imageIds) {
+      return
+    }
+    if (!bdImageData) {
+      message.error('没有肺叶边界数据')
+      return
+    }
+    if (displayBorder) {
+      const buffer = this.threeDimensionalPixelDataZero.buffer
+      const numberOfFrames = imageIds.length
+
+      segmentationModule.setters.labelmap3DByFirstImageId(imageIds[0], buffer, 0, [], numberOfFrames, undefined, 0)
+    } else {
+      const buffer = this.threeDimensionalPixelData.buffer
+      const numberOfFrames = imageIds.length
+
+      segmentationModule.setters.labelmap3DByFirstImageId(imageIds[0], buffer, 0, [], numberOfFrames, undefined, 0)
+    }
+    this.setState({
+      displayBorder: !displayBorder,
+    })
+  }
+
   toHomepage() {
     window.location.href = '/homepage'
     // this.nextPath('/homepage/' + params.caseId + '/' + res.data)
@@ -3105,6 +3276,20 @@ class CornerstoneElement extends Component {
         nodulesOrder[type] = 1
       }
     }
+    axios
+      .post(
+        this.config.user.saveCustomConfig,
+        qs.stringify({
+          username: this.state.username,
+          filterAndSorter: JSON.stringify(nodulesOrder),
+        })
+      )
+      .then((res) => {
+        console.log('saveCustomConfig', res)
+      })
+      .catch((e) => {
+        console.log(e)
+      })
     this.sortBoxes()
     // this.setState({
     //   nodulesOrder,
@@ -5820,6 +6005,7 @@ class CornerstoneElement extends Component {
       loadedImagePercent,
       drawingNodulesCompleted,
       drawingLymphsCompleted,
+      displayBorder,
 
       nodulesAllChecked,
       smallNodulesChecked,
@@ -6415,7 +6601,13 @@ class CornerstoneElement extends Component {
                             onChange={this.onSelectPlace.bind(this, idx)}
                             onClick={this.onSelectPlaceClick.bind(this)}
                           /> */}
-                          <div className="nodule-accordion-item-title-location-text">{locationValues}</div>
+                          {locationValues && locationValues.length > 8 ? (
+                            <Tooltip placement="bottom" title={locationValues}>
+                              <div className="nodule-accordion-item-title-location-text">{locationValues}</div>
+                            </Tooltip>
+                          ) : (
+                            <div className="nodule-accordion-item-title-location-text">{locationValues}</div>
+                          )}
                         </div>
 
                         <div className="nodule-accordion-item-title-mal">
@@ -7452,7 +7644,10 @@ class CornerstoneElement extends Component {
             <Icon className="func-btn-icon" name="eraser" size="large"></Icon>
             <div className="func-btn-desc">擦除</div>
           </div>
-
+          <div onClick={this.toggleLobeBorder.bind(this)} title="肺叶边界" className={'func-btn' + (displayBorder ? ' func-btn-active' : '')}>
+            <Icon className="func-btn-icon icon-custom icon-custom-LB" size="large" />
+            <div className="func-btn-desc"> 肺叶边界</div>
+          </div>
           {!show3DVisualization && !showFollowUp ? twodMenus : null}
           {show3DVisualization ? (
             <div className="func-btn" onClick={this.hide3D.bind(this)} hidden={showFollowUp}>
