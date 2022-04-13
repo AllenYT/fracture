@@ -755,13 +755,13 @@ class CornerstoneElement extends Component {
           dia = item.diameter
         }
         if (item.measure) {
-          if (ll <= this.config.smallNodulesDiameter && sl <= this.config.smallNodulesDiameter) {
+          if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
             item.visible = false
           } else {
             item.visible = true
           }
         } else {
-          if (dia <= this.config.smallNodulesDiameter) {
+          if (dia < this.config.smallNodulesDiameter) {
             item.visible = false
           } else {
             item.visible = true
@@ -2836,7 +2836,7 @@ class CornerstoneElement extends Component {
         dia = boxItem.diameter
       }
       if (boxItem.measure) {
-        if (ll <= this.config.smallNodulesDiameter && sl <= this.config.smallNodulesDiameter) {
+        if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -2844,7 +2844,7 @@ class CornerstoneElement extends Component {
           }
         }
       } else {
-        if (dia <= this.config.smallNodulesDiameter) {
+        if (dia < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -3429,7 +3429,7 @@ class CornerstoneElement extends Component {
         dia = boxItem.diameter
       }
       if (boxItem.measure) {
-        if (ll <= this.config.smallNodulesDiameter && sl <= this.config.smallNodulesDiameter) {
+        if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -3437,7 +3437,7 @@ class CornerstoneElement extends Component {
           }
         }
       } else {
-        if (dia <= this.config.smallNodulesDiameter) {
+        if (dia < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
