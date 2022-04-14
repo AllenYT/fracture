@@ -759,21 +759,20 @@ class CornerstoneElement extends Component {
             ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
             sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2))
           }
+        }
+        if (spacing) {
+          dia = item.diameter * spacing
         } else {
-          if (spacing) {
-            dia = item.diameter * spacing
-          } else {
-            dia = item.diameter
-          }
+          dia = item.diameter
         }
         if (item.measure && (sl !== 0 || ll !== 0)) {
-          if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
+          if ((ll / 10).toFixed(2) < this.config.smallNodulesDiameter && (sl / 10).toFixed(2) < this.config.smallNodulesDiameter) {
             item.visible = false
           } else {
             item.visible = true
           }
         } else {
-          if (dia < this.config.smallNodulesDiameter) {
+          if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
             item.visible = false
           } else {
             item.visible = true
@@ -3014,15 +3013,15 @@ class CornerstoneElement extends Component {
           ll = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
           sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2))
         }
-      } else {
-        if (spacing) {
-          dia = boxItem.diameter * spacing
-        } else {
-          dia = boxItem.diameter
-        }
       }
+      if (spacing) {
+        dia = boxItem.diameter * spacing
+      } else {
+        dia = boxItem.diameter
+      }
+
       if (boxItem.measure && (sl !== 0 || ll !== 0)) {
-        if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
+        if ((ll / 10).toFixed(2) < this.config.smallNodulesDiameter && (sl / 10).toFixed(2) < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -3030,7 +3029,7 @@ class CornerstoneElement extends Component {
           }
         }
       } else {
-        if (dia < this.config.smallNodulesDiameter) {
+        if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -3626,15 +3625,15 @@ class CornerstoneElement extends Component {
           ll = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
           sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2))
         }
-      } else {
-        if (spacing) {
-          dia = boxItem.diameter * spacing
-        } else {
-          dia = boxItem.diameter
-        }
       }
+      if (spacing) {
+        dia = boxItem.diameter * spacing
+      } else {
+        dia = boxItem.diameter
+      }
+
       if (boxItem.measure && (sl !== 0 || ll !== 0)) {
-        if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
+        if ((ll / 10).toFixed(2) < this.config.smallNodulesDiameter && (sl / 10).toFixed(2) < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -3642,7 +3641,7 @@ class CornerstoneElement extends Component {
           }
         }
       } else {
-        if (dia < this.config.smallNodulesDiameter) {
+        if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
