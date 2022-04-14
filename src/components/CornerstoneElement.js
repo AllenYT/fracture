@@ -700,6 +700,7 @@ class CornerstoneElement extends Component {
     window.addEventListener('resize', this.resizeScreen.bind(this))
     window.addEventListener('mousedown', this.mousedownFunc.bind(this))
     window.addEventListener('keydown', this.onKeydown.bind(this))
+    // window.addEventListener('keydown', this.onKeydown.bind(this))
     // this.getNoduleIfos()
 
     if (localStorage.getItem('token') == null) {
@@ -751,6 +752,8 @@ class CornerstoneElement extends Component {
       nodules.forEach((item, index) => {
         item.prevIdx = parseInt(item.nodule_no)
         item.delOpen = false
+        item.malOpen = false
+        item.textOpen = false
         if (item.measure) {
           if (spacing) {
             ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2)) * spacing
@@ -759,20 +762,21 @@ class CornerstoneElement extends Component {
             ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
             sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2))
           }
-        }
-        if (spacing) {
-          dia = item.diameter * spacing
         } else {
-          dia = item.diameter
+          if (spacing) {
+            dia = item.diameter * spacing
+          } else {
+            dia = item.diameter
+          }
         }
         if (item.measure && (sl !== 0 || ll !== 0)) {
-          if ((ll / 10).toFixed(2) < this.config.smallNodulesDiameter && (sl / 10).toFixed(2) < this.config.smallNodulesDiameter) {
+          if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
             item.visible = false
           } else {
             item.visible = true
           }
         } else {
-          if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
+          if (dia < this.config.smallNodulesDiameter) {
             item.visible = false
           } else {
             item.visible = true
@@ -2527,6 +2531,8 @@ class CornerstoneElement extends Component {
       delete backendNodules[currentIdx].visible
       delete backendNodules[currentIdx].checked
       delete backendNodules[currentIdx].visibleIdx
+      delete backendNodules[currentIdx].textOpen
+      delete backendNodules[currentIdx].malOpen
     }
     backendNodules = _.compact(backendNodules)
     return backendNodules
@@ -3013,15 +3019,15 @@ class CornerstoneElement extends Component {
           ll = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
           sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2))
         }
-      }
-      if (spacing) {
-        dia = boxItem.diameter * spacing
       } else {
-        dia = boxItem.diameter
+        if (spacing) {
+          dia = boxItem.diameter * spacing
+        } else {
+          dia = boxItem.diameter
+        }
       }
-
       if (boxItem.measure && (sl !== 0 || ll !== 0)) {
-        if ((ll / 10).toFixed(2) < this.config.smallNodulesDiameter && (sl / 10).toFixed(2) < this.config.smallNodulesDiameter) {
+        if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -3029,7 +3035,7 @@ class CornerstoneElement extends Component {
           }
         }
       } else {
-        if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
+        if (dia < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -3625,15 +3631,15 @@ class CornerstoneElement extends Component {
           ll = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
           sl = Math.sqrt(Math.pow(boxItem.measure.x3 - boxItem.measure.x4, 2) + Math.pow(boxItem.measure.y3 - boxItem.measure.y4, 2))
         }
-      }
-      if (spacing) {
-        dia = boxItem.diameter * spacing
       } else {
-        dia = boxItem.diameter
+        if (spacing) {
+          dia = boxItem.diameter * spacing
+        } else {
+          dia = boxItem.diameter
+        }
       }
-
       if (boxItem.measure && (sl !== 0 || ll !== 0)) {
-        if ((ll / 10).toFixed(2) < this.config.smallNodulesDiameter && (sl / 10).toFixed(2) < this.config.smallNodulesDiameter) {
+        if (ll < this.config.smallNodulesDiameter && sl < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -3641,7 +3647,7 @@ class CornerstoneElement extends Component {
           }
         }
       } else {
-        if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
+        if (dia < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
             boxes[boIndex].visible = true
           } else {
@@ -3703,11 +3709,53 @@ class CornerstoneElement extends Component {
       needReloadBoxes: true,
     })
   }
-  onSelectMalClick(e) {
+  onSelectMalIconClick(index, open, e) {
     e.stopPropagation()
+    const boxes = this.state.boxes
+    boxes[index].malOpen = open
+    this.setState({
+      boxes: boxes,
+    })
   }
-  onSelectTexClick(e) {
+  onSelectMalClick(index, e) {
     e.stopPropagation()
+    this.handleListClick(index)
+  }
+  onSelectMalSelect(index) {
+    const boxes = this.state.boxes
+    boxes[index].malOpen = false
+    this.setState(
+      {
+        boxes: boxes,
+      },
+      () => {
+        this.handleListClick(index)
+      }
+    )
+  }
+  onSelectTexClick(index, e) {
+    e.stopPropagation()
+    this.handleListClick(index)
+  }
+  onSelectTexSelect(index) {
+    const boxes = this.state.boxes
+    boxes[index].textOpen = false
+    this.setState(
+      {
+        boxes: boxes,
+      },
+      () => {
+        this.handleListClick(index)
+      }
+    )
+  }
+  onSelectTexIconClick(index, open, e) {
+    e.stopPropagation()
+    const boxes = this.state.boxes
+    boxes[index].textOpen = open
+    this.setState({
+      boxes: boxes,
+    })
   }
   onSelectTex(index, value) {
     const boxes = this.state.boxes
@@ -3852,6 +3900,9 @@ class CornerstoneElement extends Component {
   plotHistogram(idx) {
     var { boxes, chartType, HUSliderRange } = this.state
     if (!(boxes && boxes.length)) {
+      return
+    }
+    if (!boxes[idx]) {
       return
     }
     var bins = boxes[idx].nodule_hist.bins
@@ -5637,6 +5688,8 @@ class CornerstoneElement extends Component {
       recVisible: true,
       biVisible: false,
       checked: false,
+      textOpen: false,
+      malOpen: false,
     }
     boxes.push(newBoxItem)
     this.setState({
@@ -6001,6 +6054,21 @@ class CornerstoneElement extends Component {
           initY = e.clientY
           window.addEventListener('mousemove', mousemoveFunc, false)
           window.addEventListener('mouseup', mouseupFunc, false)
+        }
+      }
+    }
+    if (e.target) {
+      if (!(e.target.tagName === 'svg' || e.target.tagName === 'path')) {
+        // console.log('mousedownFunc', e.target.tagName)
+        const boxes = this.state.boxes
+        if (boxes && boxes.length) {
+          boxes.forEach((boxItem) => {
+            boxItem.malOpen = false
+            boxItem.textOpen = false
+          })
+          this.setState({
+            boxes,
+          })
         }
       }
     }
@@ -6592,11 +6660,13 @@ class CornerstoneElement extends Component {
                           dropdownMatchSelectWidth={false}
                           defaultValue={inside.texture}
                           value={inside.texture}
+                          open={inside.textOpen}
                           bordered={false}
                           showArrow={false}
                           dropdownClassName={'corner-select-dropdown'}
                           onChange={this.onSelectTex.bind(this, idx)}
-                          onClick={this.onSelectTexClick.bind(this)}>
+                          onClick={this.onSelectTexClick.bind(this, idx)}
+                          onSelect={this.onSelectTexSelect.bind(this, idx)}>
                           <Option className="nodule-accordion-item-title-select-option" value={-1}>
                             未知
                           </Option>
@@ -6613,6 +6683,11 @@ class CornerstoneElement extends Component {
                             钙化
                           </Option>
                         </Select>
+                        {inside.textOpen ? (
+                          <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectTexIconClick.bind(this, idx, false)} />
+                        ) : (
+                          <FontAwesomeIcon icon={faChevronLeft} onClick={this.onSelectTexIconClick.bind(this, idx, true)} />
+                        )}
                       </div>
                       {ll !== 0 && sl !== 0 ? (
                         <div className="nodule-accordion-item-title-shape nodule-accordion-item-title-column">{`${(ll / 10).toFixed(2)}x${(sl / 10).toFixed(2)}cm`}</div>
@@ -6644,7 +6719,7 @@ class CornerstoneElement extends Component {
                             onChange={this.onSelectPlace.bind(this, idx)}
                             onClick={this.onSelectPlaceClick.bind(this)}
                           /> */}
-                          {locationValues && locationValues.length > 8 ? (
+                          {locationValues && locationValues.length > 7 ? (
                             <Tooltip placement="bottom" title={locationValues}>
                               <div className="nodule-accordion-item-title-location-text">{locationValues}</div>
                             </Tooltip>
@@ -6658,11 +6733,13 @@ class CornerstoneElement extends Component {
                             className={'nodule-accordion-item-title-select ' + ` nodule-accordion-item-title-select-${inside.malignancy}`}
                             defaultValue={inside.malignancy}
                             value={inside.malignancy}
+                            open={inside.malOpen}
                             bordered={false}
                             showArrow={false}
                             dropdownClassName={'corner-select-dropdown'}
                             onChange={this.onSelectMal.bind(this, idx)}
-                            onClick={this.onSelectMalClick.bind(this)}>
+                            onClick={this.onSelectMalClick.bind(this, idx)}
+                            onSelect={this.onSelectMalSelect.bind(this, idx)}>
                             <Option className={'nodule-accordion-item-title-select-option'} value={-1}>
                               未知
                             </Option>
@@ -6677,6 +6754,11 @@ class CornerstoneElement extends Component {
                             </Option>
                           </Select>
                         </div>
+                        {inside.malOpen ? (
+                          <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectMalIconClick.bind(this, idx, false)} />
+                        ) : (
+                          <FontAwesomeIcon icon={faChevronLeft} onClick={this.onSelectMalIconClick.bind(this, idx, true)} />
+                        )}
                       </div>
                     </div>
                   </Accordion.Title>
@@ -7687,10 +7769,10 @@ class CornerstoneElement extends Component {
             <Icon className="func-btn-icon" name="eraser" size="large"></Icon>
             <div className="func-btn-desc">擦除</div>
           </div>
-          <div onClick={this.toggleLobeBorder.bind(this)} title="肺叶边界" className={'func-btn' + (displayBorder ? ' func-btn-active' : '')}>
+          {/* <div onClick={this.toggleLobeBorder.bind(this)} title="肺叶边界" className={'func-btn' + (displayBorder ? ' func-btn-active' : '')}>
             <Icon className="func-btn-icon icon-custom icon-custom-LB" size="large" />
             <div className="func-btn-desc"> 肺叶边界</div>
-          </div>
+          </div> */}
           {!show3DVisualization && !showFollowUp ? twodMenus : null}
           {show3DVisualization ? (
             <div className="func-btn" onClick={this.hide3D.bind(this)} hidden={showFollowUp}>

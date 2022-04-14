@@ -715,6 +715,10 @@
   text-align: start;
   color: whitesmoke !important;
 }
+.nodule-accordion-item-title-type svg{
+  position: relative;
+  left: -12px !important;
+}
 .nodule-accordion-item-title-select-1 {
   color: green !important;
 }
@@ -759,11 +763,20 @@
   width: 40%;
 }
 .nodule-accordion-item-title-location {
-  width: 65%;
+  width: 55%;
   text-align: start;
   flex-shrink: 0;
   flex-grow: 1;
   flex-basis: auto;
+}
+.nodule-accordion-item-title-mal{
+  position: relative;
+  left: 10px;
+  width: 40%;
+}
+.nodule-accordion-item-title-column svg{
+  position: relative;
+  left: -12px;
 }
 .nodule-accordion-item-content {
   display: flex;
