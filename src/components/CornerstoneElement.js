@@ -366,8 +366,8 @@ class CornerstoneElement extends Component {
         invert: false,
         pixelReplication: false,
         voi: {
-          windowWidth: 1600,
-          windowCenter: -600,
+          windowWidth: 1800,
+          windowCenter: -500,
         },
         translation: {
           x: 0,
@@ -563,7 +563,7 @@ class CornerstoneElement extends Component {
       },
 
       /*参数变量*/
-      voi: { windowWidth: 1600, windowCenter: -600 },
+      voi: { windowWidth: 1800, windowCenter: -500 },
       origin: [0, 0, 0],
       labelThreshold: 300,
       labelColor: [255, 0, 0],
@@ -785,7 +785,6 @@ class CornerstoneElement extends Component {
         item.checked = false
         noduleMarks[item.slice_idx] = ''
       })
-
       nodules.sort(this.arrayPropSort('slice_idx', 1))
       nodules.forEach((item, index) => {
         item.visibleIdx = index
@@ -801,8 +800,15 @@ class CornerstoneElement extends Component {
           }
         })
       } else {
-        cornerImageIdIndex = nodules[0].slice_idx
-        listsActiveIndex = 0
+        try {
+          nodules.forEach((item, index) => {
+            if (item.visible) {
+              cornerImageIdIndex = nodules[index].slice_idx
+              listsActiveIndex = index
+              throw Error()
+            }
+          })
+        } catch (e) {}
       }
     }
     this.setState(
@@ -853,6 +859,7 @@ class CornerstoneElement extends Component {
       .catch((e) => {
         console.log(e)
       })
+
     const token = localStorage.getItem('token')
     const headers = {
       Authorization: 'Bearer '.concat(token),
@@ -1416,7 +1423,7 @@ class CornerstoneElement extends Component {
         if (boxIndex !== -1) {
           switch (toolName) {
             case 'RectangleRoi':
-              savedDataItem.visible = boxes[boxIndex].recVisible
+              savedDataItem.visible = boxes[boxIndex].recVisible && boxes[boxIndex].visible
               break
             case 'Bidirectional':
               savedDataItem.visible = boxes[boxIndex].biVisible
@@ -2314,8 +2321,8 @@ class CornerstoneElement extends Component {
       return
     }
     const voi = {
-      windowWidth: 1600,
-      windowCenter: -600,
+      windowWidth: 1800,
+      windowCenter: -500,
     }
     cornerViewport.voi = voi
     this.setState({
@@ -3036,6 +3043,7 @@ class CornerstoneElement extends Component {
       boxes,
       smallNodulesChecked,
       needReloadBoxes: true,
+      needRedrawBoxes: true,
     })
   }
   onHandleSmallNodulesCheckClick(e) {
@@ -4183,7 +4191,7 @@ class CornerstoneElement extends Component {
     const places = nodulePlaces
     const segments = noduleSegments
     const boxes = this.state.boxes
-    const spacing = this.state.spacing
+    const spacing = this.state.noduleSpacing
     let texts = ''
 
     if (type === '结节类型') {
@@ -4208,9 +4216,16 @@ class CornerstoneElement extends Component {
       }
       let ll = 0
       let sl = 0
+
       if (boxes[boxIndex]['measure'] !== undefined) {
-        ll = Math.sqrt(Math.pow(boxes[boxIndex].measure.x1 - boxes[boxIndex].measure.x2, 2) + Math.pow(boxes[boxIndex].measure.y1 - boxes[boxIndex].measure.y2, 2))
-        sl = Math.sqrt(Math.pow(boxes[boxIndex].measure.x3 - boxes[boxIndex].measure.x4, 2) + Math.pow(boxes[boxIndex].measure.y3 - boxes[boxIndex].measure.y4, 2))
+        if (spacing) {
+          ll = Math.sqrt(Math.pow(boxes[boxIndex].measure.x1 - boxes[boxIndex].measure.x2, 2) + Math.pow(boxes[boxIndex].measure.y1 - boxes[boxIndex].measure.y2, 2)) * spacing
+          sl = Math.sqrt(Math.pow(boxes[boxIndex].measure.x3 - boxes[boxIndex].measure.x4, 2) + Math.pow(boxes[boxIndex].measure.y3 - boxes[boxIndex].measure.y4, 2)) * spacing
+        } else {
+          ll = Math.sqrt(Math.pow(boxes[boxIndex].measure.x1 - boxes[boxIndex].measure.x2, 2) + Math.pow(boxes[boxIndex].measure.y1 - boxes[boxIndex].measure.y2, 2))
+          sl = Math.sqrt(Math.pow(boxes[boxIndex].measure.x3 - boxes[boxIndex].measure.x4, 2) + Math.pow(boxes[boxIndex].measure.y3 - boxes[boxIndex].measure.y4, 2))
+        }
+
         if (isNaN(ll)) {
           ll = 0
         }
@@ -4219,10 +4234,18 @@ class CornerstoneElement extends Component {
         }
         if (ll === 0 && sl === 0) {
           if (boxes[boxIndex]['diameter'] !== undefined && boxes[boxIndex]['diameter'] !== 0) {
-            diameter = '\xa0\xa0' + (boxes[boxIndex]['diameter'] / 10).toFixed(2) + ' 厘米'
+            if (spacing) {
+              diameter = '\xa0\xa0' + ((boxes[boxIndex]['diameter'] * spacing) / 10).toFixed(2) + ' 厘米'
+            } else {
+              diameter = '\xa0\xa0' + (boxes[boxIndex]['diameter'] / 10).toFixed(2) + ' 厘米'
+            }
           } else {
             diameter = '未知'
           }
+        } else if (ll === 0 && sl !== 0) {
+          diameter = '\xa0\xa0' + (sl / 10).toFixed(2) + ' 厘米'
+        } else if (ll !== 0 && sl === 0) {
+          diameter = '\xa0\xa0' + (ll / 10).toFixed(2) + ' 厘米'
         } else {
           diameter = '\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0' + '×' + '\xa0' + (sl / 10).toFixed(2) + ' 厘米'
         }
@@ -4918,8 +4941,8 @@ class CornerstoneElement extends Component {
           cornerstone.loadAndCacheImage(imageId).then((image) => {
             // console.log('cache')
             var viewport = cornerstone.getDefaultViewportForImage(element1, image)
-            viewport.voi.windowWidth = 1600
-            viewport.voi.windowCenter = -600
+            viewport.voi.windowWidth = 1800
+            viewport.voi.windowCenter = -500
             viewport.scale = 2
             // console.log('nodules2',nodule)
             const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
@@ -5092,8 +5115,8 @@ class CornerstoneElement extends Component {
             cornerstone.loadAndCacheImage(imageId).then((image) => {
               // console.log('cache')
               var viewport = cornerstone.getDefaultViewportForImage(element2, image)
-              viewport.voi.windowWidth = 1600
-              viewport.voi.windowCenter = -600
+              viewport.voi.windowWidth = 1800 //1600,-600
+              viewport.voi.windowCenter = -500
               viewport.scale = 2
               // console.log('nodules2',nodule)
               const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
@@ -5173,7 +5196,7 @@ class CornerstoneElement extends Component {
 
           const measurementData = {
             noduleIndex: boxItem.visibleIdx + 1,
-            visible: true,
+            visible: boxItem.visible,
             active: boxIndex === listsActiveIndex,
             // color:color,
             invalidated: true,
@@ -6664,7 +6687,7 @@ class CornerstoneElement extends Component {
                         {/* <Grid.Column widescreen={6} computer={6}>
                 {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
               </Grid.Column> */}
-                        <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? `${(inside.volume * 1e3).toFixed(2)}mm³` : null}</div>
+                        <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? `${inside.volume.toFixed(3)}cm³` : null}</div>
                         <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
                         <div className={'nodule-accordion-item-content-info-prob' + ` nodule-accordion-item-content-info-prob-${inside.malignancy}`}>
                           {inside.malProb !== undefined ? `${(inside.malProb * 100).toFixed(1)}%` : null}
@@ -6986,7 +7009,7 @@ class CornerstoneElement extends Component {
                     <div className="lymph-accordion-item-title-name">{item.name}</div>
                   </div>
                   <div className="lymph-accordion-item-title-center">
-                    <div className="lymph-accordion-item-title-volume">{item.volume !== undefined ? `${(item.volume * 1e3).toFixed(2)}mm³` : null}</div>
+                    <div className="lymph-accordion-item-title-volume">{item.volume !== undefined ? `${item.volume.toFixed(3)}cm³` : null}</div>
                   </div>
                 </div>
               </Accordion.Title>
@@ -7194,11 +7217,11 @@ class CornerstoneElement extends Component {
                   <td className="title">总体</td>
                 </tr>
                 <tr>
-                  <td className="title">体积mm³(占比)</td>
-                  <td className="range1">{range1_volume + '(' + (range1 * 100).toFixed(2) + '%)'}</td>
-                  <td className="range2">{range2_volume + '(' + (range2 * 100).toFixed(2) + '%)'}</td>
-                  <td className="range3">{range3_volume + '(' + (range3 * 100).toFixed(2) + '%)'}</td>
-                  <td className="title">{overall_volume}</td>
+                  <td className="title">体积cm³(占比)</td>
+                  <td className="range1">{(range1_volume / 1000).toFixed(3) + '(' + (range1 * 100).toFixed(2) + '%)'}</td>
+                  <td className="range2">{(range2_volume / 1000).toFixed(3) + '(' + (range2 * 100).toFixed(2) + '%)'}</td>
+                  <td className="range3">{(range3_volume / 1000).toFixed(3) + '(' + (range3 * 100).toFixed(2) + '%)'}</td>
+                  <td className="title">{(overall_volume / 1000).toFixed(3)}</td>
                 </tr>
                 <tr>
                   <td className="title">质量mg(占比)</td>
@@ -8921,8 +8944,8 @@ class CornerstoneElement extends Component {
     // for model paramaters: 1 represents LUNG, 2 represents BONE, 3 represents VENTRAL, 4 represents MEDIA
     const voi = this.state.voi
     if (model === 1) {
-      voi.windowWidth = 1600
-      voi.windowCenter = -600
+      voi.windowWidth = 1800
+      voi.windowCenter = -500
     } else if (model === 2) {
       voi.windowWidth = 1000
       voi.windowCenter = 300
