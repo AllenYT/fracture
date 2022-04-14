@@ -1424,8 +1424,8 @@ class CornerstoneElement extends Component {
             default:
               break
           }
-          const color = this.state.noduleColor
-          savedDataItem.color = color
+          // const color = this.state.noduleColor
+          // savedDataItem.color = color
           savedDataItem.active = toolDataIndex === savedDataItemIndex
           cornerstoneTools.addToolState(cornerElement, toolName, savedDataItem)
         }
@@ -5162,19 +5162,20 @@ class CornerstoneElement extends Component {
   }
   drawNodulesForRec() {
     const { boxes, imageIds, cornerElement, cornerImage, cornerImageIdIndex, listsActiveIndex, noduleLimited } = this.state
+    let color
     if (boxes && boxes.length) {
       boxes.forEach((boxItem, boxIndex) => {
         if (noduleLimited && boxIndex > 20) {
           return
         }
         if (imageIds[boxItem.slice_idx] === cornerImage.imageId && boxItem.recVisible && boxItem.uuid === undefined) {
-          const color = this.state.noduleColor
+          color = this.state.noduleColor
+
           const measurementData = {
             noduleIndex: boxItem.visibleIdx + 1,
             visible: true,
             active: boxIndex === listsActiveIndex,
-            // color: 'rgb(171, 245, 220)',
-            color: color,
+            // color:color,
             invalidated: true,
             handles: {
               start: {
