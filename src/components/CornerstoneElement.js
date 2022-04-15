@@ -3700,6 +3700,7 @@ class CornerstoneElement extends Component {
     }
   }
   onSelectMal(index, value) {
+    console.log('onSelectMal', value)
     const boxes = this.state.boxes
     boxes[index].malignancy = parseInt(value)
     this.setState({
@@ -3735,7 +3736,7 @@ class CornerstoneElement extends Component {
     e.stopPropagation()
     this.handleListClick(index)
   }
-  onSelectTexSelect(index) {
+  onSelectTexSelect(index, value) {
     const boxes = this.state.boxes
     boxes[index].textOpen = false
     this.setState(
@@ -6684,7 +6685,7 @@ class CornerstoneElement extends Component {
                         {inside.textOpen ? (
                           <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectTexIconClick.bind(this, idx, false)} />
                         ) : (
-                          <FontAwesomeIcon icon={faChevronLeft} onClick={this.onSelectTexIconClick.bind(this, idx, true)} />
+                          <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectTexIconClick.bind(this, idx, true)} />
                         )}
                       </div>
                       {ll !== 0 && sl !== 0 ? (
@@ -6755,7 +6756,7 @@ class CornerstoneElement extends Component {
                         {inside.malOpen ? (
                           <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectMalIconClick.bind(this, idx, false)} />
                         ) : (
-                          <FontAwesomeIcon icon={faChevronLeft} onClick={this.onSelectMalIconClick.bind(this, idx, true)} />
+                          <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectMalIconClick.bind(this, idx, true)} />
                         )}
                       </div>
                     </div>
