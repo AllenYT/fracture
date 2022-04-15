@@ -367,7 +367,7 @@ class CornerstoneElement extends Component {
         pixelReplication: false,
         voi: {
           windowWidth: 1800,
-          windowCenter: -500,
+          windowCenter: -400,
         },
         translation: {
           x: 0,
@@ -563,7 +563,7 @@ class CornerstoneElement extends Component {
       },
 
       /*参数变量*/
-      voi: { windowWidth: 1800, windowCenter: -500 },
+      voi: { windowWidth: 1800, windowCenter: -400 },
       origin: [0, 0, 0],
       labelThreshold: 300,
       labelColor: [255, 0, 0],
@@ -2323,7 +2323,7 @@ class CornerstoneElement extends Component {
     }
     const voi = {
       windowWidth: 1800,
-      windowCenter: -500,
+      windowCenter: -400,
     }
     cornerViewport.voi = voi
     this.setState({
@@ -4990,7 +4990,7 @@ class CornerstoneElement extends Component {
             // console.log('cache')
             var viewport = cornerstone.getDefaultViewportForImage(element1, image)
             viewport.voi.windowWidth = 1800
-            viewport.voi.windowCenter = -500
+            viewport.voi.windowCenter = -400
             viewport.scale = 2
             // console.log('nodules2',nodule)
             const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
@@ -5164,7 +5164,7 @@ class CornerstoneElement extends Component {
               // console.log('cache')
               var viewport = cornerstone.getDefaultViewportForImage(element2, image)
               viewport.voi.windowWidth = 1800 //1600,-600
-              viewport.voi.windowCenter = -500
+              viewport.voi.windowCenter = -400
               viewport.scale = 2
               // console.log('nodules2',nodule)
               const xCenter = nodule.x1 + (nodule.x2 - nodule.x1) / 2
@@ -9024,7 +9024,7 @@ class CornerstoneElement extends Component {
     const voi = this.state.voi
     if (model === 1) {
       voi.windowWidth = 1800
-      voi.windowCenter = -500
+      voi.windowCenter = -400
     } else if (model === 2) {
       voi.windowWidth = 1000
       voi.windowCenter = 300
