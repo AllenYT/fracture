@@ -715,7 +715,7 @@
   text-align: start;
   color: whitesmoke !important;
 }
-.nodule-accordion-item-title-type svg{
+.nodule-accordion-item-title-type svg {
   position: relative;
   left: -12px !important;
 }
@@ -769,12 +769,12 @@
   flex-grow: 1;
   flex-basis: auto;
 }
-.nodule-accordion-item-title-mal{
+.nodule-accordion-item-title-mal {
   position: relative;
   left: 10px;
   width: 40%;
 }
-.nodule-accordion-item-title-column svg{
+.nodule-accordion-item-title-column svg {
   position: relative;
   left: -12px;
 }
@@ -1700,4 +1700,7 @@ table#nodule-table {
 }
 .ant-cascader-dropdown {
   background-color: rgb(39, 46, 72) !important;
+}
+.cornerstone-dorpdown-icon {
+  color: #acacac98;
 }

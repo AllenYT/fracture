@@ -455,7 +455,7 @@ class CornerstoneElement extends Component {
       nodules: [],
       noduleColor: 'rgba(0,255,0,1)',
       nodulesAllChecked: false,
-      smallNodulesChecked: false,
+      smallNodulesChecked: true,
       noduleLimited: false,
       nodulesOrder: {
         slice_idx: 1,
@@ -753,33 +753,34 @@ class CornerstoneElement extends Component {
         item.delOpen = false
         item.malOpen = false
         item.textOpen = false
-        if (item.measure) {
-          if (spacing) {
-            ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2)) * spacing
-            sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2)) * spacing
-          } else {
-            ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
-            sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2))
-          }
-        }
-        if (spacing) {
-          dia = item.diameter * spacing
-        } else {
-          dia = item.diameter
-        }
-        if (item.measure && (sl !== 0 || ll !== 0)) {
-          if ((ll / 10).toFixed(2) < this.config.smallNodulesDiameter && (sl / 10).toFixed(2) < this.config.smallNodulesDiameter) {
-            item.visible = false
-          } else {
-            item.visible = true
-          }
-        } else {
-          if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
-            item.visible = false
-          } else {
-            item.visible = true
-          }
-        }
+        item.visible = true
+        // if (item.measure) {
+        //   if (spacing) {
+        //     ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2)) * spacing
+        //     sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2)) * spacing
+        //   } else {
+        //     ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2))
+        //     sl = Math.sqrt(Math.pow(item.measure.x3 - item.measure.x4, 2) + Math.pow(item.measure.y3 - item.measure.y4, 2))
+        //   }
+        // }
+        // if (spacing) {
+        //   dia = item.diameter * spacing
+        // } else {
+        //   dia = item.diameter
+        // }
+        // if (item.measure && (sl !== 0 || ll !== 0)) {
+        //   if ((ll / 10).toFixed(2) < this.config.smallNodulesDiameter && (sl / 10).toFixed(2) < this.config.smallNodulesDiameter) {
+        //     item.visible = false
+        //   } else {
+        //     item.visible = true
+        //   }
+        // } else {
+        //   if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
+        //     item.visible = false
+        //   } else {
+        //     item.visible = true
+        //   }
+        // }
 
         item.recVisible = true
         item.biVisible = this.config.longShortDiamShow
@@ -6683,9 +6684,9 @@ class CornerstoneElement extends Component {
                           </Option>
                         </Select>
                         {inside.textOpen ? (
-                          <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectTexIconClick.bind(this, idx, false)} />
+                          <FontAwesomeIcon className="cornerstone-dorpdown-icon" icon={faChevronDown} size="xs" onClick={this.onSelectTexIconClick.bind(this, idx, false)} />
                         ) : (
-                          <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectTexIconClick.bind(this, idx, true)} />
+                          <FontAwesomeIcon className="cornerstone-dorpdown-icon" icon={faChevronDown} size="xs" onClick={this.onSelectTexIconClick.bind(this, idx, true)} />
                         )}
                       </div>
                       {ll !== 0 && sl !== 0 ? (
@@ -6754,9 +6755,9 @@ class CornerstoneElement extends Component {
                           </Select>
                         </div>
                         {inside.malOpen ? (
-                          <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectMalIconClick.bind(this, idx, false)} />
+                          <FontAwesomeIcon className="cornerstone-dorpdown-icon" icon={faChevronDown} size="xs" onClick={this.onSelectMalIconClick.bind(this, idx, false)} />
                         ) : (
-                          <FontAwesomeIcon icon={faChevronDown} onClick={this.onSelectMalIconClick.bind(this, idx, true)} />
+                          <FontAwesomeIcon className="cornerstone-dorpdown-icon" icon={faChevronDown} size="xs" onClick={this.onSelectMalIconClick.bind(this, idx, true)} />
                         )}
                       </div>
                     </div>
@@ -6767,8 +6768,10 @@ class CornerstoneElement extends Component {
                         {/* <Grid.Column widescreen={6} computer={6}>
                 {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
               </Grid.Column> */}
-                        <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined ? `${inside.volume.toFixed(3)}cm³` : null}</div>
-                        <div className="nodule-accordion-item-content-info-hu">{inside.huMin !== undefined && inside.huMax !== undefined ? inside.huMin + '~' + inside.huMax + 'HU' : null}</div>
+                        <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined && inside.volume !== 0 ? `${inside.volume.toFixed(3)}cm³` : null}</div>
+                        <div className="nodule-accordion-item-content-info-hu">
+                          {inside.huMin !== undefined && inside.huMax !== undefined && (inside.huMax !== 0 || inside.huMin !== 0) ? inside.huMin + '~' + inside.huMax + 'HU' : null}
+                        </div>
                         <div className={'nodule-accordion-item-content-info-prob' + ` nodule-accordion-item-content-info-prob-${inside.malignancy}`}>
                           {inside.malProb !== undefined ? `${(inside.malProb * 100).toFixed(1)}%` : null}
                         </div>
