@@ -919,7 +919,7 @@ class CornerstoneElement extends Component {
       console.log('annoRoundPromises', value.length)
     })
 
-    // this.loadStudyBrowser()F
+    // this.loadStudyBrowser()
     this.loadReport()
 
     // axios
@@ -1392,7 +1392,7 @@ class CornerstoneElement extends Component {
     }
   }
   redrawCorner() {
-    console.log('redrawCorner')
+    // console.log('redrawCorner')
     this.redrawForToolName('RectangleRoi')
     this.redrawForToolName('Bidirectional')
   }
@@ -1720,10 +1720,11 @@ class CornerstoneElement extends Component {
 
     this.threeDimensionalPixelData = threeDimensionalPixelData
     this.threeDimensionalPixelDataZero = threeDimensionalPixelDataZero
-    console.log('threeDimensionalPixelData', threeDimensionalPixelData)
-    console.log('threeDimensionalPixelDataZero', threeDimensionalPixelDataZero)
+    // console.log('threeDimensionalPixelData', threeDimensionalPixelData)
+    // console.log('threeDimensionalPixelDataZero', threeDimensionalPixelDataZero)
+    // segmentationModule.configuration.arrayType = 1
+
     // Use Float32Arrays in cornerstoneTools for interoperability.
-    segmentationModule.configuration.arrayType = 1
 
     const oneInterval = 10
     const twoInterval = 3
@@ -1765,21 +1766,21 @@ class CornerstoneElement extends Component {
         }
         if (numberProcessed === imageIds.length) {
           this.state.vtkImageData.modified()
-          axios
-            .get(this.config.prefusion.lobeCoord + `?caseId=${this.state.caseId}`)
-            .then((res) => {
-              const border = res.data
-              const result = this.generateLobeBorder(border, threeDimensionalPixelData)
-              // resolve(result)
-              const { actor: bdVolumes, imageData: bdImageData } = result
-              this.setState({
-                bdVolumes: [bdVolumes],
-                bdImageData,
-              })
-            })
-            .catch((e) => {
-              console.log(e)
-            })
+          // axios
+          //   .get(this.config.prefusion.lobeCoord + `?caseId=${this.state.caseId}`)
+          //   .then((res) => {
+          //     const border = res.data
+          //     const result = this.generateLobeBorder(border, threeDimensionalPixelData)
+          //     // resolve(result)
+          //     const { actor: bdVolumes, imageData: bdImageData } = result
+          //     this.setState({
+          //       bdVolumes: [bdVolumes],
+          //       bdImageData,
+          //     })
+          //   })
+          //   .catch((e) => {
+          //     console.log(e)
+          //   })
         }
       })
     })
@@ -2619,7 +2620,36 @@ class CornerstoneElement extends Component {
       )
     }, 500)
   }
-
+  goMPRDirectly() {
+    clearTimeout(flipTimer)
+    // cornerstone.disable(this.element)
+    if (!(this.state.urls && this.state.urls.length)) {
+      if (this.state.noThreedData) {
+        message.error('没有3D数据')
+      } else {
+        message.warn('正在请求3D数据，请稍等')
+      }
+      return
+    }
+    this.setState({
+      renderLoading: true,
+    })
+    flipTimer = setTimeout(() => {
+      this.setState(
+        {
+          renderLoading: false,
+          show3DVisualization: true,
+        },
+        () => {
+          if (this.viewer3D) {
+            this.viewer3D.setNeedReset()
+          }
+          this.resizeScreen()
+          this.setMPR()
+        }
+      )
+    }, 500)
+  }
   showFollowUp() {
     this.onSetStudyList(true)
     this.onSetAnimationPlaying(false)
@@ -3713,6 +3743,14 @@ class CornerstoneElement extends Component {
     e.stopPropagation()
     const boxes = this.state.boxes
     boxes[index].malOpen = open
+    if (open) {
+      boxes.forEach((boxItem, boxIndex) => {
+        if (boxIndex !== index) {
+          boxItem.malOpen = false
+          boxItem.textOpen = false
+        }
+      })
+    }
     this.setState({
       boxes: boxes,
     })
@@ -3753,6 +3791,14 @@ class CornerstoneElement extends Component {
     e.stopPropagation()
     const boxes = this.state.boxes
     boxes[index].textOpen = open
+    if (open) {
+      boxes.forEach((boxItem, boxIndex) => {
+        if (boxIndex !== index) {
+          boxItem.malOpen = false
+          boxItem.textOpen = false
+        }
+      })
+    }
     this.setState({
       boxes: boxes,
     })
@@ -5229,7 +5275,7 @@ class CornerstoneElement extends Component {
 
   // cornerstone callback
   drawNodules() {
-    console.log('drawNodules')
+    // console.log('drawNodules')
     this.drawNodulesForRec()
     this.drawNodulesForBi()
   }
@@ -7787,7 +7833,12 @@ class CornerstoneElement extends Component {
               <div className="func-btn-desc">显示3D</div>
             </div>
           )}
-
+          {!show3DVisualization && !showFollowUp && !MPR ? (
+            <div className="func-btn" hidden={MPR} onClick={this.goMPRDirectly.bind(this)}>
+              <Icon className="func-btn-icon icon-custom icon-custom-mpr-show" size="large" />
+              <div className="func-btn-desc"> MPR</div>
+            </div>
+          ) : null}
           {showFollowUp ? (
             <div title="随访" className={'func-btn'} onClick={this.hideFollowUp.bind(this)} hidden={show3DVisualization || renderLoading}>
               <Icon className="func-btn-icon" name="history" size="large"></Icon>
