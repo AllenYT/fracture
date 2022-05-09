@@ -388,8 +388,7 @@ class CornerstoneElement extends Component {
       studyListShowed: false,
       showFollowUp: false,
       show3DVisualization: false,
-      showMPR: false,
-      showCPR: false,
+      showMPRDirectly: false,
 
       sliderMarks: {},
       boxes: [],
@@ -399,6 +398,8 @@ class CornerstoneElement extends Component {
       needRedrawBoxes: false,
       noduleMarks: {},
       listsActiveIndex: -1, //右方list活动item
+      loadedImages: {},
+      needUpdateLoadedImages: 0,
 
       lymphs: [],
       drawingLymphsCompleted: false,
@@ -889,39 +890,57 @@ class CornerstoneElement extends Component {
     })
     executeTask()
     this.loadDisplay()
+    let allImageIds = []
     let annoImageIds = []
     let annoRoundImageIds = []
+    imageIds.forEach((imageId, imageIndex) => {
+      allImageIds.push({
+        imageId: imageId,
+        index: imageIndex,
+      })
+    })
     nodules.forEach((boxItem, boxIndex) => {
       let nowSliceIndex = boxItem.slice_idx
-      annoImageIds.push(imageIds[nowSliceIndex])
+      const annoImageItem = {
+        imageId: imageIds[nowSliceIndex],
+        index: nowSliceIndex,
+      }
+      annoImageIds.push(annoImageItem)
       for (let j = nowSliceIndex - 5; j < nowSliceIndex + 5; j++) {
         if (_.inRange(j, 0, imageIds.length)) {
-          annoRoundImageIds.push(imageIds[j])
+          const annoRoundImageItem = {
+            imageId: imageIds[j],
+            index: j,
+          }
+          annoRoundImageIds.push(annoRoundImageItem)
         }
       }
     })
-    annoImageIds = _.uniq(annoImageIds)
-    const annoPromises = annoImageIds.map((annoImageId, annoImageIndex) => {
-      return loadAndCacheImagePlus(annoImageId, 2).then((image) => {
-        this.props.updateLoadedImageNumber(annoImageIndex, this.state.caseId)
+    annoImageIds = _.uniqBy(annoImageIds, 'index')
+    const annoPromises = annoImageIds.map((annoImageItem, annoImageIndex) => {
+      return loadAndCacheImagePlus(annoImageItem.imageId, 2).then((image) => {
+        this.props.updateLoadedImageNumber(annoImageItem.index, this.state.caseId)
+        // this.updateLoadedImageNumber(annoImageItem.index, this.state.caseId)
       })
     })
-    Promise.all(annoPromises).then((value) => {
-      console.log('annoPromises', value.length)
+    console.time('annoPromises')
+    Promise.all(annoPromises).then(() => {
+      console.timeEnd('annoPromises')
     })
-    annoRoundImageIds = _.uniq(annoRoundImageIds)
-    const annoRoundPromises = annoRoundImageIds.map((annoRoundImageId, annoRoundImageIndex) => {
-      return loadAndCacheImagePlus(annoRoundImageId, 3).then((image) => {
-        this.props.updateLoadedImageNumber(annoRoundImageIndex, this.state.caseId)
+    annoRoundImageIds = _.uniqBy(annoRoundImageIds, 'index')
+    annoRoundImageIds = _.differenceBy(annoRoundImageIds, annoImageIds, 'index')
+    const annoRoundPromises = annoRoundImageIds.map((annoRoundImageItem, annoRoundImageIndex) => {
+      return loadAndCacheImagePlus(annoRoundImageItem.imageId, 3).then((image) => {
+        this.props.updateLoadedImageNumber(annoRoundImageItem.index, this.state.caseId)
+        // this.updateLoadedImageNumber(annoRoundImageItem.index, this.state.caseId)
       })
     })
-    Promise.all(annoRoundPromises).then((value) => {
-      console.log('annoRoundPromises', value.length)
+    console.time('annoRoundPromises')
+    Promise.all(annoRoundPromises).then(() => {
+      console.timeEnd('annoRoundPromises')
     })
-
     // this.loadStudyBrowser()
     this.loadReport()
-
     // axios
     //   .post(
     //     this.config.draft.getLymphs,
@@ -954,15 +973,18 @@ class CornerstoneElement extends Component {
     //       this.saveLymphData(data)
     //     }
     //   })
-
-    const allPromises = imageIds.map((imageId, imageIndex) => {
+    allImageIds = _.differenceBy(allImageIds, annoImageIds, 'index')
+    allImageIds = _.differenceBy(allImageIds, annoRoundImageIds, 'index')
+    const allPromises = allImageIds.map((allImageItem, imageIndex) => {
       // console.log(imageId)
-      return loadAndCacheImagePlus(imageId, 4).then((image) => {
-        this.props.updateLoadedImageNumber(imageIndex, this.state.caseId)
+      return loadAndCacheImagePlus(allImageItem.imageId, 4).then((image) => {
+        this.props.updateLoadedImageNumber(allImageItem.index, this.state.caseId)
+        // this.updateLoadedImageNumber(allImageItem.index, this.state.caseId)
       })
     })
-    await Promise.all(allPromises).then((value) => {
-      console.log('allPromises', value.length)
+    console.time('allPromises')
+    await Promise.all(allPromises).then(() => {
+      console.timeEnd('allPromises')
     })
     console.log('imageIds loading completed')
 
@@ -971,6 +993,7 @@ class CornerstoneElement extends Component {
         this.config.data.getMhaListForCaseId,
         qs.stringify({
           caseId: this.state.caseId,
+          modelName: this.state.readonly ? this.state.modelName : '',
         }),
         {
           headers,
@@ -1009,7 +1032,8 @@ class CornerstoneElement extends Component {
               order = Math.round(urlItem.split('_')[2].split('.')[0])
               type = originType + order
             } else if (originType === 'nodule') {
-              order = Math.round(urlItem.split('_')[3].split('.')[0])
+              const tmpSplit = urlItem.split('_')
+              order = Math.round(tmpSplit[tmpSplit.length - 1].split('.')[0])
               type = originType
             } else {
               type = originType
@@ -1272,7 +1296,18 @@ class CornerstoneElement extends Component {
     window.removeEventListener('resize', this.resizeScreen.bind(this))
     window.removeEventListener('mousedown', this.mousedownFunc.bind(this))
   }
-
+  updateLoadedImageNumber(index, caseId) {
+    const loadedImageIndex = index
+    const loadedImages = this.state.loadedImages
+    if (loadedImages[caseId] === undefined) {
+      loadedImages[caseId] = {}
+    }
+    loadedImages[caseId][loadedImageIndex] = 1
+    this.setState({
+      loadedImages,
+      needUpdateLoadedImages: _.random(0, 100),
+    })
+  }
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.needUpdateLoadedImages !== this.props.needUpdateLoadedImages) {
       if (this.props.loadedImages) {
@@ -1295,6 +1330,27 @@ class CornerstoneElement extends Component {
         })
       }
     }
+    // if (prevState.needUpdateLoadedImages !== this.state.needUpdateLoadedImages) {
+    //   if (this.props.loadedImages) {
+    //     const loadedCaseIds = Object.keys(this.state.loadedImages)
+    //     loadedCaseIds.forEach((loadedCaseId) => {
+    //       const nowValue = Object.keys(this.state.loadedImages[loadedCaseId]).length
+    //       const dateSeries = this.state.dateSeries
+    //       for (let i = 0; i < dateSeries.length; i++) {
+    //         const dateSerie = dateSeries[i]
+    //         const dateIndex = _.findIndex(dateSerie, { caseId: loadedCaseId })
+    //         if (dateIndex !== -1) {
+    //           if (nowValue % 20 === 0 || nowValue === dateSerie[dateIndex].imageLength) {
+    //             dateSerie[dateIndex].loadedNumber = nowValue
+    //             this.setState({
+    //               dateSeries,
+    //             })
+    //           }
+    //         }
+    //       }
+    //     })
+    //   }
+    // }
     if (prevState.immersive !== this.state.immersive) {
     }
     if (!prevState.patientId && this.state.patientId) {
@@ -2607,6 +2663,7 @@ class CornerstoneElement extends Component {
     flipTimer = setTimeout(() => {
       this.setState({
         MPR: false,
+        showMPRDirectly: false,
       })
       this.changeMode(1)
       this.setState(
@@ -2622,7 +2679,6 @@ class CornerstoneElement extends Component {
   }
   goMPRDirectly() {
     clearTimeout(flipTimer)
-    // cornerstone.disable(this.element)
     if (!(this.state.urls && this.state.urls.length)) {
       if (this.state.noThreedData) {
         message.error('没有3D数据')
@@ -2639,13 +2695,13 @@ class CornerstoneElement extends Component {
         {
           renderLoading: false,
           show3DVisualization: true,
+          showMPRDirectly: true,
+          MPR: true,
         },
         () => {
-          if (this.viewer3D) {
-            this.viewer3D.setNeedReset()
-          }
           this.resizeScreen()
-          this.setMPR()
+          this.changeMode(4)
+          // this.setMPR()
         }
       )
     }, 500)
@@ -3712,13 +3768,46 @@ class CornerstoneElement extends Component {
     const { boxes, listsActiveIndex } = this.state
     const newIndex = listsActiveIndex === index ? -1 : index
     if (this.state.show3DVisualization) {
-      if (this.state.MPR && this.state.painting && newIndex !== -1) {
-        this.createNoduleMask(index)
-        this.setState({
-          displayCrosshairs: true,
-        })
-        this.toggleCrosshairs(true)
+      if (this.state.MPR) {
+        if (this.state.painting && newIndex !== -1) {
+          this.createNoduleMask(index)
+          this.setState({
+            displayCrosshairs: true,
+          })
+          this.toggleCrosshairs(true)
+        } else if (newIndex !== -1) {
+          try {
+            const segmentIndex = _.findIndex(this.state.urls, {
+              class: 2,
+              order: parseInt(this.state.boxes[index].nodule_no) + 1,
+            })
+            if (segmentIndex === -1) {
+              message.error('没有分割结果')
+            } else {
+              const segment = this.state.segments[segmentIndex]
+              const bounds = segment.getBounds()
+              const firstPicked = [bounds[0], bounds[2], bounds[4]]
+              const lastPicked = [bounds[1], bounds[3], bounds[5]]
+              const origin = [Math.round((firstPicked[0] + lastPicked[0]) / 2), Math.round((firstPicked[1] + lastPicked[1]) / 2), Math.round((firstPicked[2] + lastPicked[2]) / 2)]
+
+              const apis = this.apis
+              apis[0].svgWidgets.rotatableCrosshairsWidget.moveCrosshairs(origin, apis, 0)
+              const renderWindow = apis[0].genericRenderWindow.getRenderWindow()
+              const istyle = renderWindow.getInteractor().getInteractorStyle()
+              istyle.modified()
+            }
+          } catch (e) {
+            console.log(e)
+          }
+        }
       }
+      // if (this.state.MPR && this.state.painting && newIndex !== -1) {
+      //   this.createNoduleMask(index)
+      //   this.setState({
+      //     displayCrosshairs: true,
+      //   })
+      //   this.toggleCrosshairs(true)
+      // }
     }
     if (boxes && boxes.length) {
       this.setState({
@@ -6232,6 +6321,7 @@ class CornerstoneElement extends Component {
       menuNowPage,
       menuTransform,
       show3DVisualization,
+      showMPRDirectly,
       crosshairsTool,
       studyListShowed,
       renderLoading,
@@ -6594,7 +6684,78 @@ class CornerstoneElement extends Component {
       )
       panel = CPRPanel
     }
-
+    if (mode === 4) {
+      const directMPRStyles = this.getDirectMPRStyles()
+      const directMPRPanel = (
+        <>
+          <View2D
+            // axial
+            viewerStyle={directMPRStyles.axial}
+            viewerType={0}
+            parallelScale={originYBorder / 2}
+            volumes={volumes}
+            onCreated={this.storeApi(0)}
+            onDestroyed={this.deleteApi(0)}
+            orientation={{
+              sliceNormal: [0, 0, 1],
+              viewUp: [0, -1, 0],
+            }}
+            showRotation={true}
+            paintFilterBackgroundImageData={vtkImageData}
+            // paintFilterLabelMapImageData={labelMapInputData}
+            // painting={painting}
+            // onPaintEnd={this.onPaintEnd.bind(this)}
+            onChangeSlice={this.onChangeSlice.bind(this)}
+            sliderMax={Math.round(segRange.zMax)}
+            sliderMin={Math.round(segRange.zMin)}
+            onRef={(ref) => {
+              this.viewerAxial = ref
+            }}
+          />
+          <View2D
+            //coronal
+            viewerStyle={directMPRStyles.coronal}
+            viewerType={1}
+            parallelScale={originZBorder / 2}
+            volumes={volumes}
+            onCreated={this.storeApi(1)}
+            onDestroyed={this.deleteApi(1)}
+            orientation={{
+              sliceNormal: [0, 1, 0],
+              viewUp: [0, 0, 1],
+            }}
+            showRotation={true}
+            onChangeSlice={this.onChangeSlice.bind(this)}
+            sliderMax={Math.round(segRange.yMax)}
+            sliderMin={Math.round(segRange.yMin)}
+            onRef={(ref) => {
+              this.viewerCoronal = ref
+            }}
+          />
+          <View2D
+            //sagittal
+            viewerStyle={directMPRStyles.sagittal}
+            viewerType={2}
+            parallelScale={originZBorder / 2}
+            volumes={volumes}
+            onCreated={this.storeApi(2)}
+            onDestroyed={this.deleteApi(2)}
+            orientation={{
+              sliceNormal: [-1, 0, 0],
+              viewUp: [0, 0, 1],
+            }}
+            showRotation={true}
+            onChangeSlice={this.onChangeSlice.bind(this)}
+            sliderMax={Math.round(segRange.xMax)}
+            sliderMin={Math.round(segRange.xMin)}
+            onRef={(ref) => {
+              this.viewerSagittal = ref
+            }}
+          />
+        </>
+      )
+      panel = directMPRPanel
+    }
     if (!this.state.immersive) {
       if (boxes && boxes.length > 0) {
         tableContent = boxes // .selectBoxes
@@ -7650,7 +7811,7 @@ class CornerstoneElement extends Component {
                   </div>
                 </>
               ) : (
-                <div className="func-btn" onClick={this.setCPR.bind(this)}>
+                <div className="func-btn" onClick={this.setCPR.bind(this)} hidden={showMPRDirectly}>
                   <Icon className="func-btn-icon icon-custom icon-custom-CPR" size="large" />
                   <div className="func-btn-desc"> CPR</div>
                 </div>
@@ -8662,7 +8823,6 @@ class CornerstoneElement extends Component {
         left: 0,
         width: viewerWidth * 0.5,
         height: viewerHeight * 0.4,
-        borderRight: '2px solid #d1d1d1e0',
       },
       topRight: {
         position: 'absolute',
@@ -8715,6 +8875,46 @@ class CornerstoneElement extends Component {
     }
 
     return CPRStyles
+  }
+  getDirectMPRStyles(viewerWidth, viewerHeight) {
+    if (typeof viewerWidth == 'undefined') {
+      viewerWidth = this.state.viewerWidth
+    }
+    if (typeof viewerHeight == 'undefined') {
+      viewerHeight = this.state.viewerHeight
+    }
+    const directMPRStyles = {
+      top: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: viewerWidth,
+        height: viewerHeight / 2,
+        borderRight: '2px solid #d1d1d1e0',
+      },
+      bottomLeft: {
+        position: 'absolute',
+        top: viewerHeight / 2,
+        left: 0,
+        width: viewerWidth / 2,
+        height: viewerHeight / 2,
+        borderRight: '2px solid #d1d1d1e0',
+        borderTop: '2px solid #d1d1d1e0',
+      },
+      bottomRight: {
+        position: 'absolute',
+        top: viewerHeight / 2,
+        left: viewerWidth / 2,
+        width: viewerWidth / 2,
+        height: viewerHeight / 2,
+        borderTop: '2px solid #d1d1d1e0',
+      },
+    }
+    return {
+      axial: directMPRStyles.top,
+      coronal: directMPRStyles.bottomLeft,
+      sagittal: directMPRStyles.bottomRight,
+    }
   }
   getLoadingStyle() {
     const mode = this.state.mode
@@ -9038,6 +9238,13 @@ class CornerstoneElement extends Component {
     }
   }
   setMPR() {
+    if (this.state.showMPRDirectly) {
+      this.hide3D()
+      this.setState({
+        showMPRDirectly: false,
+      })
+      return
+    }
     if (this.state.MPR) {
       this.setState({
         MPR: false,
@@ -9121,13 +9328,19 @@ class CornerstoneElement extends Component {
   changeMode(mode) {
     const { viewerWidth, viewerHeight } = this.state
     if (mode === 1) {
-      this.viewer3D.setContainerSize(viewerWidth, viewerHeight)
+      if (this.viewer3D) {
+        this.viewer3D.setContainerSize(viewerWidth, viewerHeight)
+      }
     } else if (mode === 2) {
       const MPRStyles = this.getMPRStyles()
-      this.viewer3D.setContainerSize(MPRStyles.threeD.width, MPRStyles.threeD.height)
+      if (this.viewer3D) {
+        this.viewer3D.setContainerSize(MPRStyles.threeD.width, MPRStyles.threeD.height)
+      }
     } else if (mode === 3) {
       const CPRStyles = this.getCPRStyles()
-      this.viewer3D.setContainerSize(CPRStyles.threeD.width, CPRStyles.threeD.height)
+      if (this.viewer3D) {
+        this.viewer3D.setContainerSize(CPRStyles.threeD.width, CPRStyles.threeD.height)
+      }
       // if (channelStyles.fragment) {
       //     this.viewerFragment.setContainerSize(
       //         channelStyles.fragment.width,
@@ -9143,9 +9356,15 @@ class CornerstoneElement extends Component {
         // after rendering
         if (mode === 2) {
           const MPRStyles = this.getMPRStyles()
-          this.viewerAxial.setContainerSize(MPRStyles.axial.width, MPRStyles.axial.height)
-          this.viewerCoronal.setContainerSize(MPRStyles.coronal.width, MPRStyles.coronal.height)
-          this.viewerSagittal.setContainerSize(MPRStyles.sagittal.width, MPRStyles.sagittal.height)
+          if (this.viewerAxial) {
+            this.viewerAxial.setContainerSize(MPRStyles.axial.width, MPRStyles.axial.height)
+          }
+          if (this.viewerCoronal) {
+            this.viewerCoronal.setContainerSize(MPRStyles.coronal.width, MPRStyles.coronal.height)
+          }
+          if (this.viewerSagittal) {
+            this.viewerSagittal.setContainerSize(MPRStyles.sagittal.width, MPRStyles.sagittal.height)
+          }
         }
         if (mode === 3) {
           const CPRStyles = this.getCPRStyles()
@@ -9153,6 +9372,18 @@ class CornerstoneElement extends Component {
           // this.viewerCoronal.setContainerSize(CPRStyles.coronal.width, CPRStyles.coronal.height)
           // this.viewerSagittal.setContainerSize(CPRStyles.sagittal.width, CPRStyles.sagittal.height)
           // this.viewerAirway.setContainerSize(CPRStyles.airway.width, CPRStyles.airway.height)
+        }
+        if (mode === 4) {
+          const directMPRStyles = this.getDirectMPRStyles()
+          if (this.viewerAxial) {
+            this.viewerAxial.setContainerSize(directMPRStyles.axial.width, directMPRStyles.axial.height)
+          }
+          if (this.viewerCoronal) {
+            this.viewerCoronal.setContainerSize(directMPRStyles.coronal.width, directMPRStyles.coronal.height)
+          }
+          if (this.viewerSagittal) {
+            this.viewerSagittal.setContainerSize(directMPRStyles.sagittal.width, directMPRStyles.sagittal.height)
+          }
         }
       }
     )
@@ -9944,87 +10175,7 @@ class CornerstoneElement extends Component {
     result[3] = 1.0
     return result
   }
-  getRatio(model, cor) {
-    //ratio for pixel to origin
-    //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
-    //for cor parameter, 0 represents x, 1 represents y
-    const { originXBorder, originYBorder, originZBorder } = this.state
-    let ratio
-    switch (model) {
-      case 0:
-        ratio = cor === 0 ? originXBorder / 272 : originYBorder / -272 // x's length:(442 - 170) y's length:(84 - 356)
-        break
-      case 1:
-        ratio = cor === 0 ? originXBorder / 272 : originZBorder / -212 // x's length:(442 - 170) y's length:(114 - 326)
-        break
-      case 2:
-        ratio = cor === 0 ? originYBorder / 272 : originZBorder / -212 // x's length:(442 - 170) y's length:(114 - 326)
-        break
-      default:
-        break
-    }
-    return ratio
-  }
-  getTopLeftOffset(model) {
-    //volume's top left, not viewer's top left
-    //for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
-    let x, y
-    switch (model) {
-      case 0:
-        x = 170
-        y = 356
-        break
-      case 1:
-        x = 170
-        y = 326
-        break
-      case 2:
-        x = 170
-        y = 326
-        break
-      default:
-        break
-    }
-    return { x, y }
-  }
-  transformOriginToPixel(origin) {
-    // origin to pixel
-    const pixel = []
-    const axialPixel = []
-    axialPixel[0] = origin[0] / this.getRatio(0, 0) + this.getTopLeftOffset(0).x
-    axialPixel[1] = origin[1] / this.getRatio(0, 1) + this.getTopLeftOffset(0).y
 
-    const coronalPixel = []
-    coronalPixel[0] = origin[0] / this.getRatio(1, 0) + this.getTopLeftOffset(1).x
-    coronalPixel[1] = origin[2] / this.getRatio(1, 1) + this.getTopLeftOffset(1).y
-
-    const sagittalPixel = []
-    sagittalPixel[0] = origin[1] / this.getRatio(2, 0) + this.getTopLeftOffset(2).x
-    sagittalPixel[1] = origin[2] / this.getRatio(2, 1) + this.getTopLeftOffset(2).y
-    pixel[0] = axialPixel
-    pixel[1] = coronalPixel
-    pixel[2] = sagittalPixel
-    return pixel
-  }
-  transformPixelToOrigin(pixel, model) {
-    // pixel to origin
-    // for model parameter, 0 represents axial, 1 represents coronal, 2 represents sagittal
-    const origin = []
-    if (model === 0) {
-      origin[0] = (pixel[0] - this.getTopLeftOffset(0).x) * this.getRatio(0, 0)
-      origin[1] = (pixel[1] - this.getTopLeftOffset(0).y) * this.getRatio(0, 1)
-      origin[2] = this.state.origin[2]
-    } else if (model === 1) {
-      origin[0] = (pixel[0] - this.getTopLeftOffset(1).x) * this.getRatio(1, 0)
-      origin[1] = this.state.origin[1]
-      origin[2] = (pixel[1] - this.getTopLeftOffset(1).y) * this.getRatio(1, 1)
-    } else if (model === 2) {
-      origin[0] = this.state.origin[0]
-      origin[1] = (pixel[0] - this.getTopLeftOffset(2).x) * this.getRatio(2, 0)
-      origin[2] = (pixel[1] - this.getTopLeftOffset(2).y) * this.getRatio(2, 1)
-    }
-    return origin
-  }
   transform3DPickedToOrigin(picked) {
     // 3D picked to origin
     const origin = []

@@ -248,6 +248,9 @@ loading: 1
 /*.loading-list-progress{*/
 /*  width:150px;*/
 /*}*/
+.slab-thick-container .ant-slider-track {
+  background-color: #0033ff !important;
+}
 .segment-widget-radius-container {
   display: flex;
   flex-direction: row;
