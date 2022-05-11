@@ -1111,6 +1111,39 @@ class CornerstoneElement extends Component {
           })
           lobesData.sort((a, b) => a.index - b.index)
           this.saveLobesData(lobesData)
+        } else {
+          const lobesData = []
+          const data = [
+            {
+              name: 1,
+            },
+            {
+              name: 2,
+            },
+            {
+              name: 3,
+            },
+            {
+              name: 4,
+            },
+            {
+              name: 5,
+            },
+          ]
+          data.forEach((item, index) => {
+            const lobeIndex = _.findIndex(this.state.urls, {
+              order: item.name,
+            })
+            if (lobeIndex !== -1) {
+              item.index = this.state.urls[lobeIndex].index
+              item.lobeName = lobeName[item.name]
+              item.volume = 0
+              item.percent = 0
+              lobesData.push(item)
+            }
+          })
+          lobesData.sort((a, b) => a.index - b.index)
+          this.saveLobesData(lobesData)
         }
       })
     const tubularData = []
