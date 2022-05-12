@@ -3162,12 +3162,19 @@ class CornerstoneElement extends Component {
         }
       }
     })
-    this.setState({
-      boxes,
-      smallNodulesChecked,
-      needReloadBoxes: true,
-      needRedrawBoxes: true,
-    })
+    if (this.state.show3DVisualization) {
+      this.setState({
+        boxes,
+        smallNodulesChecked,
+      })
+    } else {
+      this.setState({
+        boxes,
+        smallNodulesChecked,
+        needReloadBoxes: true,
+        needRedrawBoxes: true,
+      })
+    }
   }
   onHandleSmallNodulesCheckClick(e) {
     e.stopPropagation()
@@ -3810,25 +3817,36 @@ class CornerstoneElement extends Component {
           this.toggleCrosshairs(true)
         } else if (newIndex !== -1) {
           try {
-            const segmentIndex = _.findIndex(this.state.urls, {
-              class: 2,
-              order: parseInt(this.state.boxes[index].nodule_no) + 1,
-            })
-            if (segmentIndex === -1) {
-              message.error('没有分割结果')
-            } else {
-              const segment = this.state.segments[segmentIndex]
-              const bounds = segment.getBounds()
-              const firstPicked = [bounds[0], bounds[2], bounds[4]]
-              const lastPicked = [bounds[1], bounds[3], bounds[5]]
-              const origin = [Math.round((firstPicked[0] + lastPicked[0]) / 2), Math.round((firstPicked[1] + lastPicked[1]) / 2), Math.round((firstPicked[2] + lastPicked[2]) / 2)]
+            const noduleSpacing = this.state.noduleSpacing
+            const boxItem = this.state.boxes[index]
+            const halfX = ((boxItem.x1 + boxItem.x2) * noduleSpacing) / 2
+            const halfY = ((boxItem.y1 + boxItem.y2) * noduleSpacing) / 2
+            const z = boxItem.slice_idx
+            const newOrigin = this.transformOriginTo3DPicked([halfX, halfY, z])
+            const apis = this.apis
+            apis[0].svgWidgets.rotatableCrosshairsWidget.moveCrosshairs(newOrigin, apis, 0)
+            const renderWindow = apis[0].genericRenderWindow.getRenderWindow()
+            const istyle = renderWindow.getInteractor().getInteractorStyle()
+            istyle.modified()
 
-              const apis = this.apis
-              apis[0].svgWidgets.rotatableCrosshairsWidget.moveCrosshairs(origin, apis, 0)
-              const renderWindow = apis[0].genericRenderWindow.getRenderWindow()
-              const istyle = renderWindow.getInteractor().getInteractorStyle()
-              istyle.modified()
-            }
+            //   const segmentIndex = _.findIndex(this.state.urls, {
+            //     class: 2,
+            //     order: parseInt(this.state.boxes[index].nodule_no) + 1,
+            //   })
+            //   if (segmentIndex === -1) {
+            //     message.error('没有分割结果')
+            //   } else {
+            //     const segment = this.state.segments[segmentIndex]
+            //     const bounds = segment.getBounds()
+            //     const firstPicked = [bounds[0], bounds[2], bounds[4]]
+            //     const lastPicked = [bounds[1], bounds[3], bounds[5]]
+            //     const origin = [Math.round((firstPicked[0] + lastPicked[0]) / 2), Math.round((firstPicked[1] + lastPicked[1]) / 2), Math.round((firstPicked[2] + lastPicked[2]) / 2)]
+            //     const apis = this.apis
+            //     apis[0].svgWidgets.rotatableCrosshairsWidget.moveCrosshairs(origin, apis, 0)
+            //     const renderWindow = apis[0].genericRenderWindow.getRenderWindow()
+            //     const istyle = renderWindow.getInteractor().getInteractorStyle()
+            //     istyle.modified()
+            //   }
           } catch (e) {
             console.log(e)
           }
