@@ -6244,8 +6244,13 @@ class CornerstoneElement extends Component {
       }
     }
     if (e.target) {
-      if (!(e.target.tagName === 'svg' || e.target.tagName === 'path')) {
-        // console.log('mousedownFunc', e.target.tagName)
+      if (
+        e.target.tagName !== 'svg' &&
+        e.target.tagName !== 'path' &&
+        e.target.className !== 'ant-select-item-option-content' &&
+        e.target.className !== 'ant-select-item ant-select-item-option nodule-accordion-item-title-select-option ant-select-item-option-active'
+      ) {
+        console.log('onSelectTexSelect ', e.target.tagName, e.target.className)
         const boxes = this.state.boxes
         if (boxes && boxes.length) {
           boxes.forEach((boxItem) => {
