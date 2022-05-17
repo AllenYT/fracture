@@ -12,10 +12,10 @@ import cornerstoneTools from 'cornerstone-tools'
 import cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader'
 import { withRouter } from 'react-router-dom'
 import { Icon, Button, Accordion, Modal, Dropdown, Menu, Label, Header, Popup, Table, Sidebar, Loader, Divider, Form, Card } from 'semantic-ui-react'
-import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined } from '@ant-design/icons'
+import { CloseCircleOutlined, CheckCircleOutlined, ConsoleSqlOutlined, SyncOutlined, ExclamationCircleOutlined, ExclamationCircleFilled } from '@ant-design/icons'
 import qs from 'qs'
 import axios from 'axios'
-import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Cascader, Radio, Row, Col, Form as AntdForm, Input, Tooltip } from 'antd'
+import { Slider, Select, Checkbox, Tabs, InputNumber, Popconfirm, message, Cascader, Radio, Row, Col, Form as AntdForm, Input, Tooltip, Switch } from 'antd'
 import * as echarts from 'echarts'
 import html2pdf from 'html2pdf.js'
 import copy from 'copy-to-clipboard'
@@ -454,7 +454,8 @@ class CornerstoneElement extends Component {
 
       /*新加变量 */
       nodules: [],
-      noduleColor: 'rgba(0,255,0,1)',
+      noduleColorSetting: false,
+      noduleColor: 'rgba(255,255,0,1)',
       nodulesAllChecked: false,
       smallNodulesChecked: true,
       noduleLimited: false,
@@ -1479,6 +1480,11 @@ class CornerstoneElement extends Component {
         needRedrawBoxes: true,
       })
     }
+    if (prevState.noduleColorSetting !== this.state.noduleColorSetting && this.state.noduleColorSetting) {
+      this.setState({
+        needRedrawBoxes: true,
+      })
+    }
   }
   redrawCorner() {
     // console.log('redrawCorner')
@@ -1497,6 +1503,7 @@ class CornerstoneElement extends Component {
       }
       const savedData = [].concat(toolData.data)
       cornerstoneTools.clearToolState(cornerElement, toolName)
+
       savedData.forEach((savedDataItem, savedDataItemIndex) => {
         let boxIndex = -1
         let lymphIndex = -1
@@ -1522,8 +1529,11 @@ class CornerstoneElement extends Component {
             default:
               break
           }
-          // const color = this.state.noduleColor
-          // savedDataItem.color = color
+          if (this.state.noduleColorSetting) {
+            console.log('hello')
+            const color = this.state.noduleColor
+            savedDataItem.color = color
+          }
           savedDataItem.active = toolDataIndex === savedDataItemIndex
           cornerstoneTools.addToolState(cornerElement, toolName, savedDataItem)
         }
@@ -2856,8 +2866,18 @@ class CornerstoneElement extends Component {
       settingOpen: open,
     })
   }
+  onChangeNoduleColorSetting(setting) {
+    this.setState({
+      noduleColorSetting: setting,
+    })
+    if (!setting) {
+      this.setState({
+        noduleColor: 'rgba(255,255,0,1)',
+      })
+    }
+  }
   setNoduleColor(e) {
-    console.log('noduleColor', e)
+    // console.log('noduleColor', e)
     this.setState({
       noduleColor: e.rgba,
     })
@@ -5459,6 +5479,9 @@ class CornerstoneElement extends Component {
               },
             },
           }
+          if (this.state.noduleColorSetting) {
+            measurementData.color = color
+          }
           cornerstoneTools.addToolState(cornerElement, 'RectangleRoi', measurementData)
           const toolData = cornerstoneTools.getToolState(cornerElement, 'RectangleRoi')
 
@@ -5841,6 +5864,9 @@ class CornerstoneElement extends Component {
       default:
         break
     }
+    // this.setState({
+    //   needRedrawBoxes: true,
+    // })
   }
   createNewBox(imageIndex, data) {
     let boxes = this.state.boxes
@@ -6250,7 +6276,6 @@ class CornerstoneElement extends Component {
         e.target.className !== 'ant-select-item-option-content' &&
         e.target.className !== 'ant-select-item ant-select-item-option nodule-accordion-item-title-select-option ant-select-item-option-active'
       ) {
-        console.log('onSelectTexSelect ', e.target.tagName, e.target.className)
         const boxes = this.state.boxes
         if (boxes && boxes.length) {
           boxes.forEach((boxItem) => {
@@ -6300,6 +6325,8 @@ class CornerstoneElement extends Component {
       drawingNodulesCompleted,
       drawingLymphsCompleted,
       displayBorder,
+      noduleColorSetting,
+      noduleColor,
 
       nodulesAllChecked,
       smallNodulesChecked,
@@ -8074,7 +8101,22 @@ class CornerstoneElement extends Component {
           </div>
         </>
       )
-
+      let initialNoduleColor = 'FFFF00'
+      try {
+        const splitedNoduleColor = noduleColor.substring(5, noduleColor.length - 1).split(',')
+        splitedNoduleColor.pop()
+        initialNoduleColor = splitedNoduleColor
+          .map((item) => {
+            let hex = Number(item).toString(16)
+            if (hex.length === 1) {
+              hex = `0${hex}`
+            }
+            return hex
+          })
+          .join('')
+      } catch (e) {
+        console.log(e)
+      }
       return (
         <div id="corner-container">
           <div id="corner-top-row">
@@ -8114,10 +8156,28 @@ class CornerstoneElement extends Component {
                       <Modal.Content className="corner-setting-modal-content">
                         <Modal.Description>
                           <div className="corner-setting-modal-content-container">
-                            <div className="corner-setting-modal-content-container-name">颜色选择</div>
-                            <div className="corner-setting-modal-content-container-opt">
-                              <InputColor initialValue="#00FF00" onChange={this.setNoduleColor.bind(this)} placement="right" />
+                            <div className="corner-setting-modal-content-container-block">
+                              <div className="corner-setting-modal-content-container-name">
+                                开启标注框颜色选择
+                                <div className="corner-setting-modal-content-container-tip">
+                                  <Tooltip placement="top" title={'请谨慎使用这个功能，目前使用后会导致标注框active功能失效'}>
+                                    <ExclamationCircleOutlined />
+                                    {/* <ExclamationCircleFilled /> */}
+                                  </Tooltip>
+                                </div>
+                              </div>
+                              <div className="corner-setting-modal-content-container-opt">
+                                <Switch defaultChecked={noduleColorSetting} onChange={this.onChangeNoduleColorSetting.bind(this)} />
+                              </div>
                             </div>
+                            {noduleColorSetting ? (
+                              <div className="corner-setting-modal-content-container-block">
+                                <div className="corner-setting-modal-content-container-name">标注框颜色选择</div>
+                                <div className="corner-setting-modal-content-container-opt">
+                                  <InputColor initialValue={initialNoduleColor} onChange={this.setNoduleColor.bind(this)} placement="right" />
+                                </div>
+                              </div>
+                            ) : null}
                           </div>
                         </Modal.Description>
                       </Modal.Content>
@@ -8286,7 +8346,6 @@ class CornerstoneElement extends Component {
                                 )
                                 this.subs.cornerMouseDrag.sub(
                                   cornerElement.addEventListener('cornerstonetoolsmousedrag', (e) => {
-                                    console.log('cornerstonetoolsmousedrag', e)
                                     if (e.detail.buttons === 2) {
                                       this.zoomToCenterStrategy(e)
                                     }
