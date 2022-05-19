@@ -3129,6 +3129,12 @@ class CornerstoneElement extends Component {
           } else {
             boxItemLL = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
           }
+        } else {
+          if (spacing) {
+            boxItemLL = boxItem.diameter * spacing
+          } else {
+            boxItemLL = boxItem.diameter
+          }
         }
         selectedLong.forEach((longItem, diaIndex) => {
           if (boxItemLL <= longItem.max && boxItemLL >= longItem.min) {
@@ -3171,10 +3177,22 @@ class CornerstoneElement extends Component {
           } else {
             boxes[boIndex].visible = false
           }
+        } else {
+          if (boProSelected && boDiamSelected && boMalSelected) {
+            boxes[boIndex].visible = true
+          } else {
+            boxes[boIndex].visible = false
+          }
         }
       } else {
         if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
+            boxes[boIndex].visible = true
+          } else {
+            boxes[boIndex].visible = false
+          }
+        } else {
+          if (boProSelected && boDiamSelected && boMalSelected) {
             boxes[boIndex].visible = true
           } else {
             boxes[boIndex].visible = false
@@ -3748,12 +3766,29 @@ class CornerstoneElement extends Component {
           } else {
             boxItemLL = Math.sqrt(Math.pow(boxItem.measure.x1 - boxItem.measure.x2, 2) + Math.pow(boxItem.measure.y1 - boxItem.measure.y2, 2))
           }
+        } else {
+          if (spacing) {
+            boxItemLL = boxItem.diameter * spacing
+          } else {
+            boxItemLL = boxItem.diameter
+          }
         }
         selectedLong.forEach((longItem, diaIndex) => {
           if (boxItemLL <= longItem.max && boxItemLL >= longItem.min) {
             boDiamSelected = true
           }
         })
+        // let diameter
+        // if (spacing) {
+        //   diameter = boxItem.diameter * spacing
+        // } else {
+        //   diameter = boxItem.diameter
+        // }
+        // selectedLong.forEach((longItem, diaIndex) => {
+        //   if (diameter <= longItem.max && diameter >= longItem.min) {
+        //     boDiamSelected = true
+        //   }
+        // })
       } else {
         boDiamSelected = true
       }
@@ -3790,10 +3825,22 @@ class CornerstoneElement extends Component {
           } else {
             boxes[boIndex].visible = false
           }
+        } else {
+          if (boProSelected && boDiamSelected && boMalSelected) {
+            boxes[boIndex].visible = true
+          } else {
+            boxes[boIndex].visible = false
+          }
         }
       } else {
         if ((dia / 10).toFixed(2) < this.config.smallNodulesDiameter) {
           if (boProSelected && boDiamSelected && boMalSelected && smallNodulesChecked) {
+            boxes[boIndex].visible = true
+          } else {
+            boxes[boIndex].visible = false
+          }
+        } else {
+          if (boProSelected && boDiamSelected && boMalSelected) {
             boxes[boIndex].visible = true
           } else {
             boxes[boIndex].visible = false
