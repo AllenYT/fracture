@@ -339,6 +339,10 @@ class CornerstoneElement extends Component {
       realname: localStorage.realname ? localStorage.realname : '',
       patientId: null,
       noduleSpacing: null,
+      noduleCompressing: false,
+      noduleCompressParentIndex: null,
+      noduleCompressChildrenIndices: [],
+      confirmCompressing: false,
 
       firstTabActiveIndex: 1,
 
@@ -756,6 +760,7 @@ class CornerstoneElement extends Component {
         item.malOpen = false
         item.textOpen = false
         item.visible = true
+        item.compressed = false
         // if (item.measure) {
         //   if (spacing) {
         //     ll = Math.sqrt(Math.pow(item.measure.x1 - item.measure.x2, 2) + Math.pow(item.measure.y1 - item.measure.y2, 2)) * spacing
@@ -2632,6 +2637,7 @@ class CornerstoneElement extends Component {
       delete backendNodules[currentIdx].visibleIdx
       delete backendNodules[currentIdx].textOpen
       delete backendNodules[currentIdx].malOpen
+      delete backendNodules[currentIdx].compressed
     }
     backendNodules = _.compact(backendNodules)
     return backendNodules
@@ -4149,7 +4155,59 @@ class CornerstoneElement extends Component {
       })
     }
   }
-
+  startCompress(nodule_no) {
+    this.setState({
+      noduleCompressing: true,
+      noduleCompressParentIndex: nodule_no,
+    })
+  }
+  onChangeCompress(idx) {
+    const { boxes } = this.state
+    if (boxes && boxes.length) {
+      boxes[idx].compressed = !boxes[idx].compressed
+    }
+    this.setState({
+      boxes,
+    })
+  }
+  finishCompress() {
+    const { boxes, noduleCompressParentIndex } = this.state
+    try {
+      const parentIndex = _.findIndex(boxes, { nodule_no: noduleCompressParentIndex })
+      if (parentIndex !== -1) {
+        const parentNodule = boxes[parentIndex]
+        const childrenIndices = parentNodule.children && parentNodule.children.length ? parentNodule.children : []
+        boxes.forEach((boxItem, boxIndex) => {
+          if (boxIndex !== parentIndex && boxItem.compressed) {
+            childrenIndices.push(boxItem.slice_idx)
+            boxItem.compressed = false
+            boxItem.isChild = true
+          }
+        })
+        parentNodule.children = childrenIndices
+        console.log(parentNodule, parentNodule.children)
+      }
+      this.setState({
+        boxes,
+        confirmCompress: false,
+        noduleCompressing: false,
+        noduleCompressParentIndex: null,
+      })
+    } catch (e) {
+      message.error('合并失败，发生未知错误')
+      console.log(e)
+      this.setState({
+        confirmCompress: false,
+        noduleCompressing: false,
+        noduleCompressParentIndex: null,
+      })
+    }
+  }
+  setConfirmCompress(compressing) {
+    this.setState({
+      confirmCompressing: compressing,
+    })
+  }
   plotHistogram(idx) {
     var { boxes, chartType, HUSliderRange } = this.state
     if (!(boxes && boxes.length)) {
@@ -5949,6 +6007,10 @@ class CornerstoneElement extends Component {
       checked: false,
       textOpen: false,
       malOpen: false,
+      nodule_no: `new${_.random(200, 1000)}`,
+      compressed: false,
+      isChild: false,
+      children: undefined,
     }
     boxes.push(newBoxItem)
     this.setState({
@@ -6374,6 +6436,9 @@ class CornerstoneElement extends Component {
       displayBorder,
       noduleColorSetting,
       noduleColor,
+      noduleCompressing,
+      noduleCompressParentIndex,
+      confirmCompressing,
 
       nodulesAllChecked,
       smallNodulesChecked,
@@ -6458,6 +6523,7 @@ class CornerstoneElement extends Component {
       showFollowUp,
     } = this.state
     let tableContent
+    let compressedNodules
     let lymphContent
     let noduleNumber = 0
     let lobeContent
@@ -6888,10 +6954,20 @@ class CornerstoneElement extends Component {
     }
     if (!this.state.immersive) {
       if (boxes && boxes.length > 0) {
+        const parentIndex = _.findIndex(boxes, { nodule_no: noduleCompressParentIndex })
+        if (parentIndex !== -1) {
+          compressedNodules = `${boxes[parentIndex].visibleIdx + 1}号`
+        }
         tableContent = boxes // .selectBoxes
           .map((inside, idx) => {
             if (noduleLimited && idx >= 20) {
               return null
+            }
+            if (inside.isChild) {
+              return null
+            }
+            if (inside.compressed) {
+              compressedNodules = compressedNodules ? `${compressedNodules}，${inside.visibleIdx + 1}号` : `${inside.visibleIdx + 1}号`
             }
             if (inside.visible) {
               noduleNumber += 1
@@ -7105,6 +7181,8 @@ class CornerstoneElement extends Component {
                         {/* <Grid.Column widescreen={6} computer={6}>
                 {'\xa0\xa0' + (ll / 10).toFixed(2) + '\xa0\xa0' + ' ×' + '\xa0\xa0' + (sl / 10).toFixed(2) + ' cm'}
               </Grid.Column> */}
+                        <div className="nodule-accordion-item-content-info-slice">{inside.children && inside.children.length ? `${_.min(inside.children)}-${_.max(inside.children)}` : null}</div>
+
                         <div className="nodule-accordion-item-content-info-diam">{inside.volume !== undefined && inside.volume !== 0 ? `${inside.volume.toFixed(3)}cm³` : null}</div>
                         <div className="nodule-accordion-item-content-info-hu">
                           {inside.huMin !== undefined && inside.huMax !== undefined && (inside.huMax !== 0 || inside.huMin !== 0) ? inside.huMin + '~' + inside.huMax + 'HU' : null}
@@ -7164,6 +7242,21 @@ class CornerstoneElement extends Component {
                       <div className="nodule-accordion-item-content-button">
                         <div>
                           <Button size="mini" circular inverted icon="chart bar" title="特征分析" value={idx} onClick={this.featureAnalysis.bind(this, idx)}></Button>
+                          {noduleCompressing ? (
+                            inside.nodule_no === noduleCompressParentIndex ? (
+                              <Checkbox className="button-compress-check" checked disabled>
+                                合并
+                              </Checkbox>
+                            ) : (
+                              <Checkbox className="button-compress-check" checked={inside.compressed} onChange={this.onChangeCompress.bind(this, idx)}>
+                                合并
+                              </Checkbox>
+                            )
+                          ) : (
+                            <Button className="button-custom-compress" size="mini" circular inverted icon title="合并结节" value={idx} onClick={this.startCompress.bind(this, inside.nodule_no)}>
+                              <Icon className="icon-custom-compress"></Icon>
+                            </Button>
+                          )}
                         </div>
                         <div>
                           <Button.Group size="mini" className="measureBtnGroup" style={show3DVisualization ? { display: 'none' } : {}}>
@@ -8490,6 +8583,32 @@ class CornerstoneElement extends Component {
                                             微小结节
                                           </Checkbox>
                                           <div className="nodule-filter-desc-text">已筛选{noduleNumber}个病灶</div>
+                                          {noduleCompressing ? (
+                                            <Popup
+                                              on="click"
+                                              trigger={
+                                                <div className="nodule-filter-desc-compress">
+                                                  <Button className="nodule-filter-desc-compress-header" size="mini" inverted onClick={this.setConfirmCompress.bind(this, true)}>
+                                                    合并
+                                                  </Button>
+                                                </div>
+                                              }
+                                              onOpen={this.setConfirmCompress.bind(this, true)}
+                                              onClose={this.setConfirmCompress.bind(this, false)}
+                                              open={confirmCompressing}>
+                                              <div className="general-confirm-block">
+                                                <div className="general-confirm-info">{`是否合并${compressedNodules ? compressedNodules : ''}结节？`}</div>
+                                                <div className="general-confirm-operation">
+                                                  <Button inverted size="mini" onClick={this.setConfirmCompress.bind(this, false)}>
+                                                    取消
+                                                  </Button>
+                                                  <Button inverted size="mini" onClick={this.finishCompress.bind(this)}>
+                                                    确认
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            </Popup>
+                                          ) : null}
                                         </div>
                                         <div className="nodule-filter-operation">
                                           <Popup

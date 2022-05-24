@@ -455,6 +455,14 @@
 .threed-filter-desc-text {
   margin-left: 5px;
 }
+.nodule-filter-desc-compress{
+  flex: 1;
+  text-align: right;
+}
+.nodule-filter-desc-compress-header{
+  padding-left: 1em !important;
+  padding-right: 1em !important;
+}
 .nodule-filter-operation,
 .threed-filter-operation {
   /* margin-right: 10px; */
@@ -818,8 +826,13 @@
   align-items: center;
   width: 100%;
 }
+.nodule-accordion-item-content-info-slice{
+  width: 28%;
+  margin-left: 7%;
+  color: #2ecc71;
+}
 .nodule-accordion-item-content-info-diam {
-  margin-left: 35%;
+  /* margin-left: 35%; */
   width: 25%;
   text-align: start;
 }
