@@ -2300,6 +2300,9 @@ class CornerstoneElement extends Component {
   }
   menuButtonsCalc() {
     const screenWidth = document.body.clientWidth
+    if (!document.getElementById('menu-item-logo') || !document.getElementById('menu-item-user') || !document.getElementById('menu-item-buttons')) {
+      return
+    }
     const logoWidth = document.getElementById('menu-item-logo').clientWidth
     const userWidth = document.getElementById('menu-item-user').clientWidth
     const menuButtonsWidth = screenWidth - logoWidth - userWidth //可视宽度
@@ -5088,6 +5091,7 @@ class CornerstoneElement extends Component {
   }
   showImages(e) {
     e.stopPropagation()
+    const noduleLimited = this.state.noduleLimited
     const boxes = this.state.boxes
     const imageIds = this.state.imageIds
     const pdfFormValues = _.assign(
@@ -5144,34 +5148,14 @@ class CornerstoneElement extends Component {
           </Row>
         </AntdForm>
         <Divider />
-        {/* <div className="corner-report-modal-title">扫描参数</div>
-        <Table celled>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>检查日期</Table.HeaderCell>
-              <Table.HeaderCell>像素大小(毫米)</Table.HeaderCell>
-              <Table.HeaderCell>厚度 / 间距(毫米)</Table.HeaderCell>
-              <Table.HeaderCell>kV</Table.HeaderCell>
-              <Table.HeaderCell>mA</Table.HeaderCell>
-              <Table.HeaderCell>mAs</Table.HeaderCell>
-              <Table.HeaderCell>厂商</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body></Table.Body>
-        </Table>
-        <div className="corner-report-modal-title">肺部详情</div>
-        <Table celled>
-          <Table.Header>
-            <Table.Row>
-              <Table.HeaderCell>检查日期</Table.HeaderCell>
-              <Table.HeaderCell>体积</Table.HeaderCell>
-              <Table.HeaderCell>结节总体积</Table.HeaderCell>
-            </Table.Row>
-          </Table.Header>
-          <Table.Body></Table.Body>
-        </Table> */}
         {boxes && boxes.length
           ? boxes.map((nodule, index) => {
+              if (noduleLimited && index >= 20) {
+                return null
+              }
+              if (nodule.isChild) {
+                return null
+              }
               let nodule_id = 'nodule-' + nodule.nodule_no + '-' + nodule.slice_idx
               let visualId = 'visual' + index
               // console.log('visualId',visualId)
@@ -5216,14 +5200,13 @@ class CornerstoneElement extends Component {
                 return (
                   <div key={index}>
                     <div>&nbsp;</div>
-                    <div className="corner-report-modal-title" id="noduleDivide">
-                      结节 {index + 1}
-                    </div>
+                    <div className="corner-report-modal-title">结节 {index + 1}</div>
                     <Table celled textAlign="center">
                       <Table.Header>
                         <Table.Row>
                           <Table.HeaderCell width={7}>检查日期</Table.HeaderCell>
-                          <Table.HeaderCell width={11}>{this.state.date}</Table.HeaderCell>
+                          {/* <Table.HeaderCell width={11}>{`${this.state.date.getFullYear()}年${this.state.date.getMonth()}月${this.state.date.getDay()}日`}</Table.HeaderCell> */}
+                          <Table.HeaderCell width={11}>{''}</Table.HeaderCell>
                         </Table.Row>
                       </Table.Header>
                       <Table.Body>
@@ -5283,7 +5266,6 @@ class CornerstoneElement extends Component {
           : null}
       </>
     )
-
     this.setState(
       {
         pdfContent,
@@ -5292,6 +5274,12 @@ class CornerstoneElement extends Component {
       () => {
         boxes.map((nodule, index) => {
           // console.log('nodules1',nodule)
+          if (noduleLimited && index >= 20) {
+            return
+          }
+          if (nodule.isChild) {
+            return
+          }
           if (!nodule.visible || !nodule.checked) {
             return
           }
@@ -5319,12 +5307,19 @@ class CornerstoneElement extends Component {
     )
   }
   updateForm() {
+    const noduleLimited = this.state.noduleLimited
     const boxes = this.state.boxes
     const imageIds = this.state.imageIds
     const pdfFormValues = this.state.pdfFormValues
     const reportImageText = this.state.reportImageText
     const pdfReading = this.state.pdfReading
     const visibleNodules = boxes.map((item, index) => {
+      if (noduleLimited && index >= 20) {
+        return null
+      }
+      if (item.isChild) {
+        return null
+      }
       const pdfNodulePosition = item.place === 0 ? nodulePlaces[item.place] : noduleSegments[item.segment]
       const pdfNoduleRepresents = []
       if (item.lobulation === 2) {
@@ -5465,6 +5460,12 @@ class CornerstoneElement extends Component {
           })
         } else {
           boxes.map((nodule, index) => {
+            if (noduleLimited && index >= 20) {
+              return
+            }
+            if (nodule.isChild) {
+              return
+            }
             if (!nodule.visible || !nodule.checked) {
               return
             }
